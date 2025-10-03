@@ -1,0 +1,169 @@
+\chapter{Instruksi Dasar: Perpindahan Data (MOV), Operasi Aritmatika (ADD, SUB, MUL, DIV)}
+
+\section{Tujuan Pembelajaran}
+Setelah pertemuan ini, mahasiswa mampu:
+\begin{itemize}
+  \item Menggunakan instruksi perpindahan data \texttt{MOV} dengan benar pada variasi operand register dan memori.
+  \item Melakukan operasi aritmatika dasar (\texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV}) pada data 8/16-bit.
+  \item Menjelaskan pengaruh instruksi aritmatika terhadap \textit{flag} prosesor (\texttt{CF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}, \texttt{PF}, \texttt{AF}).
+  \item Menulis program aritmatika sederhana yang aman dan memperhatikan kasus tepi (overflow, pembagian nol).
+\end{itemize}
+
+\section{Pendahuluan}
+Instruksi perpindahan dan aritmatika merupakan fondasi pemrograman assembly. Pemahaman mendalam mengenai operand, mode pengalamatan, dan efek \textit{flag} akan menentukan ketepatan logika program. Pada 8086, variasi operand dan pembatasan ukuran data harus dipatuhi agar instruksi valid.
+
+\section{Materi Pembelajaran}
+\subsection{Instruksi Perpindahan Data (MOV)}
+\subsubsection{Sintaks dan aturan penggunaan}
+Bentuk umum: \texttt{MOV destination, source}. Aturan pokok: ukuran operand harus sama; perpindahan memori-ke-memori langsung tidak diperbolehkan (harus melalui register); beberapa register khusus (\texttt{CS}) tidak dapat ditulis langsung dengan \texttt{MOV} biasa.
+
+\subsubsection{Antar register}
+\begin{verbatim}
+mov ax, bx      ; salin BX -> AX (16-bit)
+mov al, ah      ; salin AH -> AL (8-bit)
+\end{verbatim}
+
+\subsubsection{Dari/ke memori}
+\begin{verbatim}
+mov ax, [si]        ; baca word dari DS:SI ke AX
+mov [bx+4], dl      ; tulis byte DL ke DS:[BX+4]
+\end{verbatim}
+
+\subsubsection{Dengan konstanta}
+\begin{verbatim}
+mov ax, 1234h   ; immediate -> register
+mov byte ptr [di], 0 ; immediate -> memori (byte)
+\end{verbatim}
+
+\subsubsection{Contoh dan praktik baik}
+Gunakan \texttt{BYTE PTR}/\texttt{WORD PTR} untuk memperjelas ukuran operand bila ambigu. Pastikan segmen default (\texttt{DS} untuk data, \texttt{SS} untuk \texttt{BP}) dipahami saat mengakses memori.
+
+\subsection{Operasi Aritmatika}
+\subsubsection{ADD dan SUB}
+\begin{verbatim}
+mov ax, 5
+add ax, 3      ; AX = 8, ZF=0, CF=0
+sub ax, 10     ; AX = FFFEh (jika 16-bit), SF=1, mungkin CF=1
+\end{verbatim}
+\textbf{Catatan}: \texttt{ADD}/\texttt{SUB} memutakhirkan \texttt{CF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}, \texttt{AF}, \texttt{PF} sesuai hasil.
+
+\subsubsection{MUL dan DIV}
+\texttt{MUL} dan \texttt{DIV} menggunakan register implisit:\newline
+\textbf{8-bit}: \texttt{MUL r/m8} -> \texttt{AX = AL * r/m8}; \texttt{DIV r/m8} -> \texttt{AL = AX / r/m8}, \texttt{AH = AX mod r/m8}.\newline
+\textbf{16-bit}: \texttt{MUL r/m16} -> hasil di \texttt{DX:AX}; \texttt{DIV r/m16} -> \texttt{AX = DX:AX / r/m16}, sisa di \texttt{DX}.
+\begin{verbatim}
+; Perkalian 16-bit
+mov ax, 1234h
+mov bx, 0002h
+mul bx           ; DX:AX = AX * BX
+
+; Pembagian 8-bit
+mov ax, 0123h    ; AL=23h, AH=01h -> 0x0123 = 291 desimal
+mov bl, 0Ah      ; 10 desimal
+div bl           ; AL=29h (41 des), AH=01h (sisa 1)
+\end{verbatim}
+\textbf{Perhatian}: \texttt{DIV} memicu kesalahan pembagian jika penyebut 0 atau hasil tidak muat dalam register hasil.
+
+\subsubsection{Penanganan overflow/underflow}
+Pantau \texttt{OF}/\texttt{CF} setelah operasi. Gunakan percabangan untuk menangani kondisi luapan. Untuk operasi bertanda, gunakan instruksi khusus (mis. \texttt{IMUL}/\texttt{IDIV} pada prosesor yang mendukung) dan interpretasi \texttt{SF}/\texttt{OF}.
+
+\subsection{Flag Register dan Operasi Aritmatika}
+\begin{itemize}
+  \item \textbf{CF (Carry)}: Menandakan carry keluar pada penjumlahan atau borrow pada pengurangan (aritmatika tak bertanda).
+  \item \textbf{ZF (Zero)}: Hasil operasi bernilai nol.
+  \item \textbf{SF (Sign)}: Bit tertinggi hasil (menunjukkan tanda pada interpretasi bertanda).
+  \item \textbf{OF (Overflow)}: Luapan pada aritmatika bertanda (hasil tidak muat dalam rentang bertanda).
+  \item \textbf{PF (Parity)}: Paritas bit rendah dari hasil (jumlah bit 1 genap).
+  \item \textbf{AF (Auxiliary Carry)}: Carry dari bit 3 ke bit 4 (relevan untuk BCD).
+\end{itemize}
+\noindent\textbf{Contoh pemeriksaan flag}
+\begin{verbatim}
+add ax, bx
+jo overflow_handler   ; jika overflow bertanda
+jc carry_handler      ; jika carry (tak bertanda)
+jz zero_handler       ; jika hasil nol
+\end{verbatim}
+
+\section{Contoh Soal dan Pembahasan}
+\begin{enumerate}
+  \item \textbf{Program perpindahan data antar register}.\\ Tunjukkan \texttt{MOV AX,BX}, \texttt{MOV CH,CL}, dan jelaskan ukuran operand.
+  \item \textbf{Penjumlahan dua bilangan 16-bit}.\\ Baca dari memori ke register, \texttt{ADD}, simpan kembali. Bahas \texttt{CF}/\texttt{OF}.
+  \item \textbf{Pengurangan dengan penanganan flag}.\\ Gunakan \texttt{SBB} bila ada carry sebelumnya; contohkan cabang jika \texttt{CF}=1.
+  \item \textbf{Perkalian dan pembagian}.\\ Tunjukkan tata letak hasil \texttt{MUL} (\texttt{DX:AX}) dan \texttt{DIV} (hasil dan sisa).
+  \item \textbf{Kalkulator sederhana}.\\ Rangka kerangka input satu digit dan operasi dasar; bahas validasi pembagian dengan nol.
+\end{enumerate}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Buat program menghitung \((A+B) - (C+D)\) untuk empat bilangan 16-bit di memori. Laporkan \texttt{CF}/\texttt{OF}.
+  \item Buat program menghitung \((X \times Y) / Z\) (8-bit), lengkapi pemeriksaan penyebut nol dan luapan hasil.
+  \item Jelaskan secara tertulis bagaimana \texttt{CF}, \texttt{OF}, \texttt{ZF}, \texttt{SF} berubah pada masing-masing operasi contoh Anda.
+  \item Buat program yang menampilkan status flag setelah \texttt{ADD} dan \texttt{SUB} menggunakan instruksi cabang bersyarat dan tulis hasil ke memori.
+\end{enumerate}
+
+\section{Praktikum}
+\begin{enumerate}
+  \item Implementasikan skenario perpindahan data antar register dan antara register-memori; verifikasi dengan debugger.
+  \item Implementasikan penjumlahan/pengurangan 16-bit, amati \texttt{CF}/\texttt{OF} di debugger.
+  \item Implementasikan \texttt{MUL}/\texttt{DIV} (8-bit dan 16-bit), catat tata letak hasil dan sisa.
+  \item Susun \textit{mini-kalkulator} yang menerima dua operand kecil (hard-coded) dan memilih operasi melalui konstanta; tampilkan hasil via \texttt{INT 21h, AH=09h} (konversi numerik sederhana dapat berupa heksadesimal).
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program operasi aritmatika dasar
+TITLE Operasi Aritmatika
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    bil1 DW 15
+    bil2 DW 7
+    hasil DW ?
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Penjumlahan
+    MOV AX, bil1
+    ADD AX, bil2
+    MOV hasil, AX
+    
+    ; Pengurangan
+    MOV AX, bil1
+    SUB AX, bil2
+    
+    ; Perkalian (16-bit implisit: DX:AX = AX * bil2)
+    MOV AX, bil1
+    MOV BX, bil2
+    MUL BX
+    
+    ; Pembagian (16-bit implisit: AX = DX:AX / BX, sisa di DX)
+    XOR DX, DX
+    MOV AX, bil1
+    MOV BX, bil2
+    ; Pastikan BX != 0 sebelum DIV
+    OR BX, BX
+    JZ done
+    DIV BX
+
+ done:
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Kalkulator sederhana}: Implementasikan operasi \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/} untuk operand 8-bit. Tampilkan hasil dalam heksadesimal; tangani pembagian nol.
+  \item \textbf{Rata-rata 5 bilangan}: Baca lima nilai 8-bit dari memori, hitung jumlah 16-bit, bagi dengan 5 menggunakan \texttt{DIV} (perhatikan sisa), tampilkan hasil.
+  \item \textbf{Dokumentasi flag}: Buat tabel eksperimen yang menunjukkan nilai \texttt{CF}, \texttt{OF}, \texttt{ZF}, \texttt{SF}, \texttt{PF}, \texttt{AF} untuk beberapa kombinasi operand; jelaskan anomali yang Anda amati.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\end{itemize}
