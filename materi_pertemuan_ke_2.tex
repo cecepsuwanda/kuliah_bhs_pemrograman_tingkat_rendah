@@ -1,0 +1,155 @@
+\chapter{Arsitektur Mikroprosesor Intel 8086: Register, Segmentasi Memori, Mode Pengalamatan; Struktur File ASM}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa mampu:
+\begin{itemize}
+  \item Menggambarkan arsitektur internal Intel 8086 beserta karakteristik historisnya.
+  \item Menjelaskan fungsi register-register utama (umum, indeks, pointer, segmen, IP, FLAGS).
+  \item Menjelaskan segmentasi memori, pembentukan alamat fisik, dan batasan mode real.
+  \item Menerapkan berbagai mode pengalamatan pada contoh instruksi sederhana.
+  \item Menyusun struktur berkas ASM yang benar dengan direktif umum.
+\end{itemize}
+
+\section{Pendahuluan}
+Intel 8086 (1978) merupakan mikroprosesor 16-bit yang memperkenalkan arsitektur x86. Meskipun modernisasi arsitektur telah berlangsung selama dekade, banyak konsep fundamental (register, segmentasi, mode pengalamatan) tetap relevan untuk memahami pemrograman tingkat rendah dan kompatibilitas ke belakang.
+
+\section{Materi Pembelajaran}
+\subsection{Arsitektur Mikroprosesor Intel 8086}
+\subsubsection{Sejarah dan karakteristik Intel 8086}
+Intel 8086 adalah prosesor 16-bit dengan bus alamat 20-bit, memungkinkan pengalamatan hingga 1 MB memori. Diperkenalkan untuk meningkatkan kemampuan 8080/8085 dan menjadi dasar ekosistem PC awal.
+
+\subsubsection{Arsitektur internal mikroprosesor}
+8086 dapat dipandang terdiri dari dua bagian utama: \textit{Bus Interface Unit} (BIU) dan \textit{Execution Unit} (EU). BIU menangani pengambilan instruksi (prefetch) dari memori dan interaksi bus, sedangkan EU mengeksekusi instruksi, mengelola ALU, register, dan flags. Mekanisme \textit{prefetch queue} meningkatkan \textit{throughput} dengan menyiapkan instruksi sebelum dieksekusi.
+
+\subsubsection{Bus sistem dan kontrol}
+Bus alamat 20-bit memungkinkan akses 1 MB (\(2^{20}\) byte). Bus data 16-bit memindahkan data per word. Sinyal kontrol (RD, WR, M/IO, INTA, dsb.) mengoordinasikan siklus baca/tulis memori dan I/O. Interupsi dapat memicu transfer kontrol ke \textit{interrupt vector table} di alamat rendah memori.
+
+\subsubsection{Mode operasi (real mode)}
+Pada 8086, hanya ada \textit{real mode}. Alamat fisik dihitung sebagai \(\text{segmen} \times 16 + \text{offset}\). Tidak ada proteksi memori atau \textit{paging}. Kode memiliki akses penuh ke seluruh ruang alamat 1 MB, yang menuntut disiplin pengaturan segmen.
+
+\subsection{Register-Register Utama}
+\subsubsection{Register umum (AX, BX, CX, DX)}
+\begin{itemize}
+  \item \textbf{AX} (Accumulator): sering dipakai untuk operasi aritmatika/\textit{I/O}; memiliki bagian 8-bit \texttt{AH}/\texttt{AL}.
+  \item \textbf{BX} (Base): kerap sebagai basis pengalamatan memori; bagian \texttt{BH}/\texttt{BL}.
+  \item \textbf{CX} (Count): digunakan sebagai pencacah pada instruksi \texttt{LOOP}, \texttt{REP}; bagian \texttt{CH}/\texttt{CL}.
+  \item \textbf{DX} (Data): terlibat pada operasi perkalian/pembagian word dan port I/O; bagian \texttt{DH}/\texttt{DL}.
+\end{itemize}
+
+\subsubsection{Register indeks (SI, DI)}
+\textbf{SI} (Source Index) dan \textbf{DI} (Destination Index) digunakan pada instruksi string (\texttt{MOVS}, \texttt{CMPS}, \texttt{SCAS}, \texttt{LODS}, \texttt{STOS}). Biasanya, \texttt{DS:SI} menunjuk sumber dan \texttt{ES:DI} menunjuk tujuan.
+
+\subsubsection{Register pointer (SP, BP)}
+\textbf{SP} (Stack Pointer) menunjuk puncak stack relatif terhadap \texttt{SS}. \textbf{BP} (Base Pointer) membantu \textit{frame} stack untuk parameter lokal (sering digunakan dengan \texttt{SS:BP}).
+
+\subsubsection{Register segmen (CS, DS, SS, ES)}
+\textbf{CS}: segmen kode; \textbf{DS}: segmen data; \textbf{SS}: segmen stack; \textbf{ES}: segmen ekstra (mis. tujuan pada instruksi string). Kombinasi pasangan segmen:offset membentuk alamat fisik.
+
+\subsubsection{Register flag (FLAGS)}
+Mencerminkan hasil operasi aritmatika/logika dan mengendalikan perilaku instruksi: \textbf{ZF} (Zero), \textbf{CF} (Carry), \textbf{SF} (Sign), \textbf{OF} (Overflow), \textbf{PF} (Parity), \textbf{AF} (Auxiliary Carry), serta \textbf{IF} (Interrupt Enable), \textbf{DF} (Direction), \textbf{TF} (Trap) untuk kontrol eksekusi.
+
+\subsubsection{Register instruksi (IP)}
+\textbf{IP} (Instruction Pointer) menyimpan offset instruksi berikutnya dalam segmen kode (\texttt{CS}). Saat instruksi \texttt{CALL}/\texttt{JMP} terjadi, \texttt{IP} diperbarui sesuai target.
+
+\subsection{Segmentasi Memori}
+\subsubsection{Konsep segmentasi memori}
+Memecah ruang alamat fisik menjadi segmen logis untuk kode, data, dan stack. Ini memudahkan organisasi program dan memungkinkan reposisi segmen dalam ruang 1 MB.
+
+\subsubsection{Register segmen dan offset}
+Alamat logis dinyatakan sebagai pasangan \(\text{segment}:\text{offset}\). Contoh: \texttt{DS} berisi \(0x1234\), \texttt{BX} berisi \(0x0020\), maka alamat efektif data bisa \texttt{[BX]} dengan segmen default \texttt{DS}.
+
+\subsubsection{Perhitungan alamat fisik}
+Alamat fisik: \(\text{phys} = 16 \times \text{segment} + \text{offset}\). Contoh: \(\text{CS} = 2000_h\), \(\text{IP} = 0100_h\) \(\Rightarrow \text{phys} = 0x2000\times 16 + 0x0100 = 0x20100\).
+
+\subsubsection{Batasan memori dalam mode real}
+Offset 16-bit membatasi panjang segmen hingga 64 KB. Tumpang tindih segmen dimungkinkan (segment \texttt{0x1000:0010} dan \texttt{0x1001:0000} menunjuk alamat fisik yang sama). Tidak ada proteksi akses antar segmen.
+
+\subsection{Mode Pengalamatan}
+\subsubsection{Pengalamatan register}
+Operand berada pada register. Contoh: \texttt{MOV AX, BX}.
+
+\subsubsection{Pengalamatan langsung}
+Nilai konstan langsung sebagai operand. Contoh: \texttt{MOV AX, 1234h}.
+
+\subsubsection{Pengalamatan memori langsung}
+Alamat memori diberikan eksplisit (offset). Contoh (TASM sintaks): \texttt{MOV AL, [1234h]} (menggunakan segmen default \texttt{DS}).
+
+\subsubsection{Pengalamatan register tidak langsung}
+Register berisi offset yang menunjuk memori: \texttt{MOV AL, [BX]}; segmen default \texttt{DS} kecuali untuk beberapa instruksi stack.
+
+\subsubsection{Pengalamatan berbasis indeks}
+Kombinasi register basis/indeks dengan displacement: \texttt{MOV AL, [BX+SI+8]} atau \texttt{MOV AX, [BP+DI+16]} (segmen default untuk alamat berbasis \texttt{BP} adalah \texttt{SS}).
+
+\subsubsection{Pengalamatan berbasis register}
+Istilah ini sering merujuk pada variasi kombinasi \texttt{BX}, \texttt{BP}, \texttt{SI}, \texttt{DI}, dengan/ tanpa displacement. Penting untuk memahami segmen default: \texttt{DS} untuk \texttt{BX}/\texttt{SI}/\texttt{DI}, \texttt{SS} untuk \texttt{BP}.
+
+\noindent\textbf{Contoh ringkas 8086}
+\begin{verbatim}
+org 100h
+; Inisialisasi data
+mov ax, data
+mov ds, ax
+
+; Pengalamatan langsung
+mov ax, 1234h
+
+; Memori langsung (absolute offset di DS)
+mov al, [1234h]
+
+; Tidak langsung via BX
+mov bx, 0040h
+mov al, [bx]
+
+; Berbasis indeks
+mov si, 0010h
+mov dl, [bx+si+5]
+
+int 20h
+
+segment data
+msg db 'X', 0
+\end{verbatim}
+
+\section{Struktur File ASM}
+\subsection{Format dasar file assembly}
+Program \texttt{.COM} (TASM) lazim menggunakan \texttt{org 100h} dan satu segmen kode datar; program \texttt{.EXE} umumnya mendefinisikan segmen \texttt{.code}, \texttt{.data}, dan mengisi \texttt{END} dengan titik masuk.
+
+\subsection{Direktif assembler}
+Contoh umum: \texttt{ORG}, \texttt{DB}/\texttt{DW}/\texttt{DD} (pendefinisian data), \texttt{SEGMENT}/\texttt{ENDS}, \texttt{ASSUME}, \texttt{END}. Makna tepatnya tergantung assembler (TASM/MASM/NASM) dan model memori.
+
+\subsection{Komentar dalam kode}
+Gunakan \texttt{;} untuk komentar baris. Komentar harus menjelaskan maksud, bukan menyalin ulang instruksi.
+
+\subsection{Organisasi kode program}
+Pisahkan data dari kode. Gunakan label yang deskriptif, dan pertahankan konvensi penamaan konsisten. Untuk prosedur, dokumentasikan input/output via register atau stack.
+
+\section{Contoh Soal dan Pembahasan}
+\begin{enumerate}
+  \item \textbf{Fungsi register AX, BX, CX, DX}.\\ AX: akumulator; BX: basis alamat; CX: pencacah; DX: perpanjangan hasil/operand I/O.
+  \item \textbf{Hitung alamat fisik jika CS = 2000h dan IP = 0100h}.\\ \(\text{phys} = 0x2000\times 16 + 0x0100 = 0x20100\).
+  \item \textbf{Contoh pengalamatan register}.\\ \texttt{MOV AX, BX} menyalin isi \texttt{BX} ke \texttt{AX}.
+  \item \textbf{Struktur dasar file ASM}.\\ Untuk \texttt{.COM}: \texttt{org 100h}, kode utama, \texttt{int 20h}, akhir. Untuk \texttt{.EXE}: segmen \texttt{.data}, \texttt{.code}, prosedur \texttt{main}, \texttt{END main}.
+\end{enumerate}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Diberikan \(\text{DS}=1234_h\) dan \(\text{BX}=0020_h\). Tentukan alamat fisik untuk \texttt{MOV AL, [BX+10h]}.
+  \item Tunjukkan tiga variasi mode pengalamatan berbeda untuk membaca satu byte dari array pada \texttt{DS}.
+  \item Tentukan flags yang terpengaruh oleh instruksi \texttt{ADD}, \texttt{SUB}, dan berikan contoh singkat yang mengubah \texttt{CF} dan \texttt{OF}.
+  \item Rancang sketsa struktur berkas ASM untuk program \texttt{.EXE} sederhana dengan satu prosedur dan satu data string.
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Diagram arsitektur 8086}: Gambar blok BIU/EU, bus, serta aliran prefetch. Beri keterangan fungsi setiap blok.
+  \item \textbf{Esai (400--600 kata)}: Bedakan register segmen vs. register umum dari perspektif peran dalam pembentukan alamat dan eksekusi instruksi; sertakan contoh.
+  \item \textbf{Studi mode pengalamatan}: Buat tabel minimal 8 contoh instruksi yang mencakup register, langsung, tidak langsung, berbasis indeks, dan kombinasi displacement. Jelaskan segmen default yang digunakan.
+  \item \textbf{Template berkas ASM}: Buat \LaTeX{} lampiran berisi \textit{template} program \texttt{.COM} dan \texttt{.EXE} (TASM/MASM), dilengkapi komentar pedoman.
+\end{itemize}
+\noindent\textbf{Keluaran}: PDF jawaban + berkas sumber, sertakan uji asersi manual untuk perhitungan alamat fisik.
+
+\section{Referensi}
+\begin{itemize}
+  \item Brey, Barry B. \textit{Mikroprosesor Intel 8086/8088 dsb.}, Penerbit Informatika.
+  \item Intel Corporation. \textit{Intel 64 and IA-32 Architectures Software Developer's Manual} (bagian pengantar).
+\end{itemize}
