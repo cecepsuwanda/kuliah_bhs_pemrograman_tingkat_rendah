@@ -1,0 +1,199 @@
+\chapter{Instruksi Logika (AND, OR, XOR, NOT); Output Teks ke Layar (INT 10h fungsi 02h)}
+
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
+\begin{itemize}
+  \item Menerapkan instruksi logika \texttt{AND}, \texttt{OR}, \texttt{XOR}, \texttt{NOT} pada data 8/16-bit.
+  \item Memahami operasi bitwise, masking, set/clear bit, dan kasus penggunaan praktis.
+  \item Menggunakan layanan BIOS video \texttt{INT 10h} (fungsi \texttt{02h}, \texttt{09h}, \texttt{0Ah}, \texttt{0Eh}) untuk output teks dan kontrol kursor.
+  \item Menampilkan teks di layar dengan kontrol posisi dan atribut warna.
+\end{itemize}
+
+\section{Pendahuluan}
+Instruksi logika menyediakan manipulasi bit tingkat rendah yang fundamental untuk kontrol perangkat keras, pengolahan bendera (flag), dan optimasi. Pada sisi output, layanan BIOS \texttt{INT 10h} memungkinkan interaksi langsung dengan tampilan dalam mode teks/TTY, relevan untuk program DOS dan lingkungan \textit{bare-metal}-like.
+
+\section{Materi Pembelajaran}
+\subsection{Instruksi Logika}
+\subsubsection{AND}
+Operasi konjungsi bitwise: bit hasil 1 jika dan hanya jika kedua operand 1. Umum untuk \textit{masking} menghapus bit tertentu.
+\begin{verbatim}
+mov ax, 0A5Fh
+and ax, 00FFh    ; simpan hanya 8 bit rendah -> AX = 005Fh
+\end{verbatim}
+\textbf{Flags}: memperbarui \texttt{ZF}, \texttt{SF}, \texttt{PF}; \texttt{CF} dan \texttt{OF} direset ke 0.
+
+\subsubsection{OR}
+Disjungsi bitwise: bit hasil 1 jika salah satu operand 1. Berguna untuk menyetel bit spesifik.
+\begin{verbatim}
+mov al, 00110000b
+or  al, 00000101b  ; set bit 0 dan 2 -> 00110101b
+\end{verbatim}
+\textbf{Flags}: \texttt{ZF}, \texttt{SF}, \texttt{PF} diperbarui; \texttt{CF}, \texttt{OF} = 0.
+
+\subsubsection{XOR}
+Eksklusif-or: 1 jika operand berbeda; \textit{involutif} (\texttt{x xor k xor k = x}). Biasa untuk enkripsi sederhana dan pembersihan register cepat.
+\begin{verbatim}
+xor ax, ax   ; cepat set AX=0, tanpa memuat immediate
+\end{verbatim}
+\textbf{Flags}: mirip \texttt{AND}/\texttt{OR}; \texttt{CF}, \texttt{OF} = 0.
+
+\subsubsection{NOT}
+Komplemen bitwise (unary). Sering dipakai untuk inversi \textit{mask}.
+\begin{verbatim}
+mov bl, 11110000b
+not bl                 ; BL = 00001111b
+\end{verbatim}
+\textbf{Flags}: tidak terpengaruh (kecuali implementasi spesifik; pada 8086, flags tidak terdefinisi diubah untuk NOT—anggap tidak relevan).
+
+\subsubsection{Operasi bitwise dan aplikasinya}
+\begin{itemize}
+  \item \textbf{Masking}: \texttt{AND} untuk \textit{clear}, \texttt{OR} untuk \textit{set}, \texttt{XOR} untuk \textit{toggle}.
+  \item \textbf{Packing/unpacking} field bit dalam satu byte/word.
+  \item \textbf{Uji bit}: kombinasikan \texttt{TEST} (seperti \texttt{AND} tanpa menyimpan hasil) dan percabangan pada \texttt{ZF}.
+\end{itemize}
+\begin{verbatim}
+; uji bit 3 (hitung dari 0)
+mov al, value
+mov ah, al
+and ah, 00001000b
+jz  bit3_clear
+; bit3_set ...
+\end{verbatim}
+
+\subsection{Aplikasi Instruksi Logika}
+\subsubsection{Manipulasi bit dan masking}
+\begin{verbatim}
+; clear 2 bit terendah
+and al, 11111100b
+; set bit 7
+or  al, 10000000b
+; toggle bit 4
+xor al, 00010000b
+\end{verbatim}
+
+\subsubsection{Enkripsi sederhana (XOR)}
+\begin{verbatim}
+; enkripsi/dekripsi XOR dengan kunci tunggal
+mov al, [si]
+xor al, key
+mov [di], al
+\end{verbatim}
+\textit{Catatan}: XOR cipher lemah dan hanya untuk demonstrasi.
+
+\subsubsection{Operasi set dan clear bit, perbandingan bit}
+Gunakan \texttt{BT}/\texttt{BTS}/\texttt{BTR} pada prosesor lebih baru; pada 8086, gunakan \texttt{AND}/\texttt{OR}/\texttt{XOR} manual. Perbandingan bit dilakukan dengan \texttt{TEST}.
+
+\subsection{Interupsi BIOS INT 10h}
+\subsubsection{Fungsi 02h: Set Cursor Position}
+\begin{itemize}
+  \item \texttt{AH=02h}, \texttt{BH=page}, \texttt{DH=row}, \texttt{DL=column}; \texttt{INT 10h}.
+  \item Koordinat 0-berbasis; pastikan dalam batas mode teks (mis. 25x80).
+\end{itemize}
+\subsubsection{Fungsi 09h: Write Character and Attribute}
+\begin{itemize}
+  \item \texttt{AH=09h}, \texttt{AL=char}, \texttt{BH=page}, \texttt{BL=attribute}, \texttt{CX=count}; \texttt{INT 10h}.
+  \item Menulis dengan atribut warna; tidak memajukan kursor secara \textit{TTY-like} untuk semua mode.
+\end{itemize}
+\subsubsection{Fungsi 0Ah: Write Character Only}
+\begin{itemize}
+  \item \texttt{AH=0Ah}, parameter mirip, menggunakan atribut saat ini.
+\end{itemize}
+\subsubsection{Fungsi 0Eh: Write Character in TTY Mode}
+\begin{itemize}
+  \item \texttt{AH=0Eh}, \texttt{AL=char}, \texttt{BH=page}, \texttt{BL=color}; menulis seperti \texttt{teletype}, memajukan kursor dan menggulir bila perlu.
+\end{itemize}
+
+\subsection{Output Teks ke Layar}
+\subsubsection{Kontrol posisi kursor}
+Pindahkan kursor ke (baris, kolom) dengan \texttt{AH=02h}. Tulis teks karakter-per-karakter (\texttt{0Eh}) atau \texttt{09h} untuk pengulangan.
+
+\subsubsection{Atribut karakter (warna)}
+Atribut 8-bit: 4 bit latar depan + 3 bit latar belakang + 1 bit berkedip. Contoh: \texttt{1Eh} (kuning di biru).
+
+\subsubsection{Mode teks dan grafik}
+Materi ini berfokus pada mode teks; mode grafik memerlukan fungsi \texttt{INT 10h} lain (dibahas pada pertemuan grafik).
+
+\subsubsection{Penanganan karakter khusus}
+Untuk baris baru, gunakan pasangan \texttt{'\r'} dan \texttt{'\n'} atau \texttt{TTY 0Eh}. Simbol \texttt{'$'} digunakan oleh \texttt{INT 21h, AH=09h}, bukan \texttt{INT 10h}.
+
+\section{Contoh Soal dan Pembahasan}
+\begin{enumerate}
+  \item \textbf{Masking 8 bit terakhir}.\\ Gunakan \texttt{AND AX, 00FFh} untuk mengekstrak byte rendah dari word.
+  \item \textbf{Enkripsi XOR}.\\ Tunjukkan bahwa \texttt{x xor k xor k = x} untuk pembuktian dekripsi.
+  \item \textbf{Menampilkan teks di posisi tertentu}.\\ Pindahkan kursor (\texttt{AH=02h}) lalu panggil \texttt{AH=09h} atau \texttt{0Eh}.
+  \item \textbf{Teks berwarna}.\\ Tentukan atribut warna pada \texttt{BL} untuk \texttt{AH=09h}.
+\end{enumerate}
+
+\section{Praktikum}
+\begin{enumerate}
+  \item Implementasi \textit{bit playground}: \texttt{AND}/\texttt{OR}/\texttt{XOR}/\texttt{NOT} terhadap nilai contoh, tampilkan hasil dalam heksadesimal.
+  \item Implementasi masking dan uji bit spesifik menggunakan \texttt{TEST} + cabang.
+  \item Implementasi enkripsi XOR pada buffer kecil di memori (hard-coded); verifikasi dekripsi.
+  \item Implementasi output teks: atur kursor ke beberapa posisi dan cetak karakter/teks dengan atribut berbeda.
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program operasi logika dan output teks
+TITLE Operasi Logika dan Output
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan DB 'Hello Assembly!$'
+    nilai1 DW 0F0F0h
+    nilai2 DW 0FF00h
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Operasi logika
+    MOV AX, nilai1
+    AND AX, nilai2    ; Masking
+    OR AX, 000Fh      ; Set bit terakhir
+    XOR AX, 0FFFFh    ; Inversi
+    NOT AX            ; Komplemen
+    
+    ; Output teks ke layar
+    MOV AH, 02h       ; Set cursor position
+    MOV BH, 00h       ; Page 0
+    MOV DH, 10        ; Row 10
+    MOV DL, 20        ; Column 20
+    INT 10h
+    
+    ; Tampilkan karakter
+    MOV AH, 09h       ; Write character
+    MOV AL, 'A'       ; Character 'A'
+    MOV BH, 00h       ; Page 0
+    MOV BL, 1Eh       ; Yellow on blue
+    MOV CX, 1         ; Count
+    INT 10h
+    
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Buat program yang melakukan masking pada 8 bit terakhir untuk sejumlah data dalam array; simpan hasil ke array tujuan.
+  \item Buat program enkripsi/dekripsi XOR untuk string dengan kunci 1 byte; tampilkan hasil terenkripsi dalam heksadesimal.
+  \item Buat program yang menampilkan teks pada empat sudut layar (0,0), (0,79), (24,0), (24,79).
+  \item Buat program yang menampilkan teks dengan semua kombinasi warna latar depan standar pada latar belakang biru.
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Manipulasi data}: Implementasikan rutin \texttt{set\_bit}, \texttt{clear\_bit}, \texttt{toggle\_bit} untuk sebuah byte di memori; sertakan pengujian.
+  \item \textbf{Menu teks}: Buat menu sederhana dengan kontrol posisi kursor, garis pemisah menggunakan karakter ASCII, dan pilihan bernomor; sorot pilihan aktif dengan atribut warna.
+  \item \textbf{XOR cipher}: Implementasikan enkripsi/dekripsi string berbasis XOR (1 byte kunci), dokumentasikan kelemahannya dan skenario edukatifnya.
+  \item \textbf{Dokumentasi INT 10h}: Buat ringkasan parameter untuk fungsi 02h, 09h, 0Ah, 0Eh dan contoh singkat masing-masing.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\end{itemize}
