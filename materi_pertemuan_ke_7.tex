@@ -1,0 +1,177 @@
+\chapter{Percabangan dan Loop: CMP, JE, JNE, JL, JG, LOOP; Interupsi Mouse (INT 33h)}
+
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
+\begin{itemize}
+  \item Menggunakan instruksi \texttt{CMP} untuk perbandingan dan membaca dampaknya pada \textit{flags}.
+  \item Menerapkan lompatan bersyarat \texttt{JE}, \texttt{JNE}, \texttt{JL}/\texttt{JG} dan variasinya berdasarkan interpretasi bertanda/tak bertanda.
+  \item Menggunakan \texttt{LOOP}, \texttt{LOOPE}/\texttt{LOOPZ}, \texttt{LOOPNE}/\texttt{LOOPNZ} untuk perulangan berbasis \texttt{CX}.
+  \item Berinteraksi dengan mouse melalui \texttt{INT 33h}: inisialisasi, tampil/sembunyi kursor, baca posisi/tombol.
+  \item Menyusun program yang menggabungkan percabangan, perulangan, dan input mouse.
+\end{itemize}
+
+\section{Pendahuluan}
+Kontrol alur adalah inti dari setiap program. Pada 8086, \texttt{CMP} mengatur \textit{flags} yang selanjutnya diinterpretasikan oleh lompat bersyarat. Untuk iterasi, instruksi keluarga \texttt{LOOP} memanfaatkan \texttt{CX} sebagai pencacah. Di sisi \textit{I/O}, \texttt{INT 33h} menyediakan API BIOS untuk mouse pada lingkungan DOS, memungkinkan antarmuka interaktif dasar.
+
+\section{Materi Pembelajaran}
+\subsection{Instruksi Perbandingan (CMP)}
+\subsubsection{Sintaks dan cara kerja}
+\texttt{CMP dest, src} menghitung \(dest - src\) tanpa menyimpan hasil, namun memperbarui \textit{flags} (\texttt{ZF}, \texttt{SF}, \texttt{CF}, \texttt{OF}, \texttt{PF}, \texttt{AF}). \textit{Flags} kemudian digunakan oleh lompat bersyarat.
+\begin{verbatim}
+mov ax, 10
+cmp ax, 10      ; ZF=1 -> equal
+cmp ax, 12      ; CF=1 (tak bertanda), SF!=OF (bertanda) -> less
+\end{verbatim}
+
+\subsubsection{Perbandingan vs operasi aritmatika}
+\texttt{CMP} setara dengan \texttt{SUB} yang hasilnya dibuang. Gunakan \texttt{TEST} untuk perbandingan bitwise (seperti \texttt{AND} tanpa menyimpan).
+
+\subsection{Instruksi Percabangan}
+\subsubsection{JE/JNE}
+\texttt{JE}/\texttt{JZ} melompat bila \texttt{ZF=1}; \texttt{JNE}/\texttt{JNZ} bila \texttt{ZF=0}. Cocok untuk kesetaraan/kesetidaksetaraan umum.
+
+\subsubsection{JL/JG dan varian bertanda vs tak bertanda}
+\begin{itemize}
+  \item \textbf{Bertanda}: \texttt{JL} (SF != OF), \texttt{JG} (ZF=0 dan SF=OF), \texttt{JLE}, \texttt{JGE}.
+  \item \textbf{Tak bertanda}: \texttt{JB}/\texttt{JC} (CF=1), \texttt{JA} (CF=0 dan ZF=0), \texttt{JBE}, \texttt{JAE}/\texttt{JNC}.
+\end{itemize}
+Pilih sesuai interpretasi data untuk menghindari logika salah.
+
+\subsubsection{Conditional jumps dan jangkauan}
+Lompatan bersyarat menggunakan offset relatif pendek (\(\pm 128\) byte pada 8086). Untuk jangkauan lebih jauh, gunakan skema \textit{inverted branch} + \texttt{JMP} jauh.
+
+\subsection{Instruksi Perulangan (LOOP)}
+\subsubsection{LOOP}
+Menurunkan \texttt{CX} dan melompat jika \texttt{CX} \(\neq 0\). Perhatikan bahwa \texttt{CX} berkurang terlebih dahulu, lalu diuji.
+\begin{verbatim}
+mov cx, 5
+ulang:
+  ; body
+  loop ulang
+\end{verbatim}
+
+\subsubsection{LOOPZ/LOOPE dan LOOPNZ/LOOPNE}
+Melompat jika \texttt{CX} \(\neq 0\) \textbf{dan} \texttt{ZF} sesuai (0 atau 1). Umum untuk mengulang pencocokan hingga gagal/berhasil.
+
+\subsubsection{Kontrol perulangan}
+Hindari mengubah \texttt{CX} di dalam body kecuali disengaja. Untuk iterasi kompleks, kombinasi \texttt{DEC/JNZ} sering lebih fleksibel.
+
+\subsection{Interupsi Mouse INT 33h}
+\subsubsection{Fungsi 00h: Initialize Mouse}
+\begin{itemize}
+  \item \textbf{Masukan}: \texttt{AX=0000h}
+  \item \textbf{Keluaran}: \texttt{AX=FFFFh} jika driver ada; selain itu 0.
+\end{itemize}
+
+\subsubsection{Fungsi 01h/02h: Show/Hide Cursor}
+\begin{itemize}
+  \item \texttt{AX=0001h} menampilkan; \texttt{AX=0002h} menyembunyikan.
+\end{itemize}
+
+\subsubsection{Fungsi 03h: Get Position and Buttons}
+\begin{itemize}
+  \item \textbf{Masukan}: \texttt{AX=0003h}
+  \item \textbf{Keluaran}: \texttt{BX}=status tombol, \texttt{CX}=X, \texttt{DX}=Y (unit tergantung mode layar).
+\end{itemize}
+
+\subsubsection{Fungsi 04h: Set Position}
+\begin{itemize}
+  \item \textbf{Masukan}: \texttt{AX=0004h}, \texttt{CX}=X, \texttt{DX}=Y.
+\end{itemize}
+
+\subsubsection{Fungsi 05h: Get Button Press Info}
+Mengembalikan informasi penekanan tombol terakhir (kode tombol, koordinat saat ditekan).
+
+\section{Praktikum}
+\begin{enumerate}
+  \item Program percabangan sederhana: bandingkan dua nilai, tampilkan pesan sesuai hasil (JE/JNE).
+  \item Program perulangan: gunakan \texttt{LOOP} untuk mencetak pola atau menghitung deret sederhana.
+  \item Kombinasi: cari nilai minimum/maksimum dalam array menggunakan \texttt{CMP} + lompatan.
+  \item Interaksi mouse: inisialisasi, tampilkan kursor, baca posisi dan tombol, tampilkan di layar.
+  \item Mini-game: gerakkan kursor teks mengikuti posisi mouse (mode teks) dan reaksi saat klik.
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program percabangan, loop, dan mouse
+TITLE Percabangan dan Loop
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan1 DB 'Bilangan sama$'
+    pesan2 DB 'Bilangan berbeda$'
+    pesan3 DB 'Loop selesai$'
+    bil1 DW 10
+    bil2 DW 10
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Percabangan
+    MOV AX, bil1
+    CMP AX, bil2
+    JE sama
+    ; Jika tidak sama
+    MOV AH, 09h
+    MOV DX, OFFSET pesan2
+    INT 21h
+    JMP lanjut
+    
+sama:
+    MOV AH, 09h
+    MOV DX, OFFSET pesan1
+    INT 21h
+    
+lanjut:
+    ; Perulangan
+    MOV CX, 5
+ulang:
+    ; Kode yang diulang
+    DEC CX
+    JNZ ulang
+    
+    ; Inisialisasi mouse
+    MOV AX, 00h
+    INT 33h
+    CMP AX, 0
+    JE no_mouse
+    
+    ; Tampilkan cursor mouse
+    MOV AX, 01h
+    INT 33h
+    
+    ; Baca posisi mouse
+    MOV AX, 03h
+    INT 33h
+    ; BX = button status, CX = X position, DX = Y position
+    
+no_mouse:
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Buat program yang membandingkan dua bilangan dan menampilkan hasil menggunakan JE/JNE.
+  \item Buat program menghitung faktorial (n kecil) menggunakan \texttt{LOOP} atau \texttt{DEC/JNZ}.
+  \item Buat program menampilkan angka 1--10 pada baris berbeda menggunakan perulangan.
+  \item Buat program yang menampilkan koordinat mouse secara real-time (\textit{polling} \texttt{INT 33h} fungsi 03h).
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Kalkulator bercabang}: Menu berbasis \textit{branching} untuk memilih operasi aritmatika, validasi input.
+  \item \textbf{Sorting sederhana}: Implementasikan \textit{bubble sort} pada array kecil (tak bertanda), tampilkan hasil setiap pass.
+  \item \textbf{Game tebak angka + mouse}: Gunakan mouse untuk memilih rentang jawaban, tampilkan umpan balik.
+  \item \textbf{Dokumentasi}: Ringkas instruksi lompatan dan kondisi flags yang memicunya; sertakan contoh minimal.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\end{itemize}
