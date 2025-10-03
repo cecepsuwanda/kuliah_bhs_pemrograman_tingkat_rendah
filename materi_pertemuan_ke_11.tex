@@ -1,0 +1,196 @@
+\chapter{Pemrograman Modular: PROC/ENDP, Penggunaan Makro Sederhana (MACRO)}
+
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
+\begin{itemize}
+  \item Menjelaskan prinsip pemrograman modular serta manfaatnya terhadap kualitas perangkat lunak.
+  \item Menggunakan \texttt{PROC}/\texttt{ENDP} untuk membangun prosedur (dengan/ tanpa parameter dan nilai balik) dengan disiplin penyimpanan register dan \textit{stack frame}.
+  \item Membuat dan memanfaatkan makro (\texttt{MACRO}/\texttt{ENDM}) dengan parameter, termasuk bentuk bersyarat sederhana.
+  \item Membedakan penggunaan prosedur vs. makro berdasarkan kebutuhan \textit{runtime}, ukuran kode, dan pemeliharaan.
+  \item Mengorganisasi program multi-berkas dengan \texttt{INCLUDE}, modul, dan pustaka prosedur.
+\end{itemize}
+
+\section{Pendahuluan}
+Pemrograman modular mendorong pemisahan program menjadi komponen-komponen kecil dengan tanggung jawab jelas. Dalam assembly, modularitas dicapai melalui prosedur (\texttt{PROC}) dan dapat diperkuat dengan makro untuk mengurangi pengulangan pola kode. Perbedaan fundamental: prosedur dieksekusi di \textit{runtime} (overhead \texttt{CALL}/\texttt{RET}), sedangkan makro diperluas saat perakitan (\textit{compile-time}), menghasilkan duplikasi kode yang dapat menambah ukuran biner.
+
+\section{Materi Pembelajaran}
+\subsection{Konsep Pemrograman Modular}
+\subsubsection{Definisi dan keuntungan}
+Modularitas meningkatkan \textit{readability}, \textit{testability}, dan \textit{reusability}. Komponen yang terdefinisi baik mempercepat \textit{debugging} dan memudahkan perawatan.
+
+\subsubsection{Prinsip modularitas}
+\begin{itemize}
+  \item \textbf{Cohesion}: setiap modul fokus pada satu tanggung jawab.
+  \item \textbf{Coupling}: minimalkan ketergantungan antar modul.
+  \item \textbf{Kontrak}: dokumentasikan antarmuka (parameter, return, register yang dimodifikasi).
+\end{itemize}
+
+\subsubsection{Organisasi kode}
+Pisahkan deklarasi data, prosedur utilitas, dan logika utama. Gunakan penamaan konsisten dan komentar yang menerangkan tujuan.
+
+\subsection{Prosedur dengan PROC/ENDP}
+\subsubsection{Sintaks dan deklarasi}
+\begin{verbatim}
+NamaProsedur PROC [NEAR|FAR]
+  ; body
+  RET [n]
+NamaProsedur ENDP
+\end{verbatim}
+Gunakan \texttt{NEAR} untuk segmen yang sama; \texttt{FAR} bila antar segmen.
+
+\subsubsection{Parameter dan local variables}
+Konvensi umum: parameter lewat stack; bentuk \textit{prologue/epilogue} standar:
+\begin{verbatim}
+push bp
+mov  bp, sp
+sub  sp, local_size   ; alokasikan lokal (opsional)
+; akses param: [bp+4], [bp+6], ...
+; akses lokal: [bp-2], [bp-4], ...
+mov  sp, bp
+pop  bp
+ret  n     ; atau ret, caller cleans
+\end{verbatim}
+
+\subsubsection{Return value dan konvensi pemanggilan}
+Kembalikan nilai di \texttt{AX} (umum) atau di memori. Tetapkan siapa yang menyimpan register: \textit{caller-saves} (penelepon menyimpan) atau \textit{callee-saves} (terpanggil menyimpan). Dokumentasikan jelas.
+
+\subsection{Makro (MACRO)}
+\subsubsection{Definisi dan sintaks}
+\begin{verbatim}
+NamaMakro MACRO [param1[, param2, ...]]
+  ; ekspansi
+ENDM
+\end{verbatim}
+Makro memperluas teks pada saat perakitan. Parameter menggantikan token dalam ekspansi.
+
+\subsubsection{Makro berparameter dan bersyarat}
+Gunakan arahan perakitan bersyarat (bergantung assembler) untuk variasi ekspansi. Perhatikan bahwa makro tidak memiliki \textit{runtime context} seperti stack kecuali disimulasikan.
+
+\subsubsection{Perbedaan makro vs. prosedur}
+Makro: tanpa overhead \texttt{CALL}/\texttt{RET}, namun memperbesar ukuran biner jika sering digunakan. Prosedur: lebih kecil di biner jika dipanggil berulang, namun memiliki overhead panggilan.
+
+\subsection{Organisasi Program Modular}
+\subsubsection{Struktur file dan include}
+Kumpulkan makro umum dalam berkas \texttt{.INC}; sertakan dengan \texttt{INCLUDE}. Simpan prosedur utilitas dalam modul terpisah untuk \textit{link}-time reuse.
+
+\subsubsection{Library routines dan dependencies}
+Buat pustaka prosedur (sekumpulan \texttt{.OBJ}) dan tautkan seperlunya. Dokumentasikan ketergantungan dan urutan inisialisasi.
+
+\section{Praktikum}
+\begin{enumerate}
+  \item Bangun prosedur \texttt{print\_str} (\texttt{AH=09h}) dengan prologue/epilogue rapi.
+  \item Prosedur berparameter: \texttt{add16(a,b)} mengembalikan hasil di \texttt{AX}; \texttt{RET 4} (callee cleans) vs \texttt{ADD SP,4} (caller cleans).
+  \item Makro sederhana: \texttt{PRINT$ pesan} yang memanggil \texttt{INT 21h} untuk string berakhiran \texttt{'$'}.
+  \item Makro berparameter: \texttt{SWAP var1, var2} untuk menukar dua word.
+  \item Susun program modular yang memanfaatkan makro dan prosedur pada beberapa berkas.
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program demonstrasi prosedur dan makro
+TITLE Pemrograman Modular
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan1 DB 'Hello from procedure!$'
+    pesan2 DB 'Hello from macro!$'
+    nilai1 DW 15
+    nilai2 DW 25
+    hasil  DW ?
+
+; Makro untuk menampilkan pesan
+TAMPILKAN_PESAN MACRO pesan
+    PUSH AX
+    PUSH DX
+    MOV  AH, 09h
+    MOV  DX, OFFSET pesan
+    INT  21h
+    POP  DX
+    POP  AX
+ENDM
+
+; Makro untuk pertukaran nilai
+TUKAR_NILAI MACRO var1, var2
+    PUSH AX
+    MOV  AX, var1
+    XCHG AX, var2
+    MOV  var1, AX
+    POP  AX
+ENDM
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Panggil prosedur
+    CALL TAMPILKAN_HELLO
+    
+    ; Gunakan makro
+    TAMPILKAN_PESAN pesan2
+    
+    ; Pertukaran nilai menggunakan makro
+    TUKAR_NILAI nilai1, nilai2
+    
+    ; Panggil prosedur dengan parameter
+    PUSH nilai1
+    PUSH nilai2
+    CALL TAMBAHKAN
+    ADD  SP, 4
+    
+    MOV AH, 4Ch
+    INT 21h
+
+; Prosedur tanpa parameter
+TAMPILKAN_HELLO PROC
+    PUSH AX
+    PUSH DX
+    MOV  AH, 09h
+    MOV  DX, OFFSET pesan1
+    INT  21h
+    POP  DX
+    POP  AX
+    RET
+TAMPILKAN_HELLO ENDP
+
+; Prosedur dengan parameter via stack
+TAMBAHKAN PROC
+    PUSH BP
+    MOV  BP, SP
+    PUSH AX
+    PUSH BX
+    MOV  AX, [BP+6]  ; Parameter kedua
+    MOV  BX, [BP+4]  ; Parameter pertama
+    ADD  AX, BX
+    MOV  hasil, AX
+    POP  BX
+    POP  AX
+    POP  BP
+    RET
+TAMBAHKAN ENDP
+
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Buat prosedur \texttt{mul8(a,b)} yang mengembalikan hasil di \texttt{AX} dan perhatikan flags.
+  \item Buat makro \texttt{PRINTC ch} untuk mencetak satu karakter via \texttt{AH=02h} dan \texttt{DL}.
+  \item Buat prosedur \texttt{sort\_word\_asc(ptr,n)} (bubble/selection) dengan kontrak parameter jelas.
+  \item Buat makro \texttt{ASSERT cond, msg} yang mencetak pesan jika kondisi gagal (gunakan \texttt{IF} assembler jika tersedia).
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Library string}: Implementasikan \texttt{strlen}, \texttt{strcpy}, \texttt{strcmp} untuk satu konvensi terminator; gabungkan menjadi pustaka.
+  \item \textbf{Makro debugging}: Makro untuk cetak register (AX,BX,CX,DX) dalam heksadesimal; gunakan pada titik-titik penting program.
+  \item \textbf{Kalkulator modular}: Gunakan prosedur operasi dan makro UI untuk membangun kalkulator teks dengan menu.
+  \item \textbf{Dokumentasi}: Tulis panduan singkat kapan memilih prosedur vs. makro pada proyek Anda.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Borland. \textit{Turbo Assembler (TASM) User's Guide}, Borland International.
+\end{itemize}
