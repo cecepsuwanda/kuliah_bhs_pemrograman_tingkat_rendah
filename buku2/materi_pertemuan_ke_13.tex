@@ -1,0 +1,194 @@
+\chapter{Pemrosesan File Dasar: Membuka, Menutup, Membaca, Menulis File (INT 21h fungsi 3Ch/3Fh/40h)}
+
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
+\begin{itemize}
+  \item Menjelaskan konsep berkas (file), sistem berkas, dan \textit{handle}-based I/O pada DOS.
+  \item Menggunakan \texttt{INT 21h} untuk membuat, membuka, menutup, membaca, menulis, dan menghapus berkas.
+  \item Menerapkan pola \textit{buffered I/O} sederhana dan menangani kesalahan berdasarkan kode error.
+  \item Menyusun program utilitas file dasar seperti penyalinan dan pembacaan konten.
+\end{itemize}
+
+\section{Pendahuluan}
+Pada DOS, layanan \texttt{INT 21h} menyediakan antarmuka sistem berkas berbasiskan \textit{file handle}. Operasi utama meliputi pembuatan/ pembukaan berkas, pembacaan/penulisan data, dan penutupan. Keberhasilan/kegagalan operasi diindikasikan oleh \textit{carry flag} (CF) dan kode error di \texttt{AX} saat CF diset.
+
+\section{Materi Pembelajaran}
+\subsection{Konsep File Handling}
+\subsubsection{Definisi file dan file system}
+File adalah sekumpulan byte pada media penyimpanan, diorganisasikan oleh sistem berkas (FAT pada DOS). Identifikasi via nama (8.3) dan atribut (read-only, hidden, system, archive).
+
+\subsubsection{File handle dan mode akses}
+Setelah berkas dibuka/dibuat, DOS mengembalikan \textit{handle} (bilangan kecil) untuk digunakan pada operasi lanjutan. Mode akses: baca (\texttt{AL=0}), tulis (\texttt{AL=1}), baca/tulis (\texttt{AL=2}); lampiran (append) dapat disimulasikan dengan memindah \textit{file pointer} ke akhir.
+
+\subsubsection{Atribut dan perizinan}
+Atribut ditentukan pada pembuatan atau dapat diubah menggunakan fungsi lain (di luar cakupan dasar). Gunakan atribut normal (\texttt{CX=0}) untuk kebanyakan kasus.
+
+\subsubsection{Error handling}
+CF=1 menunjukkan kesalahan; \texttt{AX} memuat kode (mis. file tidak ditemukan, akses ditolak). Tanggapi dengan pesan dan \textit{cleanup} sumber daya.
+
+\subsection{Interupsi INT 21h untuk File}
+\begin{itemize}
+  \item \textbf{3Ch Create File}: \texttt{AH=3Ch}, \texttt{CX=atribut}, \texttt{DX=\&nama}; keluar: \texttt{AX=handle}.
+  \item \textbf{3Dh Open File}: \texttt{AH=3Dh}, \texttt{AL=mode}, \texttt{DX=\&nama}; keluar: \texttt{AX=handle}.
+  \item \textbf{3Eh Close File}: \texttt{AH=3Eh}, \texttt{BX=handle}.
+  \item \textbf{3Fh Read File}: \texttt{AH=3Fh}, \texttt{BX=handle}, \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluar: \texttt{AX=byte terbaca}.
+  \item \textbf{40h Write File}: \texttt{AH=40h}, \texttt{BX=handle}, \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluar: \texttt{AX=byte tertulis}.
+  \item \textbf{41h Delete File}: \texttt{AH=41h}, \texttt{DX=\&nama}.
+\end{itemize}
+Perhatikan selalu pemeriksaan CF dan konsistensi \texttt{AX/CF}.
+
+\subsection{Operasi File Dasar}
+\subsubsection{Membuat dan membuka}
+Gunakan \texttt{3Ch} untuk membuat (menimpa jika ada tergantung sistem); gunakan \texttt{3Dh} untuk membuka yang sudah ada dengan mode sesuai kebutuhan.
+
+\subsubsection{Menutup}
+Selalu tutup \texttt{handle} dengan \texttt{3Eh} untuk mencegah kebocoran; DOS membatasi jumlah handle terbuka.
+
+\subsubsection{Membaca dan menulis}
+Gunakan buffer di segmen data. Jumlah byte aktual terbaca/tertulis dikembalikan di \texttt{AX}; periksa ketidaksamaan dengan \texttt{CX} (mis. akhir berkas pada baca).
+
+\subsubsection{Menghapus}
+\texttt{41h} menghapus berkas; pastikan ditutup sebelumnya dan atribut memungkinkan penghapusan.
+
+\subsection{File Handle dan Error Handling}
+\subsubsection{Manajemen handle}
+Simpan \texttt{AX} hasil \texttt{3Ch/3Dh} ke variabel. Hindari penggunaan handle setelah ditutup. Gunakan nilai sentinel (mis. \texttt{FFFFh}) untuk menandai tidak-valid.
+
+\subsubsection{Kode error dan validasi}
+Tangkap kasus umum: file tidak ditemukan (\texttt{2}), akses ditolak (\texttt{5}), disk penuh, dan lain-lain. Berikan pesan informatif.
+
+\subsubsection{Resource cleanup}
+Pada error di tengah rangkaian operasi, lakukan penutupan handle yang sudah terbuka sebelum keluar.
+
+\subsection{Buffer dan Transfer Data}
+\subsubsection{Buffer dan block transfer}
+Baca/tulis dalam blok untuk efisiensi. Untuk berkas teks, pertimbangkan terminator atau pemrosesan baris.
+
+\subsubsection{Akses sekuensial}
+Baca berulang dari awal ke akhir. Untuk acak, gunakan \texttt{INT 21h, 42h} (dibahas pertemuan lanjutan).
+
+\section{Praktikum}
+\begin{enumerate}
+  \item Program membuat berkas baru dan menulis satu baris teks.
+  \item Program membaca kembali isi berkas dan menampilkannya.
+  \item Program menyalin berkas (baca-blok/tulis-blok hingga akhir berkas).
+  \item Program dengan penanganan error: uji nama tidak valid, akses ditolak, dan disk penuh (simulasi).
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program demonstrasi operasi file dasar
+TITLE Pemrosesan File
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    nama_file   DB 'test.txt', 0
+    data_tulis  DB 'Hello, World!', 13, 10
+    data_baca   DB 100 DUP(?)
+    file_handle DW ?
+    pesan_sukses DB 'File berhasil dibuat!$'
+    pesan_error  DB 'Error dalam operasi file!$'
+    pesan_baca   DB 'Data dari file: $'
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Buat file baru
+    MOV AH, 3Ch
+    MOV CX, 0        ; atribut normal
+    MOV DX, OFFSET nama_file
+    INT 21h
+    JC  error_handler
+    MOV file_handle, AX
+    
+    ; Tampilkan pesan sukses
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_sukses
+    INT 21h
+    
+    ; Tulis data ke file
+    MOV AH, 40h
+    MOV BX, file_handle
+    MOV CX, 15       ; jumlah byte
+    MOV DX, OFFSET data_tulis
+    INT 21h
+    JC  error_handler
+    
+    ; Tutup file
+    MOV AH, 3Eh
+    MOV BX, file_handle
+    INT 21h
+    JC  error_handler
+    
+    ; Buka file untuk dibaca
+    MOV AH, 3Dh
+    MOV AL, 0        ; mode read
+    MOV DX, OFFSET nama_file
+    INT 21h
+    JC  error_handler
+    MOV file_handle, AX
+    
+    ; Baca data dari file
+    MOV AH, 3Fh
+    MOV BX, file_handle
+    MOV CX, 100
+    MOV DX, OFFSET data_baca
+    INT 21h
+    JC  error_handler
+    
+    ; Tampilkan data yang dibaca
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_baca
+    INT 21h
+    
+    ; Tambahkan terminator '$' setelah data yang dibaca
+    MOV BX, OFFSET data_baca
+    ADD BX, AX
+    MOV BYTE PTR [BX], '$'
+    
+    MOV AH, 09h
+    MOV DX, OFFSET data_baca
+    INT 21h
+    
+    ; Tutup file
+    MOV AH, 3Eh
+    MOV BX, file_handle
+    INT 21h
+    
+    JMP selesai
+
+error_handler:
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_error
+    INT 21h
+
+selesai:
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Tulis program yang menambahkan (append) baris baru ke berkas yang ada (gunakan pengaturan \textit{file pointer}).
+  \item Tulis program yang membaca dan menampilkan berkas besar secara bertahap per blok 64 byte.
+  \item Tulis program salin berkas yang memverifikasi ukuran hasil sama dengan sumber.
+  \item Tulis program penghitung jumlah karakter alfabet, digit, dan lainnya pada berkas teks.
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Editor teks sederhana}: Navigasi baris, tambah/hapus, simpan-buka berkas; batasi fitur inti.
+  \item \textbf{Konfigurasi}: Simpan/muat pasangan kunci-nilai sederhana ke/dari berkas; parsir format baris ``kunci=nilai''.
+  \item \textbf{Backup}: Salin berkas dari daftar nama; tampilkan ringkasan hasil (berhasil/gagal).
+  \item \textbf{Dokumentasi}: Daftar kode error umum dari \texttt{INT 21h} yang Anda temui, dan strategi penanganannya.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\end{itemize}

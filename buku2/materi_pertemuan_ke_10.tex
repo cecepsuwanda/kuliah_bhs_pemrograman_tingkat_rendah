@@ -1,0 +1,193 @@
+\chapter{Array dan String: Penyimpanan Array, Instruksi String (MOVS, CMPS, SCAS, LODS, STOS)}
+
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
+\begin{itemize}
+  \item Menjelaskan representasi array dan string dalam memori serta pengalamatan elemennya.
+  \item Menggunakan instruksi string \texttt{MOVS}, \texttt{CMPS}, \texttt{SCAS}, \texttt{LODS}, \texttt{STOS} dengan benar.
+  \item Mengoptimalkan operasi berulang menggunakan awalan \texttt{REP}/\texttt{REPE}/\texttt{REPNE} dan pengelolaan \texttt{DF}.
+  \item Membangun rutinitas manipulasi string/array (salin, banding, cari, panjang, balik, gabung, urut).
+\end{itemize}
+
+\section{Pendahuluan}
+Array dan string adalah struktur data fundamental. Pada 8086, operasi berulang terhadap data berurutan didukung oleh instruksi string yang menggabungkan pembacaan/penulisan data dengan peningkatan/penurunan indeks otomatis (\texttt{SI}/\texttt{DI}) dan pengurangan pencacah (\texttt{CX}) bila digabung dengan awalan \texttt{REP}. Pengelolaan \texttt{Direction Flag} (\texttt{DF}) menentukan arah iterasi (naik dengan \texttt{CLD}, turun dengan \texttt{STD}).
+
+\section{Materi Pembelajaran}
+\subsection{Konsep Array dan String}
+\subsubsection{Definisi dan penyimpanan}
+Array adalah koleksi elemen bertipe homogen yang tersusun kontigu. String dapat dipandang sebagai array karakter dengan konvensi terminasi (mis. \texttt{0} atau \texttt{'$'}). Penyimpanan memperhatikan ukuran elemen (byte/word) untuk perhitungan offset.
+
+\subsubsection{Pengalamatan dan perhitungan offset}
+Offset elemen ke-\(i\) pada array byte: \(base + i\). Pada array word: \(base + 2\cdot i\). Gunakan \texttt{SI}/\texttt{DI} sebagai indeks sumber/tujuan.
+
+\subsubsection{String berterminasi}
+\begin{itemize}
+  \item \textbf{Null-terminated (C)}: berakhir dengan \texttt{0}. Fungsi seperti panjang memindai hingga \texttt{0}.
+  \item \textbf{DOS '$'-terminated}: digunakan oleh \texttt{INT 21h, AH=09h}; berakhir dengan \texttt{'$'}.
+\end{itemize}
+Konsisten gunakan satu konvensi per rutinitas.
+
+\subsection{Penyimpanan Array}
+\subsubsection{Satu dimensi}
+Akses langsung via indeks. Untuk word, manfaatkan \texttt{XLAT} atau perhitungan manual \(i\times 2\).
+
+\subsubsection{Multi dimensi}
+Gunakan perataan baris (row-major). Offset \((r,c)\) pada array word berdimensi \(R\times C\): \(base + 2\cdot (r\cdot C + c)\).
+
+\subsection{Instruksi String}
+\subsubsection{MOVS}
+Menyalin dari \texttt{DS:SI} ke \texttt{ES:DI}; varian \texttt{MOVSB}/\texttt{MOVSW}. Dengan \texttt{REP}, menyalin \texttt{CX} elemen.
+\begin{verbatim}
+cld
+mov  cx, len
+lea  si, src
+lea  di, dst
+rep  movsb
+\end{verbatim}
+
+\subsubsection{CMPS}
+Membandingkan \texttt{DS:SI} dengan \texttt{ES:DI}; atur \textit{flags}. Dengan \texttt{REPE}/\texttt{REPZ} berhenti pada perbedaan atau saat \texttt{CX}=0.
+\begin{verbatim}
+cld
+mov  cx, n
+lea  si, s1
+lea  di, s2
+repe cmpsb
+jne  berbeda
+\end{verbatim}
+
+\subsubsection{SCAS}
+Membandingkan \texttt{AL}/\texttt{AX} dengan \texttt{ES:DI}. Umum untuk mencari karakter/word.
+\begin{verbatim}
+cld
+mov  al, ch
+mov  cx, n
+lea  di, buf
+repne scasb
+jne  not_found
+\end{verbatim}
+
+\subsubsection{LODS}
+Memuat dari \texttt{DS:SI} ke \texttt{AL}/\texttt{AX}, menaikkan/menurunkan \texttt{SI}.
+
+\subsubsection{STOS}
+Menyimpan dari \texttt{AL}/\texttt{AX} ke \texttt{ES:DI}; dengan \texttt{REP}, mengisi blok dengan nilai yang sama.
+\begin{verbatim}
+cld
+mov  al, 0
+mov  cx, 80
+lea  di, line
+rep  stosb
+\end{verbatim}
+
+\subsubsection{Awalan REP dan Direction Flag}
+\texttt{REP} mengulang hingga \texttt{CX}=0. \texttt{REPE}/\texttt{REPZ} mengulang selama \texttt{ZF=1}; \texttt{REPNE}/\texttt{REPNZ} selama \texttt{ZF=0}. Gunakan \texttt{CLD} untuk iterasi maju, \texttt{STD} untuk mundur; kembalikan ke \texttt{CLD} demi konsistensi.
+
+\subsection{Register untuk Operasi String}
+\begin{itemize}
+  \item \textbf{SI/DI}: indeks sumber/tujuan (\texttt{DS:SI}, \texttt{ES:DI}).
+  \item \textbf{CX}: pencacah pengulangan untuk \texttt{REP}.
+  \item \textbf{AL/AX}: akumulator untuk \texttt{LODS}/\texttt{SCAS}/\texttt{STOS}.
+  \item \textbf{DF}: arah iterasi; atur dengan \texttt{CLD}/\texttt{STD}.
+  \item \textbf{ES}: segmen tujuan harus diinisialisasi (sering disamakan dengan \texttt{DS} bila menyalin dalam segmen sama).
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+  \item Demonstrasi akses elemen array (byte/word) dan perhitungan offset.
+  \item Salin string menggunakan \texttt{REP MOVSB} dan verifikasi.
+  \item Bandingkan dua string dengan \texttt{REPE CMPSB}; tampilkan hasil sama/berbeda.
+  \item Cari karakter dalam string dengan \texttt{REPNE SCASB}; laporkan posisi ditemukan.
+  \item Implementasi rutin panjang dan pembalik string menggunakan \texttt{LODS}/\texttt{STOS}.
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program demonstrasi array dan string
+TITLE Array dan String
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    array   DW 10, 20, 30, 40, 50
+    string1 DB 'Hello World$'
+    string2 DB 20 DUP('$')
+    string3 DB 'Assembly$'
+    string4 DB 'Assembly$'
+    karakter DB 'l'
+    panjang EQU $ - string1
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    MOV ES, AX
+    
+    ; Akses elemen array (word): indeks ke-2 (basis 0)
+    MOV BX, 2
+    SHL BX, 1            ; *2 untuk word
+    MOV AX, array[BX]    ; AX = 30
+    
+    ; Copy string menggunakan MOVS
+    LEA SI, string1
+    LEA DI, string2
+    MOV CX, panjang
+    CLD
+    REP MOVSB
+    
+    ; Perbandingan string menggunakan CMPS
+    LEA SI, string3
+    LEA DI, string4
+    MOV CX, 8
+    CLD
+    REPE CMPSB
+    JE sama
+    JMP lanjut
+sama:
+    ; String sama
+lanjut:
+    ; Pencarian karakter menggunakan SCAS
+    LEA DI, string1
+    MOV AL, karakter
+    MOV CX, panjang
+    CLD
+    REPNE SCASB
+    JE ditemukan
+    JMP selesai
+
+ditemukan:
+    ; Karakter ditemukan (posisi dapat dihitung)
+selesai:
+    ; Isi blok dengan 'X' menggunakan STOS
+    LEA DI, string2
+    MOV AL, 'X'
+    MOV CX, 5
+    CLD
+    REP STOSB
+    
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Akses elemen array dengan indeks dan tampilkan nilainya dalam heksadesimal.
+  \item Salin string dari satu lokasi ke lokasi lain menggunakan \texttt{MOVS}; pastikan terminator ikut disalin sesuai konvensi.
+  \item Bandingkan dua string dengan panjang berbeda; tentukan hasil leksikografis sederhana.
+  \item Cari semua kemunculan karakter dalam string dan catat posisinya ke array hasil.
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Panjang string}: Implementasikan \texttt{strlen} untuk terminator \texttt{0} \textbf{atau} \texttt{'$'} (pilih salah satu) menggunakan \texttt{SCASB}.
+  \item \textbf{Balik string}: Implementasikan pembalik in-place menggunakan dua indeks (awal/akhir) atau \texttt{LODS}/\texttt{STOS} ke buffer sementara.
+  \item \textbf{Gabung string}: Implementasikan \texttt{strcat} sederhana; pastikan tidak terjadi \textit{overflow} buffer tujuan.
+  \item \textbf{Urutkan array}: Urutkan array word kecil (mis. 10 elemen) dengan \textit{bubble sort}; tampilkan hasil setiap putaran.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\end{itemize}

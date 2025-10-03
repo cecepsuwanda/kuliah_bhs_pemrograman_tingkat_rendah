@@ -1,0 +1,158 @@
+\chapter{Input dari Keyboard (INT 16h); Penanganan Keyboard Buffer}
+
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
+\begin{itemize}
+  \item Menggunakan layanan BIOS \texttt{INT 16h} untuk membaca input keyboard (blocking/non-blocking) dan memeriksa status.
+  \item Menjelaskan konsep keyboard buffer, mekanisme kerja, dan teknik \textit{flush}/penanganan buffer penuh.
+  \item Mengembangkan program interaktif berbasis input karakter dan string (dengan/ tanpa echo) dengan validasi.
+  \item Menginterpretasikan kode ASCII vs. \textit{scan code} serta menangani tombol khusus (function, arrow, control).
+\end{itemize}
+
+\section{Pendahuluan}
+Interaksi pengguna pada lingkungan DOS banyak bertumpu pada layanan BIOS untuk perangkat input seperti keyboard. \texttt{INT 16h} menyediakan antarmuka tingkat rendah yang konsisten untuk membaca tombol, memeriksa ketersediaan input, dan mendapatkan status \textit{modifier} (Shift/Ctrl/Alt). Memahami perbedaan operasi \textit{blocking} dan \textit{non-blocking} penting agar program responsif dan tidak \textit{hang} menunggu masukan.
+
+\section{Materi Pembelajaran}
+\subsection{Interupsi BIOS INT 16h}
+\subsubsection{Fungsi 00h: Read Key (Blocking)}
+\begin{itemize}
+  \item \textbf{Masukan}: \texttt{AH=00h}
+  \item \textbf{Keluaran}: \texttt{AL=ASCII code} (0 jika \textit{non-printable}), \texttt{AH=scan code}
+  \item \textbf{Perilaku}: Menunggu hingga tombol ditekan; gunakan untuk input yang memerlukan sinkronisasi.
+\end{itemize}
+
+\subsubsection{Fungsi 01h: Check for Key (Non-blocking)}
+\begin{itemize}
+  \item \textbf{Masukan}: \texttt{AH=01h}
+  \item \textbf{Keluaran}: \texttt{ZF=1} jika tidak ada tombol; jika ada, \texttt{AL}/\texttt{AH} berisi kode tanpa menghapus dari buffer.
+  \item \textbf{Perilaku}: \textit{Polling} status keyboard; gunakan untuk antarmuka yang tidak boleh menunggu.
+\end{itemize}
+
+\subsubsection{Fungsi 02h: Get Keyboard Flags}
+\begin{itemize}
+  \item \textbf{Masukan}: \texttt{AH=02h}
+  \item \textbf{Keluaran}: \texttt{AL} berisi bendera status (Shift, Ctrl, Alt, Caps Lock, Num Lock, Scroll Lock).
+  \item Interpretasikan bit-bit sesuai tabel referensi BIOS.
+\end{itemize}
+
+\subsubsection{Parameter dan nilai kembali}
+Pastikan menyimpan nilai \texttt{AL}/\texttt{AH} segera jika akan digunakan, karena pemanggilan layanan berikutnya dapat menimpanya. Untuk \texttt{01h}, cek \texttt{ZF} sebelum membaca.
+
+\subsubsection{Blocking vs. non-blocking}
+\textit{Blocking} menyederhanakan alur namun berisiko mengunci UI. \textit{Non-blocking} memungkinkan pembaruan layar/pekerjaan lain saat menunggu input menggunakan \textit{polling} atau \textit{timeout}.
+
+\subsection{Keyboard Buffer}
+\subsubsection{Konsep dan cara kerja}
+BIOS menempatkan penekanan tombol pada antrian (buffer). Panggilan baca (00h) mengeluarkan entri dari buffer; pemeriksaan (01h) tidak mengeluarkan.
+
+\subsubsection{Penanganan buffer penuh}
+Ketika buffer penuh, penekanan tombol berikut dapat hilang atau menimpa entri lama tergantung implementasi/driver. Program interaktif harus membaca buffer secara reguler.
+
+\subsubsection{Flushing keyboard buffer}
+DOS menyediakan \texttt{INT 21h, AH=0Ch} dengan parameter di \texttt{AL} untuk membersihkan buffer dan memproses input keyboard. Gunakan setelah mengubah mode input agar sisa tombol tidak mengganggu.
+
+\subsubsection{Status keyboard buffer}
+Gunakan \texttt{01h} untuk memeriksa ketersediaan. Beberapa BIOS menyediakan fungsi lain untuk panjang buffer, tetapi tidak portabel.
+
+\subsection{Input Karakter dan String}
+\subsubsection{Karakter tunggal}
+Gunakan \texttt{AH=00h} (blocking) untuk membaca satu tombol. Untuk menghindari \textit{hang}, kombinasikan dengan \texttt{01h}.
+
+\subsubsection{String dengan echo}
+Gunakan \texttt{INT 21h, AH=0Ah} untuk masukan baris dengan echo; siapkan struktur buffer DOS: byte pertama kapasitas, byte kedua panjang, diikuti penampung.
+
+\subsubsection{String tanpa echo (password)}
+Baca per karakter dengan \texttt{INT 16h, AH=00h} dan tampilkan tanda \texttt{'*'} menggunakan \texttt{INT 10h, AH=0Eh}; simpan ke buffer hingga Enter.
+
+\subsubsection{Validasi input dan karakter khusus}
+Tolak karakter di luar rentang yang diizinkan; tangani Backspace dengan menghapus dari buffer dan memundurkan kursor; Enter mengakhiri masukan.
+
+\subsection{Karakter Khusus}
+\subsubsection{Scan code vs. ASCII}
+Tombol \textit{non-printable} menghasilkan \texttt{AL=0} dan \texttt{AH} berisi \textit{scan code}. Tombol huruf/angka memberikan ASCII di \texttt{AL}.
+
+\subsubsection{Function, arrow, control keys}
+F1--F12 umumnya menghasilkan \texttt{AL=0} (atau \texttt{E0h} sebagai \textit{prefix} pada beberapa sistem) dan \texttt{AH} menunjukkan kode; panah memerlukan interpretasi \textit{scan code}. \texttt{Ctrl}/\texttt{Alt}/\texttt{Shift} memodifikasi kode dan terekam pada status flags (fungsi 02h).
+
+\section{Praktikum}
+\begin{enumerate}
+  \item Program pembaca karakter tunggal: tampilkan ASCII dan \textit{scan code} dalam heksadesimal.
+  \item Program input string dengan echo menggunakan \texttt{AH=0Ah}; cetak kembali string.
+  \item Program input password tanpa echo dengan masking dan dukungan Backspace.
+  \item Program \textit{buffer-aware}: baca semua karakter tertunda (\texttt{01h}) dan \texttt{flush} sebelum kembali ke menu.
+  \item Program menu interaktif: navigasi dengan panah atas/bawah; Enter untuk memilih; Esc untuk kembali.
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program input keyboard dan penanganan buffer
+TITLE Input Keyboard
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    prompt DB 'Masukkan nama: $'
+    nama   DB 50 DUP('$')
+    pesan  DB 'Halo, $'
+    buffer DB 50 DUP(?)
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Tampilkan prompt
+    MOV AH, 09h
+    MOV DX, OFFSET prompt
+    INT 21h
+    
+    ; Input string dengan echo (DOS buffered input)
+    MOV AH, 0Ah
+    MOV DX, OFFSET buffer
+    INT 21h
+    
+    ; Input karakter tunggal (blocking)
+    MOV AH, 00h
+    INT 16h
+    ; AL = ASCII code, AH = Scan code
+    
+    ; Check for key (non-blocking)
+    MOV AH, 01h
+    INT 16h
+    JZ no_key
+    ; Key available, read it
+    MOV AH, 00h
+    INT 16h
+    
+no_key:
+    ; Flush keyboard buffer (DOS)
+    MOV AH, 0Ch
+    MOV AL, 00h
+    INT 21h
+    
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Buat program yang menunggu input dari keyboard dan menampilkan nilai ASCII/scan code setiap tombol.
+  \item Buat program yang menampilkan \textit{scan code} untuk function keys F1--F4 dan mengeksekusi aksi berbeda.
+  \item Buat program input password dengan masking dan validasi panjang (min 6, maks 16), dukung Backspace.
+  \item Buat program yang mendeteksi kondisi buffer penuh (simulasikan dengan input cepat), kemudian melakukan \texttt{flush} dan menampilkan pesan peringatan.
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Login sederhana}: Validasi username dan password yang disimpan di memori; berikan tiga kesempatan; kunci selama 5 detik (simulasikan delay) setelah 3 kegagalan.
+  \item \textbf{Menu interaktif}: Navigasi dengan arrow keys, Enter untuk pilih, Esc untuk kembali; sorot pilihan aktif menggunakan warna.
+  \item \textbf{Timeout input}: Implementasikan \textit{timeout} 5 detik untuk menekan tombol berikutnya (gunakan \textit{polling} \texttt{01h} dan penundaan berbasis \texttt{INT 1Ah} atau loop terkalibrasi); jika habis, batalkan input.
+  \item \textbf{Dokumentasi INT 16h}: Ringkas parameter dan nilai kembali untuk fungsi 00h, 01h, 02h; sertakan tabel contoh keluaran.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\end{itemize}

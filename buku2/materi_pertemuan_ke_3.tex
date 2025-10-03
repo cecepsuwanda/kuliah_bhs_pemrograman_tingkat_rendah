@@ -1,0 +1,166 @@
+\chapter{Instalasi Turbo Assembler dan Lingkungan Pengembangan; Struktur Program COM/EXE; Direktif Dasar (ORG, END)}
+
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
+\begin{itemize}
+  \item Melakukan instalasi dan konfigurasi Turbo Assembler (TASM) dan alat pendukung (TLINK, TD).
+  \item Menjelaskan perbedaan struktur dan karakteristik program \texttt{.COM} dan \texttt{.EXE}.
+  \item Menggunakan direktif dasar (\texttt{ORG}, \texttt{END}, \texttt{TITLE}, \texttt{PAGE}) dalam berkas ASM.
+  \item Menulis, merakit, menautkan, dan menjalankan program assembly sederhana.
+\end{itemize}
+
+\section{Pendahuluan}
+Turbo Assembler (TASM) adalah assembler dari Borland yang populer di lingkungan DOS. Bersama \textit{toolchain} TLINK (linker) dan TD (debugger), TASM memungkinkan pengembangan program tingkat rendah pada arsitektur x86 klasik. Pemahaman struktur program \texttt{.COM} vs \texttt{.EXE} penting untuk pemilihan model memori, organisasi segmen, dan strategi \textit{build}.
+
+\section{Materi Pembelajaran}
+\subsection{Instalasi Turbo Assembler}
+\subsubsection{Persyaratan sistem}
+Lingkungan DOS (asli atau emulasi seperti DOSBox) atau sistem kompatibel. Ruang penyimpanan kecil, memori konvensional untuk menjalankan tool.
+
+\subsubsection{Proses instalasi}
+\begin{enumerate}
+  \item Dapatkan paket TASM (legal, sesuai lisensi) dan ekstrak ke direktori, misal \texttt{C:\\TASM}.
+  \item Pastikan berkas \texttt{TASM.EXE}, \texttt{TLINK.EXE}, \texttt{TD.EXE} tersedia.
+  \item (Opsional) Tambahkan contoh proyek dan berkas \texttt{INCLUDE} yang menyertakan definisi konvensional (mis. \texttt{DOS.INC}).
+\end{enumerate}
+
+\subsubsection{Konfigurasi lingkungan}
+Setel variabel lingkungan \texttt{PATH} agar berisi direktori TASM/TLINK/TD untuk akses dari mana saja. Konfigurasi file \texttt{TASM.CFG} atau \texttt{TLINK.CFG} jika diperlukan (mis., jalur pustaka). Pastikan \texttt{INCLUDE} menunjuk direktori header/\textit{include} jika digunakan.
+
+\subsubsection{Pengaturan path dan direktori}
+Contoh (DOSBox): \texttt{SET PATH=C:\\TASM;C:\\BIN;\%PATH\%}. Simpan sumber di direktori proyek terpisah untuk kebersihan struktur.
+
+\subsection{Lingkungan Pengembangan}
+\begin{itemize}
+  \item \textbf{Editor}: Dapat memakai editor bawaan atau editor teks eksternal (mis., \texttt{EDIT}). Fokus pada penyorotan sintaks dan indentasi konsisten.
+  \item \textbf{Assembler (TASM)}: Mengubah \texttt{.ASM} menjadi \texttt{.OBJ}. Opsi \texttt{/zi} untuk simbol debug.
+  \item \textbf{Linker (TLINK)}: Menggabungkan \texttt{.OBJ} menjadi \texttt{.EXE} atau \texttt{.COM} (dengan langkah khusus).
+  \item \textbf{Debugger (TD)}: Menjalankan \textit{step}, memeriksa register/memori, \textit{breakpoint}.
+  \item \textbf{Dokumentasi}: Manual TASM/TLINK/TD, serta \texttt{.INC} referensi.
+\end{itemize}
+
+\subsection{Struktur Program COM}
+\subsubsection{Karakteristik program COM}
+\texttt{.COM} adalah format sederhana, tanpa header, berukuran maksimal ~64 KB. Memulai eksekusi pada offset \texttt{0100h} dengan \texttt{CS=DS=ES=SS} (umumnya sama), cocok untuk program kecil.
+
+\subsubsection{Format file COM dan penggunaan memori}
+Citra program dimuat sebagai blok kontinu. Stack perlu diatur manual bila diperlukan. Karena ketiadaan header, kontrol lebih langsung tetapi dengan keterbatasan ukuran dan organisasi segmen.
+
+\subsubsection{Contoh struktur program COM}
+\begin{verbatim}
+org 100h
+start:
+    mov dx, offset msg
+    mov ah, 09h
+    int 21h
+
+    mov ah, 4Ch
+    int 21h
+
+msg db 'Hello .COM!$'
+\end{verbatim}
+
+\subsection{Struktur Program EXE}
+\subsubsection{Karakteristik program EXE}
+\texttt{.EXE} memiliki header yang menjelaskan tata letak segmen, \textit{relocation}, dan titik masuk. Mendukung segmen terpisah untuk kode, data, \textit{stack}, sehingga lebih fleksibel untuk program besar.
+
+\subsubsection{Header, segmentasi, dan contoh}
+Header memuat informasi ukuran, relocation table, dsb. Model memori (SMALL, TINY, dsb.) memengaruhi pengaturan segmen.
+\begin{verbatim}
+.MODEL SMALL
+.STACK 100h
+.DATA
+  msg db 'Hello .EXE!$'
+.CODE
+main PROC
+  mov ax, @data
+  mov ds, ax
+
+  mov dx, offset msg
+  mov ah, 09h
+  int 21h
+
+  mov ax, 4C00h
+  int 21h
+main ENDP
+END main
+\end{verbatim}
+
+\subsection{Direktif Dasar}
+\subsubsection{ORG (Origin)}
+Menentukan offset awal kode/data. Pada program \texttt{.COM}, \texttt{org 100h} menyesuaikan lokasi titik masuk setelah PSP (Program Segment Prefix).
+
+\subsubsection{END}
+Menandai akhir berkas sumber; opsi label (mis., \texttt{END main}) mendefinisikan titik masuk program.
+
+\subsubsection{TITLE, PAGE, dan lainnya}
+\texttt{TITLE} dan \texttt{PAGE} memengaruhi keluaran listing. Direktif lain: \texttt{DB}/\texttt{DW} (data), \texttt{SEGMENT}/\texttt{ENDS}, \texttt{ASSUME}, tergantung assembler yang dipakai.
+
+\subsubsection{Penggunaan direktif dalam program}
+Pilih direktif sesuai target (\texttt{.COM} vs \texttt{.EXE}) dan model memori. Gunakan \texttt{END} dengan label fungsi utama untuk program \texttt{.EXE}.
+
+\section{Praktikum}
+\begin{enumerate}
+  \item Instal TASM dan pastikan \texttt{TASM}, \texttt{TLINK}, \texttt{TD} berjalan dari command line.
+  \item Buat program \texttt{.COM} menampilkan sapaan, rakit dengan TASM, uji di DOSBox.
+  \item Buat program \texttt{.EXE} dengan segmen data/kode terpisah, tautkan dengan TLINK, jalankan.
+  \item Coba \texttt{TD} untuk menelusuri program: periksa register dan memori.
+  \item Terapkan \texttt{ORG} dan \texttt{END} secara tepat pada kedua jenis program.
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program sederhana menggunakan direktif dasar
+TITLE Program Sederhana
+PAGE 60,132
+
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan DB 'Hello World!$'
+
+.CODE
+    ORG 100h
+    START:
+        MOV AX, @DATA
+        MOV DS, AX
+        
+        MOV DX, OFFSET pesan
+        MOV AH, 09h
+        INT 21h
+        
+        MOV AH, 4Ch
+        INT 21h
+    END START
+\end{verbatim}
+
+\section{Contoh Soal dan Pembahasan}
+\begin{enumerate}
+  \item \textbf{Jelaskan perbedaan utama \texttt{.COM} dan \texttt{.EXE}}.\\ \texttt{.COM}: tanpa header, maksimal ~64 KB, datar, mulai di \texttt{0100h}; \texttt{.EXE}: berheader, mendukung segmentasi dan program besar.
+  \item \textbf{Peran \texttt{ORG 100h} pada program \texttt{.COM}}.\\ Menyesuaikan offset titik masuk setelah PSP sehingga label awal selaras dengan lokasi eksekusi sebenarnya.
+  \item \textbf{Alur \textit{build} TASM/TLINK}}.\\ TASM: \texttt{.ASM -> .OBJ}; TLINK: \texttt{.OBJ -> .EXE}; untuk \texttt{.COM} gunakan \textit{tiny model} atau metode khusus.
+  \item \textbf{Gunakan TD untuk apa?}}.\\ Debugging: langkah per instruksi, inspeksi register/memori, \textit{breakpoint}.
+\end{enumerate}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Tulis program \texttt{.COM} yang menampilkan dua baris teks menggunakan \texttt{INT 21h, AH=09h}.
+  \item Tulis program \texttt{.EXE} yang menginisialisasi \texttt{DS} dengan benar dan menampilkan string.
+  \item Buat variasi yang membaca input karakter tunggal (\texttt{INT 21h, AH=01h}) dan mencetaknya kembali.
+  \item Bangun kedua program dengan TASM/TLINK dan uji di DOSBox.
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Dokumentasi instalasi}: Sertakan tangkapan layar pengaturan PATH, keluaran versi TASM/TLINK/TD.
+  \item \textbf{Program COM nama pribadi}: Tampilkan nama Anda dan NIM pada satu baris.
+  \item \textbf{Esai perbandingan (300--500 kata)}: \texttt{.COM} vs \texttt{.EXE} dari aspek header, ukuran, segmentasi, dan skenario penggunaan.
+  \item \textbf{Log debugging}: Jalankan program \texttt{.EXE} di TD, lakukan \textit{step} beberapa instruksi, catat perubahan register.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Borland. \textit{Turbo Assembler (TASM) User's Guide}.
+  \item Nopi, Arif. \textit{Tutorial Bahasa Assembly (x86)}, Jasakom.
+\end{itemize}

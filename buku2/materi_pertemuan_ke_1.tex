@@ -1,0 +1,136 @@
+\chapter{Pengenalan Bahasa Rakitan dan Bahasa Tingkat Rendah; Sistem Bilangan (Biner, Heksadesimal)}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan mampu:
+\begin{itemize}
+  \item Menjelaskan definisi dan ruang lingkup bahasa rakitan (assembly language) serta kaitannya dengan arsitektur komputer.
+  \item Menguraikan karakteristik bahasa tingkat rendah dan membandingkannya dengan bahasa tingkat tinggi.
+  \item Mengidentifikasi keunggulan dan keterbatasan pemrograman assembly dalam konteks kinerja, portabilitas, dan pemeliharaan.
+  \item Menjelaskan sistem bilangan biner dan heksadesimal, termasuk notasi, nilai tempat, dan relasi di antara keduanya.
+  \item Melakukan konversi antar sistem bilangan (desimal, biner, heksadesimal) secara tepat dan efisien.
+  \item Melakukan operasi aritmatika sederhana dalam sistem biner dan menjelaskan aturan pembawaan (carry) dan pinjaman (borrow).
+  \item Mengaitkan konsep representasi data (bit, byte, word, two's complement, endianness) dengan perilaku program assembly.
+\end{itemize}
+
+\section{Pendahuluan}
+Bahasa rakitan (assembly language) adalah bahasa pemrograman berlevel rendah yang menyediakan antarmuka langsung terhadap instruksi mesin (machine instructions) dari sebuah \textit{Instruction Set Architecture} (ISA), misalnya keluarga x86 (Intel 8086 dan penerusnya). Berbeda dengan bahasa tingkat tinggi yang menawarkan abstraksi yang kaya (tipe data kompleks, manajemen memori otomatis, pustaka standar), assembly memetakan secara hampir satu-ke-satu ke instruksi prosesor, memberikan kontrol sangat granular atas register, memori, dan \textit{I/O}. Konsekuensinya, pemrograman assembly menuntut pemahaman yang kuat tentang arsitektur perangkat keras dan representasi data.
+
+\section{Materi Pembelajaran}
+\subsection{Pengenalan Bahasa Rakitan dan Bahasa Tingkat Rendah}
+\subsubsection{Definisi bahasa rakitan (assembly language)}
+Assembly language adalah representasi mnemonik dari instruksi mesin. Setiap mnemonik (misal, \texttt{MOV}, \texttt{ADD}, \texttt{JMP}) biasanya berkorelasi dekat dengan \textit{opcode} biner yang dieksekusi CPU. Kode assembly dirakit (\textit{assembled}) oleh \textit{assembler} (misal: TASM, MASM, NASM) menjadi \textit{object code} atau berkas executable.
+
+\subsubsection{Karakteristik bahasa tingkat rendah}
+\begin{itemize}
+  \item \textbf{Spesifik arsitektur}: Kode yang ditulis untuk ISA tertentu (misal 8086) tidak portabel ke ISA lain tanpa penulisan ulang.
+  \item \textbf{Kontrol granular}: Pemrogram memiliki kontrol langsung atas register CPU, \textit{flags}, dan layout memori.
+  \item \textbf{Kinerja dan jejak memori}: Dapat dioptimasi untuk ukuran kecil dan latensi rendah, relevan untuk \textit{embedded} atau komponen \textit{runtime-critical}.
+  \item \textbf{Kurangnya abstraksi tingkat tinggi}: Tidak tersedia struktur kontrol tingkat tinggi, \textit{garbage collector}, atau tipe kompleks secara bawaan.
+\end{itemize}
+
+\subsubsection{Perbandingan dengan bahasa tingkat tinggi}
+\begin{center}
+\begin{tabular}{p{0.28\textwidth} p{0.31\textwidth} p{0.31\textwidth}}
+\hline
+\textbf{Aspek} & \textbf{Assembly} & \textbf{Bahasa Tingkat Tinggi} \\
+\hline
+Abstraksi & Rendah; dekat hardware & Tinggi; jauh dari hardware \\
+Portabilitas & Rendah (spesifik ISA) & Lebih tinggi (kompiler/VM) \\
+Produktivitas & Rendah & Tinggi \\
+Kinerja puncak & Sangat tinggi (jika dioptimasi) & Umumnya baik; optimasi oleh kompiler \\
+Pemeliharaan & Sulit & Lebih mudah \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Keunggulan dan kelemahan bahasa rakitan}
+\paragraph{Keunggulan} (i) kontrol penuh terhadap perangkat keras; (ii) optimasi mikroskopik untuk kinerja/ukuran; (iii) pemahaman mendalam atas \textit{runtime} dan \textit{calling convention}.\newline
+\paragraph{Kelemahan} (i) pengembangan lambat dan rentan kesalahan; (ii) sulit dipelihara dan kurang portabel; (iii) minim dukungan pustaka.
+
+\subsubsection{Aplikasi bahasa rakitan dalam pemrograman}
+\begin{itemize}
+  \item \textbf{Perangkat tertanam (embedded)}: \textit{firmware} mikrokontroler, \textit{device driver}, \textit{interrupt service routine}.
+  \item \textbf{Sistem rendah tingkat}: \textit{bootloader}, BIOS/UEFI, bagian \textit{kernel} yang sensitif kinerja.
+  \item \textbf{Optimasi hotspot}: Bagian kecil dari aplikasi yang memerlukan latensi minimal.
+  \item \textbf{Rekayasa balik dan keamanan}: Analisis \textit{malware}, \textit{exploit development}, \textit{debugging} pada level instruksi.
+\end{itemize}
+
+\noindent\textbf{Cuplikan 8086 (ilustratif)}
+\begin{verbatim}
+; Tambah dua nilai 8-bit, hasil di AL
+org 100h          ; format .COM
+mov al, 25h       ; AL = 0x25 (37 desimal)
+add al, 13h       ; AL = AL + 0x13 (19 desimal) -> 0x38 (56)
+; ... hasil dapat disimpan ke memori atau dipakai lanjut
+int 20h           ; kembali ke DOS
+\end{verbatim}
+
+\subsection{Sistem Bilangan}
+\subsubsection{Sistem bilangan biner (basis 2)}
+Biner menggunakan dua digit (0 dan 1). Nilai tempatnya adalah pangkat 2: \(\ldots, 2^3, 2^2, 2^1, 2^0\). Contoh: \(101010_2 = 1\cdot 2^5 + 0\cdot 2^4 + 1\cdot 2^3 + 0\cdot 2^2 + 1\cdot 2^1 + 0\cdot 2^0 = 42_{10}\).
+
+\subsubsection{Sistem bilangan heksadesimal (basis 16)}
+Heksadesimal menggunakan digit 0--9 dan A--F (A=10, B=11, \ldots, F=15). Setiap digit heksadesimal memetakan tepat ke 4 bit (\textit{nibble}). Contoh: \(\mathrm{D6}_{16} = 13\cdot 16^1 + 6\cdot 16^0 = 214_{10}\) dan dalam biner menjadi \(\mathrm{D} = 1101\), \(6 = 0110\) sehingga \(\mathrm{D6}_{16} = 1101\,0110_2\).
+
+\subsubsection{Konversi antar sistem bilangan}
+\paragraph{Desimal ke biner} gunakan pembagian berulang oleh 2 dan catat sisa; baca sisa dari belakang. Contoh: \(255_{10} \to 11111111_2\).
+\paragraph{Biner ke desimal} gunakan penjumlahan nilai tempat. Contoh: \(11010110_2 = 128+64+16+4+2 = 214_{10}\).
+\paragraph{Desimal ke heksadesimal} gunakan pembagian berulang oleh 16. Contoh: \(255_{10} \to \mathrm{FF}_{16}\).
+\paragraph{Heksadesimal ke desimal} gunakan nilai tempat basis 16. Contoh: \(\mathrm{A5F}_{16} = 10\cdot 16^2 + 5\cdot 16 + 15 = 2655_{10}\).
+\paragraph{Heksadesimal ke biner} peta setiap digit ke 4 bit: \(\mathrm{A5F}_{16} = 1010\,0101\,1111_2\).
+
+\subsubsection{Operasi aritmatika dalam biner}
+Penjumlahan biner mengikuti aturan: \(0+0=0\), \(0+1=1\), \(1+1=10_2\) (tulis 0, simpan \textit{carry} 1). Contoh:
+\begin{verbatim}
+   1011   (11 desimal)
+ + 1101   (13 desimal)
+ -------
+  11000   (24 desimal)
+\end{verbatim}
+
+\subsubsection{Representasi data dalam komputer}
+\begin{itemize}
+  \item \textbf{Bit, byte, word}: 1 byte = 8 bit; pada 8086, word = 16 bit.
+  \item \textbf{Two's complement}: Representasi bilangan bulat bertanda di mana \(-x\) diperoleh dengan komplemen satu kemudian tambah satu. Contoh (8-bit): \(-13\) dari \(00001101_2\) menjadi \(11110011_2\).
+  \item \textbf{Endianness (8086 = little-endian)}: \textit{least significant byte} disimpan pada alamat memori terendah. Contoh: word \(0x1234\) disimpan sebagai byte \(0x34\) lalu \(0x12\).
+\end{itemize}
+
+\section{Contoh Soal dan Pembahasan}
+\begin{enumerate}
+  \item \textbf{Konversikan bilangan desimal 255 ke biner dan heksadesimal.}\\
+  \(255_{10} = 11111111_2 = \mathrm{FF}_{16}\).
+
+  \item \textbf{Konversikan bilangan biner \(11010110_2\) ke desimal dan heksadesimal.}\\
+  Nilai tempat: \(128+64+16+4+2 = 214\). Kelompok 4-bit: \(1101\,0110_2 = \mathrm{D6}_{16}\).
+
+  \item \textbf{Konversikan bilangan heksadesimal \(\mathrm{A5F}_{16}\) ke desimal dan biner.}\\
+  \(10\cdot 256 + 5\cdot 16 + 15 = 2655_{10}\). Biner: \(\mathrm{A}\to 1010\), \(\mathrm{5}\to 0101\), \(\mathrm{F}\to 1111\) sehingga \(1010\,0101\,1111_2\).
+
+  \item \textbf{Lakukan operasi penjumlahan biner: \(1011_2 + 1101_2\).}\\
+  Hasil: \(11000_2\) sebagaimana langkah pembawaan pada contoh di atas (\(11+13=24\)).
+\end{enumerate}
+
+\section{Latihan}
+Kerjakan tanpa kalkulator, tulis langkah konversi/aritmatika secara jelas.
+\begin{enumerate}
+  \item Ubah ke biner dan heksadesimal: \(37_{10}\), \(1023_{10}\), \(4095_{10}\).
+  \item Ubah ke desimal dan heksadesimal: \(10010101_2\), \(11110000_2\), \(101011110101_2\).
+  \item Ubah ke desimal dan biner: \(\mathrm{7B}_{16}\), \(\mathrm{1C3}_{16}\), \(\mathrm{FE}_{16}\).
+  \item Hitung penjumlahan biner: \(11101_2 + 10111_2\), \(101010_2 + 1111_2\).
+  \item Untuk 8-bit two's complement, representasikan \(-5\), \(-27\), dan verifikasi dengan penjumlahan dengan nilai positifnya menghasilkan nol (modulo 256).
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Tabel konversi 0--15}: Buat tabel berisi tiga kolom: desimal, biner (4-bit), heksadesimal. Gunakan lingkungan \texttt{tabular} LaTeX, pastikan format rapi dan konsisten.
+  \item \textbf{Esai singkat (300--500 kata)}: Jelaskan mengapa heksadesimal sering digunakan dalam pemrograman \textit{low-level} (alamat memori, \textit{debugging}, \textit{bitmask}, korespondensi nibble--hex, keterbacaan). Sertakan contoh konkret (mis., merepresentasikan pola \textit{bit} register prosesor).
+  \item \textbf{Aplikasi assembly dalam kehidupan sehari-hari}: Berikan minimal dua contoh nyata (mis., \textit{bootloader}, \textit{driver} perangkat, \textit{firmware} mikrokontroler). Jelaskan alur singkat peran assembly dan alasannya digunakan (kinerja, determinisme, ukuran kode).
+\end{itemize}
+\noindent\textbf{Keluaran yang dikumpulkan}: (i) berkas PDF berisi jawaban dan tabel; (ii) berkas \LaTeX{} sumber; (iii) jika menggunakan kode, lampirkan cuplikan dan komentar.
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+  \item Intel Corporation. \textit{Intel 64 and IA-32 Architectures Software Developer's Manual} (bab pengantar untuk referensi arsitektur).
+\end{itemize}
