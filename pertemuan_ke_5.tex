@@ -1,0 +1,124 @@
+\chapter{Instruksi Logika (AND, OR, XOR, NOT); Output Teks ke Layar (INT 10h fungsi 02h)}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Menggunakan instruksi logika AND, OR, XOR, NOT
+\item Memahami operasi bitwise dan penggunaannya
+\item Menggunakan interupsi INT 10h untuk output teks
+\item Mampu menampilkan teks di layar dengan kontrol posisi
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Instruksi Logika}
+\begin{itemize}
+\item Instruksi AND (operasi logika AND)
+\item Instruksi OR (operasi logika OR)
+\item Instruksi XOR (operasi logika XOR)
+\item Instruksi NOT (operasi logika NOT)
+\item Operasi bitwise dan aplikasinya
+\item Pengaruh terhadap flag register
+\end{itemize}
+
+\subsection{Aplikasi Instruksi Logika}
+\begin{itemize}
+\item Manipulasi bit
+\item Masking dan unmasking
+\item Enkripsi sederhana
+\item Operasi set dan clear bit
+\item Perbandingan bit
+\end{itemize}
+
+\subsection{Interupsi BIOS INT 10h}
+\begin{itemize}
+\item Fungsi 02h: Set Cursor Position
+\item Fungsi 09h: Write Character and Attribute
+\item Fungsi 0Ah: Write Character Only
+\item Fungsi 0Eh: Write Character in TTY Mode
+\item Parameter dan penggunaan
+\end{itemize}
+
+\subsection{Output Teks ke Layar}
+\begin{itemize}
+\item Kontrol posisi kursor
+\item Atribut karakter (warna, background)
+\item Mode teks dan grafik
+\item Penanganan karakter khusus
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program operasi logika dasar
+\item Program manipulasi bit
+\item Program enkripsi sederhana dengan XOR
+\item Program output teks dengan kontrol posisi
+\item Program menampilkan teks berwarna
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program operasi logika dan output teks
+TITLE Operasi Logika dan Output
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan DB 'Hello Assembly!$'
+    nilai1 DW 0F0F0h
+    nilai2 DW 0FF00h
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Operasi logika
+    MOV AX, nilai1
+    AND AX, nilai2    ; Masking
+    OR AX, 000Fh      ; Set bit terakhir
+    XOR AX, 0FFFFh    ; Inversi
+    NOT AX            ; Komplemen
+    
+    ; Output teks ke layar
+    MOV AH, 02h       ; Set cursor position
+    MOV BH, 00h       ; Page 0
+    MOV DH, 10        ; Row 10
+    MOV DL, 20        ; Column 20
+    INT 10h
+    
+    ; Tampilkan karakter
+    MOV AH, 09h       ; Write character
+    MOV AL, 'A'       ; Character 'A'
+    MOV BH, 00h       ; Page 0
+    MOV BL, 1Eh       ; Yellow on blue
+    MOV CX, 1         ; Count
+    INT 10h
+    
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat program yang melakukan masking pada 8 bit terakhir
+\item Buat program enkripsi sederhana menggunakan XOR
+\item Buat program yang menampilkan teks di berbagai posisi layar
+\item Buat program yang menampilkan teks dengan berbagai warna
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Implementasikan operasi logika untuk manipulasi data
+\item Buat program yang menampilkan menu dengan kontrol posisi
+\item Buat program enkripsi/dekripsi teks menggunakan XOR
+\item Dokumentasikan penggunaan interupsi INT 10h
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\end{itemize}
+

@@ -1,0 +1,226 @@
+\chapter{Pemrograman Grafik Dasar: Menggambar Piksel dan Garis (Mode Grafik INT 10h)}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Memahami konsep mode grafik
+\item Menggunakan interupsi INT 10h untuk mode grafik
+\item Menggambar piksel di layar
+\item Menggambar garis menggunakan algoritma
+\item Mampu membuat program grafik sederhana
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Konsep Mode Grafik}
+\begin{itemize}
+\item Perbedaan mode teks dan grafik
+\item Resolusi layar
+\item Color palette
+\item Video memory organization
+\item Pixel addressing
+\end{itemize}
+
+\subsection{Interupsi INT 10h untuk Grafik}
+\begin{itemize}
+\item Fungsi 00h: Set Video Mode
+\item Fungsi 0Ch: Write Pixel
+\item Fungsi 0Dh: Read Pixel
+\item Fungsi 0Fh: Get Video Mode
+\item Mode grafik yang tersedia
+\end{itemize}
+
+\subsection{Menggambar Piksel}
+\begin{itemize}
+\item Koordinat piksel (X, Y)
+\item Color value
+\item Perhitungan alamat memori video
+\item Optimasi akses memori video
+\end{itemize}
+
+\subsection{Algoritma Menggambar Garis}
+\begin{itemize}
+\item Algoritma DDA (Digital Differential Analyzer)
+\item Algoritma Bresenham
+\item Implementasi algoritma garis
+\item Optimasi algoritma
+\end{itemize}
+
+\subsection{Koordinat dan Transformasi}
+\begin{itemize}
+\item Sistem koordinat layar
+\item Transformasi koordinat
+\item Clipping
+\item Viewport
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program mengatur mode grafik
+\item Program menggambar piksel tunggal
+\item Program menggambar garis horizontal dan vertikal
+\item Program menggambar garis diagonal
+\item Program menggambar bentuk geometri sederhana
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program demonstrasi grafik dasar
+TITLE Pemrograman Grafik
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    x1 DW 100
+    y1 DW 100
+    x2 DW 200
+    y2 DW 150
+    color DB 15  ; Putih
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Set mode grafik 320x200, 256 warna
+    MOV AH, 00h
+    MOV AL, 13h
+    INT 10h
+    
+    ; Gambar piksel tunggal
+    MOV AH, 0Ch
+    MOV AL, color
+    MOV BH, 00h
+    MOV CX, 160  ; X coordinate
+    MOV DX, 100  ; Y coordinate
+    INT 10h
+    
+    ; Gambar garis horizontal
+    MOV CX, 50   ; X start
+    MOV DX, 50   ; Y coordinate
+    MOV BX, 100  ; X end
+    
+gambar_horizontal:
+    MOV AH, 0Ch
+    MOV AL, color
+    MOV BH, 00h
+    INT 10h
+    INC CX
+    CMP CX, BX
+    JLE gambar_horizontal
+    
+    ; Gambar garis vertikal
+    MOV CX, 50   ; X coordinate
+    MOV DX, 50   ; Y start
+    MOV BX, 100  ; Y end
+    
+gambar_vertikal:
+    MOV AH, 0Ch
+    MOV AL, color
+    MOV BH, 00h
+    INT 10h
+    INC DX
+    CMP DX, BX
+    JLE gambar_vertikal
+    
+    ; Gambar garis diagonal menggunakan DDA
+    CALL gambar_garis_dda
+    
+    ; Tunggu input keyboard
+    MOV AH, 00h
+    INT 16h
+    
+    ; Kembali ke mode teks
+    MOV AH, 00h
+    MOV AL, 03h
+    INT 10h
+    
+    MOV AH, 4Ch
+    INT 21h
+
+; Prosedur menggambar garis menggunakan DDA
+gambar_garis_dda PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    
+    MOV AX, x2
+    SUB AX, x1
+    MOV BX, y2
+    SUB BX, y1
+    
+    ; Hitung jumlah steps
+    CMP AX, BX
+    JGE steps_x
+    MOV CX, BX
+    JMP hitung_delta
+steps_x:
+    MOV CX, AX
+    
+hitung_delta:
+    ; Delta X dan Delta Y
+    MOV DX, AX
+    SAR DX, 8  ; Delta X = (x2-x1)/steps
+    MOV AX, BX
+    SAR AX, 8  ; Delta Y = (y2-y1)/steps
+    
+    ; Inisialisasi
+    MOV BX, x1
+    MOV DX, y1
+    
+gambar_loop:
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    
+    MOV AH, 0Ch
+    MOV AL, color
+    MOV BH, 00h
+    MOV CX, BX  ; X
+    MOV DX, DX  ; Y
+    INT 10h
+    
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    
+    ADD BX, DX  ; X += Delta X
+    ADD DX, AX  ; Y += Delta Y
+    
+    LOOP gambar_loop
+    
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    RET
+gambar_garis_dda ENDP
+
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat program yang menggambar kotak
+\item Buat program yang menggambar segitiga
+\item Buat program yang menggambar lingkaran
+\item Buat program yang menggambar pola geometri
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Implementasikan algoritma Bresenham untuk menggambar garis
+\item Buat program yang menggambar grafik fungsi matematika
+\item Implementasikan program paint sederhana
+\item Dokumentasikan perbedaan antara algoritma DDA dan Bresenham
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\end{itemize}
+

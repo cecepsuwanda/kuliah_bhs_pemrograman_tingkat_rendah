@@ -1,0 +1,247 @@
+\chapter{Pemrosesan File Lanjutan: Manipulasi Pointer (INT 21h fungsi 42h), Penyimpanan Data Terformat}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Menggunakan fungsi 42h untuk manipulasi file pointer
+\item Memahami konsep random access file
+\item Menyimpan dan memuat data terformat
+\item Mengimplementasikan database sederhana
+\item Mampu membuat program file management
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Manipulasi File Pointer}
+\begin{itemize}
+\item Konsep file pointer dan position
+\item Fungsi 42h: LSEEK (Set File Pointer)
+\item Mode seek (beginning, current, end)
+\item Random access file
+\item File positioning dan navigation
+\end{itemize}
+
+\subsection{Fungsi LSEEK (42h)}
+\begin{itemize}
+\item Sintaks fungsi 42h
+\item Parameter AL (seek mode)
+\item Parameter BX (file handle)
+\item Parameter CX:DX (offset)
+\item Return value dalam DX:AX
+\end{itemize}
+
+\subsection{Data Terformat}
+\begin{itemize}
+\item Konsep data terformat
+\item Record-based data
+\item Fixed-length records
+\item Variable-length records
+\item Data serialization
+\end{itemize}
+
+\subsection{Database Sederhana}
+\begin{itemize}
+\item Struktur record
+\item Index file
+\item CRUD operations (Create, Read, Update, Delete)
+\item Data validation
+\item File locking
+\end{itemize}
+
+\subsection{Optimasi File Access}
+\begin{itemize}
+\item Buffer management
+\item Caching strategies
+\item Batch operations
+\item Error recovery
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program demonstrasi LSEEK
+\item Program random access file
+\item Program penyimpanan data terformat
+\item Program database sederhana
+\item Program file management
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program demonstrasi manipulasi file pointer dan data terformat
+TITLE Pemrosesan File Lanjutan
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    nama_file DB 'data.dat', 0
+    file_handle DW ?
+    
+    ; Struktur record
+    record_size EQU 20
+    nama DB 15 DUP(' ')
+    umur DB ?
+    gaji DW ?
+    
+    ; Data untuk disimpan
+    data1 DB 'John Doe       ', 25, 1000
+    data2 DB 'Jane Smith     ', 30, 1500
+    data3 DB 'Bob Johnson    ', 35, 2000
+    
+    ; Buffer untuk membaca
+    buffer DB record_size DUP(?)
+    
+    pesan_sukses DB 'Operasi berhasil!$'
+    pesan_error DB 'Error dalam operasi!$'
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Buat file baru
+    MOV AH, 3Ch
+    MOV CX, 0
+    MOV DX, OFFSET nama_file
+    INT 21h
+    JC error_handler
+    MOV file_handle, AX
+    
+    ; Tulis record pertama
+    MOV AH, 40h
+    MOV BX, file_handle
+    MOV CX, record_size
+    MOV DX, OFFSET data1
+    INT 21h
+    JC error_handler
+    
+    ; Tulis record kedua
+    MOV AH, 40h
+    MOV BX, file_handle
+    MOV CX, record_size
+    MOV DX, OFFSET data2
+    INT 21h
+    JC error_handler
+    
+    ; Tulis record ketiga
+    MOV AH, 40h
+    MOV BX, file_handle
+    MOV CX, record_size
+    MOV DX, OFFSET data3
+    INT 21h
+    JC error_handler
+    
+    ; Baca record kedua (random access)
+    MOV AH, 42h
+    MOV AL, 0        ; Seek from beginning
+    MOV BX, file_handle
+    MOV CX, 0
+    MOV DX, record_size  ; Offset ke record kedua
+    INT 21h
+    JC error_handler
+    
+    ; Baca record
+    MOV AH, 3Fh
+    MOV BX, file_handle
+    MOV CX, record_size
+    MOV DX, OFFSET buffer
+    INT 21h
+    JC error_handler
+    
+    ; Update record kedua
+    MOV AH, 42h
+    MOV AL, 1        ; Seek from current position
+    MOV BX, file_handle
+    MOV CX, 0
+    MOV DX, -record_size  ; Kembali ke awal record
+    INT 21h
+    JC error_handler
+    
+    ; Modifikasi data
+    MOV buffer[15], 31    ; Update umur
+    MOV WORD PTR buffer[16], 1600  ; Update gaji
+    
+    ; Tulis record yang dimodifikasi
+    MOV AH, 40h
+    MOV BX, file_handle
+    MOV CX, record_size
+    MOV DX, OFFSET buffer
+    INT 21h
+    JC error_handler
+    
+    ; Baca semua record
+    MOV AH, 42h
+    MOV AL, 0        ; Seek to beginning
+    MOV BX, file_handle
+    MOV CX, 0
+    MOV DX, 0
+    INT 21h
+    JC error_handler
+    
+    ; Baca dan tampilkan semua record
+    MOV CX, 3        ; Jumlah record
+baca_loop:
+    PUSH CX
+    
+    MOV AH, 3Fh
+    MOV BX, file_handle
+    MOV CX, record_size
+    MOV DX, OFFSET buffer
+    INT 21h
+    JC error_handler
+    
+    ; Tampilkan nama (15 karakter pertama)
+    MOV buffer[15], '$'
+    MOV AH, 09h
+    MOV DX, OFFSET buffer
+    INT 21h
+    
+    ; Tampilkan newline
+    MOV AH, 02h
+    MOV DL, 13
+    INT 21h
+    MOV DL, 10
+    INT 21h
+    
+    POP CX
+    LOOP baca_loop
+    
+    ; Tutup file
+    MOV AH, 3Eh
+    MOV BX, file_handle
+    INT 21h
+    
+    JMP selesai
+    
+error_handler:
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_error
+    INT 21h
+    
+selesai:
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat program yang membaca record tertentu dari file
+\item Buat program yang mengupdate record di posisi tertentu
+\item Buat program yang menghapus record (mark as deleted)
+\item Buat program yang mencari record berdasarkan kriteria
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Implementasikan program address book dengan file
+\item Buat program inventory management sederhana
+\item Implementasikan program student database
+\item Dokumentasikan teknik optimasi file access
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\end{itemize}
+

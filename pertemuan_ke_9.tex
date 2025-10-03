@@ -1,0 +1,159 @@
+\chapter{Instruksi Stack: PUSH, POP, CALL, RET; Subrutin dan Parameter Sederhana}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Memahami konsep stack dan operasinya
+\item Menggunakan instruksi PUSH dan POP
+\item Menggunakan instruksi CALL dan RET
+\item Membuat subrutin dengan parameter sederhana
+\item Mampu memodularisasi program
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Konsep Stack}
+\begin{itemize}
+\item Definisi stack (tumpukan)
+\item Prinsip LIFO (Last In, First Out)
+\item Register stack pointer (SP)
+\item Register stack segment (SS)
+\item Operasi stack dalam assembly
+\end{itemize}
+
+\subsection{Instruksi Stack}
+\begin{itemize}
+\item Instruksi PUSH (memasukkan data ke stack)
+\item Instruksi POP (mengambil data dari stack)
+\item PUSH/POP register
+\item PUSH/POP memori
+\item PUSH/POP flag register
+\item PUSH/POP immediate value
+\end{itemize}
+
+\subsection{Instruksi Subrutin}
+\begin{itemize}
+\item Instruksi CALL (memanggil subrutin)
+\item Instruksi RET (kembali dari subrutin)
+\item CALL near dan CALL far
+\item RET dengan parameter
+\item Penanganan return address
+\end{itemize}
+
+\subsection{Parameter dalam Subrutin}
+\begin{itemize}
+\item Parameter melalui register
+\item Parameter melalui stack
+\item Parameter melalui memori
+\item Return value dari subrutin
+\item Konvensi pemanggilan
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program demonstrasi operasi stack
+\item Program subrutin sederhana
+\item Program subrutin dengan parameter
+\item Program subrutin dengan return value
+\item Program modular dengan multiple subrutin
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program demonstrasi stack dan subrutin
+TITLE Stack dan Subrutin
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan1 DB 'Hello from main!$'
+    pesan2 DB 'Hello from subrutin!$'
+    nilai1 DW 10
+    nilai2 DW 20
+    hasil DW ?
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Demonstrasi stack
+    MOV AX, 1234h
+    PUSH AX
+    MOV BX, 5678h
+    PUSH BX
+    
+    ; Ambil dari stack (urutan terbalik)
+    POP CX  ; CX = 5678h
+    POP DX  ; DX = 1234h
+    
+    ; Panggil subrutin
+    CALL tampilkan_pesan
+    
+    ; Subrutin dengan parameter
+    PUSH nilai1
+    PUSH nilai2
+    CALL tambahkan
+    ADD SP, 4  ; Bersihkan parameter dari stack
+    
+    MOV AH, 4Ch
+    INT 21h
+
+; Subrutin tanpa parameter
+tampilkan_pesan PROC
+    PUSH AX
+    PUSH DX
+    
+    MOV AH, 09h
+    MOV DX, OFFSET pesan2
+    INT 21h
+    
+    POP DX
+    POP AX
+    RET
+tampilkan_pesan ENDP
+
+; Subrutin dengan parameter
+tambahkan PROC
+    PUSH BP
+    MOV BP, SP
+    
+    PUSH AX
+    PUSH BX
+    
+    MOV AX, [BP+6]  ; Parameter kedua
+    MOV BX, [BP+4]  ; Parameter pertama
+    ADD AX, BX
+    MOV hasil, AX
+    
+    POP BX
+    POP AX
+    POP BP
+    RET
+tambahkan ENDP
+
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat program yang menggunakan stack untuk menyimpan dan mengambil data
+\item Buat subrutin yang menghitung kuadrat dari sebuah bilangan
+\item Buat subrutin yang menukar nilai dua variabel
+\item Buat program yang menggunakan multiple subrutin
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Implementasikan subrutin untuk operasi aritmatika dasar
+\item Buat program kalkulator modular menggunakan subrutin
+\item Implementasikan subrutin untuk manipulasi string
+\item Dokumentasikan penggunaan stack dan subrutin
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\end{itemize}
+

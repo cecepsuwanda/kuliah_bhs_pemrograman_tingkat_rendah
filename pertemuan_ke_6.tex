@@ -1,0 +1,132 @@
+\chapter{Input dari Keyboard (INT 16h); Penanganan Keyboard Buffer}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Menggunakan interupsi INT 16h untuk input keyboard
+\item Memahami fungsi-fungsi INT 16h
+\item Menangani keyboard buffer
+\item Mampu membuat program interaktif dengan input keyboard
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Interupsi BIOS INT 16h}
+\begin{itemize}
+\item Fungsi 00h: Read Key (Blocking)
+\item Fungsi 01h: Check for Key (Non-blocking)
+\item Fungsi 02h: Get Keyboard Flags
+\item Parameter dan return values
+\item Perbedaan blocking dan non-blocking
+\end{itemize}
+
+\subsection{Keyboard Buffer}
+\begin{itemize}
+\item Konsep keyboard buffer
+\item Cara kerja buffer keyboard
+\item Penanganan buffer penuh
+\item Flushing keyboard buffer
+\item Status keyboard buffer
+\end{itemize}
+
+\subsection{Input Karakter dan String}
+\begin{itemize}
+\item Input karakter tunggal
+\item Input string dengan echo
+\item Input string tanpa echo (password)
+\item Validasi input
+\item Penanganan karakter khusus
+\end{itemize}
+
+\subsection{Karakter Khusus}
+\begin{itemize}
+\item Scan code dan ASCII code
+\item Function keys (F1-F12)
+\item Arrow keys
+\item Control keys (Ctrl, Alt, Shift)
+\item Special keys (Enter, Escape, Backspace)
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program input karakter tunggal
+\item Program input string dengan echo
+\item Program input password (tanpa echo)
+\item Program penanganan keyboard buffer
+\item Program interaktif dengan menu
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program input keyboard dan penanganan buffer
+TITLE Input Keyboard
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    prompt DB 'Masukkan nama: $'
+    nama DB 50 DUP('$')
+    pesan DB 'Halo, $'
+    buffer DB 50 DUP(?)
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Tampilkan prompt
+    MOV AH, 09h
+    MOV DX, OFFSET prompt
+    INT 21h
+    
+    ; Input string dengan echo
+    MOV AH, 0Ah
+    MOV DX, OFFSET buffer
+    INT 21h
+    
+    ; Input karakter tunggal (blocking)
+    MOV AH, 00h
+    INT 16h
+    ; AL = ASCII code, AH = Scan code
+    
+    ; Check for key (non-blocking)
+    MOV AH, 01h
+    INT 16h
+    JZ no_key
+    ; Key available, read it
+    MOV AH, 00h
+    INT 16h
+    
+no_key:
+    ; Flush keyboard buffer
+    MOV AH, 0Ch
+    MOV AL, 00h
+    INT 21h
+    
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat program yang menunggu input dari keyboard
+\item Buat program yang menampilkan scan code dari key yang ditekan
+\item Buat program input password dengan masking karakter
+\item Buat program yang menangani keyboard buffer penuh
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Buat program login dengan validasi username dan password
+\item Implementasikan menu interaktif dengan navigasi menggunakan arrow keys
+\item Buat program yang menangani input dengan timeout
+\item Dokumentasikan penggunaan interupsi INT 16h
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\end{itemize}
+

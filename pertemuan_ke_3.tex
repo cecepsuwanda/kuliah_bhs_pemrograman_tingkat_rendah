@@ -1,0 +1,107 @@
+\chapter{Instalasi Turbo Assembler dan Lingkungan Pengembangan; Struktur Program COM/EXE; Direktif Dasar (ORG, END)}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Menginstal dan mengkonfigurasi Turbo Assembler
+\item Memahami lingkungan pengembangan Turbo Assembler
+\item Mengetahui perbedaan struktur program COM dan EXE
+\item Menggunakan direktif dasar ORG dan END
+\item Mampu membuat program assembly sederhana
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Instalasi Turbo Assembler}
+\begin{itemize}
+\item Persyaratan sistem
+\item Proses instalasi
+\item Konfigurasi lingkungan
+\item Pengaturan path dan direktori
+\end{itemize}
+
+\subsection{Lingkungan Pengembangan}
+\begin{itemize}
+\item Editor Turbo Assembler
+\item Kompiler (TASM)
+\item Linker (TLINK)
+\item Debugger (TD)
+\item File bantuan dan dokumentasi
+\end{itemize}
+
+\subsection{Struktur Program COM}
+\begin{itemize}
+\item Karakteristik program COM
+\item Format file COM
+\item Batasan ukuran program
+\item Penggunaan memori
+\item Contoh struktur program COM
+\end{itemize}
+
+\subsection{Struktur Program EXE}
+\begin{itemize}
+\item Karakteristik program EXE
+\item Format file EXE
+\item Header file EXE
+\item Segmentasi program
+\item Contoh struktur program EXE
+\end{itemize}
+
+\subsection{Direktif Dasar}
+\begin{itemize}
+\item Direktif ORG (Origin)
+\item Direktif END
+\item Direktif lainnya (TITLE, PAGE, etc.)
+\item Penggunaan direktif dalam program
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Instalasi Turbo Assembler
+\item Konfigurasi lingkungan pengembangan
+\item Membuat program "Hello World" sederhana
+\item Kompilasi dan eksekusi program
+\item Penggunaan direktif ORG dan END
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program sederhana menggunakan direktif dasar
+TITLE Program Sederhana
+PAGE 60,132
+
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan DB 'Hello World!$'
+
+.CODE
+    ORG 100h
+    START:
+        MOV AX, @DATA
+        MOV DS, AX
+        
+        MOV DX, OFFSET pesan
+        MOV AH, 09h
+        INT 21h
+        
+        MOV AH, 4Ch
+        INT 21h
+    END START
+\end{verbatim}
+
+\section{Tugas}
+\begin{itemize}
+\item Instal Turbo Assembler di komputer
+\item Buat program COM sederhana yang menampilkan nama Anda
+\item Jelaskan perbedaan antara program COM dan EXE
+\item Buat dokumentasi proses instalasi dan konfigurasi
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Borland. \textit{Turbo Assembler (TASM) User's Guide}, Borland International.
+\item Nopi, Arif. \textit{Tutorial Bahasa Assembly (x86)}, Jasakom, Edisi Online.
+\end{itemize}
+

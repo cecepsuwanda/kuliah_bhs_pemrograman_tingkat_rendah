@@ -1,0 +1,186 @@
+\chapter{Pemrosesan File Dasar: Membuka, Menutup, Membaca, Menulis File (INT 21h fungsi 3Ch/3Fh/40h)}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Memahami konsep file handling
+\item Menggunakan interupsi INT 21h untuk operasi file
+\item Membuka dan menutup file
+\item Membaca dan menulis data ke file
+\item Menangani error dalam operasi file
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Konsep File Handling}
+\begin{itemize}
+\item Definisi file dan file system
+\item File handle dan file descriptor
+\item Mode akses file (read, write, append)
+\item File attributes dan permissions
+\item Error handling dalam operasi file
+\end{itemize}
+
+\subsection{Interupsi INT 21h untuk File}
+\begin{itemize}
+\item Fungsi 3Ch: Create File
+\item Fungsi 3Dh: Open File
+\item Fungsi 3Eh: Close File
+\item Fungsi 3Fh: Read File
+\item Fungsi 40h: Write File
+\item Fungsi 41h: Delete File
+\end{itemize}
+
+\subsection{Operasi File Dasar}
+\begin{itemize}
+\item Membuat file baru
+\item Membuka file yang sudah ada
+\item Menutup file
+\item Membaca data dari file
+\item Menulis data ke file
+\item Menghapus file
+\end{itemize}
+
+\subsection{File Handle dan Error Handling}
+\begin{itemize}
+\item File handle management
+\item Error codes dan penanganannya
+\item Validasi operasi file
+\item Resource cleanup
+\end{itemize}
+
+\subsection{Buffer dan Data Transfer}
+\begin{itemize}
+\item File buffer
+\item Block transfer
+\item Sequential access
+\item Data formatting
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program membuat file baru
+\item Program menulis data ke file
+\item Program membaca data dari file
+\item Program menyalin file
+\item Program dengan error handling
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program demonstrasi operasi file dasar
+TITLE Pemrosesan File
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    nama_file DB 'test.txt', 0
+    data_tulis DB 'Hello, World!', 13, 10
+    data_baca DB 100 DUP(?)
+    file_handle DW ?
+    pesan_sukses DB 'File berhasil dibuat!$'
+    pesan_error DB 'Error dalam operasi file!$'
+    pesan_baca DB 'Data dari file: $'
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Buat file baru
+    MOV AH, 3Ch
+    MOV CX, 0        ; File attributes (normal)
+    MOV DX, OFFSET nama_file
+    INT 21h
+    JC error_handler
+    MOV file_handle, AX
+    
+    ; Tampilkan pesan sukses
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_sukses
+    INT 21h
+    
+    ; Tulis data ke file
+    MOV AH, 40h
+    MOV BX, file_handle
+    MOV CX, 15       ; Jumlah byte yang ditulis
+    MOV DX, OFFSET data_tulis
+    INT 21h
+    JC error_handler
+    
+    ; Tutup file
+    MOV AH, 3Eh
+    MOV BX, file_handle
+    INT 21h
+    JC error_handler
+    
+    ; Buka file untuk dibaca
+    MOV AH, 3Dh
+    MOV AL, 0        ; Mode read
+    MOV DX, OFFSET nama_file
+    INT 21h
+    JC error_handler
+    MOV file_handle, AX
+    
+    ; Baca data dari file
+    MOV AH, 3Fh
+    MOV BX, file_handle
+    MOV CX, 100      ; Jumlah byte yang dibaca
+    MOV DX, OFFSET data_baca
+    INT 21h
+    JC error_handler
+    
+    ; Tampilkan data yang dibaca
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_baca
+    INT 21h
+    
+    ; Tambahkan null terminator
+    MOV BX, OFFSET data_baca
+    ADD BX, AX
+    MOV BYTE PTR [BX], '$'
+    
+    MOV AH, 09h
+    MOV DX, OFFSET data_baca
+    INT 21h
+    
+    ; Tutup file
+    MOV AH, 3Eh
+    MOV BX, file_handle
+    INT 21h
+    
+    JMP selesai
+    
+error_handler:
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_error
+    INT 21h
+    
+selesai:
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat program yang menulis teks ke file
+\item Buat program yang membaca dan menampilkan isi file
+\item Buat program yang menyalin isi file ke file lain
+\item Buat program yang menghitung jumlah karakter dalam file
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Implementasikan program text editor sederhana
+\item Buat program yang menyimpan dan memuat data konfigurasi
+\item Implementasikan program backup file
+\item Dokumentasikan error codes dan penanganannya
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\end{itemize}
+

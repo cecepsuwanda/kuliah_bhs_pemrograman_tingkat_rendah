@@ -1,0 +1,145 @@
+\chapter{Percabangan dan Loop: CMP, JE, JNE, JL, JG, LOOP; Interupsi Mouse (INT 33h)}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Menggunakan instruksi CMP untuk perbandingan
+\item Menggunakan instruksi percabangan (JE, JNE, JL, JG)
+\item Menggunakan instruksi LOOP untuk perulangan
+\item Memahami interupsi mouse INT 33h
+\item Mampu membuat program dengan struktur kontrol
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Instruksi Perbandingan (CMP)}
+\begin{itemize}
+\item Sintaks instruksi CMP
+\item Cara kerja CMP
+\item Pengaruh terhadap flag register
+\item Perbandingan dengan operasi aritmatika
+\end{itemize}
+
+\subsection{Instruksi Percabangan}
+\begin{itemize}
+\item Instruksi JE (Jump if Equal)
+\item Instruksi JNE (Jump if Not Equal)
+\item Instruksi JL (Jump if Less)
+\item Instruksi JG (Jump if Greater)
+\item Instruksi lainnya (JLE, JGE, JB, JA, etc.)
+\item Conditional jumps dan flag register
+\end{itemize}
+
+\subsection{Instruksi Perulangan (LOOP)}
+\begin{itemize}
+\item Instruksi LOOP
+\item Instruksi LOOPZ/LOOPE
+\item Instruksi LOOPNZ/LOOPNE
+\item Penggunaan register CX
+\item Kontrol perulangan
+\end{itemize}
+
+\subsection{Interupsi Mouse INT 33h}
+\begin{itemize}
+\item Fungsi 00h: Initialize Mouse
+\item Fungsi 01h: Show Mouse Cursor
+\item Fungsi 02h: Hide Mouse Cursor
+\item Fungsi 03h: Get Mouse Position and Button Status
+\item Fungsi 04h: Set Mouse Cursor Position
+\item Fungsi 05h: Get Button Press Information
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program percabangan sederhana
+\item Program perulangan dengan LOOP
+\item Program kombinasi percabangan dan perulangan
+\item Program interaksi dengan mouse
+\item Program game sederhana dengan mouse
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program percabangan, loop, dan mouse
+TITLE Percabangan dan Loop
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan1 DB 'Bilangan sama$'
+    pesan2 DB 'Bilangan berbeda$'
+    pesan3 DB 'Loop selesai$'
+    bil1 DW 10
+    bil2 DW 10
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Percabangan
+    MOV AX, bil1
+    CMP AX, bil2
+    JE sama
+    ; Jika tidak sama
+    MOV AH, 09h
+    MOV DX, OFFSET pesan2
+    INT 21h
+    JMP lanjut
+    
+sama:
+    MOV AH, 09h
+    MOV DX, OFFSET pesan1
+    INT 21h
+    
+lanjut:
+    ; Perulangan
+    MOV CX, 5
+ulang:
+    ; Kode yang diulang
+    DEC CX
+    JNZ ulang
+    
+    ; Inisialisasi mouse
+    MOV AX, 00h
+    INT 33h
+    CMP AX, 0
+    JE no_mouse
+    
+    ; Tampilkan cursor mouse
+    MOV AX, 01h
+    INT 33h
+    
+    ; Baca posisi mouse
+    MOV AX, 03h
+    INT 33h
+    ; BX = button status, CX = X position, DX = Y position
+    
+no_mouse:
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat program yang membandingkan dua bilangan
+\item Buat program yang menghitung faktorial menggunakan LOOP
+\item Buat program yang menampilkan angka 1-10 menggunakan perulangan
+\item Buat program yang merespon klik mouse
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Buat program kalkulator dengan menu percabangan
+\item Implementasikan algoritma sorting sederhana dengan perulangan
+\item Buat program game tebak angka dengan mouse
+\item Dokumentasikan penggunaan instruksi percabangan dan perulangan
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\end{itemize}
+

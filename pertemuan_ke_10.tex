@@ -1,0 +1,161 @@
+\chapter{Array dan String: Penyimpanan Array, Instruksi String (MOVS, CMPS, SCAS, LODS, STOS)}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Memahami konsep array dan string dalam assembly
+\item Menyimpan dan mengakses data array
+\item Menggunakan instruksi string MOVS, CMPS, SCAS, LODS, STOS
+\item Mampu memanipulasi string dan array
+\item Mengoptimalkan operasi string dengan prefix REP
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Konsep Array dan String}
+\begin{itemize}
+\item Definisi array dan string
+\item Penyimpanan array dalam memori
+\item Pengalamatan elemen array
+\item String sebagai array karakter
+\item Null-terminated string
+\end{itemize}
+
+\subsection{Penyimpanan Array}
+\begin{itemize}
+\item Array satu dimensi
+\item Array multi dimensi
+\item Pengalamatan array dengan indeks
+\item Perhitungan offset elemen array
+\item Array dengan ukuran berbeda
+\end{itemize}
+
+\subsection{Instruksi String}
+\begin{itemize}
+\item Instruksi MOVS (Move String)
+\item Instruksi CMPS (Compare String)
+\item Instruksi SCAS (Scan String)
+\item Instruksi LODS (Load String)
+\item Instruksi STOS (Store String)
+\item Penggunaan prefix REP
+\end{itemize}
+
+\subsection{Register untuk Operasi String}
+\begin{itemize}
+\item SI (Source Index)
+\item DI (Destination Index)
+\item CX (Counter)
+\item AL/AX (Accumulator)
+\item Direction Flag (DF)
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program demonstrasi operasi array
+\item Program copy string menggunakan MOVS
+\item Program perbandingan string menggunakan CMPS
+\item Program pencarian karakter menggunakan SCAS
+\item Program manipulasi string lengkap
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program demonstrasi array dan string
+TITLE Array dan String
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    array DW 10, 20, 30, 40, 50
+    string1 DB 'Hello World$'
+    string2 DB 20 DUP('$')
+    string3 DB 'Assembly$'
+    string4 DB 'Assembly$'
+    karakter DB 'l'
+    panjang EQU $ - string1
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    MOV ES, AX
+    
+    ; Akses elemen array
+    MOV BX, 2        ; Indeks elemen ke-2
+    MOV AX, array[BX] ; AX = 30
+    
+    ; Copy string menggunakan MOVS
+    LEA SI, string1
+    LEA DI, string2
+    MOV CX, panjang
+    CLD              ; Clear direction flag
+    REP MOVSB
+    
+    ; Perbandingan string menggunakan CMPS
+    LEA SI, string3
+    LEA DI, string4
+    MOV CX, 8
+    CLD
+    REPE CMPSB
+    JE sama
+    ; String berbeda
+    JMP lanjut
+    
+sama:
+    ; String sama
+    
+lanjut:
+    ; Pencarian karakter menggunakan SCAS
+    LEA DI, string1
+    MOV AL, karakter
+    MOV CX, panjang
+    CLD
+    REPNE SCASB
+    JE ditemukan
+    ; Karakter tidak ditemukan
+    JMP selesai
+    
+ditemukan:
+    ; Karakter ditemukan di posisi CX
+    
+selesai:
+    ; Load string menggunakan LODS
+    LEA SI, string1
+    MOV CX, 5
+    CLD
+    LODSB  ; Load byte ke AL
+    
+    ; Store string menggunakan STOS
+    LEA DI, string2
+    MOV AL, 'X'
+    MOV CX, 5
+    CLD
+    REP STOSB
+    
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat program yang mengakses elemen array dengan indeks
+\item Buat program yang menyalin string dari satu lokasi ke lokasi lain
+\item Buat program yang membandingkan dua string
+\item Buat program yang mencari karakter dalam string
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Implementasikan fungsi untuk menghitung panjang string
+\item Buat program yang membalik string
+\item Implementasikan fungsi untuk menggabungkan dua string
+\item Buat program yang mengurutkan array bilangan
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\end{itemize}
+

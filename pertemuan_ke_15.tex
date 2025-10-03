@@ -1,0 +1,178 @@
+\chapter{Program Residen (TSR): Konsep Terminate-and-Stay-Resident; Contoh Implementasi Sederhana}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Memahami konsep program TSR (Terminate-and-Stay-Resident)
+\item Mengetahui cara kerja program residen
+\item Mengimplementasikan TSR sederhana
+\item Menggunakan interupsi untuk komunikasi TSR
+\item Mampu membuat program background
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Konsep Program TSR}
+\begin{itemize}
+\item Definisi TSR (Terminate-and-Stay-Resident)
+\item Perbedaan program normal dan TSR
+\item Keuntungan dan kelemahan TSR
+\item Aplikasi program TSR
+\item Memory management untuk TSR
+\end{itemize}
+
+\subsection{Arsitektur Program TSR}
+\begin{itemize}
+\item Initialization routine
+\item Resident routine
+\item Interrupt handler
+\item Memory allocation
+\item Program termination
+\end{itemize}
+
+\subsection{Interupsi untuk TSR}
+\begin{itemize}
+\item INT 21h fungsi 31h: Terminate and Stay Resident
+\item INT 21h fungsi 25h: Set Interrupt Vector
+\item INT 21h fungsi 35h: Get Interrupt Vector
+\item Custom interrupt untuk komunikasi
+\end{itemize}
+
+\subsection{Implementasi TSR}
+\begin{itemize}
+\item Program structure
+\item Memory management
+\item Interrupt hooking
+\item Communication mechanism
+\item Error handling
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program TSR sederhana
+\item Program TSR dengan interrupt handler
+\item Program TSR dengan komunikasi
+\item Program TSR dengan memory management
+\item Program TSR dengan error handling
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program TSR sederhana
+TITLE Program TSR
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan_install DB 'TSR berhasil diinstall!$'
+    pesan_uninstall DB 'TSR berhasil diuninstall!$'
+    old_int21h DD ?
+    tsr_installed DB 0
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Cek apakah TSR sudah diinstall
+    MOV AH, 0FFh
+    INT 21h
+    CMP AL, 0AAh
+    JE sudah_install
+    
+    ; Install TSR
+    CALL install_tsr
+    
+    ; Tampilkan pesan
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_install
+    INT 21h
+    
+    ; Terminate and Stay Resident
+    MOV AH, 31h
+    MOV AL, 0
+    MOV DX, 1000h  ; Ukuran program dalam paragraph
+    INT 21h
+    
+sudah_install:
+    ; Uninstall TSR
+    CALL uninstall_tsr
+    
+    ; Tampilkan pesan
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_uninstall
+    INT 21h
+    
+    MOV AH, 4Ch
+    INT 21h
+
+; Prosedur install TSR
+install_tsr PROC
+    ; Simpan interrupt vector lama
+    MOV AH, 35h
+    MOV AL, 21h
+    INT 21h
+    MOV WORD PTR old_int21h, BX
+    MOV WORD PTR old_int21h[2], ES
+    
+    ; Set interrupt vector baru
+    MOV AH, 25h
+    MOV AL, 21h
+    MOV DX, OFFSET new_int21h
+    INT 21h
+    
+    RET
+install_tsr ENDP
+
+; Prosedur uninstall TSR
+uninstall_tsr PROC
+    ; Restore interrupt vector lama
+    MOV AH, 25h
+    MOV AL, 21h
+    MOV DX, WORD PTR old_int21h
+    MOV DS, WORD PTR old_int21h[2]
+    INT 21h
+    
+    RET
+uninstall_tsr ENDP
+
+; Interrupt handler baru
+new_int21h PROC
+    CMP AH, 0FFh
+    JNE call_old_int
+    
+    ; Handler untuk komunikasi TSR
+    MOV AL, 0AAh  ; Tanda TSR aktif
+    IRET
+    
+call_old_int:
+    ; Panggil interrupt handler lama
+    JMP DWORD PTR old_int21h
+    
+new_int21h ENDP
+
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat TSR yang menampilkan waktu di layar
+\item Buat TSR yang menangani hotkey
+\item Buat TSR yang memantau aktivitas keyboard
+\item Buat TSR yang melakukan backup otomatis
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Implementasikan TSR untuk system monitoring
+\item Buat TSR untuk keyboard macro
+\item Implementasikan TSR untuk file watcher
+\item Dokumentasikan teknik memory management untuk TSR
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\end{itemize}
+

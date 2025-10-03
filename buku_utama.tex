@@ -1,0 +1,98 @@
+\documentclass[a4paper,12pt]{book}
+\usepackage[utf8]{inputenc}
+\usepackage[indonesian]{babel}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+
+% Pengaturan halaman
+\geometry{margin=2cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\fancyhead[L]{Pemrograman Bahasa Tingkat Rendah}
+\fancyhead[R]{}
+
+% Pengaturan judul chapter
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{50pt}{40pt}
+
+% Pengaturan daftar isi
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+
+\begin{document}
+
+% Halaman judul
+\begin{titlepage}
+\begin{center}
+\vspace*{2cm}
+{\Huge\bfseries Pemrograman Bahasa Tingkat Rendah}\\[0.5cm]
+{\Large\bfseries (Turbo Assembler)}\\[1cm]
+{\large Mata Kuliah Teknik Informatika}\\[2cm]
+
+\vfill
+
+{\large Disusun oleh:}\\
+{\large Cecep Suwanda, S.Si., M.Kom.}\\[1cm]
+
+{\large Program Studi Teknik Informatika}\\
+{\large Fakultas Teknologi Informasi}\\
+{\large Universitas Bale Bandung}\\[1cm]
+
+{\large \today}
+\end{center}
+\end{titlepage}
+
+
+% Kata pengantar
+\chapter*{Kata Pengantar}
+\addcontentsline{toc}{chapter}{Kata Pengantar}
+
+Buku ini disusun sebagai bahan ajar untuk mata kuliah Pemrograman Bahasa Tingkat Rendah dengan fokus pada Turbo Assembler. Buku ini mencakup 15 pertemuan yang dirancang untuk memberikan pemahaman komprehensif tentang pemrograman assembly pada mikroprosesor Intel 8086.
+
+\vspace{1cm}
+
+Penulis berharap buku ini dapat membantu mahasiswa dalam memahami konsep-konsep dasar pemrograman assembly dan mengembangkan kemampuan praktis dalam menggunakan Turbo Assembler.
+
+% Halaman baru untuk daftar isi
+\newpage
+
+% Daftar isi
+\tableofcontents
+\newpage
+
+
+% Import semua pertemuan
+\include{pertemuan_ke_1}
+\include{pertemuan_ke_2}
+\include{pertemuan_ke_3}
+\include{pertemuan_ke_4}
+\include{pertemuan_ke_5}
+\include{pertemuan_ke_6}
+\include{pertemuan_ke_7}
+\include{pertemuan_ke_9}
+\include{pertemuan_ke_10}
+\include{pertemuan_ke_11}
+\include{pertemuan_ke_12}
+\include{pertemuan_ke_13}
+\include{pertemuan_ke_14}
+\include{pertemuan_ke_15}
+
+% Daftar pustaka
+\chapter*{Daftar Pustaka}
+\addcontentsline{toc}{chapter}{Daftar Pustaka}
+
+\begin{enumerate}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\item Brey, Barry B. \textit{Mikroprosesor Intel 8086/8088 dsb.}, edisi terjemahan, Penerbit Informatika.
+\item Borland. \textit{Turbo Assembler (TASM) User's Guide}, Borland International.
+\item Intel Corporation. \textit{Intel 64 and IA-32 Architectures Software Developer's Manual}, Intel.
+\item Nopi, Arif. \textit{Tutorial Bahasa Assembly (x86)}, Jasakom, Edisi Online.
+\end{enumerate}
+
+\end{document}

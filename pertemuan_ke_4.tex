@@ -1,0 +1,113 @@
+\chapter{Instruksi Dasar: Perpindahan Data (MOV), Operasi Aritmatika (ADD, SUB, MUL, DIV)}
+
+\section{Tujuan Pembelajaran}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan dapat:
+\begin{itemize}
+\item Menggunakan instruksi MOV untuk perpindahan data
+\item Melakukan operasi aritmatika dengan ADD, SUB, MUL, DIV
+\item Memahami pengaruh operasi terhadap flag register
+\item Mampu menulis program dengan operasi aritmatika dasar
+\end{itemize}
+
+\section{Materi Pembelajaran}
+
+\subsection{Instruksi Perpindahan Data (MOV)}
+\begin{itemize}
+\item Sintaks instruksi MOV
+\item Aturan penggunaan MOV
+\item Perpindahan data antar register
+\item Perpindahan data dari/ke memori
+\item Perpindahan data dengan konstanta
+\item Contoh penggunaan MOV
+\end{itemize}
+
+\subsection{Operasi Aritmatika}
+\begin{itemize}
+\item Instruksi ADD (penjumlahan)
+\item Instruksi SUB (pengurangan)
+\item Instruksi MUL (perkalian)
+\item Instruksi DIV (pembagian)
+\item Pengaruh terhadap flag register
+\item Penanganan overflow dan underflow
+\end{itemize}
+
+\subsection{Flag Register dan Operasi Aritmatika}
+\begin{itemize}
+\item Flag Carry (CF)
+\item Flag Zero (ZF)
+\item Flag Sign (SF)
+\item Flag Overflow (OF)
+\item Flag Parity (PF)
+\item Flag Auxiliary Carry (AF)
+\end{itemize}
+
+\section{Praktikum}
+\begin{enumerate}
+\item Program perpindahan data antar register
+\item Program penjumlahan dua bilangan
+\item Program pengurangan dengan penanganan flag
+\item Program perkalian dan pembagian
+\item Program kalkulator sederhana
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program operasi aritmatika dasar
+TITLE Operasi Aritmatika
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    bil1 DW 15
+    bil2 DW 7
+    hasil DW ?
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Penjumlahan
+    MOV AX, bil1
+    ADD AX, bil2
+    MOV hasil, AX
+    
+    ; Pengurangan
+    MOV AX, bil1
+    SUB AX, bil2
+    
+    ; Perkalian
+    MOV AX, bil1
+    MUL bil2
+    
+    ; Pembagian
+    MOV AX, bil1
+    DIV bil2
+    
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+\item Buat program yang menghitung (A + B) - (C + D)
+\item Buat program yang menghitung (X * Y) / Z
+\item Jelaskan pengaruh operasi aritmatika terhadap flag register
+\item Buat program yang menampilkan status flag setelah operasi
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+\item Buat kalkulator sederhana dengan operasi +, -, *, /
+\item Implementasikan penanganan error untuk pembagian dengan nol
+\item Buat program yang menghitung rata-rata dari 5 bilangan
+\item Dokumentasikan penggunaan flag register dalam operasi aritmatika
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+\item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+\item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\end{itemize}
+
