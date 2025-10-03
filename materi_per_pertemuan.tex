@@ -1,0 +1,70 @@
+\documentclass[a4paper,12pt]{book}
+\usepackage[utf8]{inputenc}
+\usepackage[indonesian]{babel}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+
+% Pengaturan halaman
+\geometry{margin=2cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\fancyhead[L]{Materi Per Pertemuan}
+\fancyhead[R]{}
+
+% Pengaturan judul chapter
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{50pt}{40pt}
+
+% Pengaturan daftar isi
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+
+\begin{document}
+
+% Halaman judul
+\begin{titlepage}
+\begin{center}
+\vspace*{2cm}
+{\Huge\bfseries Materi Per Pertemuan}\[0.5cm]
+{\Large\bfseries (Turbo Assembler)}\[1cm]
+{\large Mata Kuliah Teknik Informatika}\[2cm]
+
+\vfill
+
+{\large Disusun oleh:}\
+{\large Cecep Suwanda, S.Si., M.Kom.}\[1cm]
+
+{\large Program Studi Teknik Informatika}\
+{\large Fakultas Teknologi Informasi}\
+{\large Universitas Bale Bandung}\[1cm]
+
+{\large \today}
+\end{center}
+\end{titlepage}
+
+% Daftar isi
+\tableofcontents
+\newpage
+
+% Include materi tiap pertemuan
+\include{materi_pertemuan_ke_1}
+\include{materi_pertemuan_ke_2}
+\include{materi_pertemuan_ke_3}
+\include{materi_pertemuan_ke_4}
+\include{materi_pertemuan_ke_5}
+\include{materi_pertemuan_ke_6}
+\include{materi_pertemuan_ke_7}
+% \include{materi_pertemuan_ke_8} % tidak tersedia
+\include{materi_pertemuan_ke_9}
+\include{materi_pertemuan_ke_10}
+\include{materi_pertemuan_ke_11}
+\include{materi_pertemuan_ke_12}
+\include{materi_pertemuan_ke_13}
+\include{materi_pertemuan_ke_14}
+\include{materi_pertemuan_ke_15}
+
+\end{document}
