@@ -1,0 +1,164 @@
+\chapter{Program Residen (TSR): Konsep Terminate-and-Stay-Resident; Contoh Implementasi Sederhana}
+
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
+\begin{itemize}
+  \item Menjelaskan konsep \textit{Terminate-and-Stay-Resident} (TSR), arsitektur, dan pola penggunaannya di DOS.
+  \item Mengimplementasikan TSR sederhana: inisialisasi, pemasangan handler interupsi, dan terminasi-residen.
+  \item Menggunakan \texttt{INT 21h} fungsi \texttt{31h} (TSR), \texttt{25h}/\texttt{35h} (set/get interrupt vector) untuk komunikasi dan pemasangan.
+  \item Mendesain mekanisme komunikasi (hotkey/custom interrupt) dan strategi manajemen memori TSR.
+\end{itemize}
+
+\section{Pendahuluan}
+Program TSR adalah program DOS yang, setelah selesai inisialisasi, tidak sepenuhnya keluar: sebagian memorinya dibiarkan \textit{resident} untuk memberikan layanan latar belakang (mis. hotkey, jam layar, makro). TSR lazim sebelum hadirnya sistem multitugas umum. Kunci teknis TSR adalah pemasangan handler interupsi/\textit{hook} dan pemilihan ukuran memori yang disisakan agar cukup namun tidak boros.
+
+\section{Materi Pembelajaran}
+\subsection{Konsep Program TSR}
+\subsubsection{Definisi dan perbedaan}
+Berbeda dengan program biasa yang mengembalikan seluruh memorinya saat \texttt{INT 21h, 4Ch}, TSR mengeksekusi \texttt{INT 21h, 31h} untuk mengakhiri eksekusi namun menyisakan bagian memori dan vektor interupsi yang terpasang.
+
+\subsubsection{Keuntungan dan kelemahan}
+\textbf{Keuntungan}: menyediakan layanan latar belakang, akses cepat (hotkey). \textbf{Kelemahan}: konflik vektor interupsi, fragmentasi memori, kompatibilitas antar TSR.
+
+\subsubsection{Aplikasi TSR}
+Jam layar, pengganti \textit{keyboard handler}, \textit{clipboard} sederhana, peluncur cepat, atau \textit{logging}.
+
+\subsubsection{Manajemen memori}
+Minimalkan memori resident dengan memindahkan data temporer ke tumpukan non-resident, lepaskan segmen yang tak diperlukan sebelum \texttt{INT 21h,31h}, dan hitung ukuran paragraf (16-byte) yang tepat.
+
+\subsection{Arsitektur Program TSR}
+\subsubsection{Inisialisasi}
+Deteksi apakah TSR sudah terpasang (misalnya melalui vector marker/custom call). Simpan vektor lama, pasang vektor baru, siapkan state minimal.
+
+\subsubsection{Resident routine dan interrupt handler}
+Rutinitas resident dijalankan oleh interupsi yang di-hook (mis. keyboard \texttt{INT 09h}, layanan \texttt{INT 21h}, timer \texttt{INT 1Ch}). Pastikan handler cepat, \textit{reentrant-safe} (seperlunya), dan memanggil handler lama bila tidak memproses sendiri.
+
+\subsubsection{Terminasi-residen}
+Panggil \texttt{INT 21h, AH=31h} dengan \texttt{DX} berisi ukuran memori yang dibiarkan resident (dalam paragraf). \texttt{AL} dapat mengembalikan kode keluar.
+
+\subsection{Interupsi untuk TSR}
+\subsubsection{Set/Get Interrupt Vector}
+\texttt{INT 21h, AH=35h} mendapatkan vektor (ke \texttt{ES:BX}); \texttt{AH=25h} memasang vektor baru dari \texttt{DS:DX}. Simpan vektor lama untuk pemulihan atau pemanggilan berantai (\textit{chain}).
+
+\subsubsection{Custom interrupt}
+TSR dapat mengekspos layanan melalui nomor interupsi khusus (jarang) atau \texttt{AH} khusus pada \texttt{INT 21h}. Penanda sederhana: jika \texttt{AH=FFh}, handler mengembalikan tanda di \texttt{AL}.
+
+\section{Implementasi TSR}
+\subsection{Struktur dan langkah}
+\begin{enumerate}
+  \item Cek instalasi: panggil layanan khusus; jika sudah, tawarkan uninstall atau keluar.
+  \item Simpan vektor lama; pasang handler baru (\texttt{25h}).
+  \item Siapkan data resident (variabel global minimal) dan lepaskan yang tidak diperlukan.
+  \item Panggil \texttt{31h} dengan estimasi ukuran memori resident.
+\end{enumerate}
+
+\subsection{Contoh Handler}
+\begin{verbatim}
+; Handler INT 21h kustom: AH=FFh -> tanda aktif
+NEW_INT21 PROC FAR
+    CMP AH, 0FFh
+    JNE CALL_OLD
+    MOV AL, 0AAh
+    IRET
+CALL_OLD:
+    JMP DWORD PTR old_int21
+NEW_INT21 ENDP
+\end{verbatim}
+
+\subsection{Uninstall (opsional)}
+Uninstall yang bersih memerlukan restorasi vektor lama dan pembebasan memori (yang tidak mudah pada DOS standar). Banyak TSR tidak mendukung uninstall kecuali didesain khusus.
+
+\section{Praktikum}
+\begin{enumerate}
+  \item TSR sederhana: pasang handler \texttt{INT 21h} yang merespon \texttt{AH=FFh} dengan tanda aktif.
+  \item TSR hotkey: hook \texttt{INT 09h} (keyboard) untuk menangkap kombinasi tombol lalu memanggil layanan tertentu.
+  \item TSR timer: hook \texttt{INT 1Ch} untuk tugas periodik (mis. memperbarui jam di sudut layar mode teks).
+  \item Komunikasi: sediakan fungsi \texttt{AH=khas} untuk membaca status internal TSR.
+  \item Eksperimen uninstall: kembalikan vektor ke lama (jika aman) dan uji konflik.
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program TSR sederhana (ringkas)
+TITLE Program TSR
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    pesan_install   DB 'TSR berhasil diinstall!$'
+    old_int21       DD ?
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+
+    ; Cek instalasi
+    MOV AH, 0FFh
+    INT 21h
+    CMP AL, 0AAh
+    JE  already
+
+    ; Simpan vektor lama INT 21h
+    MOV AH, 35h
+    MOV AL, 21h
+    INT 21h
+    MOV WORD PTR old_int21, BX
+    MOV WORD PTR old_int21[2], ES
+
+    ; Pasang vektor baru INT 21h
+    MOV AH, 25h
+    MOV AL, 21h
+    MOV DX, OFFSET NEW_INT21
+    INT 21h
+
+    ; Tampilkan pesan
+    MOV AH, 09h
+    MOV DX, OFFSET pesan_install
+    INT 21h
+
+    ; Terminate and Stay Resident (sisa ~4KB contoh)
+    MOV AH, 31h
+    MOV AL, 0
+    MOV DX, 0100h   ; 256 paragraf (4096 byte) contoh, sesuaikan
+    INT 21h
+
+already:
+    ; Sudah terpasang: cukup keluar normal
+    MOV AH, 4Ch
+    INT 21h
+
+; Handler baru INT 21h
+NEW_INT21 PROC FAR
+    CMP AH, 0FFh
+    JNE CALL_OLD
+    MOV AL, 0AAh
+    IRET
+CALL_OLD:
+    JMP DWORD PTR old_int21
+NEW_INT21 ENDP
+
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Buat TSR yang menampilkan waktu di pojok layar setiap detik (hook \texttt{INT 1Ch}).
+  \item Buat TSR yang menangani \textit{hotkey} (mis. Alt+H) untuk menampilkan bantuan singkat.
+  \item Buat TSR pemantau keyboard yang mencatat tombol ke buffer sirkular (hindari menulis berkas langsung dari handler).
+  \item Buat TSR yang merespon \texttt{AH=FEh} dengan mengembalikan penghitung internal (mis. jumlah \textit{ticks}).
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{System monitor}: TSR yang menampilkan penggunaan memori DOS (perkiraan), jam, dan indikator Caps/Num/Scroll.
+  \item \textbf{Keyboard macro}: TSR yang merekam dan memutar ulang urutan tombol pada hotkey tertentu.
+  \item \textbf{File watcher}: TSR yang mengawasi pemanggilan fungsi file \texttt{INT 21h} umum dan menampilkan indikator aktivitas.
+  \item \textbf{Dokumentasi}: Uraikan strategi memori TSR Anda, ukuran resident, dan cara menghindari konflik vektor.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
+\end{itemize}
