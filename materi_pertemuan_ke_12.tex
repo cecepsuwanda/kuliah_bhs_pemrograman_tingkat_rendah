@@ -1,0 +1,190 @@
+\chapter{Pemrograman Grafik Dasar: Menggambar Piksel dan Garis (Mode Grafik INT 10h)}
+
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
+\begin{itemize}
+  \item Menjelaskan perbedaan mode teks dan grafik, resolusi, palet warna, dan organisasi memori video.
+  \item Menggunakan layanan BIOS \texttt{INT 10h} untuk mengatur mode grafik, menulis/membaca piksel, dan memeriksa mode aktif.
+  \item Menggambar piksel dan garis di layar pada koordinat tertentu dengan warna yang dipilih.
+  \item Mengimplementasikan algoritma garis (DDA/Bresenham) dan memahami trade-off kinerja/akurasi.
+  \item Mengembangkan program grafik sederhana berbasis mode 13h (320x200x256) sebagai studi kasus.
+\end{itemize}
+
+\section{Pendahuluan}
+Mode grafik menyediakan akses piksel-tingkat ke layar, berbeda dengan mode teks yang berbasis karakter. Pada lingkungan DOS, BIOS menyediakan fungsi \texttt{INT 10h} untuk mengatur mode, menulis/membaca piksel, dan berbagai operasi tampilan. Mode 13h (320x200 dengan 256 warna) populer untuk pembelajaran karena memori video \textit{linear} (satu byte per piksel) yang mudah diakses.
+
+\section{Materi Pembelajaran}
+\subsection{Konsep Mode Grafik}
+\subsubsection{Perbedaan mode teks dan grafik}
+Mode teks menampilkan karakter dari tabel font di layar, sedangkan mode grafik memetakan memori video langsung ke piksel. Mode teks lebih hemat memori dan sederhana; mode grafik memberi fleksibilitas menggambar bentuk bebas.
+
+\subsubsection{Resolusi layar dan palet}
+Resolusi menyatakan jumlah piksel horizontal x vertikal. Pada mode 13h: 320x200 piksel, 256 warna (palet 8-bit). Nilai warna \(0..255\) memetakan ke entri palet yang dapat diatur (di luar cakupan dasar ini).
+
+\subsubsection{Organisasi memori video dan pengalamatan piksel}
+Pada mode 13h, buffer video mulai di \texttt{A000:0000}. Offset piksel \((x,y)\) adalah \(y\cdot 320 + x\). Untuk mode lain (planar EGA/VGA), organisasi lebih kompleks.
+
+\subsection{Interupsi INT 10h untuk Grafik}
+\subsubsection{Fungsi 00h: Set Video Mode}
+\begin{itemize}
+  \item \textbf{Masukan}: \texttt{AH=00h}, \texttt{AL=mode} (\texttt{13h} untuk 320x200x256, \texttt{03h} kembali ke teks 80x25).
+  \item \textbf{Efek}: Mengatur mode tampilan dan membersihkan layar.
+\end{itemize}
+
+\subsubsection{Fungsi 0Ch: Write Pixel}
+\begin{itemize}
+  \item \textbf{Masukan}: \texttt{AH=0Ch}, \texttt{AL=color}, \texttt{BH=page}, \texttt{CX=x}, \texttt{DX=y}.
+  \item \textbf{Efek}: Menggambar piksel pada koordinat (x,y) dengan warna.
+\end{itemize}
+
+\subsubsection{Fungsi 0Dh: Read Pixel}
+\begin{itemize}
+  \item \textbf{Masukan}: \texttt{AH=0Dh}, \texttt{BH=page}, \texttt{CX=x}, \texttt{DX=y}.
+  \item \textbf{Keluaran}: \texttt{AL=color} pada piksel (x,y).
+\end{itemize}
+
+\subsubsection{Fungsi 0Fh: Get Video Mode}
+Mengembalikan mode saat ini, ukuran kolom, dan nomor halaman aktif.
+
+\subsection{Menggambar Piksel}
+\subsubsection{Koordinat dan warna}
+Koordinat (x,y) berbasis 0. Pastikan berada dalam batas resolusi. Untuk warna, pilih nilai palet \(0..255\).
+
+\subsubsection{Akses memori video langsung}
+Selain \texttt{INT 10h, 0Ch}, dapat menulis langsung ke \texttt{A000:0000 + y*320 + x} untuk kinerja. Pastikan \texttt{ES} menunjuk \texttt{A000h} dan gunakan \texttt{MOV} ke \texttt{ES:[DI]}/\texttt{ES:[BX]}.
+
+\subsection{Algoritma Menggambar Garis}
+\subsubsection{DDA (Digital Differential Analyzer)}
+Menginkremen koordinat dengan langkah pecahan. Mudah dipahami namun menggunakan operasi pecahan/float atau perkiraan \textit{fixed-point}; dapat lebih lambat.
+
+\subsubsection{Bresenham}
+Menggunakan aritmatika integer dan \textit{error term} untuk menentukan piksel berikutnya. Lebih efisien dan akurat untuk layar raster.
+
+\subsubsection{Implementasi ringkas}
+\begin{verbatim}
+; Pseudo: Bresenham integer
+ dx = abs(x1-x0); dy = -abs(y1-y0)
+ sx = x0<x1 ? 1 : -1
+ sy = y0<y1 ? 1 : -1
+ err = dx + dy
+ while true:
+   plot(x0,y0)
+   if x0==x1 && y0==y1: break
+   e2 = 2*err
+   if e2 >= dy: err += dy; x0 += sx
+   if e2 <= dx: err += dx; y0 += sy
+\end{verbatim}
+
+\subsection{Koordinat dan Transformasi}
+\subsubsection{Sistem koordinat}
+Asal (0,0) di pojok kiri atas; x ke kanan, y ke bawah. Transformasi translasi/skalasi dapat diterapkan sebelum penggambaran.
+
+\subsubsection{Clipping dan viewport}
+Batasi penggambaran dalam area tertentu untuk menghindari akses memori di luar layar. Sederhana: \textit{reject} jika di luar; lanjutkan jika di dalam.
+
+\section{Praktikum}
+\begin{enumerate}
+  \item Atur mode 13h dan gambar beberapa piksel berwarna acak.
+  \item Gambar garis horizontal/vertikal dengan perulangan sederhana (inkremen x atau y).
+  \item Implementasikan DDA untuk menggambar garis diagonal; bandingkan dengan implementasi sederhana.
+  \item Implementasikan Bresenham dan bandingkan jumlah operasi serta kelicinan garis dengan DDA.
+  \item Gambar bentuk geometri sederhana (persegi, segitiga) menggunakan fungsi garis.
+\end{enumerate}
+
+\section{Contoh Kode}
+\begin{verbatim}
+; Program demonstrasi grafik dasar (mode 13h)
+TITLE Pemrograman Grafik
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    x1    DW 100
+    y1    DW 100
+    x2    DW 200
+    y2    DW 150
+    color DB 15  ; Putih
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Set mode grafik 320x200, 256 warna
+    MOV AH, 00h
+    MOV AL, 13h
+    INT 10h
+    
+    ; Gambar piksel tunggal
+    MOV AH, 0Ch
+    MOV AL, color
+    MOV BH, 00h
+    MOV CX, 160  ; X coordinate
+    MOV DX, 100  ; Y coordinate
+    INT 10h
+    
+    ; Gambar garis horizontal
+    MOV CX, 50   ; X start
+    MOV DX, 50   ; Y coordinate
+    MOV BX, 100  ; X end
+
+gambar_horizontal:
+    MOV AH, 0Ch
+    MOV AL, color
+    MOV BH, 00h
+    INT 10h
+    INC CX
+    CMP CX, BX
+    JLE gambar_horizontal
+    
+    ; Gambar garis vertikal
+    MOV CX, 50   ; X coordinate
+    MOV DX, 50   ; Y start
+    MOV BX, 100  ; Y end
+
+gambar_vertikal:
+    MOV AH, 0Ch
+    MOV AL, color
+    MOV BH, 00h
+    INT 10h
+    INC DX
+    CMP DX, BX
+    JLE gambar_vertikal
+    
+    ; (Implementasi DDA/Bresenham dapat ditambahkan di sini)
+    
+    ; Tunggu input keyboard
+    MOV AH, 00h
+    INT 16h
+    
+    ; Kembali ke mode teks
+    MOV AH, 00h
+    MOV AL, 03h
+    INT 10h
+    
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{verbatim}
+
+\section{Latihan}
+\begin{enumerate}
+  \item Buat program menggambar kotak di posisi dan ukuran tertentu; parameterkan warna.
+  \item Buat program menggambar segitiga dari tiga titik; gunakan tiga panggilan fungsi garis.
+  \item Buat program menggambar lingkaran sederhana (mis. \textit{midpoint circle}) atau pendekatan parametris dasar.
+  \item Buat program menggambar pola grid dan diagonal untuk menguji kerapatan piksel.
+\end{enumerate}
+
+\section{Tugas}
+\begin{itemize}
+  \item \textbf{Bresenham}: Implementasikan penuh algoritma Bresenham untuk garis, dokumentasikan langkah dan bandingkan dengan DDA.
+  \item \textbf{Grafik fungsi}: Gambar grafik \(y=f(x)\) (mis. \(\sin x\) terdiskretisasi) pada area layar; skalakan ke piksel.
+  \item \textbf{Mini paint}: Buat program kecil yang memungkinkan menggambar garis dengan keyboard/mouse sederhana; simpan layar sementara di memori.
+  \item \textbf{Dokumentasi}: Jelaskan perbedaan organisasi memori antar mode dan konsekuensi kinerja untuk write pixel via \texttt{INT 10h} vs akses langsung.
+\end{itemize}
+
+\section{Referensi}
+\begin{itemize}
+  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
+  \item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
+\end{itemize}
