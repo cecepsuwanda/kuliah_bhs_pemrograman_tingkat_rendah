@@ -10,7 +10,7 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Program TSR adalah program DOS yang, setelah selesai inisialisasi, tidak sepenuhnya keluar: sebagian memorinya dibiarkan \textit{resident} untuk memberikan layanan latar belakang (mis. hotkey, jam layar, makro) \cite{susanto1995belajar}. TSR lazim sebelum hadirnya sistem multitugas umum. Kunci teknis TSR adalah pemasangan handler interupsi/\textit{hook} dan pemilihan ukuran memori yang disisakan agar cukup namun tidak boros \cite{hyde2010art}.
+Program TSR adalah program DOS yang, setelah selesai inisialisasi, tidak sepenuhnya keluar: sebagian memorinya dibiarkan \textit{resident} untuk memberikan layanan latar belakang (mis. hotkey, jam layar, makro). TSR lazim sebelum hadirnya sistem multitugas umum. Kunci teknis TSR adalah pemasangan handler interupsi/\textit{hook} dan pemilihan ukuran memori yang disisakan agar cukup namun tidak boros.
 
 \section{Konsep Program TSR}
 \subsection{Definisi dan perbedaan}
@@ -42,19 +42,14 @@ Panggil \texttt{INT 21h, AH=31h} dengan \texttt{DX} berisi ukuran memori yang di
 \subsubsection{Custom interrupt}
 TSR dapat mengekspos layanan melalui nomor interupsi khusus (jarang) atau \texttt{AH} khusus pada \texttt{INT 21h}. Penanda sederhana: jika \texttt{AH=FFh}, handler mengembalikan tanda di \texttt{AL}.
 
-% (diintegrasikan ke materi utama)
 \subsubsection{Reentransi dan Keamanan Handler}
-Handler TSR sering dipicu saat DOS/BIOS mungkin tidak reentrant. Hindari memanggil layanan DOS yang tidak aman dari interupsi di dalam handler; jika perlu, setel penanda dan lakukan pekerjaan berat di titik aman (mis. hook timer dan proses di luar handler sensitif). \cite{rbil}
-
+Handler TSR sering dipicu saat DOS/BIOS mungkin tidak reentrant. Hindari memanggil layanan DOS yang tidak aman dari interupsi di dalam handler; jika perlu, setel penanda dan lakukan pekerjaan berat di titik aman (mis. hook timer dan proses di luar handler sensitif). 
 \subsubsection{Perhitungan Ukuran Resident}
-Hitung total segmen yang perlu ditinggalkan resident (kode + data minimal). Ukur dalam paragraf (16 byte); tambahkan margin untuk variabel runtime. Lepaskan segmen yang tidak dibutuhkan (mis. tumpukan sementara) sebelum \texttt{INT 21h,31h}. \cite{rbil}
-
+Hitung total segmen yang perlu ditinggalkan resident (kode + data minimal). Ukur dalam paragraf (16 byte); tambahkan margin untuk variabel runtime. Lepaskan segmen yang tidak dibutuhkan (mis. tumpukan sementara) sebelum \texttt{INT 21h,31h}. 
 \subsubsection{Rantai Handler (Chaining)}
-Saat mengganti vektor, simpan vektor lama dan panggil jika event tidak ditangani agar kompatibel dengan TSR lain. Periksa kondisi untuk mencegah loop. Pastikan menyimpan/memulihkan register dengan benar. \cite{rbil}
-
+Saat mengganti vektor, simpan vektor lama dan panggil jika event tidak ditangani agar kompatibel dengan TSR lain. Periksa kondisi untuk mencegah loop. Pastikan menyimpan/memulihkan register dengan benar. 
 \subsubsection{Deteksi Instalasi Ganda}
-Sediakan mekanisme \textit{self-detection} (mis. panggilan khusus yang mengembalikan tanda). Jika sudah terpasang, tawarkan keluar normal atau uninstall (bila aman). \cite{rbil}
-
+Sediakan mekanisme \textit{self-detection} (mis. panggilan khusus yang mengembalikan tanda). Jika sudah terpasang, tawarkan keluar normal atau uninstall (bila aman). 
 \section{Implementasi TSR}
 \subsection{Struktur dan langkah}
 \begin{enumerate}
@@ -169,5 +164,3 @@ END START
   \item \textbf{Dokumentasi}: Uraikan strategi memori TSR Anda, ukuran resident, dan cara menghindari konflik vektor.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document

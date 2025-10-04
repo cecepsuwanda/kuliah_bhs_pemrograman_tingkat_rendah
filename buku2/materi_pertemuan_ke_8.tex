@@ -1,0 +1,245 @@
+\chapter{Instruksi Dasar dan Operasi Aritmatika}\label{ch:instruksi-dasar}
+
+\section{Tujuan Pembelajaran}\label{sec:instruksi-dasar-tujuan}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan mampu:
+\begin{itemize}
+    \item Mengidentifikasi dan menjelaskan fungsi instruksi MOV, ADD, SUB, MUL, DIV dalam konteks operasi register dan memori.
+    \item Menerapkan instruksi aritmatika dasar dengan operand 8-bit dan 16-bit pada contoh praktis.
+    \item Menjelaskan dampak operasi aritmatika terhadap register flags (CF, OF, SF, ZF, AF, PF).
+    \item Menggunakan instruksi logika dasar (AND, OR, XOR, NOT) untuk manipulasi bit dan register.
+    \item Mengimplementasikan operasi shift dan rotate untuk manipulasi bit dan perkalian/pembagian dengan pangkat 2.
+    \item Menjelaskan perbedaan antara operasi signed dan unsigned serta dampaknya pada flags.
+\end{itemize}
+
+\section{Pendahuluan}\label{sec:instruksi-dasar-pendahuluan}
+Instruksi dasar dalam bahasa assembly Intel 8086 mencakup operasi data transfer, aritmatika, dan logika yang membentuk fondasi pemrograman tingkat rendah. Pemahaman yang mendalam tentang instruksi-instruksi ini, termasuk efeknya terhadap register flags dan cara penanganan operand, sangat penting untuk mengembangkan program assembly yang efisien dan benar.
+
+\section{Instruksi Transfer Data}\label{sec:instruksi-dasar-transfer}
+\subsection{Instruksi MOV}
+Instruksi MOV (move) adalah instruksi transfer data yang paling fundamental. Sintaks: \texttt{MOV destination, source}.
+
+\subsubsection{Kombinasi operand yang valid}
+\begin{itemize}
+    \item Register ke register: \texttt{MOV AX, BX}
+    \item Immediate ke register: \texttt{MOV AL, 5Ah}
+    \item Register ke memori: \texttt{MOV [1234h], AX}
+    \item Memori ke register: \texttt{MOV AX, [1234h]}
+    \item Immediate ke memori: \texttt{MOV [BX], 100h}
+\end{itemize}
+
+\subsubsection{Pembatasan dan aturan}
+\begin{itemize}
+    \item Tidak dapat memindahkan memori ke memori langsung
+    \item Ukuran operand source dan destination harus sama
+    \item Tidak mempengaruhi register flags
+    \item Tidak dapat memindahkan immediate ke segment register
+\end{itemize}
+
+\subsection{Contoh penggunaan MOV}
+\begin{verbatim}
+org 100h
+; Inisialisasi register
+mov ax, 1234h        ; AX = 1234h
+mov bx, ax           ; BX = AX = 1234h
+mov cx, 5678h        ; CX = 5678h
+
+; Akses memori
+mov [1000h], ax      ; Simpan AX ke memori
+mov dx, [1000h]      ; Baca dari memori ke DX
+
+int 20h
+\end{verbatim}
+
+\section{Instruksi Aritmatika}\label{sec:instruksi-dasar-aritmatika}
+\subsection{Instruksi ADD dan SUB}
+\subsubsection{ADD (Addition)}
+Menambahkan source ke destination: \texttt{ADD destination, source}
+
+Contoh:
+\begin{verbatim}
+mov ax, 1000h
+mov bx, 2000h
+add ax, bx           ; AX = AX + BX = 3000h
+add al, 5            ; AL = AL + 5
+\end{verbatim}
+
+\subsubsection{SUB (Subtraction)}
+Mengurangkan source dari destination: \texttt{SUB destination, source}
+
+Contoh:
+\begin{verbatim}
+mov ax, 3000h
+mov bx, 1000h
+sub ax, bx           ; AX = AX - BX = 2000h
+\end{verbatim}
+
+\subsection{Instruksi MUL dan DIV}
+\subsubsection{MUL (Multiplication)}
+Perkalian unsigned: \texttt{MUL source}
+
+\begin{itemize}
+    \item 8-bit: \texttt{AL × source} → \texttt{AX}
+    \item 16-bit: \texttt{AX × source} → \texttt{DX:AX}
+\end{itemize}
+
+Contoh:
+\begin{verbatim}
+mov al, 10
+mov bl, 5
+mul bl               ; AX = 10 × 5 = 50
+\end{verbatim}
+
+\subsubsection{DIV (Division)}
+Pembagian unsigned: \texttt{DIV source}
+
+\begin{itemize}
+    \item 8-bit: \texttt{AX ÷ source} → \texttt{AL} (quotient), \texttt{AH} (remainder)
+    \item 16-bit: \texttt{DX:AX ÷ source} → \texttt{AX} (quotient), \texttt{DX} (remainder)
+\end{itemize}
+
+Contoh:
+\begin{verbatim}
+mov ax, 100          ; Dividend
+mov bl, 7            ; Divisor
+div bl               ; AL = 14 (quotient), AH = 2 (remainder)
+\end{verbatim}
+
+\subsection{Dampak terhadap Register Flags}
+\begin{itemize}
+    \item \textbf{CF (Carry Flag)}: Set jika ada carry out dari MSB (unsigned overflow)
+    \item \textbf{OF (Overflow Flag)}: Set jika ada signed overflow
+    \item \textbf{ZF (Zero Flag)}: Set jika hasil operasi adalah nol
+    \item \textbf{SF (Sign Flag)}: Set jika hasil negatif (MSB = 1)
+    \item \textbf{AF (Auxiliary Carry)}: Set jika ada carry dari bit 3 ke bit 4
+    \item \textbf{PF (Parity Flag)}: Set jika jumlah bit 1 dalam byte terendah genap
+\end{itemize}
+
+\section{Instruksi Logika}\label{sec:instruksi-dasar-logika}
+\subsection{AND, OR, XOR, NOT}
+\subsubsection{AND}
+Operasi logika AND bit-per-bit: \texttt{AND destination, source}
+
+Contoh:
+\begin{verbatim}
+mov al, 10101100b
+and al, 11110000b    ; AL = 10100000b
+\end{verbatim}
+
+\subsubsection{OR}
+Operasi logika OR bit-per-bit: \texttt{OR destination, source}
+
+Contoh:
+\begin{verbatim}
+mov al, 10101100b
+or al, 00001111b     ; AL = 10101111b
+\end{verbatim}
+
+\subsubsection{XOR}
+Operasi logika XOR bit-per-bit: \texttt{XOR destination, source}
+
+Contoh:
+\begin{verbatim}
+mov al, 10101100b
+xor al, 11111111b    ; AL = 01010011b (bit flip)
+\end{verbatim}
+
+\subsubsection{NOT}
+Komplemen bit-per-bit: \texttt{NOT destination}
+
+Contoh:
+\begin{verbatim}
+mov al, 10101100b
+not al               ; AL = 01010011b
+\end{verbatim}
+
+\section{Instruksi Shift dan Rotate}\label{sec:instruksi-dasar-shift}
+\subsection{SHL/SHR (Logical Shift)}
+\subsubsection{SHL (Shift Left)}
+Geser bit ke kiri, isi dengan 0: \texttt{SHL destination, count}
+
+Contoh:
+\begin{verbatim}
+mov al, 00001010b    ; 10 desimal
+shl al, 1            ; AL = 00010100b (20 desimal)
+\end{verbatim}
+
+\subsubsection{SHR (Shift Right)}
+Geser bit ke kanan, isi dengan 0: \texttt{SHR destination, count}
+
+Contoh:
+\begin{verbatim}
+mov al, 00010100b    ; 20 desimal
+shr al, 1            ; AL = 00001010b (10 desimal)
+\end{verbatim}
+
+\subsection{SAL/SAR (Arithmetic Shift)}
+\subsubsection{SAL (Shift Arithmetic Left)}
+Sama dengan SHL untuk bilangan positif.
+
+\subsubsection{SAR (Shift Arithmetic Right)}
+Geser bit ke kanan, pertahankan sign bit: \texttt{SAR destination, count}
+
+Contoh:
+\begin{verbatim}
+mov al, 11110100b    ; -12 desimal (two's complement)
+sar al, 1            ; AL = 11111010b (-6 desimal)
+\end{verbatim}
+
+\subsection{ROL/ROR (Rotate)}
+\subsubsection{ROL (Rotate Left)}
+Rotasi bit ke kiri: \texttt{ROL destination, count}
+
+\subsubsection{ROR (Rotate Right)}
+Rotasi bit ke kanan: \texttt{ROR destination, count}
+
+\section{Operasi Signed vs Unsigned}\label{sec:instruksi-dasar-signed}
+\subsection{Perbedaan Interpretasi}
+\begin{itemize}
+    \item \textbf{Unsigned}: Semua bit diinterpretasikan sebagai nilai positif
+    \item \textbf{Signed}: MSB sebagai sign bit, sisanya menggunakan two's complement
+\end{itemize}
+
+\subsection{Contoh Perhitungan}
+\begin{verbatim}
+mov al, 11110100b    ; 244 (unsigned) atau -12 (signed)
+add al, 1            ; 245 (unsigned) atau -11 (signed)
+\end{verbatim}
+
+\section{Contoh Soal dan Pembahasan}\label{sec:instruksi-dasar-contoh}
+\begin{enumerate}
+    \item \textbf{Jelaskan hasil operasi \texttt{MOV AX, 1234h} kemudian \texttt{ADD AX, 5678h}.}\\
+    AX akan berisi 1234h + 5678h = 68ACh. Flags yang terpengaruh: CF=0 (tidak ada carry), OF=0 (tidak ada signed overflow), ZF=0 (hasil bukan nol), SF=0 (hasil positif).
+
+    \item \textbf{Berapa hasil \texttt{MUL BL} jika AL=10 dan BL=5?}\\
+    AX = 10 × 5 = 50 (32h dalam heksadesimal).
+
+    \item \textbf{Jelaskan operasi \texttt{AND AL, 0F0h} pada AL=ABh.}\\
+    ABh = 10101011b, 0F0h = 11110000b. Hasil AND: 10100000b = A0h. Operasi ini mempertahankan 4 bit atas dan mengosongkan 4 bit bawah.
+
+    \item \textbf{Berapa hasil \texttt{SHL AX, 1} jika AX=5?}\\
+    AX = 5 = 0000000000000101b. Setelah SHL 1: AX = 0000000000001010b = 10. Ini setara dengan perkalian dengan 2.
+\end{enumerate}
+
+\section{Latihan}\label{sec:instruksi-dasar-latihan}
+\begin{enumerate}
+    \item Tulis program untuk menghitung (AX + BX) × CX dan simpan hasil di DX.
+    \item Implementasikan operasi swap antara register AX dan BX tanpa menggunakan register tambahan.
+    \item Buat program yang menggunakan operasi bit untuk memeriksa apakah suatu bilangan genap atau ganjil.
+    \item Gunakan instruksi shift untuk mengalikan AX dengan 8 dan bagi BX dengan 4.
+    \item Tulis program yang melakukan operasi XOR untuk mengenkripsi string sederhana.
+\end{enumerate}
+
+\section{Tugas}\label{sec:instruksi-dasar-tugas}
+\begin{itemize}
+    \item \textbf{Kalkulator sederhana}: Buat program assembly yang melakukan operasi aritmatika dasar (+, -, ×, ÷) pada dua bilangan yang dimasukkan pengguna.
+    \item \textbf{Analisis flags}: Buat tabel yang menunjukkan kondisi flags setelah berbagai operasi aritmatika dengan contoh nilai yang berbeda.
+    \item \textbf{Manipulasi bit}: Implementasikan fungsi untuk mengatur, menghapus, dan memeriksa bit tertentu dalam register menggunakan operasi logika.
+    \item \textbf{Esai (400--600 kata)}: Bandingkan efisiensi operasi aritmatika dalam assembly dengan bahasa tingkat tinggi, sertakan contoh konkret dan analisis kinerja.
+\end{itemize}
+
+\section{Referensi}\label{sec:instruksi-dasar-referensi}
+\begin{itemize}
+    \item \cite{hyde2010art}
+    \item \cite{nopi2003tutorial}
+    \item \cite{intel2019manual32}
+\end{itemize}

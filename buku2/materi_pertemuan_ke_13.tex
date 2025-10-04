@@ -10,7 +10,7 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Pada DOS, layanan \texttt{INT 21h} menyediakan antarmuka sistem berkas berbasiskan \textit{file handle} \cite{susanto1995belajar}. Operasi utama meliputi pembuatan/ pembukaan berkas, pembacaan/penulisan data, dan penutupan. Keberhasilan/kegagalan operasi diindikasikan oleh \textit{carry flag} (CF) dan kode error di \texttt{AX} saat CF diset \cite{hyde2010art}.
+Pada DOS, layanan \texttt{INT 21h} menyediakan antarmuka sistem berkas berbasiskan \textit{file handle}. Operasi utama meliputi pembuatan/ pembukaan berkas, pembacaan/penulisan data, dan penutupan. Keberhasilan/kegagalan operasi diindikasikan oleh \textit{carry flag} (CF) dan kode error di \texttt{AX} saat CF diset.
 
 \section{Konsep File Handling}
 \subsection{Definisi file dan file system}
@@ -61,19 +61,14 @@ Tangkap kasus umum: file tidak ditemukan (\texttt{2}), akses ditolak (\texttt{5}
 \subsubsection{Resource cleanup}
 Pada error di tengah rangkaian operasi, lakukan penutupan handle yang sudah terbuka sebelum keluar.
 
-% (diintegrasikan ke materi utama)
 \subsubsection{Kode Error Umum INT 21h}
-Contoh: \texttt{AX=02h} (file tidak ditemukan), \texttt{03h} (path tidak ditemukan), \texttt{05h} (akses ditolak), \texttt{0Dh} (data invalid). Periksa \texttt{CF} dan \texttt{AX} setelah setiap panggilan file I/O untuk menangani kegagalan dengan baik. \cite{rbil}
-
+Contoh: \texttt{AX=02h} (file tidak ditemukan), \texttt{03h} (path tidak ditemukan), \texttt{05h} (akses ditolak), \texttt{0Dh} (data invalid). Periksa \texttt{CF} dan \texttt{AX} setelah setiap panggilan file I/O untuk menangani kegagalan dengan baik. 
 \subsubsection{EOF dan Jumlah Byte Terbaca}
-Pada operasi baca (\texttt{AH=3Fh}), nilai kembali \texttt{AX} bisa lebih kecil dari \texttt{CX} menandakan akhir berkas atau buffer tidak penuh. Jangan mengasumsikan buffer terisi penuh. \cite{rbil}
-
+Pada operasi baca (\texttt{AH=3Fh}), nilai kembali \texttt{AX} bisa lebih kecil dari \texttt{CX} menandakan akhir berkas atau buffer tidak penuh. Jangan mengasumsikan buffer terisi penuh. 
 \subsubsection{Buffered I/O Sederhana}
-Gunakan buffer menengah untuk menyalin berkas dalam blok (mis. 128/256/512 byte). Hindari alokasi dinamis yang sulit pada DOS; gunakan buffer statik di segmen data. \cite{osdev_wiki}
-
+Gunakan buffer menengah untuk menyalin berkas dalam blok (mis. 128/256/512 byte). Hindari alokasi dinamis yang sulit pada DOS; gunakan buffer statik di segmen data. 
 \subsubsection{Format Teks vs Biner}
-Untuk teks, perhatikan terminator baris (\texttt{CR LF} = \texttt{0Dh 0Ah}). Untuk biner, pertahankan ukuran yang tepat dan hindari transformasi karakter. \cite{osdev_wiki}
-
+Untuk teks, perhatikan terminator baris (\texttt{CR LF} = \texttt{0Dh 0Ah}). Untuk biner, pertahankan ukuran yang tepat dan hindari transformasi karakter. 
 
 \subsection{Buffer dan Transfer Data}
 \subsubsection{Buffer dan block transfer}
@@ -202,5 +197,3 @@ END START
   \item \textbf{Dokumentasi}: Daftar kode error umum dari \texttt{INT 21h} yang Anda temui, dan strategi penanganannya.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document

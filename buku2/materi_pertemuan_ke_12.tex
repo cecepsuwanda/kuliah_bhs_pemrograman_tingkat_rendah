@@ -11,7 +11,7 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Mode grafik menyediakan akses piksel-tingkat ke layar, berbeda dengan mode teks yang berbasis karakter \cite{susanto1995belajar}. Pada lingkungan DOS, BIOS menyediakan fungsi \texttt{INT 10h} untuk mengatur mode, menulis/membaca piksel, dan berbagai operasi tampilan \cite{hyde2010art}. Mode 13h (320x200 dengan 256 warna) populer untuk pembelajaran karena memori video \textit{linear} (satu byte per piksel) yang mudah diakses \cite{nopi2003tutorial}.
+Mode grafik menyediakan akses piksel-tingkat ke layar, berbeda dengan mode teks yang berbasis karakter. Pada lingkungan DOS, BIOS menyediakan fungsi \texttt{INT 10h} untuk mengatur mode, menulis/membaca piksel, dan berbagai operasi tampilan. Mode 13h (320x200 dengan 256 warna) populer untuk pembelajaran karena memori video \textit{linear} (satu byte per piksel) yang mudah diakses.
 
 \section{Konsep Mode Grafik}
 \subsection{Perbedaan mode teks dan grafik}
@@ -52,18 +52,17 @@ Koordinat (x,y) berbasis 0. Pastikan berada dalam batas resolusi. Untuk warna, p
 \subsubsection{Akses memori video langsung}
 Selain \texttt{INT 10h, 0Ch}, dapat menulis langsung ke \texttt{A000:0000 + y*320 + x} untuk kinerja. Pastikan \texttt{ES} menunjuk \texttt{A000h} dan gunakan \texttt{MOV} ke \texttt{ES:[DI]}/\texttt{ES:[BX]}.
 
-% (diintegrasikan ke materi utama)
 \subsubsection{Mode VGA 13h dan Palet}
-Pada mode 13h, satu byte merepresentasikan indeks palet (0..255). Pengaturan palet (DAC) dilakukan dengan port I/O VGA (di luar cakupan dasar ini), namun penting dipahami bahwa nilai piksel bukan RGB langsung. \cite{abrash_black_book}
+Pada mode 13h, satu byte merepresentasikan indeks palet (0..255). Pengaturan palet (DAC) dilakukan dengan port I/O VGA (di luar cakupan dasar ini), namun penting dipahami bahwa nilai piksel bukan RGB langsung.
 
 \subsubsection{Akses Langsung vs INT 10h}
-Pemanggilan \texttt{INT 10h} untuk setiap piksel bersifat mahal. Untuk kinerja tinggi, gunakan akses langsung ke memori video: muat \texttt{ES=A000h}, hitung offset \(y\cdot 320 + x\), lalu simpan byte warna. Gunakan \texttt{REP STOSB} untuk mengisi area. \cite{abrash_black_book}
+Pemanggilan \texttt{INT 10h} untuk setiap piksel bersifat mahal. Untuk kinerja tinggi, gunakan akses langsung ke memori video: muat \texttt{ES=A000h}, hitung offset \(y\cdot 320 + x\), lalu simpan byte warna. Gunakan \texttt{REP STOSB} untuk mengisi area.
 
 \subsubsection{Algoritma Garis: DDA vs Bresenham}
-DDA menggunakan penambahan pecahan dan pembulatan; sederhana namun lebih lambat. Bresenham memakai hanya integer, cocok untuk perangkat keras lama. Uji di emulator untuk melihat perbedaan jumlah instruksi. \cite{abrash_black_book}
+DDA menggunakan penambahan pecahan dan pembulatan; sederhana namun lebih lambat. Bresenham memakai hanya integer, cocok untuk perangkat keras lama. Uji di emulator untuk melihat perbedaan jumlah instruksi.
 
 \subsubsection{Clipping Sederhana}
-Selalu periksa \(0 \le x < 320\) dan \(0 \le y < 200\) sebelum menulis. Untuk garis, lakukan \textit{trivial reject} ketika seluruh segmen di luar batas; untuk implementasi penuh, terapkan Cohen–Sutherland (lanjutan). \cite{osdev_wiki}
+Selalu periksa \(0 \le x < 320\) dan \(0 \le y < 200\) sebelum menulis. Untuk garis, lakukan \textit{trivial reject} ketika seluruh segmen di luar batas; untuk implementasi penuh, terapkan Cohen–Sutherland (lanjutan).
 
 \subsection{Algoritma Menggambar Garis}
 \subsubsection{DDA (Digital Differential Analyzer)}
@@ -195,5 +194,3 @@ END START
   \item \textbf{Dokumentasi}: Jelaskan perbedaan organisasi memori antar mode dan konsekuensi kinerja untuk write pixel via \texttt{INT 10h} vs akses langsung.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document

@@ -11,9 +11,10 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Kontrol alur adalah inti dari setiap program \cite{susanto1995belajar}. Pada 8086, \texttt{CMP} mengatur \textit{flags} yang selanjutnya diinterpretasikan oleh lompat bersyarat. Untuk iterasi, instruksi keluarga \texttt{LOOP} memanfaatkan \texttt{CX} sebagai pencacah \cite{hyde2010art}. Di sisi \textit{I/O}, \texttt{INT 33h} menyediakan API BIOS untuk mouse pada lingkungan DOS, memungkinkan antarmuka interaktif dasar \cite{nopi2003tutorial}.
+Kontrol alur adalah inti dari setiap program. Pada 8086, \texttt{CMP} mengatur \textit{flags} yang selanjutnya diinterpretasikan oleh lompat bersyarat. Untuk iterasi, instruksi keluarga \texttt{LOOP} memanfaatkan \texttt{CX} sebagai pencacah. Di sisi \textit{I/O}, \texttt{INT 33h} menyediakan API BIOS untuk mouse pada lingkungan DOS, memungkinkan antarmuka interaktif dasar.
 
 \section{Instruksi Perbandingan (CMP)}
+\subsection{Dasar-dasar CMP}
 \subsubsection{Sintaks dan cara kerja}
 \texttt{CMP dest, src} menghitung \(dest - src\) tanpa menyimpan hasil, namun memperbarui \textit{flags} (\texttt{ZF}, \texttt{SF}, \texttt{CF}, \texttt{OF}, \texttt{PF}, \texttt{AF}). \textit{Flags} kemudian digunakan oleh lompat bersyarat.
 \begin{verbatim}
@@ -39,19 +40,14 @@ Pilih sesuai interpretasi data untuk menghindari logika salah.
 \subsubsection{Conditional jumps dan jangkauan}
 Lompatan bersyarat menggunakan offset relatif pendek (\(\pm 128\) byte pada 8086). Untuk jangkauan lebih jauh, gunakan skema \textit{inverted branch} + \texttt{JMP} jauh.
 
-% (diintegrasikan ke materi utama)
 \subsubsection{Pola Kontrol Alur yang Umum}
-Gunakan pola \textbf{if-else}, \textbf{switch-like} (tabel lompatan/\textit{jump table} berbasis indeks), dan \textbf{loop counted} (\texttt{CX}) vs \textbf{loop sentinel} (berhenti pada kondisi). Tabel lompatan dapat diimplementasikan dengan daftar alamat dan \texttt{JMP [BX+SI]}. \cite{intel2019manual32}
-
+Gunakan pola \textbf{if-else}, \textbf{switch-like} (tabel lompatan/\textit{jump table} berbasis indeks), dan \textbf{loop counted} (\texttt{CX}) vs \textbf{loop sentinel} (berhenti pada kondisi). Tabel lompatan dapat diimplementasikan dengan daftar alamat dan \texttt{JMP [BX+SI]}. 
 \subsubsection{Optimasi Cabang}
-Cabang pendek (\texttt{Jcc} 8-bit) lebih padat; restrukturisasi kondisi untuk memanfaatkan jangkauan pendek saat mungkin. Hindari memodifikasi \texttt{CX} tak sengaja saat memakai \texttt{LOOP}. \cite{hyde2010art}
-
+Cabang pendek (\texttt{Jcc} 8-bit) lebih padat; restrukturisasi kondisi untuk memanfaatkan jangkauan pendek saat mungkin. Hindari memodifikasi \texttt{CX} tak sengaja saat memakai \texttt{LOOP}. 
 \subsubsection{INT 33h: Detail dan Koordinat}
-Skala koordinat mouse bergantung mode tampilan. Pada mode teks, koordinat biasanya dalam sel karakter; di mode grafik dapat berupa piksel dengan rentang yang dapat diatur (fungsi pembatasan). Selalu periksa nilai kembali inisialisasi driver (\texttt{AX=FFFFh}) sebelum memakai layanan mouse. \cite{rbil}
-
+Skala koordinat mouse bergantung mode tampilan. Pada mode teks, koordinat biasanya dalam sel karakter; di mode grafik dapat berupa piksel dengan rentang yang dapat diatur (fungsi pembatasan). Selalu periksa nilai kembali inisialisasi driver (\texttt{AX=FFFFh}) sebelum memakai layanan mouse. 
 \subsubsection{Debounce Klik dan Drag Sederhana}
-Catat transisi status tombol (tekan/lepas) untuk membedakan klik tunggal vs tahan/drag. Simpan posisi terakhir untuk menghitung delta pergerakan dan ambang jarak. \cite{osdev_wiki}
-
+Catat transisi status tombol (tekan/lepas) untuk membedakan klik tunggal vs tahan/drag. Simpan posisi terakhir untuk menghitung delta pergerakan dan ambang jarak. 
 
 \subsection{Instruksi Perulangan (LOOP)}
 \subsubsection{LOOP}
@@ -183,5 +179,3 @@ END START
   \item \textbf{Dokumentasi}: Ringkas instruksi lompatan dan kondisi flags yang memicunya; sertakan contoh minimal.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document

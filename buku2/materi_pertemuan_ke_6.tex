@@ -10,9 +10,10 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Interaksi pengguna pada lingkungan DOS banyak bertumpu pada layanan BIOS untuk perangkat input seperti keyboard \cite{susanto1995belajar}. \texttt{INT 16h} menyediakan antarmuka tingkat rendah yang konsisten untuk membaca tombol, memeriksa ketersediaan input, dan mendapatkan status \textit{modifier} (Shift/Ctrl/Alt) \cite{hyde2010art}. Memahami perbedaan operasi \textit{blocking} dan \textit{non-blocking} penting agar program responsif dan tidak \textit{hang} menunggu masukan.
+Interaksi pengguna pada lingkungan DOS banyak bertumpu pada layanan BIOS untuk perangkat input seperti keyboard. \texttt{INT 16h} menyediakan antarmuka tingkat rendah yang konsisten untuk membaca tombol, memeriksa ketersediaan input, dan mendapatkan status \textit{modifier} (Shift/Ctrl/Alt). Memahami perbedaan operasi \textit{blocking} dan \textit{non-blocking} penting agar program responsif dan tidak \textit{hang} menunggu masukan.
 
 \section{Interupsi BIOS INT 16h}
+\subsection{Fungsi Keyboard}
 \subsubsection{Fungsi 00h: Read Key (Blocking)}
 \begin{itemize}
   \item \textbf{Masukan}: \texttt{AH=00h}
@@ -73,19 +74,14 @@ Tombol \textit{non-printable} menghasilkan \texttt{AL=0} dan \texttt{AH} berisi 
 \subsubsection{Function, arrow, control keys}
 F1--F12 umumnya menghasilkan \texttt{AL=0} (atau \texttt{E0h} sebagai \textit{prefix} pada beberapa sistem) dan \texttt{AH} menunjukkan kode; panah memerlukan interpretasi \textit{scan code}. \texttt{Ctrl}/\texttt{Alt}/\texttt{Shift} memodifikasi kode dan terekam pada status flags (fungsi 02h).
 
-% (diintegrasikan ke materi utama)
 \subsubsection{Detail INT 16h dan Kompatibilitas}
-Beberapa BIOS/klon memiliki variasi perilaku untuk kombinasi tombol tertentu. Gunakan \texttt{01h} (non-blocking) sebelum pemanggilan \texttt{00h} untuk menjaga responsif. Untuk \textit{extended keys}, sebagian sistem mengembalikan \texttt{AL=E0h} sebagai prefix; normalisasi input pada rutinitas Anda. \cite{rbil}
-
+Beberapa BIOS/klon memiliki variasi perilaku untuk kombinasi tombol tertentu. Gunakan \texttt{01h} (non-blocking) sebelum pemanggilan \texttt{00h} untuk menjaga responsif. Untuk \textit{extended keys}, sebagian sistem mengembalikan \texttt{AL=E0h} sebagai prefix; normalisasi input pada rutinitas Anda. 
 \subsubsection{Penanganan Debounce dan Repeat Rate}
-Keyboard PC menghasilkan \textit{make/break} code dan \textit{repeat} saat tombol ditahan. Antarmuka BIOS telah mengabstraksikannya, namun aplikasi interaktif bisa menambahkan \textit{debounce} sederhana (abaikan kejadian yang terlalu cepat) atau mengatur \textit{repeat rate} via \texttt{INT 16h} fungsi tertentu (bergantung BIOS). \cite{osdev_wiki}
-
+Keyboard PC menghasilkan \textit{make/break} code dan \textit{repeat} saat tombol ditahan. Antarmuka BIOS telah mengabstraksikannya, namun aplikasi interaktif bisa menambahkan \textit{debounce} sederhana (abaikan kejadian yang terlalu cepat) atau mengatur \textit{repeat rate} via \texttt{INT 16h} fungsi tertentu (bergantung BIOS). 
 \subsubsection{Timeout Input dan Integrasi Timer}
-Gabungkan polling \texttt{AH=01h} dengan \texttt{INT 1Ah} (BIOS timer) untuk mewujudkan \textit{timeout}. Hitung \textit{tick} (55 ms per tick pada DOS klasik) dan batasi durasi menunggu input. \cite{rbil}
-
+Gabungkan polling \texttt{AH=01h} dengan \texttt{INT 1Ah} (BIOS timer) untuk mewujudkan \textit{timeout}. Hitung \textit{tick} (55 ms per tick pada DOS klasik) dan batasi durasi menunggu input. 
 \subsubsection{Validasi String dan Pengeditan Baris}
-Untuk mode \texttt{AH=0Ah} (buffered input DOS), perhatikan format buffer: kapasitas, panjang aktual, dan isi. Untuk mengimplementasikan editor baris kustom: tangani Backspace, Delete (hapus karakter di posisi kursor), panah kiri/kanan (opsional, memerlukan \texttt{INT 10h} untuk kursor). \cite{dosbox_manual}
-
+Untuk mode \texttt{AH=0Ah} (buffered input DOS), perhatikan format buffer: kapasitas, panjang aktual, dan isi. Untuk mengimplementasikan editor baris kustom: tangani Backspace, Delete (hapus karakter di posisi kursor), panah kiri/kanan (opsional, memerlukan \texttt{INT 10h} untuk kursor). 
 
 \section{Praktikum}
 \begin{enumerate}
@@ -164,5 +160,3 @@ END START
   \item \textbf{Dokumentasi INT 16h}: Ringkas parameter dan nilai kembali untuk fungsi 00h, 01h, 02h; sertakan tabel contoh keluaran.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document

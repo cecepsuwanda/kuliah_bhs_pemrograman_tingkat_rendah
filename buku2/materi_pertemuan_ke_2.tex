@@ -11,36 +11,38 @@ Setelah mengikuti pertemuan ini, mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Intel 8086 (1978) merupakan mikroprosesor 16-bit yang memperkenalkan arsitektur x86 \cite{intel2019manual32}. Meskipun modernisasi arsitektur telah berlangsung selama dekade, banyak konsep fundamental (register, segmentasi, mode pengalamatan) tetap relevan untuk memahami pemrograman tingkat rendah dan kompatibilitas ke belakang \cite{brey1986mikroprosesor}.
+Intel 8086 (1978) merupakan mikroprosesor 16-bit yang memperkenalkan arsitektur x86. Meskipun modernisasi arsitektur telah berlangsung selama dekade, banyak konsep fundamental (register, segmentasi, mode pengalamatan) tetap relevan untuk memahami pemrograman tingkat rendah dan kompatibilitas ke belakang.
 
 \section{Arsitektur Mikroprosesor Intel 8086}
 \subsection{Sejarah dan karakteristik Intel 8086}
-Intel 8086 adalah prosesor 16-bit dengan bus alamat 20-bit, memungkinkan pengalamatan hingga 1 MB memori \cite{intel2019manual32}. Diperkenalkan untuk meningkatkan kemampuan 8080/8085 dan menjadi dasar ekosistem PC awal \cite{brey1986mikroprosesor}.
+Intel 8086 adalah prosesor 16-bit dengan bus alamat 20-bit, memungkinkan pengalamatan hingga 1 MB memori. Diperkenalkan untuk meningkatkan kemampuan 8080/8085 dan menjadi dasar ekosistem PC awal.
 
 \subsection{Arsitektur internal mikroprosesor}
-8086 dapat dipandang terdiri dari dua bagian utama: \textit{Bus Interface Unit} (BIU) dan \textit{Execution Unit} (EU) \cite{intel2019manual32}. BIU menangani pengambilan instruksi (prefetch) dari memori dan interaksi bus, sedangkan EU mengeksekusi instruksi, mengelola ALU, register, dan flags. Mekanisme \textit{prefetch queue} meningkatkan \textit{throughput} dengan menyiapkan instruksi sebelum dieksekusi \cite{brey1986mikroprosesor}.
+8086 dapat dipandang terdiri dari dua bagian utama: \textit{Bus Interface Unit} (BIU) dan \textit{Execution Unit} (EU). BIU menangani pengambilan instruksi (prefetch) dari memori dan interaksi bus, sedangkan EU mengeksekusi instruksi, mengelola ALU, register, dan flags. Mekanisme \textit{prefetch queue} meningkatkan \textit{throughput} dengan menyiapkan instruksi sebelum dieksekusi.
 
 \subsection{Bus sistem dan kontrol}
-Bus alamat 20-bit memungkinkan akses 1 MB (\(2^{20}\) byte) \cite{intel2019manual32}. Bus data 16-bit memindahkan data per word. Sinyal kontrol (RD, WR, M/IO, INTA, dsb.) mengoordinasikan siklus baca/tulis memori dan I/O. Interupsi dapat memicu transfer kontrol ke \textit{interrupt vector table} di alamat rendah memori \cite{brey1986mikroprosesor}.
+Bus alamat 20-bit memungkinkan akses 1 MB (\(2^{20}\) byte). Bus data 16-bit memindahkan data per word. Sinyal kontrol (RD, WR, M/IO, INTA, dsb.) mengoordinasikan siklus baca/tulis memori dan I/O. Interupsi dapat memicu transfer kontrol ke \textit{interrupt vector table} di alamat rendah memori.
 
 \subsection{Mode operasi (real mode)}
-Pada 8086, hanya ada \textit{real mode} \cite{intel2019manual32}. Alamat fisik dihitung sebagai \(\text{segmen} \times 16 + \text{offset}\). Tidak ada proteksi memori atau \textit{paging}. Kode memiliki akses penuh ke seluruh ruang alamat 1 MB, yang menuntut disiplin pengaturan segmen \cite{brey1986mikroprosesor}.
+Pada 8086, hanya ada \textit{real mode}. Alamat fisik dihitung sebagai \(\text{segmen} \times 16 + \text{offset}\). Tidak ada proteksi memori atau \textit{paging}. Kode memiliki akses penuh ke seluruh ruang alamat 1 MB, yang menuntut disiplin pengaturan segmen.
 
 \section{Register-Register Utama}
 \subsection{Register umum (AX, BX, CX, DX)}
 \begin{itemize}
-    \item \textbf{AX} (Accumulator): sering dipakai untuk operasi aritmatika/\textit{I/O}; memiliki bagian 8-bit \texttt{AH}/\texttt{AL} \cite{intel2019manual32}.
-    \item \textbf{BX} (Base): kerap sebagai basis pengalamatan memori; bagian \texttt{BH}/\texttt{BL} \cite{brey1986mikroprosesor}.
-    \item \textbf{CX} (Count): digunakan sebagai pencacah pada instruksi \texttt{LOOP}, \texttt{REP}; bagian \texttt{CH}/\texttt{CL} \cite{hyde2010art}.
-    \item \textbf{DX} (Data): terlibat pada operasi perkalian/pembagian word dan port I/O; bagian \texttt{DH}/\texttt{DL} \cite{susanto1995belajar}.
+    \item \textbf{AX} (Accumulator): sering dipakai untuk operasi aritmatika/\textit{I/O}; memiliki bagian 8-bit \texttt{AH}/\texttt{AL}.
+    \item \textbf{BX} (Base): kerap sebagai basis pengalamatan memori; bagian \texttt{BH}/\texttt{BL}.
+    \item \textbf{CX} (Count): digunakan sebagai pencacah pada instruksi \texttt{LOOP}, \texttt{REP}; bagian \texttt{CH}/\texttt{CL}.
+    \item \textbf{DX} (Data): terlibat pada operasi perkalian/pembagian word dan port I/O; bagian \texttt{DH}/\texttt{DL}.
 \end{itemize}
 
+\subsection{Register Indeks dan Pointer}\label{subsec:arsitektur-indeks-pointer}
 \subsubsection{Register indeks (SI, DI)}
 \textbf{SI} (Source Index) dan \textbf{DI} (Destination Index) digunakan pada instruksi string (\texttt{MOVS}, \texttt{CMPS}, \texttt{SCAS}, \texttt{LODS}, \texttt{STOS}). Biasanya, \texttt{DS:SI} menunjuk sumber dan \texttt{ES:DI} menunjuk tujuan.
 
 \subsubsection{Register pointer (SP, BP)}
 \textbf{SP} (Stack Pointer) menunjuk puncak stack relatif terhadap \texttt{SS}. \textbf{BP} (Base Pointer) membantu \textit{frame} stack untuk parameter lokal (sering digunakan dengan \texttt{SS:BP}).
 
+\subsection{Register Segmen dan Kontrol}\label{subsec:arsitektur-segmen-kontrol}
 \subsubsection{Register segmen (CS, DS, SS, ES)}
 \textbf{CS}: segmen kode; \textbf{DS}: segmen data; \textbf{SS}: segmen stack; \textbf{ES}: segmen ekstra (mis. tujuan pada instruksi string). Kombinasi pasangan segmen:offset membentuk alamat fisik.
 
@@ -111,18 +113,19 @@ int 20h
 segment data
 msg db 'X', 0
 \end{verbatim}
-% (diintegrasikan ke materi utama)
 \subsubsection{Detail Register FLAGS (8086)}
-Bit penting pada \texttt{FLAGS}: \textbf{CF}(0), \textbf{PF}(2), \textbf{AF}(4), \textbf{ZF}(6), \textbf{SF}(7), \textbf{TF}(8), \textbf{IF}(9), \textbf{DF}(10), \textbf{OF}(11). Bit lain pada 8086 dicadangkan. \texttt{TF} mengaktifkan \textit{single-step interrupt} (\texttt{INT 01h}); \texttt{IF} mengizinkan interupsi maskable (\texttt{INT} perangkat keras). Pahami perbedaan \textbf{CF} vs \textbf{OF} untuk aritmatika tak bertanda/bertanda. \cite{intel2019manual32,wiki_8086}
+Bit penting pada \texttt{FLAGS}: \textbf{CF}(0), \textbf{PF}(2), \textbf{AF}(4), \textbf{ZF}(6), \textbf{SF}(7), \textbf{TF}(8), \textbf{IF}(9), \textbf{DF}(10), \textbf{OF}(11). Bit lain pada 8086 dicadangkan. \texttt{TF} mengaktifkan \textit{single-step interrupt} (\texttt{INT 01h}); \texttt{IF} mengizinkan interupsi maskable (\texttt{INT} perangkat keras). Pahami perbedaan \textbf{CF} vs \textbf{OF} untuk aritmatika tak bertanda/bertanda.
 
 \subsubsection{Prefetch Queue dan Dampak Kinerja}
-Unit BIU 8086 menyimpan \textit{prefetch queue} sekitar 6 byte instruksi untuk meningkatkan \textit{throughput}. Instruksi yang mengakses memori (khususnya \texttt{CS:IP} aliran) dapat menyurutkan antrean, sehingga kinerja bergantung pada pola campuran instruksi-komputasi vs akses memori. \cite{wiki_8086}
+Unit BIU 8086 menyimpan \textit{prefetch queue} sekitar 6 byte instruksi untuk meningkatkan \textit{throughput}. Instruksi yang mengakses memori (khususnya \texttt{CS:IP} aliran) dapat menyurutkan antrean, sehingga kinerja bergantung pada pola campuran instruksi-komputasi vs akses memori.
 
 \subsubsection{Override Segmen dan Segmen Default}
-Segmen default: \texttt{CS} untuk pengambilan instruksi, \texttt{DS} untuk kebanyakan akses data, \texttt{SS} untuk alamat berbasis \texttt{BP}, dan \texttt{ES} sebagai tujuan instruksi string. Gunakan prefiks \texttt{ES:}/\texttt{CS:}/\texttt{SS:}/\texttt{DS:} untuk override jika diperlukan, misalnya menulis ke \texttt{ES:DI} saat menyalin blok. \cite{intel2019manual32}
+Segmen default: \texttt{CS} untuk pengambilan instruksi, \texttt{DS} untuk kebanyakan akses data, \texttt{SS} untuk alamat berbasis \texttt{BP}, dan \texttt{ES} sebagai tujuan instruksi string. Gunakan prefiks \texttt{ES:}/\texttt{CS:}/\texttt{SS:}/\texttt{DS:} untuk override jika diperlukan, misalnya menulis ke \texttt{ES:DI} saat menyalin blok.
 
 \subsubsection{Pembentukan Alamat Efektif (EA) dan Batasan}
-Kombinasi yang valid pada 8086 untuk pengalamatan berbasis indeks antara lain: \texttt{[BX+SI+disp]}, \texttt{[BX+DI+disp]}, \texttt{[BP+SI+disp]}, \texttt{[BP+DI+disp]}, serta variasi satu register dengan/ tanpa \texttt{disp}. Pastikan ukuran operand eksplisit (\texttt{BYTE PTR}/\texttt{WORD PTR}) bila ambigu. \cite{intel2019manual32}
+Kombinasi valid pada 8086 untuk pengalamatan berbasis indeks: \texttt{[BX+SI+disp]}, \texttt{[BX+DI+disp]}, \texttt{[BP+SI+disp]}, \texttt{[BP+DI+disp]}. Variasi satu register dengan/tanpa \texttt{disp} juga diperbolehkan. 
+
+Pastikan ukuran operand eksplisit (\texttt{BYTE PTR}/\texttt{WORD PTR}) bila ambigu.
 
 \subsubsection{Praktik Baik}
 Inisialisasi segmen dengan benar (mis., muat \texttt{DS} dari label segmen data). Pisahkan data-kode, gunakan label yang deskriptif, dan dokumentasikan register yang diubah oleh setiap prosedur.
@@ -165,5 +168,10 @@ Pisahkan data dari kode. Gunakan label yang deskriptif, dan pertahankan konvensi
 \end{itemize}
 \noindent\textbf{Keluaran}: PDF jawaban + berkas sumber, sertakan uji asersi manual untuk perhitungan alamat fisik.
 
-\section{Referensi}
-% Bibliography is handled by the main document
+\section{Referensi}\label{sec:arsitektur-referensi}
+\begin{itemize}
+    \item \cite{brey1986mikroprosesor}
+    \item \cite{intel2019manual32}
+    \item \cite{wiki_8086}
+\end{itemize}
+

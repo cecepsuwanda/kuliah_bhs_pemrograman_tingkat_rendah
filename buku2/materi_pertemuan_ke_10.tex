@@ -10,7 +10,7 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Array dan string adalah struktur data fundamental \cite{susanto1995belajar}. Pada 8086, operasi berulang terhadap data berurutan didukung oleh instruksi string yang menggabungkan pembacaan/penulisan data dengan peningkatan/penurunan indeks otomatis (\texttt{SI}/\texttt{DI}) dan pengurangan pencacah (\texttt{CX}) bila digabung dengan awalan \texttt{REP} \cite{hyde2010art}. Pengelolaan \texttt{Direction Flag} (\texttt{DF}) menentukan arah iterasi (naik dengan \texttt{CLD}, turun dengan \texttt{STD}) \cite{nopi2003tutorial}.
+Array dan string adalah struktur data fundamental. Pada 8086, operasi berulang terhadap data berurutan didukung oleh instruksi string yang menggabungkan pembacaan/penulisan data dengan peningkatan/penurunan indeks otomatis (\texttt{SI}/\texttt{DI}) dan pengurangan pencacah (\texttt{CX}) bila digabung dengan awalan \texttt{REP}. Pengelolaan \texttt{Direction Flag} (\texttt{DF}) menentukan arah iterasi (naik dengan \texttt{CLD}, turun dengan \texttt{STD}).
 
 \section{Konsep Array dan String}
 \subsection{Definisi dan penyimpanan}
@@ -35,7 +35,7 @@ Gunakan perataan baris (row-major). Offset \((r,c)\) pada array word berdimensi 
 
 \subsection{Instruksi String}
 \subsubsection{MOVS}
-Menyalin dari \texttt{DS:SI} ke \texttt{ES:DI}; varian \texttt{MOVSB}/\texttt{MOVSW} \cite{hyde2010art}. Dengan \texttt{REP}, menyalin \texttt{CX} elemen \cite{susanto1995belajar}.
+Menyalin dari \texttt{DS:SI} ke \texttt{ES:DI}; varian \texttt{MOVSB}/\texttt{MOVSW}. Dengan \texttt{REP}, menyalin \texttt{CX} elemen.
 \begin{verbatim}
 cld
 mov  cx, len
@@ -185,5 +185,3 @@ END START
   \item \textbf{Urutkan array}: Urutkan array word kecil (mis. 10 elemen) dengan \textit{bubble sort}; tampilkan hasil setiap putaran.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document

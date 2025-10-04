@@ -11,9 +11,10 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Stack adalah struktur data kritis untuk pengelolaan alur eksekusi dan data sementara \cite{susanto1995belajar}. Pada 8086, stack berada pada segmen \texttt{SS} dengan penunjuk \texttt{SP}. Instruksi \texttt{PUSH}/\texttt{POP} mengubah \texttt{SP} dan menyimpan/mengambil data 16-bit (atau 8-bit dipecah) dalam urutan LIFO \cite{hyde2010art}. Instruksi \texttt{CALL}/\texttt{RET} mengandalkan stack untuk menyimpan alamat kembali ketika berpindah ke subrutin \cite{nopi2003tutorial}.
+Stack adalah struktur data kritis untuk pengelolaan alur eksekusi dan data sementara. Pada 8086, stack berada pada segmen \texttt{SS} dengan penunjuk \texttt{SP}. Instruksi \texttt{PUSH}/\texttt{POP} mengubah \texttt{SP} dan menyimpan/mengambil data 16-bit (atau 8-bit dipecah) dalam urutan LIFO. Instruksi \texttt{CALL}/\texttt{RET} mengandalkan stack untuk menyimpan alamat kembali ketika berpindah ke subrutin.
 
 \section{Konsep Stack}
+\subsection{Dasar-dasar Stack}
 \subsubsection{Definisi dan prinsip LIFO}
 Stack menyimpan item sedemikian rupa sehingga item terakhir yang dimasukkan akan diambil pertama kali. Pada 8086, stack tumbuh ke alamat lebih rendah: \texttt{PUSH} menurunkan \texttt{SP} lalu menyimpan data; \texttt{POP} mengambil data lalu menaikkan \texttt{SP}.
 
@@ -66,7 +67,6 @@ Letakkan pada \texttt{AX} (konvensi umum) atau tulis ke lokasi memori yang disep
 \subsubsection{Konvensi pemanggilan}
 Sepakati skema: siapa yang menyimpan register yang dipakai (caller-saves vs callee-saves), mekanisme pembersihan parameter, dan register pengembalian.
 
-% (diintegrasikan ke materi utama)
 \subsubsection{Stack Frame Berbasis BP}
 Pola prolog/epilog standar memudahkan akses parameter dan variabel lokal:
 \begin{verbatim}
@@ -78,22 +78,22 @@ mov  sp, bp
 pop  bp
 ret  n                ; opsional: callee cleans n byte argumen
 \end{verbatim}
-Parameter berada pada offset positif dari \texttt{BP}; variabel lokal pada offset negatif. Dokumentasikan kontrak register yang diubah. \cite{intel2019manual32}
+Parameter berada pada offset positif dari \texttt{BP}; variabel lokal pada offset negatif. Dokumentasikan kontrak register yang diubah.
 
 \subsubsection{Ragam Konvensi Pemanggilan (cdecl vs pascal)}
-Pada ekosistem DOS 16-bit, variasi lazim: \textbf{cdecl}-like (caller membersihkan argumen via \texttt{ADD SP,n}) dan \textbf{pascal}-like (callee membersihkan via \texttt{RET n}). Pilih satu secara konsisten per proyek. Biasakan menyimpan \texttt{BP}, serta menyepakati register yang wajib dipertahankan (mis. \texttt{SI}/\texttt{DI}/\texttt{BP}). \cite{osdev_wiki}
+Pada ekosistem DOS 16-bit, variasi lazim: \textbf{cdecl}-like (caller membersihkan argumen via \texttt{ADD SP,n}) dan \textbf{pascal}-like (callee membersihkan via \texttt{RET n}). Pilih satu secara konsisten per proyek. Biasakan menyimpan \texttt{BP}, serta menyepakati register yang wajib dipertahankan (mis. \texttt{SI}/\texttt{DI}/\texttt{BP}).
 
 \subsubsection{Near vs Far Call/Return}
-\textbf{Near} memanipulasi \texttt{IP} saja (push/pop 2 byte), \textbf{far} memanipulasi \texttt{CS:IP} (push/pop 4 byte). Pastikan ukuran stack memadai dan gunakan \texttt{RETF} untuk kembali dari pemanggilan far. Perhatikan biaya ekstra dan dampak segmentasi memori. \cite{intel2019manual32}
+\textbf{Near} memanipulasi \texttt{IP} saja (push/pop 2 byte), \textbf{far} memanipulasi \texttt{CS:IP} (push/pop 4 byte). Pastikan ukuran stack memadai dan gunakan \texttt{RETF} untuk kembali dari pemanggilan far. Perhatikan biaya ekstra dan dampak segmentasi memori.
 
 \subsubsection{Rekursi dan Reentransi}
-Rekursi memerlukan stack frame yang benar dan ruang stack cukup. Untuk rutinitas yang bisa dipanggil dari interupsi, jaga \textit{reentrancy}: hindari state global tanpa proteksi, simpan/\textit{restore} register, dan batasi lama eksekusi handler. \cite{rbil}
+Rekursi memerlukan stack frame yang benar dan ruang stack cukup. Untuk rutinitas yang bisa dipanggil dari interupsi, jaga \textit{reentrancy}: hindari state global tanpa proteksi, simpan/\textit{restore} register, dan batasi lama eksekusi handler.
 
 \subsubsection{Interupsi dan Stack}
-Interupsi mem-\texttt{PUSH} \texttt{FLAGS} lalu \texttt{CS:IP} ke stack; \texttt{IRET} memulihkan urutan tersebut. Pastikan \texttt{SS:SP} valid setiap saat. Penggunaan \texttt{PUSHF}/\texttt{POPF} membantu menjaga status \texttt{IF}/\texttt{TF} saat memasuki/keluar dari bagian kritis. \cite{rbil}
+Interupsi mem-\texttt{PUSH} \texttt{FLAGS} lalu \texttt{CS:IP} ke stack; \texttt{IRET} memulihkan urutan tersebut. Pastikan \texttt{SS:SP} valid setiap saat. Penggunaan \texttt{PUSHF}/\texttt{POPF} membantu menjaga status \texttt{IF}/\texttt{TF} saat memasuki/keluar dari bagian kritis.
 
 \subsubsection{Deteksi Overflow Stack}
-Sediakan \textit{guard} sederhana (mis., simpan nilai \texttt{SP} awal dan bandingkan saat titik-titik tertentu) atau alokasikan margin stack memadai. Pada DOS, overflow dapat merusak data lain karena tidak ada proteksi memori. \cite{osdev_wiki}
+Sediakan \textit{guard} sederhana (mis., simpan nilai \texttt{SP} awal dan bandingkan saat titik-titik tertentu) atau alokasikan margin stack memadai. Pada DOS, overflow dapat merusak data lain karena tidak ada proteksi memori.
 
 \section{Praktikum}
 \begin{enumerate}
@@ -197,5 +197,3 @@ END START
   \item \textbf{Dokumentasi}: Buat diagram stack frame untuk pemanggilan bertingkat (nested calls) dan jelaskan peran \texttt{BP}, \texttt{SP}, serta urutan penyimpanan register.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document

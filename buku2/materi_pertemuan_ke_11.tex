@@ -11,7 +11,7 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Pemrograman modular mendorong pemisahan program menjadi komponen-komponen kecil dengan tanggung jawab jelas \cite{susanto1995belajar}. Dalam assembly, modularitas dicapai melalui prosedur (\texttt{PROC}) dan dapat diperkuat dengan makro untuk mengurangi pengulangan pola kode \cite{hyde2010art}. Perbedaan fundamental: prosedur dieksekusi di \textit{runtime} (overhead \texttt{CALL}/\texttt{RET}), sedangkan makro diperluas saat perakitan (\textit{compile-time}), menghasilkan duplikasi kode yang dapat menambah ukuran biner \cite{nopi2003tutorial}.
+Pemrograman modular mendorong pemisahan program menjadi komponen-komponen kecil dengan tanggung jawab jelas. Dalam assembly, modularitas dicapai melalui prosedur (\texttt{PROC}) dan dapat diperkuat dengan makro untuk mengurangi pengulangan pola kode. Perbedaan fundamental: prosedur dieksekusi di \textit{runtime} (overhead \texttt{CALL}/\texttt{RET}), sedangkan makro diperluas saat perakitan (\textit{compile-time}), menghasilkan duplikasi kode yang dapat menambah ukuran biner.
 
 \section{Konsep Pemrograman Modular}
 \subsection{Definisi dan keuntungan}
@@ -70,16 +70,16 @@ Makro: tanpa overhead \texttt{CALL}/\texttt{RET}, namun memperbesar ukuran biner
 
 \section{Pendalaman}\label{sec:modular-pendalaman}
 \subsection{Organisasi proyek multi-berkas}
-Pisahkan modul berdasarkan domain (mis. \texttt{io.asm}, \texttt{math.asm}, \texttt{ui.asm}) dan satu berkas utama \texttt{main.asm}. Gunakan \texttt{PUBLIC}/\texttt{EXTRN} (TASM/MASM) untuk mengekspor/mengimpor simbol lintas-berkas. Pastikan kesesuaian prototipe (ukuran parameter) dan konvensi pemanggilan. \cite{borland1990tasm}
+Pisahkan modul berdasarkan domain (mis. \texttt{io.asm}, \texttt{math.asm}, \texttt{ui.asm}) dan satu berkas utama \texttt{main.asm}. Gunakan \texttt{PUBLIC}/\texttt{EXTRN} (TASM/MASM) untuk mengekspor/mengimpor simbol lintas-berkas. Pastikan kesesuaian prototipe (ukuran parameter) dan konvensi pemanggilan.
 
 \subsection{Makro tingkat lanjut}
-Makro dengan parameter mendukung substitusi token dan kondisi perakitan (bergantung assembler). Hindari makro yang mengubah konteks tak terduga (mis., register) tanpa mendokumentasikan efek samping. Untuk debug, sediakan makro \texttt{TRACE} yang dapat diaktif/nonaktifkan \textit{compile-time}. \cite{nasm_manual}
+Makro dengan parameter mendukung substitusi token dan kondisi perakitan (bergantung assembler). Hindari makro yang mengubah konteks tak terduga (mis., register) tanpa mendokumentasikan efek samping. Untuk debug, sediakan makro \texttt{TRACE} yang dapat diaktif/nonaktifkan \textit{compile-time}.
 
 \subsection{Pedoman API prosedur}
-Dokumentasikan: parameter (urutan, ukuran, interpretasi bertanda/tak bertanda), return value, register yang dimodifikasi, dan prasyarat segmen (\texttt{DS}/\texttt{ES}). Sertakan kasus tepi dan perilaku error (mis., mengembalikan kode di \texttt{AX}). \cite{osdev_wiki}
+Dokumentasikan: parameter (urutan, ukuran, interpretasi bertanda/tak bertanda), return value, register yang dimodifikasi, dan prasyarat segmen (\texttt{DS}/\texttt{ES}). Sertakan kasus tepi dan perilaku error (mis., mengembalikan kode di \texttt{AX}).
 
 \subsection{Strategi pengujian}
-Bangun program uji kecil per modul yang memverifikasi kontrak rutinitas. Untuk rutinitas murni (tanpa I/O), validasi tabel-kasus. Gunakan debugger (TD) untuk memeriksa state sebelum/sesudah panggilan. \cite{borland1990tasm}
+Bangun program uji kecil per modul yang memverifikasi kontrak rutinitas. Untuk rutinitas murni (tanpa I/O), validasi tabel-kasus. Gunakan debugger (TD) untuk memeriksa state sebelum/sesudah panggilan.
 
 \subsection{Organisasi Program Modular}
 \subsubsection{Struktur file dan include}
@@ -201,5 +201,3 @@ END START
   \item \textbf{Dokumentasi}: Tulis panduan singkat kapan memilih prosedur vs. makro pada proyek Anda.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document

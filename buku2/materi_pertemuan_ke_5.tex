@@ -10,9 +10,10 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Instruksi logika menyediakan manipulasi bit tingkat rendah yang fundamental untuk kontrol perangkat keras, pengolahan bendera (flag), dan optimasi \cite{hyde2010art}. Pada sisi output, layanan BIOS \texttt{INT 10h} memungkinkan interaksi langsung dengan tampilan dalam mode teks/TTY, relevan untuk program DOS dan lingkungan \textit{bare-metal}-like \cite{susanto1995belajar}.
+Instruksi logika menyediakan manipulasi bit tingkat rendah yang fundamental untuk kontrol perangkat keras, pengolahan bendera (flag), dan optimasi. Pada sisi output, layanan BIOS \texttt{INT 10h} memungkinkan interaksi langsung dengan tampilan dalam mode teks/TTY, relevan untuk program DOS dan lingkungan \textit{bare-metal}-like.
 
 \section{Instruksi Logika}
+\subsection{Operasi Logika Dasar}
 \subsubsection{AND}
 Operasi konjungsi bitwise: bit hasil 1 jika dan hanya jika kedua operand 1. Umum untuk \textit{masking} menghapus bit tertentu.
 \begin{verbatim}
@@ -45,8 +46,7 @@ not bl                 ; BL = 00001111b
 \textbf{Flags}: tidak terpengaruh (kecuali implementasi spesifik; pada 8086, flags tidak terdefinisi diubah untuk NOT—anggap tidak relevan).
 
 \subsubsection{Instruksi SHIFT dan ROTATE}
-Operasi geser dan rotasi penting untuk manipulasi bit tingkat rendah, multiplikasi/divisi basis 2, serta ekstraksi bit-field. \cite{intel2019manual32}
-\begin{itemize}
+Operasi geser dan rotasi penting untuk manipulasi bit tingkat rendah, multiplikasi/divisi basis 2, serta ekstraksi bit-field. \begin{itemize}
   \item \textbf{SHL/SAL}: geser ke kiri; mengalikan tak bertanda dengan 2 per langkah; bit keluar ke \texttt{CF}.
   \item \textbf{SHR}: geser ke kanan tak bertanda; membagi dengan 2 per langkah; bit keluar ke \texttt{CF}.
   \item \textbf{SAR}: geser kanan bertanda; mempertahankan bit tanda; membagi bertanda dengan pembulatan ke bawah.
@@ -60,8 +60,7 @@ ror ax, 1     ; rotasi kanan; bit0 masuk ke bit15
 \end{verbatim}
 
 \subsubsection{Ekstraksi dan Packing Bit-field}
-Untuk mengekstrak bidang 3-bit mulai dari posisi \(p\): geser kanan \(p\) lalu mask \texttt{AND} dengan \texttt{0b111}. Untuk mengemas, geser nilai ke posisi yang diinginkan lalu gabungkan dengan \texttt{OR}. \cite{osdev_wiki}
-
+Untuk mengekstrak bidang 3-bit mulai dari posisi \(p\): geser kanan \(p\) lalu mask \texttt{AND} dengan \texttt{0b111}. Untuk mengemas, geser nilai ke posisi yang diinginkan lalu gabungkan dengan \texttt{OR}. 
 \subsubsection{Operasi bitwise dan aplikasinya}
 \begin{itemize}
   \item \textbf{Masking}: \texttt{AND} untuk \textit{clear}, \texttt{OR} untuk \textit{set}, \texttt{XOR} untuk \textit{toggle}.
@@ -209,5 +208,3 @@ END START
   \item \textbf{Dokumentasi INT 10h}: Buat ringkasan parameter untuk fungsi 02h, 09h, 0Ah, 0Eh dan contoh singkat masing-masing.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document

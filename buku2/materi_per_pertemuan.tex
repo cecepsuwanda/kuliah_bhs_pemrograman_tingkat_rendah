@@ -14,9 +14,41 @@
 \usepackage{array}
 \usepackage{longtable}
 \usepackage{caption}
-\usepackage[style=apa,backend=biber,sorting=nyt,language=english]{biblatex}
+\usepackage[style=ieee,backend=biber,sorting=nyt]{biblatex}
 \usepackage{csquotes}
 \addbibresource{referensi.bib}
+
+% Configure csquotes for Indonesian language
+\MakeOuterQuote{"}
+
+% Custom biblatex configuration for Indonesian language
+\DefineBibliographyStrings{english}{
+  bibliography = {Daftar Pustaka},
+  references = {Referensi},
+  and = {dan},
+  andmore = {dkk\adddot},
+  in = {dalam},
+  editor = {Editor},
+  editors = {Editor},
+  translator = {Penerjemah},
+  translators = {Penerjemah},
+  byeditor = {diedit oleh},
+  bytranslator = {diterjemahkan oleh},
+  volume = {Jilid},
+  volumes = {Jilid},
+  number = {Nomor},
+  chapter = {Bab},
+  pages = {Halaman},
+  page = {Halaman},
+  andothers = {dkk\adddot},
+  edition = {Edisi},
+  publisher = {Penerbit},
+  location = {Tempat},
+  date = {Tanggal},
+  url = {URL},
+  urlseen = {Diakses},
+  urldate = {Tanggal Akses}
+}
 
 % Setup automatic numbering
 \setcounter{chapter}{0}
@@ -59,7 +91,10 @@
     linkcolor=blue,
     filecolor=magenta,      
     urlcolor=cyan,
-    citecolor=red
+    citecolor=red,
+    bookmarksnumbered=true,
+    bookmarksopen=true,
+    bookmarksopenlevel=2
 }
 
 % Setup code listing
@@ -117,6 +152,7 @@
 \include{materi_pertemuan_ke_5}
 \include{materi_pertemuan_ke_6}
 \include{materi_pertemuan_ke_7}
+\include{materi_pertemuan_ke_8}
 
 % Bagian III: Struktur Data dan Kontrol Alur
 \part{Struktur Data dan Kontrol Alur}\label{part:structures}

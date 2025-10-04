@@ -13,21 +13,65 @@ Setelah mengikuti pertemuan ini, mahasiswa diharapkan mampu:
 \end{itemize}
 
 \section{Pendahuluan}\label{sec:pengenalan-pendahuluan}
-Bahasa rakitan (assembly language) adalah bahasa pemrograman berlevel rendah yang menyediakan antarmuka langsung terhadap instruksi mesin (machine instructions) dari sebuah \textit{Instruction Set Architecture} (ISA), misalnya keluarga x86 (Intel 8086 dan penerusnya) \cite{intel2019manual32}. Berbeda dengan bahasa tingkat tinggi yang menawarkan abstraksi yang kaya (tipe data kompleks, manajemen memori otomatis, pustaka standar), assembly memetakan secara hampir satu-ke-satu ke instruksi prosesor, memberikan kontrol sangat granular atas register, memori, dan \textit{I/O} \cite{hyde2010art}. Konsekuensinya, pemrograman assembly menuntut pemahaman yang kuat tentang arsitektur perangkat keras dan representasi data.
 
-\section{Pengenalan Bahasa Rakitan dan Bahasa Tingkat Rendah}\label{sec:pengenalan-bahasa}
-\subsubsection{Definisi bahasa rakitan (assembly language)}
-Assembly language adalah representasi mnemonik dari instruksi mesin \cite{susanto1995belajar}. Setiap mnemonik (misal, \texttt{MOV}, \texttt{ADD}, \texttt{JMP}) biasanya berkorelasi dekat dengan \textit{opcode} biner yang dieksekusi CPU. Kode assembly dirakit (\textit{assembled}) oleh \textit{assembler} (misal: TASM, MASM, NASM) menjadi \textit{object code} atau berkas executable \cite{hyde2010art}.
+\subsection{Latar Belakang dan Konteks Historis}
+Bahasa rakitan (assembly language) merupakan salah satu bahasa pemrograman tertua yang masih digunakan hingga saat ini \cite{wiki_assembly_language}. Konsep assembly language pertama kali dikembangkan pada tahun 1940-an sebagai respons terhadap kompleksitas pemrograman dalam bahasa mesin murni. Sebelum adanya assembly language, programmer harus menulis program menggunakan kode biner (0 dan 1) yang sangat sulit dibaca dan rentan terhadap kesalahan.
 
-\subsubsection{Karakteristik bahasa tingkat rendah}
+Perkembangan assembly language dimulai dengan munculnya komputer-komputer pertama seperti ENIAC dan UNIVAC \cite{wiki_8086}. Pada masa itu, programmer menggunakan machine code yang terdiri dari angka-angka biner yang mewakili instruksi dasar komputer. Proses ini sangat memakan waktu dan rawan kesalahan. Assembly language kemudian dikembangkan sebagai solusi dengan menyediakan mnemonik (singkatan yang mudah diingat) untuk menggantikan kode biner tersebut \cite{hyde2010art}.
+
+\subsection{Mengapa Mempelajari Assembly Language?}
+Meskipun assembly language dianggap sulit dan memakan waktu dalam pengembangan, ada beberapa alasan penting mengapa mempelajarinya tetap relevan:
+
+\begin{enumerate}
+\item \textbf{Pemahaman Fundamental Komputer}\\
+Assembly language memberikan pemahaman mendalam tentang bagaimana komputer benar-benar bekerja. Mahasiswa akan memahami:
 \begin{itemize}
-    \item \textbf{Spesifik arsitektur}: Kode yang ditulis untuk ISA tertentu (misal 8086) tidak portabel ke ISA lain tanpa penulisan ulang \cite{susanto1995belajar}.
-    \item \textbf{Kontrol granular}: Pemrogram memiliki kontrol langsung atas register CPU, \textit{flags}, dan layout memori \cite{hyde2010art}.
-    \item \textbf{Kinerja dan jejak memori}: Dapat dioptimasi untuk ukuran kecil dan latensi rendah, relevan untuk \textit{embedded} atau komponen \textit{runtime-critical}.
-    \item \textbf{Kurangnya abstraksi tingkat tinggi}: Tidak tersedia struktur kontrol tingkat tinggi, \textit{garbage collector}, atau tipe kompleks secara bawaan \cite{susanto1995belajar}.
+    \item Cara CPU mengeksekusi instruksi
+    \item Penggunaan register dan memori
+    \item Mekanisme interupsi dan I/O
+    \item Representasi data dalam komputer
 \end{itemize}
 
-\subsubsection{Perbandingan dengan bahasa tingkat tinggi}
+\item \textbf{Optimasi Kinerja}\\
+Dalam aplikasi yang memerlukan kinerja maksimal, seperti:
+\begin{itemize}
+    \item Sistem operasi dan kernel
+    \item Driver perangkat keras
+    \item Game engine dan aplikasi real-time
+    \item Sistem embedded dan firmware
+\end{itemize}
+
+\item \textbf{Debugging dan Analisis}\\
+Pemahaman assembly language sangat membantu dalam:
+\begin{itemize}
+    \item Debugging program yang sudah dikompilasi
+    \item Reverse engineering
+    \item Analisis malware dan keamanan
+    \item Optimasi compiler
+\end{itemize}
+
+\item \textbf{Bidang Khusus}\\
+Assembly language masih digunakan dalam bidang-bidang khusus seperti:
+\begin{itemize}
+    \item Pengembangan sistem operasi
+    \item Pemrograman embedded systems
+    \item Keamanan siber dan forensik digital
+    \item Pengembangan compiler dan interpreter
+\end{itemize}
+\end{enumerate}
+
+\section{Pengenalan Bahasa Rakitan dan\\Bahasa Tingkat Rendah}\label{sec:pengenalan-bahasa}
+
+\subsection{Definisi dan Karakteristik Bahasa Rakitan}\label{subsec:pengenalan-definisi}
+
+\subsubsection{Definisi bahasa rakitan (assembly language)}
+Assembly language adalah bahasa pemrograman berlevel rendah yang menyediakan antarmuka langsung terhadap instruksi mesin (machine instructions) dari sebuah \textit{Instruction Set Architecture} (ISA) \cite{computer_organization_design}. Assembly language merupakan representasi mnemonik dari instruksi mesin. Setiap mnemonik (misal, \texttt{MOV}, \texttt{ADD}, \texttt{JMP}) biasanya berkorelasi dekat dengan \textit{opcode} biner yang dieksekusi CPU. Kode assembly dirakit (\textit{assembled}) oleh \textit{assembler} (misal: TASM, MASM, NASM) menjadi \textit{object code} atau berkas executable \cite{tutorials_point_assembly}.
+
+Dalam konteks pembelajaran ini, kita akan fokus pada keluarga x86, khususnya Intel 8086 dan penerusnya, yang merupakan arsitektur yang paling banyak digunakan dalam komputer personal \cite{intel2019manual32}. Setiap instruksi assembly language memiliki korespondensi hampir satu-ke-satu dengan instruksi mesin. Misalnya, instruksi assembly \texttt{MOV AX, 5} akan diterjemahkan oleh assembler menjadi kode biner yang dapat dieksekusi langsung oleh CPU.
+
+\subsubsection{Posisi Assembly dalam Hierarki Bahasa Pemrograman}
+Dalam hierarki bahasa pemrograman, assembly language menempati posisi yang unik. Berikut adalah perbandingan dengan bahasa pemrograman lainnya:
+
 \begin{center}
 \begin{tabular}{p{0.28\textwidth} p{0.31\textwidth} p{0.31\textwidth}}
 \hline
@@ -36,47 +80,107 @@ Assembly language adalah representasi mnemonik dari instruksi mesin \cite{susant
 Abstraksi & Rendah; dekat hardware & Tinggi; jauh dari hardware \\
 Portabilitas & Rendah (spesifik ISA) & Lebih tinggi (kompiler/VM) \\
 Produktivitas & Rendah & Tinggi \\
-Kinerja puncak & Sangat tinggi (jika dioptimasi) & Umumnya baik; optimasi otomatis \\
+Kinerja puncak & Sangat tinggi (jika dioptimasi) & Umumnya baik dengan optimasi otomatis \\
 Pemeliharaan & Sulit & Lebih mudah \\
+Manajemen Memori & Manual & Otomatis \\
+Pustaka & Minim & Kaya \\
 \hline
 \end{tabular}
 \end{center}
 
-\subsubsection{Keunggulan dan kelemahan bahasa rakitan}
+\textbf{Bahasa Tingkat Tinggi} (seperti Python, Java, C++):
+\begin{itemize}
+    \item Menyediakan abstraksi tinggi dengan tipe data kompleks
+    \item Memiliki manajemen memori otomatis
+    \item Kaya akan pustaka standar dan framework
+    \item Mudah dibaca dan dipelihara
+    \item Memerlukan compiler atau interpreter
+\end{itemize}
+
+\textbf{Bahasa Tingkat Menengah} (seperti C):
+\begin{itemize}
+    \item Menyediakan abstraksi sedang
+    \item Memberikan kontrol manual terhadap memori
+    \item Memiliki akses langsung ke hardware melalui pointer
+    \item Di-compile ke assembly atau machine code
+\end{itemize}
+
+\textbf{Assembly Language}:
+\begin{itemize}
+    \item Memberikan kontrol granular atas register CPU, flags, dan layout memori
+    \item Spesifik arsitektur (kode untuk x86 tidak portabel ke ARM)
+    \item Memetakan langsung ke instruksi mesin
+    \item Memerlukan pemahaman mendalam tentang arsitektur hardware
+\end{itemize}
+
+\subsubsection{Keunggulan dan Kelemahan Bahasa Rakitan}
 \begin{itemize}
     \item \textbf{Keunggulan}:
     \begin{itemize}
-        \item Kontrol penuh terhadap perangkat keras.
-        \item Optimasi mikroskopik untuk kinerja/ukuran.
-        \item Pemahaman mendalam atas \textit{runtime} dan \textit{calling convention}.
+        \item Kontrol penuh terhadap perangkat keras
+        \item Optimasi mikroskopik untuk kinerja/ukuran
+        \item Pemahaman mendalam atas \textit{runtime} dan \textit{calling convention}
+        \item Kontrol granular atas register CPU, \textit{flags}, dan layout memori
+        \item Kinerja dan jejak memori optimal untuk aplikasi \textit{embedded} atau komponen \textit{runtime-critical}
     \end{itemize}
     \item \textbf{Kelemahan}:
     \begin{itemize}
-        \item Pengembangan lambat dan rentan kesalahan.
-        \item Sulit dipelihara dan kurang portabel.
-        \item Minim dukungan pustaka.
+        \item Pengembangan lambat dan rentan kesalahan
+        \item Sulit dipelihara dan kurang portabel (spesifik arsitektur)
+        \item Minim dukungan pustaka
+        \item Kurangnya abstraksi tingkat tinggi: Tidak tersedia struktur kontrol tingkat tinggi, \textit{garbage collector}, atau tipe kompleks secara bawaan
     \end{itemize}
 \end{itemize}
 
+\subsection{Aplikasi Bahasa Rakitan}\label{subsec:pengenalan-aplikasi}
+
 \subsubsection{Aplikasi bahasa rakitan dalam pemrograman}
+Assembly language masih digunakan dalam berbagai bidang khusus, terutama dalam aplikasi yang memerlukan kinerja maksimal, kontrol hardware langsung, atau ukuran kode yang minimal:
+
 \begin{itemize}
-    \item \textbf{Perangkat tertanam (embedded)}: \textit{firmware} mikrokontroler, \textit{device driver}, \textit{interrupt service routine} \cite{hyde2010art}.
-    \item \textbf{Sistem rendah tingkat}: \textit{bootloader}, BIOS/UEFI, bagian \textit{kernel} yang sensitif kinerja \cite{intel2019manual32}.
-    \item \textbf{Optimasi hotspot}: Bagian kecil dari aplikasi yang memerlukan latensi minimal \cite{susanto1995belajar}.
-    \item \textbf{Rekayasa balik dan keamanan}: Analisis \textit{malware}, \textit{exploit development}, \textit{debugging} pada level instruksi \cite{hyde2010art}.
+    \item \textbf{Perangkat tertanam (embedded)}: \textit{firmware} mikrokontroler, \textit{device driver}, \textit{interrupt service routine}
+    \item \textbf{Sistem rendah tingkat}: \textit{bootloader}, BIOS/UEFI, bagian \textit{kernel} yang sensitif kinerja
+    \item \textbf{Optimasi hotspot}: Bagian kecil dari aplikasi yang memerlukan latensi minimal
+    \item \textbf{Rekayasa balik dan keamanan}: Analisis \textit{malware}, \textit{exploit development}, \textit{debugging} pada level instruksi
+    \item \textbf{Sistem operasi dan kernel}: Komponen inti yang memerlukan kontrol langsung terhadap hardware
+    \item \textbf{Game engine dan aplikasi real-time}: Bagian kritis yang memerlukan kinerja optimal
+    \item \textbf{Keamanan siber dan forensik digital}: Analisis dan reverse engineering
+    \item \textbf{Pengembangan compiler dan interpreter}: Komponen runtime yang sensitif terhadap kinerja
 \end{itemize}
 
-\noindent\textbf{Cuplikan 8086 (ilustratif)}
-\begin{verbatim}
+\subsubsection{Contoh Kode Assembly 8086}
+Berikut adalah contoh sederhana program assembly 8086 untuk demonstrasi \cite{susanto1995belajar}:
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption={Cuplikan 8086 (ilustratif)}, label={lst:assembly_example}]
 ; Tambah dua nilai 8-bit, hasil di AL
 org 100h          ; format .COM
 mov al, 25h       ; AL = 0x25 (37 desimal)
 add al, 13h       ; AL = AL + 0x13 (19 desimal) -> 0x38 (56)
 ; ... hasil dapat disimpan ke memori atau dipakai lanjut
 int 20h           ; kembali ke DOS
-\end{verbatim}
+\end{lstlisting}
 
-\subsection{Sistem Bilangan}
+Program ini menunjukkan:
+\begin{itemize}
+    \item Penggunaan direktif \texttt{org} untuk menentukan starting address
+    \item Instruksi \texttt{mov} untuk memindahkan data
+    \item Instruksi \texttt{add} untuk operasi aritmatika
+    \item Interrupt \texttt{int 20h} untuk keluar dari program
+\end{itemize}
+
+\section{Sistem Bilangan dan Representasi Data}\label{sec:pengenalan-sistem-bilangan}
+
+\subsection{Mengapa Sistem Bilangan Penting dalam Assembly?}
+Dalam pemrograman assembly, pemahaman sistem bilangan sangat krusial karena:
+\begin{itemize}
+    \item Komputer bekerja dengan sistem biner (0 dan 1)
+    \item Alamat memori dan register dinyatakan dalam heksadesimal
+    \item Debugging dan analisis kode memerlukan konversi antar sistem bilangan
+    \item Optimasi memerlukan pemahaman representasi data di level bit
+\end{itemize}
+
+\subsection{Sistem Bilangan Dasar}\label{subsec:pengenalan-dasar-bilangan}
+
 \subsubsection{Sistem bilangan biner (basis 2)}
 Biner menggunakan dua digit (0 dan 1). Nilai tempatnya adalah pangkat 2: \(\ldots, 2^3, 2^2, 2^1, 2^0\). Contoh: \(101010_2 = 1\cdot 2^5 + 0\cdot 2^4 + 1\cdot 2^3 + 0\cdot 2^2 + 1\cdot 2^1 + 0\cdot 2^0 = 42_{10}\).
 
@@ -99,11 +203,34 @@ Penjumlahan biner mengikuti aturan: \(0+0=0\), \(0+1=1\), \(1+1=10_2\) (tulis 0,
   11000   (24 desimal)
 \end{verbatim}
 
-\subsubsection{Representasi data dalam komputer}
+\subsection{Representasi Data dalam Komputer}\label{subsec:pengenalan-representasi-data}
+
+\subsubsection{Satuan data dasar}
 \begin{itemize}
-    \item \textbf{Bit, byte, word}: 1 byte = 8 bit; pada 8086, word = 16 bit \cite{intel2019manual32}.
-    \item \textbf{Two's complement}: Representasi bilangan bulat bertanda di mana \(-x\) diperoleh dengan komplemen satu kemudian tambah satu. Contoh (8-bit): \(-13\) dari \(00001101_2\) menjadi \(11110011_2\) \cite{hyde2010art}.
-    \item \textbf{Endianness (8086 = little-endian)}: \textit{least significant byte} disimpan pada alamat memori terendah. Contoh: word \(0x1234\) disimpan sebagai byte \(0x34\) lalu \(0x12\) \cite{intel2019manual32}.
+    \item \textbf{Bit}: Unit terkecil data, bernilai 0 atau 1
+    \item \textbf{Byte}: 8 bit; satuan standar untuk karakter dan data kecil
+    \item \textbf{Word}: Pada 8086, word = 16 bit (2 byte)
+    \item \textbf{Double Word}: 32 bit (4 byte)
+\end{itemize}
+
+\subsubsection{Representasi bilangan bertanda (Two's Complement)}
+Two's complement adalah metode representasi bilangan bulat bertanda di mana \(-x\) diperoleh dengan komplemen satu kemudian tambah satu \cite{wiki_two_complement}. Contoh (8-bit): \(-13\) dari \(00001101_2\) menjadi \(11110011_2\).
+
+\textbf{Keunggulan Two's Complement:}
+\begin{itemize}
+    \item Satu representasi untuk nol (tidak ada +0 dan -0)
+    \item Operasi aritmatika sederhana
+    \item Range simetris: untuk n-bit, range adalah \(-2^{n-1}\) sampai \(2^{n-1}-1\)
+\end{itemize}
+
+\subsubsection{Endianness (Little-Endian pada 8086)}
+Endianness menentukan urutan penyimpanan byte dalam memori \cite{wiki_endianness}. 8086 menggunakan little-endian: \textit{least significant byte} disimpan pada alamat memori terendah. Contoh: word \(0x1234\) disimpan sebagai byte \(0x34\) lalu \(0x12\).
+
+\textbf{Implikasi untuk Assembly:}
+\begin{itemize}
+    \item Penting saat mengakses data multi-byte
+    \item Memengaruhi cara data dibaca dari/tulis ke memori
+    \item Relevan untuk debugging dan analisis memori
 \end{itemize}
 
 \section{Contoh Soal dan Pembahasan}\label{sec:pengenalan-contoh}
@@ -137,7 +264,7 @@ Kerjakan tanpa kalkulator, tulis langkah konversi/aritmatika secara jelas.
     \item \textbf{Esai singkat (300--500 kata)}: Jelaskan mengapa heksadesimal sering digunakan dalam pemrograman \textit{low-level} (alamat memori, \textit{debugging}, \textit{bitmask}, korespondensi nibble--hex, keterbacaan). Sertakan contoh konkret (mis., merepresentasikan pola \textit{bit} register prosesor).
     \item \textbf{Aplikasi assembly dalam kehidupan sehari-hari}: Berikan minimal dua contoh nyata (mis., \textit{bootloader}, \textit{driver} perangkat, \textit{firmware} mikrokontroler). Jelaskan alur singkat peran assembly dan alasannya digunakan (kinerja, determinisme, ukuran kode).
 \end{itemize}
-\noindent\textbf{Keluaran yang dikumpulkan}: (i) berkas PDF berisi jawaban dan tabel; (ii) berkas \LaTeX{} sumber; (iii) jika menggunakan kode, lampirkan cuplikan dan komentar.
-
-\section{Referensi}
-% Bibliography is handled by the main document
+\noindent\textbf{Keluaran yang dikumpulkan}: 
+(i) berkas PDF berisi jawaban dan tabel; 
+(ii) berkas \LaTeX{} sumber; 
+(iii) jika menggunakan kode, lampirkan cuplikan dan komentar.

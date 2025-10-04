@@ -11,7 +11,7 @@ Mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Turbo Assembler (TASM) adalah assembler dari Borland yang populer di lingkungan DOS \cite{borland1990tasm}. Bersama \textit{toolchain} TLINK (linker) dan TD (debugger), TASM memungkinkan pengembangan program tingkat rendah pada arsitektur x86 klasik. Pemahaman struktur program \texttt{.COM} vs \texttt{.EXE} penting untuk pemilihan model memori, organisasi segmen, dan strategi \textit{build} \cite{nopi2003tutorial}. Melakukan instalasi dan konfigurasi Turbo Assembler (TASM) dan alat pendukung (TLINK, TD) merupakan langkah dasar yang diperlukan untuk memulai pemrograman assembly pada lingkungan DOS.
+Turbo Assembler (TASM) adalah assembler dari Borland yang populer di lingkungan DOS. Bersama \textit{toolchain} TLINK (linker) dan TD (debugger), TASM memungkinkan pengembangan program tingkat rendah pada arsitektur x86 klasik. Pemahaman struktur program \texttt{.COM} vs \texttt{.EXE} penting untuk pemilihan model memori, organisasi segmen, dan strategi \textit{build}. Melakukan instalasi dan konfigurasi Turbo Assembler (TASM) dan alat pendukung (TLINK, TD) merupakan langkah dasar yang diperlukan untuk memulai pemrograman assembly pada lingkungan DOS.
 
 \section{Instalasi Turbo Assembler}
 \subsection{Persyaratan sistem}
@@ -41,7 +41,7 @@ Contoh (DOSBox): \texttt{SET PATH=C:\\TASM;C:\\BIN;\%PATH\%}. Simpan sumber di d
 
 \subsection{Struktur Program COM}
 \subsubsection{Karakteristik program COM}
-\texttt{.COM} adalah format sederhana, tanpa header, berukuran maksimal ~64 KB \cite{borland1990tasm}. Memulai eksekusi pada offset \texttt{0100h} dengan \texttt{CS=DS=ES=SS} (umumnya sama), cocok untuk program kecil \cite{nopi2003tutorial}.
+\texttt{.COM} adalah format sederhana, tanpa header, berukuran maksimal ~64 KB. Memulai eksekusi pada offset \texttt{0100h} dengan \texttt{CS=DS=ES=SS} (umumnya sama), cocok untuk program kecil.
 
 \subsubsection{Format file COM dan penggunaan memori}
 Citra program dimuat sebagai blok kontinu. Stack perlu diatur manual bila diperlukan. Karena ketiadaan header, kontrol lebih langsung tetapi dengan keterbatasan ukuran dan organisasi segmen.
@@ -62,7 +62,7 @@ msg db 'Hello .COM!$'
 
 \subsection{Struktur Program EXE}
 \subsubsection{Karakteristik program EXE}
-\texttt{.EXE} memiliki header yang menjelaskan tata letak segmen, \textit{relocation}, dan titik masuk \cite{borland1990tasm}. Mendukung segmen terpisah untuk kode, data, \textit{stack}, sehingga lebih fleksibel untuk program besar \cite{nopi2003tutorial}.
+\texttt{.EXE} memiliki header yang menjelaskan tata letak segmen, \textit{relocation}, dan titik masuk. Mendukung segmen terpisah untuk kode, data, \textit{stack}, sehingga lebih fleksibel untuk program besar.
 
 \subsubsection{Header, segmentasi, dan contoh}
 Header memuat informasi ukuran, relocation table, dsb. Model memori (SMALL, TINY, dsb.) memengaruhi pengaturan segmen.
@@ -99,9 +99,8 @@ Menandai akhir berkas sumber; opsi label (mis., \texttt{END main}) mendefinisika
 \subsubsection{Penggunaan direktif dalam program}
 Pilih direktif sesuai target (\texttt{.COM} vs \texttt{.EXE}) dan model memori. Gunakan \texttt{END} dengan label fungsi utama untuk program \texttt{.EXE}.
 
-% (diintegrasikan ke materi utama)
 \subsubsection{Menjalankan Toolchain di DOSBox}
-Gunakan DOSBox untuk mengeksekusi TASM/TLINK/TD pada sistem modern. Contoh konfigurasi dasar: \cite{dosbox_manual}
+Gunakan DOSBox untuk mengeksekusi TASM/TLINK/TD pada sistem modern. Contoh konfigurasi dasar:
 \begin{verbatim}
 MOUNT C ~/dos
 C:
@@ -118,23 +117,23 @@ Untuk berkas \texttt{.COM}, gunakan model memori TINY dan \texttt{ORG 100h}, lal
 TASM /M2 HELLO_COM.ASM        ; menghasilkan HELLO_COM.OBJ
 TLINK /T HELLO_COM.OBJ        ; menghasilkan HELLO_COM.COM
 \end{verbatim}
-Untuk \texttt{.EXE}, gunakan model \texttt{SMALL} (atau lain) dan prosedur bertanda \texttt{END main} seperti contoh sebelumnya. \cite{borland1990tasm}
+Untuk \texttt{.EXE}, gunakan model \texttt{SMALL} (atau lain) dan prosedur bertanda \texttt{END main} seperti contoh sebelumnya.
 
 \subsubsection{Alternatif Assembler Modern (NASM)}
-Sebagai alternatif modern, NASM dapat merakit kode 8086. Contoh untuk menghasilkan \texttt{.COM} langsung: \cite{nasm_manual}
+Sebagai alternatif modern, NASM dapat merakit kode 8086. Contoh untuk menghasilkan \texttt{.COM} langsung:
 \begin{verbatim}
 nasm -f bin hello.asm -o hello.com
 \end{verbatim}
 Catatan: Sintaks NASM berbeda dari TASM/MASM; sesuaikan direktif dan penanganan segmen.
 
 \subsubsection{Debugging Dasar dengan TD}
-Gunakan TD untuk langkah per instruksi, memeriksa register/memori, dan breakpoint. Perintah umum: \texttt{R} (register), \texttt{U} (unassemble), \texttt{D} (dump), \texttt{E} (enter), \texttt{T} (trace), \texttt{P} (proceed). Simpan skrip langkah untuk demonstrasi praktikum. \cite{borland1990tasm}
+Gunakan TD untuk langkah per instruksi, memeriksa register/memori, dan breakpoint. Perintah umum: \texttt{R} (register), \texttt{U} (unassemble), \texttt{D} (dump), \texttt{E} (enter), \texttt{T} (trace), \texttt{P} (proceed). Simpan skrip langkah untuk demonstrasi praktikum.
 
 \subsubsection{Kesalahan Umum dan Solusi}
 \begin{itemize}
   \item Label tidak terdefinisi: periksa ejaan, urutan definisi, atau kebutuhan \texttt{EXTRN}/\texttt{PUBLIC} (untuk proyek multi-berkas).
   \item \texttt{CS:IP} tidak benar pada program \texttt{.COM}: pastikan \texttt{ORG 100h} didefinisikan dan tidak ada segmen tambahan.
-  \item String untuk \texttt{AH=09h}: pastikan terminator karakter \texttt{'$'} hadir; untuk \texttt{INT 10h} tidak diperlukan.
+  \item String untuk \texttt{AH=09h}: pastikan terminator karakter \texttt{'}\$\texttt{'} hadir; untuk \texttt{INT 10h} tidak diperlukan.
 \end{itemize}
 
 \section{Praktikum}
@@ -197,5 +196,10 @@ PAGE 60,132
   \item \textbf{Log debugging}: Jalankan program \texttt{.EXE} di TD, lakukan \textit{step} beberapa instruksi, catat perubahan register.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document
+\section{Referensi}\label{sec:instalasi-referensi}
+\begin{itemize}
+    \item \cite{borland1990tasm}
+    \item \cite{nasm_manual}
+    \item \cite{dosbox_manual}
+\end{itemize}
+

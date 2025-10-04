@@ -10,11 +10,11 @@ Setelah pertemuan ini, mahasiswa mampu:
 \end{itemize}
 
 \section{Pendahuluan}
-Instruksi perpindahan dan aritmatika merupakan fondasi pemrograman assembly \cite{susanto1995belajar}. Pemahaman mendalam mengenai operand, mode pengalamatan, dan efek \textit{flag} akan menentukan ketepatan logika program. Pada 8086, variasi operand dan pembatasan ukuran data harus dipatuhi agar instruksi valid \cite{hyde2010art}.
+Instruksi perpindahan dan aritmatika merupakan fondasi pemrograman assembly. Pemahaman mendalam mengenai operand, mode pengalamatan, dan efek \textit{flag} akan menentukan ketepatan logika program. Pada 8086, variasi operand dan pembatasan ukuran data harus dipatuhi agar instruksi valid.
 
 \section{Instruksi Perpindahan Data (MOV)}
 \subsection{Sintaks dan aturan penggunaan}
-Bentuk umum: \texttt{MOV destination, source} \cite{hyde2010art}. Aturan pokok: ukuran operand harus sama; perpindahan memori-ke-memori langsung tidak diperbolehkan (harus melalui register); beberapa register khusus (\texttt{CS}) tidak dapat ditulis langsung dengan \texttt{MOV} biasa \cite{susanto1995belajar}.
+Bentuk umum: \texttt{MOV destination, source}. Aturan pokok: ukuran operand harus sama; perpindahan memori-ke-memori langsung tidak diperbolehkan (harus melalui register); beberapa register khusus (\texttt{CS}) tidak dapat ditulis langsung dengan \texttt{MOV} biasa.
 
 \subsubsection{Antar register}
 \begin{verbatim}
@@ -22,12 +22,11 @@ mov ax, bx      ; salin BX -> AX (16-bit)
 mov al, ah      ; salin AH -> AL (8-bit)
 \end{verbatim}
 
-% (diintegrasikan ke materi utama)
 \subsubsection{Instruksi Aritmatika Tambahan}
-Selain \texttt{ADD}/\texttt{SUB}/\texttt{MUL}/\texttt{DIV}, 8086 mendukung: \texttt{ADC}/\texttt{SBB} (operasi dengan carry/borrow untuk angka multi-word), \texttt{INC}/\texttt{DEC} (tanpa memengaruhi \texttt{CF}), \texttt{NEG} (dua komplemen), \texttt{CMP} (seperti \texttt{SUB} tanpa menyimpan hasil), serta \texttt{DAA}/\texttt{DAS}/\texttt{AAA}/\texttt{AAS} untuk penyesuaian BCD. \cite{intel2019manual32,rbil}
+Selain \texttt{ADD}/\texttt{SUB}/\texttt{MUL}/\texttt{DIV}, 8086 mendukung: \texttt{ADC}/\texttt{SBB} (operasi dengan carry/borrow untuk angka multi-word), \texttt{INC}/\texttt{DEC} (tanpa memengaruhi \texttt{CF}), \texttt{NEG} (dua komplemen), \texttt{CMP} (seperti \texttt{SUB} tanpa menyimpan hasil), serta \texttt{DAA}/\texttt{DAS}/\texttt{AAA}/\texttt{AAS} untuk penyesuaian BCD.
 
 \subsubsection{Perluasan Tanda dan Pembagian Aman}
-Gunakan \texttt{CBW} (convert byte to word) untuk menandatangani \texttt{AL} ke \texttt{AX} sebelum \texttt{IDIV}/\texttt{IMUL} (pada 8086 hanya \texttt{MUL}/\texttt{DIV} tersedia; varian bertanda formal hadir pada generasi lebih baru namun konsep sign-extension tetap relevan). Untuk pembagian 16-bit, pastikan \texttt{DX} berisi bagian tinggi (0 untuk tak bertanda; sign-extension untuk bertanda). Cek penyebut nol untuk menghindari exception. \cite{intel2019manual32}
+Gunakan \texttt{CBW} (convert byte to word) untuk menandatangani \texttt{AL} ke \texttt{AX} sebelum \texttt{IDIV}/\texttt{IMUL} (pada 8086 hanya \texttt{MUL}/\texttt{DIV} tersedia; varian bertanda formal hadir pada generasi lebih baru namun konsep sign-extension tetap relevan). Untuk pembagian 16-bit, pastikan \texttt{DX} berisi bagian tinggi (0 untuk tak bertanda; sign-extension untuk bertanda). Cek penyebut nol untuk menghindari exception.
 
 \subsubsection{Aritmatika Multi-precision}
 Untuk menjumlahkan dua bilangan 32-bit tersimpan sebagai \texttt{DX:AX} dan \texttt{BX:CX} (high:low), gunakan \texttt{ADD} pada low word lalu \texttt{ADC} pada high word:
@@ -37,7 +36,7 @@ adc dx, bx   ; high + carry
 \end{verbatim}
 
 \subsubsection{Pemilihan Cabang Berdasarkan Flags}
-Untuk data tak bertanda gunakan \texttt{JA}/\texttt{JAE}/\texttt{JB}/\texttt{JBE} (berbasis \texttt{CF}/\texttt{ZF}); untuk bertanda gunakan \texttt{JG}/\texttt{JGE}/\texttt{JL}/\texttt{JLE} (berbasis \texttt{SF}/\texttt{OF}/\texttt{ZF}). Pastikan interpretasi konsisten dari sumber data. \cite{intel2019manual32}
+Untuk data tak bertanda gunakan \texttt{JA}/\texttt{JAE}/\texttt{JB}/\texttt{JBE} (berbasis \texttt{CF}/\texttt{ZF}); untuk bertanda gunakan \texttt{JG}/\texttt{JGE}/\texttt{JL}/\texttt{JLE} (berbasis \texttt{SF}/\texttt{OF}/\texttt{ZF}). Pastikan interpretasi konsisten dari sumber data.
 
 \subsubsection{Kasus Tepi Umum}
 \begin{itemize}
@@ -71,9 +70,9 @@ sub ax, 10     ; AX = FFFEh (jika 16-bit), SF=1, mungkin CF=1
 \textbf{Catatan}: \texttt{ADD}/\texttt{SUB} memutakhirkan \texttt{CF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}, \texttt{AF}, \texttt{PF} sesuai hasil.
 
 \subsubsection{MUL dan DIV}
-\texttt{MUL} dan \texttt{DIV} menggunakan register implisit \cite{hyde2010art}:\newline
+\texttt{MUL} dan \texttt{DIV} menggunakan register implisit:\newline
 \textbf{8-bit}: \texttt{MUL r/m8} -> \texttt{AX = AL * r/m8}; \texttt{DIV r/m8} -> \texttt{AL = AX / r/m8}, \texttt{AH = AX mod r/m8}.\newline
-\textbf{16-bit}: \texttt{MUL r/m16} -> hasil di \texttt{DX:AX}; \texttt{DIV r/m16} -> \texttt{AX = DX:AX / r/m16}, sisa di \texttt{DX} \cite{susanto1995belajar}.
+\textbf{16-bit}: \texttt{MUL r/m16} -> hasil di \texttt{DX:AX}; \texttt{DIV r/m16} -> \texttt{AX = DX:AX / r/m16}, sisa di \texttt{DX}.
 \begin{verbatim}
 ; Perkalian 16-bit
 mov ax, 1234h
@@ -185,5 +184,3 @@ END START
   \item \textbf{Dokumentasi flag}: Buat tabel eksperimen yang menunjukkan nilai \texttt{CF}, \texttt{OF}, \texttt{ZF}, \texttt{SF}, \texttt{PF}, \texttt{AF} untuk beberapa kombinasi operand; jelaskan anomali yang Anda amati.
 \end{itemize}
 
-\section{Referensi}
-% Bibliography is handled by the main document
