@@ -40,16 +40,16 @@ Pilih sesuai interpretasi data untuk menghindari logika salah.
 Lompatan bersyarat menggunakan offset relatif pendek (\(\pm 128\) byte pada 8086). Untuk jangkauan lebih jauh, gunakan skema \textit{inverted branch} + \texttt{JMP} jauh.
 
 % (diintegrasikan ke materi utama)
-\subsection{Pola kontrol alur yang umum}
+\subsubsection{Pola Kontrol Alur yang Umum}
 Gunakan pola \textbf{if-else}, \textbf{switch-like} (tabel lompatan/\textit{jump table} berbasis indeks), dan \textbf{loop counted} (\texttt{CX}) vs \textbf{loop sentinel} (berhenti pada kondisi). Tabel lompatan dapat diimplementasikan dengan daftar alamat dan \texttt{JMP [BX+SI]}. \cite{intel2019manual32}
 
-\subsection{Optimasi cabang}
+\subsubsection{Optimasi Cabang}
 Cabang pendek (\texttt{Jcc} 8-bit) lebih padat; restrukturisasi kondisi untuk memanfaatkan jangkauan pendek saat mungkin. Hindari memodifikasi \texttt{CX} tak sengaja saat memakai \texttt{LOOP}. \cite{hyde2010art}
 
-\subsection{INT 33h detail dan koordinat}
+\subsubsection{INT 33h: Detail dan Koordinat}
 Skala koordinat mouse bergantung mode tampilan. Pada mode teks, koordinat biasanya dalam sel karakter; di mode grafik dapat berupa piksel dengan rentang yang dapat diatur (fungsi pembatasan). Selalu periksa nilai kembali inisialisasi driver (\texttt{AX=FFFFh}) sebelum memakai layanan mouse. \cite{rbil}
 
-\subsection{Debounce klik dan drag sederhana}
+\subsubsection{Debounce Klik dan Drag Sederhana}
 Catat transisi status tombol (tekan/lepas) untuk membedakan klik tunggal vs tahan/drag. Simpan posisi terakhir untuk menghitung delta pergerakan dan ambang jarak. \cite{osdev_wiki}
 
 

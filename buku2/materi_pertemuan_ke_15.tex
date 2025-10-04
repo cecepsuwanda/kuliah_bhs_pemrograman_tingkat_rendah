@@ -43,16 +43,16 @@ Panggil \texttt{INT 21h, AH=31h} dengan \texttt{DX} berisi ukuran memori yang di
 TSR dapat mengekspos layanan melalui nomor interupsi khusus (jarang) atau \texttt{AH} khusus pada \texttt{INT 21h}. Penanda sederhana: jika \texttt{AH=FFh}, handler mengembalikan tanda di \texttt{AL}.
 
 % (diintegrasikan ke materi utama)
-\subsection{Reentransi dan keamanan handler}
+\subsubsection{Reentransi dan Keamanan Handler}
 Handler TSR sering dipicu saat DOS/BIOS mungkin tidak reentrant. Hindari memanggil layanan DOS yang tidak aman dari interupsi di dalam handler; jika perlu, setel penanda dan lakukan pekerjaan berat di titik aman (mis. hook timer dan proses di luar handler sensitif). \cite{rbil}
 
-\subsection{Perhitungan ukuran resident}
+\subsubsection{Perhitungan Ukuran Resident}
 Hitung total segmen yang perlu ditinggalkan resident (kode + data minimal). Ukur dalam paragraf (16 byte); tambahkan margin untuk variabel runtime. Lepaskan segmen yang tidak dibutuhkan (mis. tumpukan sementara) sebelum \texttt{INT 21h,31h}. \cite{rbil}
 
-\subsection{Rantai handler (chaining)}
+\subsubsection{Rantai Handler (Chaining)}
 Saat mengganti vektor, simpan vektor lama dan panggil jika event tidak ditangani agar kompatibel dengan TSR lain. Periksa kondisi untuk mencegah loop. Pastikan menyimpan/memulihkan register dengan benar. \cite{rbil}
 
-\subsection{Deteksi instalasi ganda}
+\subsubsection{Deteksi Instalasi Ganda}
 Sediakan mekanisme \textit{self-detection} (mis. panggilan khusus yang mengembalikan tanda). Jika sudah terpasang, tawarkan keluar normal atau uninstall (bila aman). \cite{rbil}
 
 \section{Implementasi TSR}

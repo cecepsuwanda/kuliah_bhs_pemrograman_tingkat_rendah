@@ -100,7 +100,7 @@ Menandai akhir berkas sumber; opsi label (mis., \texttt{END main}) mendefinisika
 Pilih direktif sesuai target (\texttt{.COM} vs \texttt{.EXE}) dan model memori. Gunakan \texttt{END} dengan label fungsi utama untuk program \texttt{.EXE}.
 
 % (diintegrasikan ke materi utama)
-\subsection{Menjalankan toolchain di DOSBox}
+\subsubsection{Menjalankan Toolchain di DOSBox}
 Gunakan DOSBox untuk mengeksekusi TASM/TLINK/TD pada sistem modern. Contoh konfigurasi dasar: \cite{dosbox_manual}
 \begin{verbatim}
 MOUNT C ~/dos
@@ -112,7 +112,7 @@ TLINK /V HELLO.OBJ       ; taut -> HELLO.EXE
 TD HELLO.EXE             ; debug
 \end{verbatim}
 
-\subsection{Membangun program .COM vs .EXE}
+\subsubsection{Membangun Program .COM vs .EXE}
 Untuk berkas \texttt{.COM}, gunakan model memori TINY dan \texttt{ORG 100h}, lalu tautkan dengan opsi \texttt{/t}:
 \begin{verbatim}
 TASM /M2 HELLO_COM.ASM        ; menghasilkan HELLO_COM.OBJ
@@ -120,17 +120,17 @@ TLINK /T HELLO_COM.OBJ        ; menghasilkan HELLO_COM.COM
 \end{verbatim}
 Untuk \texttt{.EXE}, gunakan model \texttt{SMALL} (atau lain) dan prosedur bertanda \texttt{END main} seperti contoh sebelumnya. \cite{borland1990tasm}
 
-\subsection{Alternatif assembler modern (NASM)}
+\subsubsection{Alternatif Assembler Modern (NASM)}
 Sebagai alternatif modern, NASM dapat merakit kode 8086. Contoh untuk menghasilkan \texttt{.COM} langsung: \cite{nasm_manual}
 \begin{verbatim}
 nasm -f bin hello.asm -o hello.com
 \end{verbatim}
 Catatan: Sintaks NASM berbeda dari TASM/MASM; sesuaikan direktif dan penanganan segmen.
 
-\subsection{Debugging dasar dengan TD}
+\subsubsection{Debugging Dasar dengan TD}
 Gunakan TD untuk langkah per instruksi, memeriksa register/memori, dan breakpoint. Perintah umum: \texttt{R} (register), \texttt{U} (unassemble), \texttt{D} (dump), \texttt{E} (enter), \texttt{T} (trace), \texttt{P} (proceed). Simpan skrip langkah untuk demonstrasi praktikum. \cite{borland1990tasm}
 
-\subsection{Kesalahan umum dan solusi}
+\subsubsection{Kesalahan Umum dan Solusi}
 \begin{itemize}
   \item Label tidak terdefinisi: periksa ejaan, urutan definisi, atau kebutuhan \texttt{EXTRN}/\texttt{PUBLIC} (untuk proyek multi-berkas).
   \item \texttt{CS:IP} tidak benar pada program \texttt{.COM}: pastikan \texttt{ORG 100h} didefinisikan dan tidak ada segmen tambahan.

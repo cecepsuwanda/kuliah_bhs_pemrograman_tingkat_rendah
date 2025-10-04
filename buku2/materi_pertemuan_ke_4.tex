@@ -23,23 +23,23 @@ mov al, ah      ; salin AH -> AL (8-bit)
 \end{verbatim}
 
 % (diintegrasikan ke materi utama)
-\subsection{Instruksi aritmatika tambahan}
+\subsubsection{Instruksi Aritmatika Tambahan}
 Selain \texttt{ADD}/\texttt{SUB}/\texttt{MUL}/\texttt{DIV}, 8086 mendukung: \texttt{ADC}/\texttt{SBB} (operasi dengan carry/borrow untuk angka multi-word), \texttt{INC}/\texttt{DEC} (tanpa memengaruhi \texttt{CF}), \texttt{NEG} (dua komplemen), \texttt{CMP} (seperti \texttt{SUB} tanpa menyimpan hasil), serta \texttt{DAA}/\texttt{DAS}/\texttt{AAA}/\texttt{AAS} untuk penyesuaian BCD. \cite{intel2019manual32,rbil}
 
-\subsection{Perluasan tanda dan pembagian aman}
+\subsubsection{Perluasan Tanda dan Pembagian Aman}
 Gunakan \texttt{CBW} (convert byte to word) untuk menandatangani \texttt{AL} ke \texttt{AX} sebelum \texttt{IDIV}/\texttt{IMUL} (pada 8086 hanya \texttt{MUL}/\texttt{DIV} tersedia; varian bertanda formal hadir pada generasi lebih baru namun konsep sign-extension tetap relevan). Untuk pembagian 16-bit, pastikan \texttt{DX} berisi bagian tinggi (0 untuk tak bertanda; sign-extension untuk bertanda). Cek penyebut nol untuk menghindari exception. \cite{intel2019manual32}
 
-\subsection{Aritmatika multi-precision}
+\subsubsection{Aritmatika Multi-precision}
 Untuk menjumlahkan dua bilangan 32-bit tersimpan sebagai \texttt{DX:AX} dan \texttt{BX:CX} (high:low), gunakan \texttt{ADD} pada low word lalu \texttt{ADC} pada high word:
 \begin{verbatim}
 add ax, cx   ; low
 adc dx, bx   ; high + carry
 \end{verbatim}
 
-\subsection{Pemilihan cabang berdasarkan flags}
+\subsubsection{Pemilihan Cabang Berdasarkan Flags}
 Untuk data tak bertanda gunakan \texttt{JA}/\texttt{JAE}/\texttt{JB}/\texttt{JBE} (berbasis \texttt{CF}/\texttt{ZF}); untuk bertanda gunakan \texttt{JG}/\texttt{JGE}/\texttt{JL}/\texttt{JLE} (berbasis \texttt{SF}/\texttt{OF}/\texttt{ZF}). Pastikan interpretasi konsisten dari sumber data. \cite{intel2019manual32}
 
-\subsection{Kasus tepi umum}
+\subsubsection{Kasus Tepi Umum}
 \begin{itemize}
   \item Overflow bertanda: contoh \texttt{0x7FFF + 0x0001} menghasilkan \texttt{OF=1}, \texttt{CF=0}.
   \item Borrow tak bertanda: \texttt{SUB AX, BX} dengan \texttt{AX<BX} akan menyetel \texttt{CF=1}.
