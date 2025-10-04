@@ -44,6 +44,24 @@ not bl                 ; BL = 00001111b
 \end{verbatim}
 \textbf{Flags}: tidak terpengaruh (kecuali implementasi spesifik; pada 8086, flags tidak terdefinisi diubah untuk NOT—anggap tidak relevan).
 
+\subsubsection{Instruksi SHIFT dan ROTATE}
+Operasi geser dan rotasi penting untuk manipulasi bit tingkat rendah, multiplikasi/divisi basis 2, serta ekstraksi bit-field. \cite{intel2019manual32}
+\begin{itemize}
+  \item \textbf{SHL/SAL}: geser ke kiri; mengalikan tak bertanda dengan 2 per langkah; bit keluar ke \texttt{CF}.
+  \item \textbf{SHR}: geser ke kanan tak bertanda; membagi dengan 2 per langkah; bit keluar ke \texttt{CF}.
+  \item \textbf{SAR}: geser kanan bertanda; mempertahankan bit tanda; membagi bertanda dengan pembulatan ke bawah.
+  \item \textbf{ROL/ROR}: rotasi tanpa melalui carry; \textbf{RCL/RCR}: rotasi melalui carry (memakai \texttt{CF} sebagai bit tambahan).
+\end{itemize}
+Contoh:
+\begin{verbatim}
+mov ax, 0001h
+shl ax, 1     ; AX = 0002h, CF=0
+ror ax, 1     ; rotasi kanan; bit0 masuk ke bit15
+\end{verbatim}
+
+\subsubsection{Ekstraksi dan Packing Bit-field}
+Untuk mengekstrak bidang 3-bit mulai dari posisi \(p\): geser kanan \(p\) lalu mask \texttt{AND} dengan \texttt{0b111}. Untuk mengemas, geser nilai ke posisi yang diinginkan lalu gabungkan dengan \texttt{OR}. \cite{osdev_wiki}
+
 \subsubsection{Operasi bitwise dan aplikasinya}
 \begin{itemize}
   \item \textbf{Masking}: \texttt{AND} untuk \textit{clear}, \texttt{OR} untuk \textit{set}, \texttt{XOR} untuk \textit{toggle}.

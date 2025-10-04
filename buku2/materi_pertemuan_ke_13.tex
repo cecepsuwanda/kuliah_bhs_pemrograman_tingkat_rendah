@@ -61,6 +61,20 @@ Tangkap kasus umum: file tidak ditemukan (\texttt{2}), akses ditolak (\texttt{5}
 \subsubsection{Resource cleanup}
 Pada error di tengah rangkaian operasi, lakukan penutupan handle yang sudah terbuka sebelum keluar.
 
+% (diintegrasikan ke materi utama)
+\subsubsection{Kode Error Umum INT 21h}
+Contoh: \texttt{AX=02h} (file tidak ditemukan), \texttt{03h} (path tidak ditemukan), \texttt{05h} (akses ditolak), \texttt{0Dh} (data invalid). Periksa \texttt{CF} dan \texttt{AX} setelah setiap panggilan file I/O untuk menangani kegagalan dengan baik. \cite{rbil}
+
+\subsubsection{EOF dan Jumlah Byte Terbaca}
+Pada operasi baca (\texttt{AH=3Fh}), nilai kembali \texttt{AX} bisa lebih kecil dari \texttt{CX} menandakan akhir berkas atau buffer tidak penuh. Jangan mengasumsikan buffer terisi penuh. \cite{rbil}
+
+\subsubsection{Buffered I/O Sederhana}
+Gunakan buffer menengah untuk menyalin berkas dalam blok (mis. 128/256/512 byte). Hindari alokasi dinamis yang sulit pada DOS; gunakan buffer statik di segmen data. \cite{osdev_wiki}
+
+\subsubsection{Format Teks vs Biner}
+Untuk teks, perhatikan terminator baris (\texttt{CR LF} = \texttt{0Dh 0Ah}). Untuk biner, pertahankan ukuran yang tepat dan hindari transformasi karakter. \cite{osdev_wiki}
+
+
 \subsection{Buffer dan Transfer Data}
 \subsubsection{Buffer dan block transfer}
 Baca/tulis dalam blok untuk efisiensi. Untuk berkas teks, pertimbangkan terminator atau pemrosesan baris.
