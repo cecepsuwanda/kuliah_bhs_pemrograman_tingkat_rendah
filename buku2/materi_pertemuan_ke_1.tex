@@ -12,6 +12,29 @@ Setelah mengikuti pertemuan ini, mahasiswa diharapkan mampu:
     \item Mengaitkan konsep representasi data (bit, byte, word, two's complement, endianness) dengan perilaku program assembly.
 \end{itemize}
 
+\section{Pendalaman}\label{sec:pengenalan-pendalaman}
+\subsection{Notasi bilangan lain dan basis umum}
+Selain biner dan heksadesimal, beberapa konteks menggunakan oktal (basis 8) dan desimal (basis 10). Oktal historis dipakai pada arsitektur tertentu dan sistem Unix lama. Transformasi umum: basis 2 \(\leftrightarrow\) basis 8 (kelompok 3 bit) dan basis 2 \(\leftrightarrow\) basis 16 (kelompok 4 bit). Pemahaman konversi manual penting untuk membaca dump memori dan register. \cite{osdev_wiki}
+
+\subsection{Rentang nilai dan sign/zero extension}
+Untuk lebar \(n\)-bit, rentang tak bertanda adalah \([0,\,2^n-1]\). Untuk bertanda dengan two's complement, rentang adalah \([-2^{n-1},\,2^{n-1}-1]\). Contoh 8-bit: tak bertanda \([0..255]\), bertanda \([-128..127]\). Operasi perlu menjaga konsistensi perluasan ukuran: \textbf{zero extension} saat memaknai nilai tak bertanda (mis., memindahkan \texttt{AL} ke \texttt{AX} dengan mengosongkan \texttt{AH}), dan \textbf{sign extension} untuk bertanda (mis., \texttt{CBW} menandatangani \texttt{AL} ke \texttt{AX}). \cite{wiki_two_complement}
+
+\subsection{Deteksi overflow: CF vs OF}
+Pada operasi penjumlahan/pengurangan, \textbf{Carry Flag (CF)} menandai luapan untuk interpretasi tak bertanda, sedangkan \textbf{Overflow Flag (OF)} menandai luapan untuk interpretasi bertanda. Gunakan cabang bersyarat sesuai interpretasi data: \texttt{JC/JNC}/\texttt{JB/JA} untuk tak bertanda; \texttt{JO/JNO}, \texttt{JL/JG} (bertanda) untuk bertanda. \cite{intel2019manual32}
+
+\subsection{Endianness dan layout memori}
+Arsitektur 8086 menggunakan little-endian: byte paling rendah disimpan pada alamat terendah. Konsekuensinya: saat memeriksa dump memori untuk word \(0x1234\), tampilannya adalah \texttt{34 12}. Hal ini juga memengaruhi serialisasi data dan interoperabilitas antar mesin. \cite{wiki_endianness}
+
+\subsection{BCD dan konversi karakter}
+Sebagian aplikasi era DOS menggunakan \textit{Binary Coded Decimal} (BCD) untuk operasi numerik-desimal. 8086 menyediakan instruksi bantu seperti \texttt{DAA}/\texttt{DAS} (penyesuaian setelah \texttt{ADD}/\texttt{SUB} BCD) serta \texttt{AAA}/\texttt{AAS} untuk ASCII-adjust. Saat menampilkan angka, konversi biner \(\to\) ASCII lazim dilakukan dengan pembagian berulang basis 10 dan menumpuk sisa digit. \cite{intel2019manual32,rbil}
+
+\subsection{Latihan tambahan}
+\begin{enumerate}
+  \item Tentukan hasil dan status \texttt{CF}/\texttt{OF}/\texttt{SF}/\texttt{ZF} untuk operasi 8-bit: \texttt{0x7F + 0x01}, \texttt{0xFF + 0x01}, \texttt{0x80 - 0x01}.
+  \item Lakukan sign-extension dan zero-extension dari 8-bit ke 16-bit untuk nilai \texttt{0xF0} dan jelaskan perbedaannya dalam desimal bertanda/tak bertanda.
+  \item Implementasikan (di assembler) konversi word 16-bit ke string desimal (ASCII) tanpa menggunakan instruksi BCD; tampilkan hasilnya via \texttt{INT 21h, AH=09h}.
+\end{enumerate}
+
 \section{Pendahuluan}\label{sec:pengenalan-pendahuluan}
 Bahasa rakitan (assembly language) adalah bahasa pemrograman berlevel rendah yang menyediakan antarmuka langsung terhadap instruksi mesin (machine instructions) dari sebuah \textit{Instruction Set Architecture} (ISA), misalnya keluarga x86 (Intel 8086 dan penerusnya) \cite{intel2019manual32}. Berbeda dengan bahasa tingkat tinggi yang menawarkan abstraksi yang kaya (tipe data kompleks, manajemen memori otomatis, pustaka standar), assembly memetakan secara hampir satu-ke-satu ke instruksi prosesor, memberikan kontrol sangat granular atas register, memori, dan \textit{I/O} \cite{hyde2010art}. Konsekuensinya, pemrograman assembly menuntut pemahaman yang kuat tentang arsitektur perangkat keras dan representasi data.
 
