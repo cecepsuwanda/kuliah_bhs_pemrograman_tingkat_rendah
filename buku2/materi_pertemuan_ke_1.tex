@@ -184,8 +184,12 @@ Dalam pemrograman assembly, pemahaman sistem bilangan sangat krusial karena:
 \subsubsection{Sistem bilangan biner (basis 2)}
 Biner menggunakan dua digit (0 dan 1). Nilai tempatnya adalah pangkat 2: \(\ldots, 2^3, 2^2, 2^1, 2^0\). Contoh: \(101010_2 = 1\cdot 2^5 + 0\cdot 2^4 + 1\cdot 2^3 + 0\cdot 2^2 + 1\cdot 2^1 + 0\cdot 2^0 = 42_{10}\).
 
+Catatan: Sistem posisi (positional) untuk bilangan menjelaskan bahwa nilai digit ditentukan oleh pangkat basis di posisinya; ini berlaku untuk biner, heksadesimal, dan basis lain \cite{wiki_binary_number,wiki_positional_numeral_system}.
+
 \subsubsection{Sistem bilangan heksadesimal (basis 16)}
 Heksadesimal menggunakan digit 0--9 dan A--F (A=10, B=11, \ldots, F=15). Setiap digit heksadesimal memetakan tepat ke 4 bit (\textit{nibble}). Contoh: \(\mathrm{D6}_{16} = 13\cdot 16^1 + 6\cdot 16^0 = 214_{10}\) dan dalam biner menjadi \(\mathrm{D} = 1101\), \(6 = 0110\) sehingga \(\mathrm{D6}_{16} = 1101\,0110_2\).
+
+Dalam praktik pemrograman, notasi yang sering dipakai: awalan \texttt{0x} untuk heksadesimal dan \texttt{0b} untuk biner (di banyak bahasa pemrograman), sedangkan dalam beberapa assembler gaya Intel angka heksadesimal dapat ditulis dengan sufiks \texttt{h}. Hubungan digit heksadesimal dan \textit{nibble} memudahkan konversi antar biner dan heksadesimal \cite{wiki_hexadecimal}.
 
 \subsubsection{Konversi antar sistem bilangan}
 \paragraph{Desimal ke biner} gunakan pembagian berulang oleh 2 dan catat sisa; baca sisa dari belakang. Contoh: \(255_{10} \to 11111111_2\).
@@ -193,6 +197,24 @@ Heksadesimal menggunakan digit 0--9 dan A--F (A=10, B=11, \ldots, F=15). Setiap 
 \paragraph{Desimal ke heksadesimal} gunakan pembagian berulang oleh 16. Contoh: \(255_{10} \to \mathrm{FF}_{16}\).
 \paragraph{Heksadesimal ke desimal} gunakan nilai tempat basis 16. Contoh: \(\mathrm{A5F}_{16} = 10\cdot 16^2 + 5\cdot 16 + 15 = 2655_{10}\).
 \paragraph{Heksadesimal ke biner} peta setiap digit ke 4 bit: \(\mathrm{A5F}_{16} = 1010\,0101\,1111_2\).
+
+\paragraph{Biner ke heksadesimal} kelompokkan biner menjadi blok 4-bit dari kanan ke kiri, lalu petakan tiap blok ke satu digit heksadesimal. Contoh: \(11010110_2 = 1101\,0110_2 = \mathrm{D6}_{16}\) \cite{wiki_hexadecimal}.
+
+\paragraph{Contoh langkah demi langkah: \(214_{10} \to \text{biner}\)}\mbox{}
+\begin{verbatim}
+214 / 2 = 107 sisa 0
+107 / 2 =  53 sisa 1
+ 53 / 2 =  26 sisa 1
+ 26 / 2 =  13 sisa 0
+ 13 / 2 =   6 sisa 1
+  6 / 2 =   3 sisa 0
+  3 / 2 =   1 sisa 1
+  1 / 2 =   0 sisa 1
+\end{verbatim}
+Membaca sisa dari bawah ke atas menghasilkan \(1110\,1011\,0_2\). Setelah menghapus nol terdepan yang tidak signifikan: \(11010110_2\), sesuai dengan contoh sebelumnya \cite{wiki_binary_number,wiki_positional_numeral_system}.
+
+\paragraph{Contoh cepat: \(\mathrm{2F3}_{16} \leftrightarrow \text{biner}\)}\mbox{}\\
+\(\mathrm{2F3}_{16} = 0010\,1111\,0011_2\) karena \(2\to 0010\), \(\mathrm{F}\to 1111\), \(3\to 0011\). Sebaliknya, mengelompokkan biner per 4-bit mengembalikan \(\mathrm{2F3}_{16}\) \cite{wiki_hexadecimal}.
 
 \subsubsection{Operasi aritmatika dalam biner}
 Penjumlahan biner mengikuti aturan: \(0+0=0\), \(0+1=1\), \(1+1=10_2\) (tulis 0, simpan \textit{carry} 1). Contoh:
@@ -202,6 +224,15 @@ Penjumlahan biner mengikuti aturan: \(0+0=0\), \(0+1=1\), \(1+1=10_2\) (tulis 0,
  -------
   11000   (24 desimal)
 \end{verbatim}
+
+\textbf{Pengurangan biner} menggunakan peminjaman (\textit{borrow}). Contoh: \(10010_2 - 01101_2 = 00101_2\) (\(18-13=5\)):
+\begin{verbatim}
+   10010
+ - 01101
+ -------
+   00101
+\end{verbatim}
+Pada arsitektur x86, operasi ini memengaruhi bendera (flag) seperti Carry dan Overflow, yang relevan untuk percabangan berbasis hasil operasi.
 
 \subsection{Representasi Data dalam Komputer}\label{subsec:pengenalan-representasi-data}
 
@@ -216,6 +247,8 @@ Penjumlahan biner mengikuti aturan: \(0+0=0\), \(0+1=1\), \(1+1=10_2\) (tulis 0,
 \subsubsection{Representasi bilangan bertanda (Two's Complement)}
 Two's complement adalah metode representasi bilangan bulat bertanda di mana \(-x\) diperoleh dengan komplemen satu kemudian tambah satu \cite{wiki_two_complement}. Contoh (8-bit): \(-13\) dari \(00001101_2\) menjadi \(11110011_2\).
 
+\textbf{Contoh langkah}: Representasikan \(-27\) pada 8-bit. Mula-mula tulis \(+27\) dalam biner 8-bit: \(27_{10}=00011011_2\). Komplemen satu: \(11100100_2\). Tambah satu: \(11100101_2\). Verifikasi: \(11100101_2 + 00011011_2 = 1\,00000000_2\) (buang carry tertinggi) $\Rightarrow$ \(0\) modulo 256 \cite{wiki_two_complement}.
+
 \textbf{Keunggulan Two's Complement:}
 \begin{itemize}
     \item Satu representasi untuk nol (tidak ada +0 dan -0)
@@ -225,6 +258,34 @@ Two's complement adalah metode representasi bilangan bulat bertanda di mana \(-x
 
 \subsubsection{Endianness (Little-Endian pada 8086)}
 Endianness menentukan urutan penyimpanan byte dalam memori \cite{wiki_endianness}. 8086 menggunakan little-endian: \textit{least significant byte} disimpan pada alamat memori terendah. Contoh: word \(0x1234\) disimpan sebagai byte \(0x34\) lalu \(0x12\).
+
+\textbf{Contoh 32-bit}: Dword \(0x12345678\) pada alamat dasar $A$ disimpan sebagai berikut (little-endian):
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Alamat & $A$ & $A+1$ & $A+2$ & $A+3$ \\
+\midrule
+Byte   & $0x78$ & $0x56$ & $0x34$ & $0x12$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Urutan terbalik ini penting saat membaca/membentuk nilai multi-byte dari memori \cite{wiki_endianness}.
+
+\subsubsection{Rentang nilai untuk $n$-bit}
+Untuk bilangan \textit{unsigned} $n$-bit, rentang nilainya adalah $0$ hingga $2^n-1$. Untuk two's complement (bertanda), rentangnya adalah $-2^{n-1}$ hingga $2^{n-1}-1$ \cite{wiki_binary_number,wiki_two_complement}. Contoh ringkas:
+\begin{table}[h]
+\centering
+\caption{Rentang nilai integer umum}
+\begin{tabular}{lll}
+\toprule
+\textbf{$n$-bit} & \textbf{Unsigned} & \textbf{Signed (two's complement)} \\
+\midrule
+8  & $0..255$       & $-128..127$ \\
+16 & $0..65535$     & $-32768..32767$ \\
+\bottomrule
+\end{tabular}
+\label{tab:range-nbit}
+\end{table}
 
 \textbf{Implikasi untuk Assembly:}
 \begin{itemize}
