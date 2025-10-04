@@ -1,21 +1,20 @@
-\chapter{Pemrograman Grafik Dasar: Menggambar Piksel dan Garis (Mode Grafik INT 10h)}
+\chapter{Pemrograman Grafik Dasar}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menjelaskan perbedaan mode teks dan grafik, resolusi, palet warna, dan organisasi memori video.
-  \item Menggunakan layanan BIOS \texttt{INT 10h} untuk mengatur mode grafik, menulis/membaca piksel, dan memeriksa mode aktif.
-  \item Menggambar piksel dan garis di layar pada koordinat tertentu dengan warna yang dipilih.
-  \item Mengimplementasikan algoritma garis (DDA/Bresenham) dan memahami trade-off kinerja/akurasi.
-  \item Mengembangkan program grafik sederhana berbasis mode 13h (320x200x256) sebagai studi kasus.
+    \item Menjelaskan perbedaan mode teks dan grafik, resolusi, palet warna, dan organisasi memori video.
+    \item Menggunakan layanan BIOS \texttt{INT 10h} untuk mengatur mode grafik, menulis/membaca piksel, dan memeriksa mode aktif.
+    \item Menggambar piksel dan garis di layar pada koordinat tertentu dengan warna yang dipilih.
+    \item Mengimplementasikan algoritma garis (DDA/Bresenham) dan memahami trade-off kinerja/akurasi.
+    \item Mengembangkan program grafik sederhana berbasis mode 13h (320x200x256) sebagai studi kasus.
 \end{itemize}
 
 \section{Pendahuluan}
-Mode grafik menyediakan akses piksel-tingkat ke layar, berbeda dengan mode teks yang berbasis karakter. Pada lingkungan DOS, BIOS menyediakan fungsi \texttt{INT 10h} untuk mengatur mode, menulis/membaca piksel, dan berbagai operasi tampilan. Mode 13h (320x200 dengan 256 warna) populer untuk pembelajaran karena memori video \textit{linear} (satu byte per piksel) yang mudah diakses.
+Mode grafik menyediakan akses piksel-tingkat ke layar, berbeda dengan mode teks yang berbasis karakter \cite{susanto1995belajar}. Pada lingkungan DOS, BIOS menyediakan fungsi \texttt{INT 10h} untuk mengatur mode, menulis/membaca piksel, dan berbagai operasi tampilan \cite{hyde2010art}. Mode 13h (320x200 dengan 256 warna) populer untuk pembelajaran karena memori video \textit{linear} (satu byte per piksel) yang mudah diakses \cite{nopi2003tutorial}.
 
-\section{Materi Pembelajaran}
-\subsection{Konsep Mode Grafik}
-\subsubsection{Perbedaan mode teks dan grafik}
+\section{Konsep Mode Grafik}
+\subsection{Perbedaan mode teks dan grafik}
 Mode teks menampilkan karakter dari tabel font di layar, sedangkan mode grafik memetakan memori video langsung ke piksel. Mode teks lebih hemat memori dan sederhana; mode grafik memberi fleksibilitas menggambar bentuk bebas.
 
 \subsubsection{Resolusi layar dan palet}
@@ -184,7 +183,4 @@ END START
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
-\end{itemize}
+% Bibliography is handled by the main document

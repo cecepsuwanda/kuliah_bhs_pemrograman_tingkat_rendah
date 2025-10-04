@@ -1,20 +1,19 @@
-\chapter{Pemrosesan File Lanjutan: Manipulasi Pointer (INT 21h fungsi 42h), Penyimpanan Data Terformat}
+\chapter{Pemrosesan File Lanjutan}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menggunakan \texttt{INT 21h, AH=42h} (LSEEK) untuk memosisikan \textit{file pointer} relatif terhadap awal, posisi kini, atau akhir.
-  \item Menerapkan akses acak (random access) pada berkas dengan struktur rekaman (record) tetap/variabel.
-  \item Merancang penyimpanan data terformat (record-based) lengkap dengan validasi dan pembaruan in-place.
-  \item Menyusun aplikasi berkas yang modular (address book/inventory) dengan operasi CRUD.
+    \item Menggunakan \texttt{INT 21h, AH=42h} (LSEEK) untuk memosisikan \textit{file pointer} relatif terhadap awal, posisi kini, atau akhir.
+    \item Menerapkan akses acak (random access) pada berkas dengan struktur rekaman (record) tetap/variabel.
+    \item Merancang penyimpanan data terformat (record-based) lengkap dengan validasi dan pembaruan in-place.
+    \item Menyusun aplikasi berkas yang modular (address book/inventory) dengan operasi CRUD.
 \end{itemize}
 
 \section{Pendahuluan}
-Operasi berkas lanjutan meliputi pemindahan \textit{file pointer} untuk membaca/menulis pada posisi tertentu. Dengan \texttt{LSEEK} (\texttt{AH=42h}), program dapat mengakses bagian mana pun dari berkas secara efisien tanpa membaca dari awal. Pengorganisasian data ke dalam rekaman tetap (\textit{fixed-length}) atau variabel (\textit{variable-length}) memudahkan pengelolaan dan mempercepat pencarian serta pembaruan.
+Operasi berkas lanjutan meliputi pemindahan \textit{file pointer} untuk membaca/menulis pada posisi tertentu \cite{susanto1995belajar}. Dengan \texttt{LSEEK} (\texttt{AH=42h}), program dapat mengakses bagian mana pun dari berkas secara efisien tanpa membaca dari awal \cite{hyde2010art}. Pengorganisasian data ke dalam rekaman tetap (\textit{fixed-length}) atau variabel (\textit{variable-length}) memudahkan pengelolaan dan mempercepat pencarian serta pembaruan \cite{nopi2003tutorial}.
 
-\section{Materi Pembelajaran}
-\subsection{Manipulasi File Pointer}
-\subsubsection{Konsep pointer dan posisi}
+\section{Manipulasi File Pointer}
+\subsection{Konsep pointer dan posisi}
 \textit{File pointer} adalah offset dari awal berkas yang menentukan lokasi baca/tulis berikutnya. Semua operasi baca/tulis memulai dari pointer ini dan memajukannya sesuai jumlah byte yang dioperasikan.
 
 \subsubsection{Fungsi 42h: LSEEK}
@@ -181,7 +180,4 @@ END START
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
-\end{itemize}
+% Bibliography is handled by the main document

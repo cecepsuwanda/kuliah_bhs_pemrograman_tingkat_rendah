@@ -1,21 +1,20 @@
-\chapter{Array dan String: Penyimpanan Array, Instruksi String (MOVS, CMPS, SCAS, LODS, STOS)}
+\chapter{Array dan String}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menjelaskan representasi array dan string dalam memori serta pengalamatan elemennya.
-  \item Menggunakan instruksi string \texttt{MOVS}, \texttt{CMPS}, \texttt{SCAS}, \texttt{LODS}, \texttt{STOS} dengan benar.
-  \item Mengoptimalkan operasi berulang menggunakan awalan \texttt{REP}/\texttt{REPE}/\texttt{REPNE} dan pengelolaan \texttt{DF}.
-  \item Membangun rutinitas manipulasi string/array (salin, banding, cari, panjang, balik, gabung, urut).
+    \item Menjelaskan representasi array dan string dalam memori serta pengalamatan elemennya.
+    \item Menggunakan instruksi string \texttt{MOVS}, \texttt{CMPS}, \texttt{SCAS}, \texttt{LODS}, \texttt{STOS} dengan benar.
+    \item Mengoptimalkan operasi berulang menggunakan awalan \texttt{REP}/\texttt{REPE}/\texttt{REPNE} dan pengelolaan \texttt{DF}.
+    \item Membangun rutinitas manipulasi string/array (salin, banding, cari, panjang, balik, gabung, urut).
 \end{itemize}
 
 \section{Pendahuluan}
-Array dan string adalah struktur data fundamental. Pada 8086, operasi berulang terhadap data berurutan didukung oleh instruksi string yang menggabungkan pembacaan/penulisan data dengan peningkatan/penurunan indeks otomatis (\texttt{SI}/\texttt{DI}) dan pengurangan pencacah (\texttt{CX}) bila digabung dengan awalan \texttt{REP}. Pengelolaan \texttt{Direction Flag} (\texttt{DF}) menentukan arah iterasi (naik dengan \texttt{CLD}, turun dengan \texttt{STD}).
+Array dan string adalah struktur data fundamental \cite{susanto1995belajar}. Pada 8086, operasi berulang terhadap data berurutan didukung oleh instruksi string yang menggabungkan pembacaan/penulisan data dengan peningkatan/penurunan indeks otomatis (\texttt{SI}/\texttt{DI}) dan pengurangan pencacah (\texttt{CX}) bila digabung dengan awalan \texttt{REP} \cite{hyde2010art}. Pengelolaan \texttt{Direction Flag} (\texttt{DF}) menentukan arah iterasi (naik dengan \texttt{CLD}, turun dengan \texttt{STD}) \cite{nopi2003tutorial}.
 
-\section{Materi Pembelajaran}
-\subsection{Konsep Array dan String}
-\subsubsection{Definisi dan penyimpanan}
-Array adalah koleksi elemen bertipe homogen yang tersusun kontigu. String dapat dipandang sebagai array karakter dengan konvensi terminasi (mis. \texttt{0} atau \texttt{'$'}). Penyimpanan memperhatikan ukuran elemen (byte/word) untuk perhitungan offset.
+\section{Konsep Array dan String}
+\subsection{Definisi dan penyimpanan}
+Array adalah koleksi elemen bertipe homogen yang tersusun kontigu. String dapat dipandang sebagai array karakter dengan konvensi terminasi (mis. \texttt{0} atau \texttt{\$}). Penyimpanan memperhatikan ukuran elemen (byte/word) untuk perhitungan offset.
 
 \subsubsection{Pengalamatan dan perhitungan offset}
 Offset elemen ke-\(i\) pada array byte: \(base + i\). Pada array word: \(base + 2\cdot i\). Gunakan \texttt{SI}/\texttt{DI} sebagai indeks sumber/tujuan.
@@ -23,7 +22,7 @@ Offset elemen ke-\(i\) pada array byte: \(base + i\). Pada array word: \(base + 
 \subsubsection{String berterminasi}
 \begin{itemize}
   \item \textbf{Null-terminated (C)}: berakhir dengan \texttt{0}. Fungsi seperti panjang memindai hingga \texttt{0}.
-  \item \textbf{DOS '$'-terminated}: digunakan oleh \texttt{INT 21h, AH=09h}; berakhir dengan \texttt{'$'}.
+  \item \textbf{DOS \$-terminated}: digunakan oleh \texttt{INT 21h, AH=09h}; berakhir dengan \texttt{\$}.
 \end{itemize}
 Konsisten gunakan satu konvensi per rutinitas.
 
@@ -36,7 +35,7 @@ Gunakan perataan baris (row-major). Offset \((r,c)\) pada array word berdimensi 
 
 \subsection{Instruksi String}
 \subsubsection{MOVS}
-Menyalin dari \texttt{DS:SI} ke \texttt{ES:DI}; varian \texttt{MOVSB}/\texttt{MOVSW}. Dengan \texttt{REP}, menyalin \texttt{CX} elemen.
+Menyalin dari \texttt{DS:SI} ke \texttt{ES:DI}; varian \texttt{MOVSB}/\texttt{MOVSW} \cite{hyde2010art}. Dengan \texttt{REP}, menyalin \texttt{CX} elemen \cite{susanto1995belajar}.
 \begin{verbatim}
 cld
 mov  cx, len
@@ -180,14 +179,11 @@ END START
 
 \section{Tugas}
 \begin{itemize}
-  \item \textbf{Panjang string}: Implementasikan \texttt{strlen} untuk terminator \texttt{0} \textbf{atau} \texttt{'$'} (pilih salah satu) menggunakan \texttt{SCASB}.
+  \item \textbf{Panjang string}: Implementasikan \texttt{strlen} untuk terminator \texttt{0} \textbf{atau} \texttt{'{\$}'} (pilih salah satu) menggunakan \texttt{SCASB}.
   \item \textbf{Balik string}: Implementasikan pembalik in-place menggunakan dua indeks (awal/akhir) atau \texttt{LODS}/\texttt{STOS} ke buffer sementara.
   \item \textbf{Gabung string}: Implementasikan \texttt{strcat} sederhana; pastikan tidak terjadi \textit{overflow} buffer tujuan.
   \item \textbf{Urutkan array}: Urutkan array word kecil (mis. 10 elemen) dengan \textit{bubble sort}; tampilkan hasil setiap putaran.
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
-\end{itemize}
+% Bibliography is handled by the main document

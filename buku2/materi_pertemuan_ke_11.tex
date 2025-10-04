@@ -1,21 +1,20 @@
-\chapter{Pemrograman Modular: PROC/ENDP, Penggunaan Makro Sederhana (MACRO)}
+\chapter{Pemrograman Modular dan Makro}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menjelaskan prinsip pemrograman modular serta manfaatnya terhadap kualitas perangkat lunak.
-  \item Menggunakan \texttt{PROC}/\texttt{ENDP} untuk membangun prosedur (dengan/ tanpa parameter dan nilai balik) dengan disiplin penyimpanan register dan \textit{stack frame}.
-  \item Membuat dan memanfaatkan makro (\texttt{MACRO}/\texttt{ENDM}) dengan parameter, termasuk bentuk bersyarat sederhana.
-  \item Membedakan penggunaan prosedur vs. makro berdasarkan kebutuhan \textit{runtime}, ukuran kode, dan pemeliharaan.
-  \item Mengorganisasi program multi-berkas dengan \texttt{INCLUDE}, modul, dan pustaka prosedur.
+    \item Menjelaskan prinsip pemrograman modular serta manfaatnya terhadap kualitas perangkat lunak.
+    \item Menggunakan \texttt{PROC}/\texttt{ENDP} untuk membangun prosedur (dengan/ tanpa parameter dan nilai balik) dengan disiplin penyimpanan register dan \textit{stack frame}.
+    \item Membuat dan memanfaatkan makro (\texttt{MACRO}/\texttt{ENDM}) dengan parameter, termasuk bentuk bersyarat sederhana.
+    \item Membedakan penggunaan prosedur vs. makro berdasarkan kebutuhan \textit{runtime}, ukuran kode, dan pemeliharaan.
+    \item Mengorganisasi program multi-berkas dengan \texttt{INCLUDE}, modul, dan pustaka prosedur.
 \end{itemize}
 
 \section{Pendahuluan}
-Pemrograman modular mendorong pemisahan program menjadi komponen-komponen kecil dengan tanggung jawab jelas. Dalam assembly, modularitas dicapai melalui prosedur (\texttt{PROC}) dan dapat diperkuat dengan makro untuk mengurangi pengulangan pola kode. Perbedaan fundamental: prosedur dieksekusi di \textit{runtime} (overhead \texttt{CALL}/\texttt{RET}), sedangkan makro diperluas saat perakitan (\textit{compile-time}), menghasilkan duplikasi kode yang dapat menambah ukuran biner.
+Pemrograman modular mendorong pemisahan program menjadi komponen-komponen kecil dengan tanggung jawab jelas \cite{susanto1995belajar}. Dalam assembly, modularitas dicapai melalui prosedur (\texttt{PROC}) dan dapat diperkuat dengan makro untuk mengurangi pengulangan pola kode \cite{hyde2010art}. Perbedaan fundamental: prosedur dieksekusi di \textit{runtime} (overhead \texttt{CALL}/\texttt{RET}), sedangkan makro diperluas saat perakitan (\textit{compile-time}), menghasilkan duplikasi kode yang dapat menambah ukuran biner \cite{nopi2003tutorial}.
 
-\section{Materi Pembelajaran}
-\subsection{Konsep Pemrograman Modular}
-\subsubsection{Definisi dan keuntungan}
+\section{Konsep Pemrograman Modular}
+\subsection{Definisi dan keuntungan}
 Modularitas meningkatkan \textit{readability}, \textit{testability}, dan \textit{reusability}. Komponen yang terdefinisi baik mempercepat \textit{debugging} dan memudahkan perawatan.
 
 \subsubsection{Prinsip modularitas}
@@ -80,7 +79,7 @@ Buat pustaka prosedur (sekumpulan \texttt{.OBJ}) dan tautkan seperlunya. Dokumen
 \begin{enumerate}
   \item Bangun prosedur \texttt{print\_str} (\texttt{AH=09h}) dengan prologue/epilogue rapi.
   \item Prosedur berparameter: \texttt{add16(a,b)} mengembalikan hasil di \texttt{AX}; \texttt{RET 4} (callee cleans) vs \texttt{ADD SP,4} (caller cleans).
-  \item Makro sederhana: \texttt{PRINT$ pesan} yang memanggil \texttt{INT 21h} untuk string berakhiran \texttt{'$'}.
+  \item Makro sederhana: \texttt{PRINT{\$} pesan} yang memanggil \texttt{INT 21h} untuk string berakhiran \texttt{\$}.
   \item Makro berparameter: \texttt{SWAP var1, var2} untuk menukar dua word.
   \item Susun program modular yang memanfaatkan makro dan prosedur pada beberapa berkas.
 \end{enumerate}
@@ -190,7 +189,4 @@ END START
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Borland. \textit{Turbo Assembler (TASM) User's Guide}, Borland International.
-\end{itemize}
+% Bibliography is handled by the main document

@@ -1,19 +1,18 @@
-\chapter{Input dari Keyboard (INT 16h); Penanganan Keyboard Buffer}
+\chapter{Input dari Keyboard dan Penanganan Buffer}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menggunakan layanan BIOS \texttt{INT 16h} untuk membaca input keyboard (blocking/non-blocking) dan memeriksa status.
-  \item Menjelaskan konsep keyboard buffer, mekanisme kerja, dan teknik \textit{flush}/penanganan buffer penuh.
-  \item Mengembangkan program interaktif berbasis input karakter dan string (dengan/ tanpa echo) dengan validasi.
-  \item Menginterpretasikan kode ASCII vs. \textit{scan code} serta menangani tombol khusus (function, arrow, control).
+    \item Menggunakan layanan BIOS \texttt{INT 16h} untuk membaca input keyboard (blocking/non-blocking) dan memeriksa status.
+    \item Menjelaskan konsep keyboard buffer, mekanisme kerja, dan teknik \textit{flush}/penanganan buffer penuh.
+    \item Mengembangkan program interaktif berbasis input karakter dan string (dengan/ tanpa echo) dengan validasi.
+    \item Menginterpretasikan kode ASCII vs. \textit{scan code} serta menangani tombol khusus (function, arrow, control).
 \end{itemize}
 
 \section{Pendahuluan}
-Interaksi pengguna pada lingkungan DOS banyak bertumpu pada layanan BIOS untuk perangkat input seperti keyboard. \texttt{INT 16h} menyediakan antarmuka tingkat rendah yang konsisten untuk membaca tombol, memeriksa ketersediaan input, dan mendapatkan status \textit{modifier} (Shift/Ctrl/Alt). Memahami perbedaan operasi \textit{blocking} dan \textit{non-blocking} penting agar program responsif dan tidak \textit{hang} menunggu masukan.
+Interaksi pengguna pada lingkungan DOS banyak bertumpu pada layanan BIOS untuk perangkat input seperti keyboard \cite{susanto1995belajar}. \texttt{INT 16h} menyediakan antarmuka tingkat rendah yang konsisten untuk membaca tombol, memeriksa ketersediaan input, dan mendapatkan status \textit{modifier} (Shift/Ctrl/Alt) \cite{hyde2010art}. Memahami perbedaan operasi \textit{blocking} dan \textit{non-blocking} penting agar program responsif dan tidak \textit{hang} menunggu masukan.
 
-\section{Materi Pembelajaran}
-\subsection{Interupsi BIOS INT 16h}
+\section{Interupsi BIOS INT 16h}
 \subsubsection{Fungsi 00h: Read Key (Blocking)}
 \begin{itemize}
   \item \textbf{Masukan}: \texttt{AH=00h}
@@ -152,7 +151,4 @@ END START
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
-\end{itemize}
+% Bibliography is handled by the main document

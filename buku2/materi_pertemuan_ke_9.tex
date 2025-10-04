@@ -1,20 +1,19 @@
-\chapter{Instruksi Stack: PUSH, POP, CALL, RET; Subrutin dan Parameter Sederhana}
+\chapter{Instruksi Stack dan Subrutin}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menjelaskan konsep tumpukan (stack), prinsip LIFO, serta peran \texttt{SS:SP}.
-  \item Menggunakan instruksi \texttt{PUSH}/\texttt{POP} pada register dan memori dengan aman.
-  \item Memanggil dan kembali dari subrutin menggunakan \texttt{CALL}/\texttt{RET} (near/far) dan memahami \textit{return address}.
-  \item Mengirim parameter dan menerima nilai balik melalui register, stack, atau memori.
-  \item Memodularisasi program menjadi prosedur-prosedur yang terpisah dan teruji.
+    \item Menjelaskan konsep tumpukan (stack), prinsip LIFO, serta peran \texttt{SS:SP}.
+    \item Menggunakan instruksi \texttt{PUSH}/\texttt{POP} pada register dan memori dengan aman.
+    \item Memanggil dan kembali dari subrutin menggunakan \texttt{CALL}/\texttt{RET} (near/far) dan memahami \textit{return address}.
+    \item Mengirim parameter dan menerima nilai balik melalui register, stack, atau memori.
+    \item Memodularisasi program menjadi prosedur-prosedur yang terpisah dan teruji.
 \end{itemize}
 
 \section{Pendahuluan}
-Stack adalah struktur data kritis untuk pengelolaan alur eksekusi dan data sementara. Pada 8086, stack berada pada segmen \texttt{SS} dengan penunjuk \texttt{SP}. Instruksi \texttt{PUSH}/\texttt{POP} mengubah \texttt{SP} dan menyimpan/mengambil data 16-bit (atau 8-bit dipecah) dalam urutan LIFO. Instruksi \texttt{CALL}/\texttt{RET} mengandalkan stack untuk menyimpan alamat kembali ketika berpindah ke subrutin.
+Stack adalah struktur data kritis untuk pengelolaan alur eksekusi dan data sementara \cite{susanto1995belajar}. Pada 8086, stack berada pada segmen \texttt{SS} dengan penunjuk \texttt{SP}. Instruksi \texttt{PUSH}/\texttt{POP} mengubah \texttt{SP} dan menyimpan/mengambil data 16-bit (atau 8-bit dipecah) dalam urutan LIFO \cite{hyde2010art}. Instruksi \texttt{CALL}/\texttt{RET} mengandalkan stack untuk menyimpan alamat kembali ketika berpindah ke subrutin \cite{nopi2003tutorial}.
 
-\section{Materi Pembelajaran}
-\subsection{Konsep Stack}
+\section{Konsep Stack}
 \subsubsection{Definisi dan prinsip LIFO}
 Stack menyimpan item sedemikian rupa sehingga item terakhir yang dimasukkan akan diambil pertama kali. Pada 8086, stack tumbuh ke alamat lebih rendah: \texttt{PUSH} menurunkan \texttt{SP} lalu menyimpan data; \texttt{POP} mengambil data lalu menaikkan \texttt{SP}.
 
@@ -165,12 +164,9 @@ END START
 \begin{itemize}
   \item \textbf{Subrutin aritmatika}: Implementasikan \texttt{add16}, \texttt{sub16}, \texttt{mul16}, \texttt{div16} dengan kontrak parameter/return yang jelas.
   \item \textbf{Kalkulator modular}: Antarmuka teks yang memanggil subrutin operasi berdasarkan pilihan pengguna; validasi input dan tangani kesalahan (mis. pembagi nol).
-  \item \textbf{Manipulasi string}: Buat subrutin \texttt{strlen}, \texttt{strcpy}, \texttt{strcmp} sederhana untuk string berakhiran \texttt{'$'} atau \texttt{0} (pilih satu dan konsisten).
+  \item \textbf{Manipulasi string}: Buat subrutin \texttt{strlen}, \texttt{strcpy}, \texttt{strcmp} sederhana untuk string berakhiran \texttt{\$} atau \texttt{0} (pilih satu dan konsisten).
   \item \textbf{Dokumentasi}: Buat diagram stack frame untuk pemanggilan bertingkat (nested calls) dan jelaskan peran \texttt{BP}, \texttt{SP}, serta urutan penyimpanan register.
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
-\end{itemize}
+% Bibliography is handled by the main document

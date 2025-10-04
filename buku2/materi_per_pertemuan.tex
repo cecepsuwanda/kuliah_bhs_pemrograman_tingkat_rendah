@@ -6,22 +6,75 @@
 \usepackage{fancyhdr}
 \usepackage{titlesec}
 \usepackage{tocloft}
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{caption}
+\usepackage[style=apa,backend=biber,sorting=nyt,language=english]{biblatex}
+\usepackage{csquotes}
+\addbibresource{referensi.bib}
+
+% Setup automatic numbering
+\setcounter{chapter}{0}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+% Penomoran otomatis untuk section/subsection
+\renewcommand{\thesection}{\arabic{chapter}.\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
 
 % Pengaturan halaman
-\geometry{margin=2cm}
+\geometry{margin=2cm, headheight=14.5pt}
 \pagestyle{fancy}
 \fancyhf{}
 \fancyfoot[C]{\thepage}
-\fancyhead[L]{Materi Per Pertemuan}
+\fancyhead[L]{Pemrograman Bahasa Tingkat Rendah}
 \fancyhead[R]{}
 
-% Pengaturan judul chapter
+% Pengaturan judul chapter dengan penomoran otomatis
 \titleformat{\chapter}[display]
 {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
 \titlespacing*{\chapter}{0pt}{50pt}{40pt}
 
+% Pengaturan section dan subsection
+\titleformat{\section}
+{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
 % Pengaturan daftar isi
 \renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+
+% Setup hyperref
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=red
+}
+
+% Setup code listing
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    tabsize=2,
+    language=[x86masm]Assembler
+}
 
 \begin{document}
 
@@ -29,18 +82,18 @@
 \begin{titlepage}
 \begin{center}
 \vspace*{2cm}
-{\Huge\bfseries Materi Per Pertemuan}\[0.5cm]
-{\Large\bfseries (Turbo Assembler)}\[1cm]
-{\large Mata Kuliah Teknik Informatika}\[2cm]
+{\Huge\bfseries Bahasa Pemrograman Tingkat Rendah}\\[0.5cm]
+{\Large\bfseries (Assembly Language - Intel 8086)}\\[1cm]
+{\large Mata Kuliah Teknik Informatika}\\[2cm]
 
 \vfill
 
-{\large Disusun oleh:}\
-{\large Cecep Suwanda, S.Si., M.Kom.}\[1cm]
+{\large Disusun oleh:}\\
+{\large Cecep Suwanda, S.Si., M.Kom.}\\[1cm]
 
-{\large Program Studi Teknik Informatika}\
-{\large Fakultas Teknologi Informasi}\
-{\large Universitas Bale Bandung}\[1cm]
+{\large Program Studi Teknik Informatika}\\
+{\large Fakultas Teknologi Informasi}\\
+{\large Universitas Bale Bandung}\\[1cm]
 
 {\large \today}
 \end{center}
@@ -50,21 +103,41 @@
 \tableofcontents
 \newpage
 
-% Include materi tiap pertemuan
+% Bagian I: Dasar-dasar Assembly
+\part{Dasar-dasar Pemrograman Assembly}\label{part:basics}
+
 \include{materi_pertemuan_ke_1}
 \include{materi_pertemuan_ke_2}
 \include{materi_pertemuan_ke_3}
+
+% Bagian II: Pemrograman Assembly Fundamental  
+\part{Pemrograman Assembly Fundamental}\label{part:fundamental}
+
 \include{materi_pertemuan_ke_4}
 \include{materi_pertemuan_ke_5}
 \include{materi_pertemuan_ke_6}
 \include{materi_pertemuan_ke_7}
-% \include{materi_pertemuan_ke_8} % tidak tersedia
+
+% Bagian III: Struktur Data dan Kontrol Alur
+\part{Struktur Data dan Kontrol Alur}\label{part:structures}
+
 \include{materi_pertemuan_ke_9}
 \include{materi_pertemuan_ke_10}
 \include{materi_pertemuan_ke_11}
+
+% Bagian IV: Pemrograman Modular dan Lanjutan
+\part{Pemrograman Modular dan Lanjutan}\label{part:advanced}
+
 \include{materi_pertemuan_ke_12}
 \include{materi_pertemuan_ke_13}
+
+% Bagian V: Interaksi Sistem dan Grafik
+\part{Interaksi Sistem dan Grafik}\label{part:system}
+
 \include{materi_pertemuan_ke_14}
 \include{materi_pertemuan_ke_15}
+
+% Daftar Pustaka
+\printbibliography[title=Daftar Pustaka]
 
 \end{document}

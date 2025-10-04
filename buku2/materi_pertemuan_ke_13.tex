@@ -1,20 +1,19 @@
-\chapter{Pemrosesan File Dasar: Membuka, Menutup, Membaca, Menulis File (INT 21h fungsi 3Ch/3Fh/40h)}
+\chapter{Pemrosesan File Dasar}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menjelaskan konsep berkas (file), sistem berkas, dan \textit{handle}-based I/O pada DOS.
-  \item Menggunakan \texttt{INT 21h} untuk membuat, membuka, menutup, membaca, menulis, dan menghapus berkas.
-  \item Menerapkan pola \textit{buffered I/O} sederhana dan menangani kesalahan berdasarkan kode error.
-  \item Menyusun program utilitas file dasar seperti penyalinan dan pembacaan konten.
+    \item Menjelaskan konsep berkas (file), sistem berkas, dan \textit{handle}-based I/O pada DOS.
+    \item Menggunakan \texttt{INT 21h} untuk membuat, membuka, menutup, membaca, menulis, dan menghapus berkas.
+    \item Menerapkan pola \textit{buffered I/O} sederhana dan menangani kesalahan berdasarkan kode error.
+    \item Menyusun program utilitas file dasar seperti penyalinan dan pembacaan konten.
 \end{itemize}
 
 \section{Pendahuluan}
-Pada DOS, layanan \texttt{INT 21h} menyediakan antarmuka sistem berkas berbasiskan \textit{file handle}. Operasi utama meliputi pembuatan/ pembukaan berkas, pembacaan/penulisan data, dan penutupan. Keberhasilan/kegagalan operasi diindikasikan oleh \textit{carry flag} (CF) dan kode error di \texttt{AX} saat CF diset.
+Pada DOS, layanan \texttt{INT 21h} menyediakan antarmuka sistem berkas berbasiskan \textit{file handle} \cite{susanto1995belajar}. Operasi utama meliputi pembuatan/ pembukaan berkas, pembacaan/penulisan data, dan penutupan. Keberhasilan/kegagalan operasi diindikasikan oleh \textit{carry flag} (CF) dan kode error di \texttt{AX} saat CF diset \cite{hyde2010art}.
 
-\section{Materi Pembelajaran}
-\subsection{Konsep File Handling}
-\subsubsection{Definisi file dan file system}
+\section{Konsep File Handling}
+\subsection{Definisi file dan file system}
 File adalah sekumpulan byte pada media penyimpanan, diorganisasikan oleh sistem berkas (FAT pada DOS). Identifikasi via nama (8.3) dan atribut (read-only, hidden, system, archive).
 
 \subsubsection{File handle dan mode akses}
@@ -31,8 +30,10 @@ CF=1 menunjukkan kesalahan; \texttt{AX} memuat kode (mis. file tidak ditemukan, 
   \item \textbf{3Ch Create File}: \texttt{AH=3Ch}, \texttt{CX=atribut}, \texttt{DX=\&nama}; keluar: \texttt{AX=handle}.
   \item \textbf{3Dh Open File}: \texttt{AH=3Dh}, \texttt{AL=mode}, \texttt{DX=\&nama}; keluar: \texttt{AX=handle}.
   \item \textbf{3Eh Close File}: \texttt{AH=3Eh}, \texttt{BX=handle}.
-  \item \textbf{3Fh Read File}: \texttt{AH=3Fh}, \texttt{BX=handle}, \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluar: \texttt{AX=byte terbaca}.
-  \item \textbf{40h Write File}: \texttt{AH=40h}, \texttt{BX=handle}, \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluar: \texttt{AX=byte tertulis}.
+  \item \textbf{3Fh Read File}: \texttt{AH=3Fh}, \texttt{BX=handle}, \\
+  \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluaran: \texttt{AX=byte terbaca}.
+  \item \textbf{40h Write File}: \texttt{AH=40h}, \texttt{BX=handle}, \\
+  \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluaran: \texttt{AX=byte tertulis}.
   \item \textbf{41h Delete File}: \texttt{AH=41h}, \texttt{DX=\&nama}.
 \end{itemize}
 Perhatikan selalu pemeriksaan CF dan konsistensi \texttt{AX/CF}.
@@ -188,7 +189,4 @@ END START
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
-\end{itemize}
+% Bibliography is handled by the main document

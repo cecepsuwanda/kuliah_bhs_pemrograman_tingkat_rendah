@@ -1,20 +1,19 @@
-\chapter{Percabangan dan Loop: CMP, JE, JNE, JL, JG, LOOP; Interupsi Mouse (INT 33h)}
+\chapter{Percabangan, Loop, dan Interupsi Mouse}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menggunakan instruksi \texttt{CMP} untuk perbandingan dan membaca dampaknya pada \textit{flags}.
-  \item Menerapkan lompatan bersyarat \texttt{JE}, \texttt{JNE}, \texttt{JL}/\texttt{JG} dan variasinya berdasarkan interpretasi bertanda/tak bertanda.
-  \item Menggunakan \texttt{LOOP}, \texttt{LOOPE}/\texttt{LOOPZ}, \texttt{LOOPNE}/\texttt{LOOPNZ} untuk perulangan berbasis \texttt{CX}.
-  \item Berinteraksi dengan mouse melalui \texttt{INT 33h}: inisialisasi, tampil/sembunyi kursor, baca posisi/tombol.
-  \item Menyusun program yang menggabungkan percabangan, perulangan, dan input mouse.
+    \item Menggunakan instruksi \texttt{CMP} untuk perbandingan dan membaca dampaknya pada \textit{flags}.
+    \item Menerapkan lompatan bersyarat \texttt{JE}, \texttt{JNE}, \texttt{JL}/\texttt{JG} dan variasinya berdasarkan interpretasi bertanda/tak bertanda.
+    \item Menggunakan \texttt{LOOP}, \texttt{LOOPE}/\texttt{LOOPZ}, \texttt{LOOPNE}/\texttt{LOOPNZ} untuk perulangan berbasis \texttt{CX}.
+    \item Berinteraksi dengan mouse melalui \texttt{INT 33h}: inisialisasi, tampil/sembunyi kursor, baca posisi/tombol.
+    \item Menyusun program yang menggabungkan percabangan, perulangan, dan input mouse.
 \end{itemize}
 
 \section{Pendahuluan}
-Kontrol alur adalah inti dari setiap program. Pada 8086, \texttt{CMP} mengatur \textit{flags} yang selanjutnya diinterpretasikan oleh lompat bersyarat. Untuk iterasi, instruksi keluarga \texttt{LOOP} memanfaatkan \texttt{CX} sebagai pencacah. Di sisi \textit{I/O}, \texttt{INT 33h} menyediakan API BIOS untuk mouse pada lingkungan DOS, memungkinkan antarmuka interaktif dasar.
+Kontrol alur adalah inti dari setiap program \cite{susanto1995belajar}. Pada 8086, \texttt{CMP} mengatur \textit{flags} yang selanjutnya diinterpretasikan oleh lompat bersyarat. Untuk iterasi, instruksi keluarga \texttt{LOOP} memanfaatkan \texttt{CX} sebagai pencacah \cite{hyde2010art}. Di sisi \textit{I/O}, \texttt{INT 33h} menyediakan API BIOS untuk mouse pada lingkungan DOS, memungkinkan antarmuka interaktif dasar \cite{nopi2003tutorial}.
 
-\section{Materi Pembelajaran}
-\subsection{Instruksi Perbandingan (CMP)}
+\section{Instruksi Perbandingan (CMP)}
 \subsubsection{Sintaks dan cara kerja}
 \texttt{CMP dest, src} menghitung \(dest - src\) tanpa menyimpan hasil, namun memperbarui \textit{flags} (\texttt{ZF}, \texttt{SF}, \texttt{CF}, \texttt{OF}, \texttt{PF}, \texttt{AF}). \textit{Flags} kemudian digunakan oleh lompat bersyarat.
 \begin{verbatim}
@@ -171,7 +170,4 @@ END START
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
-\end{itemize}
+% Bibliography is handled by the main document

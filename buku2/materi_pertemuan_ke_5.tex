@@ -1,19 +1,18 @@
-\chapter{Instruksi Logika (AND, OR, XOR, NOT); Output Teks ke Layar (INT 10h fungsi 02h)}
+\chapter{Instruksi Logika dan Output Teks}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menerapkan instruksi logika \texttt{AND}, \texttt{OR}, \texttt{XOR}, \texttt{NOT} pada data 8/16-bit.
-  \item Memahami operasi bitwise, masking, set/clear bit, dan kasus penggunaan praktis.
-  \item Menggunakan layanan BIOS video \texttt{INT 10h} (fungsi \texttt{02h}, \texttt{09h}, \texttt{0Ah}, \texttt{0Eh}) untuk output teks dan kontrol kursor.
-  \item Menampilkan teks di layar dengan kontrol posisi dan atribut warna.
+    \item Menerapkan instruksi logika \texttt{AND}, \texttt{OR}, \texttt{XOR}, \texttt{NOT} pada data 8/16-bit.
+    \item Memahami operasi bitwise, masking, set/clear bit, dan kasus penggunaan praktis.
+    \item Menggunakan layanan BIOS video \texttt{INT 10h} (fungsi \texttt{02h}, \texttt{09h}, \texttt{0Ah}, \texttt{0Eh}) untuk output teks dan kontrol kursor.
+    \item Menampilkan teks di layar dengan kontrol posisi dan atribut warna.
 \end{itemize}
 
 \section{Pendahuluan}
-Instruksi logika menyediakan manipulasi bit tingkat rendah yang fundamental untuk kontrol perangkat keras, pengolahan bendera (flag), dan optimasi. Pada sisi output, layanan BIOS \texttt{INT 10h} memungkinkan interaksi langsung dengan tampilan dalam mode teks/TTY, relevan untuk program DOS dan lingkungan \textit{bare-metal}-like.
+Instruksi logika menyediakan manipulasi bit tingkat rendah yang fundamental untuk kontrol perangkat keras, pengolahan bendera (flag), dan optimasi \cite{hyde2010art}. Pada sisi output, layanan BIOS \texttt{INT 10h} memungkinkan interaksi langsung dengan tampilan dalam mode teks/TTY, relevan untuk program DOS dan lingkungan \textit{bare-metal}-like \cite{susanto1995belajar}.
 
-\section{Materi Pembelajaran}
-\subsection{Instruksi Logika}
+\section{Instruksi Logika}
 \subsubsection{AND}
 Operasi konjungsi bitwise: bit hasil 1 jika dan hanya jika kedua operand 1. Umum untuk \textit{masking} menghapus bit tertentu.
 \begin{verbatim}
@@ -114,7 +113,7 @@ Atribut 8-bit: 4 bit latar depan + 3 bit latar belakang + 1 bit berkedip. Contoh
 Materi ini berfokus pada mode teks; mode grafik memerlukan fungsi \texttt{INT 10h} lain (dibahas pada pertemuan grafik).
 
 \subsubsection{Penanganan karakter khusus}
-Untuk baris baru, gunakan pasangan \texttt{'\r'} dan \texttt{'\n'} atau \texttt{TTY 0Eh}. Simbol \texttt{'$'} digunakan oleh \texttt{INT 21h, AH=09h}, bukan \texttt{INT 10h}.
+Untuk baris baru, gunakan pasangan \texttt{$\backslash$r} dan \texttt{$\backslash$n} atau \texttt{TTY 0Eh}. Simbol \texttt{'\$'} digunakan oleh \texttt{INT 21h, AH=09h}, bukan \texttt{INT 10h}.
 
 \section{Contoh Soal dan Pembahasan}
 \begin{enumerate}
@@ -193,7 +192,4 @@ END START
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Partoharsojo, Hartono. \textit{Tuntunan Praktis Pemrograman Assembly}, Penerbit Informatika.
-\end{itemize}
+% Bibliography is handled by the main document

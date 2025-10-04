@@ -1,20 +1,19 @@
-\chapter{Program Residen (TSR): Konsep Terminate-and-Stay-Resident; Contoh Implementasi Sederhana}
+\chapter{Program Residen (TSR)}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-  \item Menjelaskan konsep \textit{Terminate-and-Stay-Resident} (TSR), arsitektur, dan pola penggunaannya di DOS.
-  \item Mengimplementasikan TSR sederhana: inisialisasi, pemasangan handler interupsi, dan terminasi-residen.
-  \item Menggunakan \texttt{INT 21h} fungsi \texttt{31h} (TSR), \texttt{25h}/\texttt{35h} (set/get interrupt vector) untuk komunikasi dan pemasangan.
-  \item Mendesain mekanisme komunikasi (hotkey/custom interrupt) dan strategi manajemen memori TSR.
+    \item Menjelaskan konsep \textit{Terminate-and-Stay-Resident} (TSR), arsitektur, dan pola penggunaannya di DOS.
+    \item Mengimplementasikan TSR sederhana: inisialisasi, pemasangan handler interupsi, dan terminasi-residen.
+    \item Menggunakan \texttt{INT 21h} fungsi \texttt{31h} (TSR), \texttt{25h}/\texttt{35h} (set/get interrupt vector) untuk komunikasi dan pemasangan.
+    \item Mendesain mekanisme komunikasi (hotkey/custom interrupt) dan strategi manajemen memori TSR.
 \end{itemize}
 
 \section{Pendahuluan}
-Program TSR adalah program DOS yang, setelah selesai inisialisasi, tidak sepenuhnya keluar: sebagian memorinya dibiarkan \textit{resident} untuk memberikan layanan latar belakang (mis. hotkey, jam layar, makro). TSR lazim sebelum hadirnya sistem multitugas umum. Kunci teknis TSR adalah pemasangan handler interupsi/\textit{hook} dan pemilihan ukuran memori yang disisakan agar cukup namun tidak boros.
+Program TSR adalah program DOS yang, setelah selesai inisialisasi, tidak sepenuhnya keluar: sebagian memorinya dibiarkan \textit{resident} untuk memberikan layanan latar belakang (mis. hotkey, jam layar, makro) \cite{susanto1995belajar}. TSR lazim sebelum hadirnya sistem multitugas umum. Kunci teknis TSR adalah pemasangan handler interupsi/\textit{hook} dan pemilihan ukuran memori yang disisakan agar cukup namun tidak boros \cite{hyde2010art}.
 
-\section{Materi Pembelajaran}
-\subsection{Konsep Program TSR}
-\subsubsection{Definisi dan perbedaan}
+\section{Konsep Program TSR}
+\subsection{Definisi dan perbedaan}
 Berbeda dengan program biasa yang mengembalikan seluruh memorinya saat \texttt{INT 21h, 4Ch}, TSR mengeksekusi \texttt{INT 21h, 31h} untuk mengakhiri eksekusi namun menyisakan bagian memori dan vektor interupsi yang terpasang.
 
 \subsubsection{Keuntungan dan kelemahan}
@@ -158,7 +157,4 @@ END START
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
-\end{itemize}
+% Bibliography is handled by the main document

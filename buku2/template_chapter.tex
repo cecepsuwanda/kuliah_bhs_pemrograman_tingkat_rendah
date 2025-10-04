@@ -1,0 +1,76 @@
+% Template untuk setiap bab dalam buku Assembly
+\chapter{Nama Bab}\label{ch:label-bab}
+
+\section{Tujuan Pembelajaran}\label{sec:label-bab-tujuan}
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan mampu:
+\begin{itemize}
+    \item Tujuan pembelajaran 1
+    \item Tujuan pembelajaran 2
+    \item Tujuan pembelajaran 3
+\end{itemize}
+
+\section{Pendahuluan}\label{sec:label-bab-pendahuluan}
+Pendahuluan singkat tentang materi yang akan dibahas.
+
+\section{Materi Pembelajaran}\label{sec:label-bab-materi}
+\subsection{Nama Sub-materi}\label{subsec:label-bab-submateri}
+\subsubsection{Detail spesifik}
+
+\subsubsection{Contoh implementasi}
+
+% Contoh kode dengan syntax highlighting
+\begin{lstlisting}[caption=Contoh Kode Assembly, label={code:contoh}]
+org 100h
+mov ax, 1234h
+add ax, 5678h
+int 20h
+\end{lstlisting}
+
+% Contoh tabel
+\begin{table}[h]
+\centering
+\caption{Contoh Tabel}
+\begin{tabular}{lll}
+\toprule
+\textbf{Kolom 1} & \textbf{Kolom 2} & \textbf{Kolom} \\
+\midrule
+Data 1 & Data 2 & Data 3 \\
+Data 4 & Data 5 & Data 6 \\
+\bottomrule
+\end{tabular}
+\label{tab:contoh}
+\end{table}
+
+\subsection{Contoh dengan referensi silang}
+
+Lihat contoh pada Listing~\ref{code:contoh} dan data pada Tabel~\ref{tab:contoh}.
+
+\section{Contoh Soal dan Pembahasan}\label{sec:label-bab-contoh}
+\begin{enumerate}
+    \item \textbf{Contoh soal 1}\\
+    Pembahasan soal 1.
+
+    \item \textbf{Contoh soal 2}\\
+    Pembahasan soal 2.
+\end{enumerate}
+
+\section{Latihan}\label{sec:label-bab-latihan}
+\begin{enumerate}
+    \item Latihan praktik 1
+    \item Latihan praktik 2
+    \item Latihan praktik 3
+\end{enumerate}
+
+\section{Tugas}\label{sec:label-bab-tugas}
+\begin{itemize}
+    \item \textbf{Tugas utama}: Deskripsi tugas utama
+    \item \textbf{Tugas pendukung}: Deskripsi tugas pendukung
+    \item \textbf{Dokumentasi}: Dokumentasi yang diperlukan
+\end{itemize}
+
+\section{Referensi}\label{sec:label-bab-referensi}
+\begin{itemize}
+    \item \cite{hyde2010art}
+    \item \cite{susanto1995belajar}
+    \item Referensi tambahan yang relevan
+\end{itemize}

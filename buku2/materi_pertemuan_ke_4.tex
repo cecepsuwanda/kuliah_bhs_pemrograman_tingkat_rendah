@@ -1,21 +1,20 @@
-\chapter{Instruksi Dasar: Perpindahan Data (MOV), Operasi Aritmatika (ADD, SUB, MUL, DIV)}
+\chapter{Instruksi Dasar: Perpindahan Data dan Aritmatika}
 
 \section{Tujuan Pembelajaran}
 Setelah pertemuan ini, mahasiswa mampu:
 \begin{itemize}
-  \item Menggunakan instruksi perpindahan data \texttt{MOV} dengan benar pada variasi operand register dan memori.
-  \item Melakukan operasi aritmatika dasar (\texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV}) pada data 8/16-bit.
-  \item Menjelaskan pengaruh instruksi aritmatika terhadap \textit{flag} prosesor (\texttt{CF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}, \texttt{PF}, \texttt{AF}).
-  \item Menulis program aritmatika sederhana yang aman dan memperhatikan kasus tepi (overflow, pembagian nol).
+    \item Menggunakan instruksi perpindahan data \texttt{MOV} dengan benar pada variasi operand register dan memori.
+    \item Melakukan operasi aritmatika dasar (\texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV}) pada data 8/16-bit.
+    \item Menjelaskan pengaruh instruksi aritmatika terhadap \textit{flag} prosesor (\texttt{CF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}, \texttt{PF}, \texttt{AF}).
+    \item Menulis program aritmatika sederhana yang aman dan memperhatikan kasus tepi (overflow, pembagian nol).
 \end{itemize}
 
 \section{Pendahuluan}
-Instruksi perpindahan dan aritmatika merupakan fondasi pemrograman assembly. Pemahaman mendalam mengenai operand, mode pengalamatan, dan efek \textit{flag} akan menentukan ketepatan logika program. Pada 8086, variasi operand dan pembatasan ukuran data harus dipatuhi agar instruksi valid.
+Instruksi perpindahan dan aritmatika merupakan fondasi pemrograman assembly \cite{susanto1995belajar}. Pemahaman mendalam mengenai operand, mode pengalamatan, dan efek \textit{flag} akan menentukan ketepatan logika program. Pada 8086, variasi operand dan pembatasan ukuran data harus dipatuhi agar instruksi valid \cite{hyde2010art}.
 
-\section{Materi Pembelajaran}
-\subsection{Instruksi Perpindahan Data (MOV)}
-\subsubsection{Sintaks dan aturan penggunaan}
-Bentuk umum: \texttt{MOV destination, source}. Aturan pokok: ukuran operand harus sama; perpindahan memori-ke-memori langsung tidak diperbolehkan (harus melalui register); beberapa register khusus (\texttt{CS}) tidak dapat ditulis langsung dengan \texttt{MOV} biasa.
+\section{Instruksi Perpindahan Data (MOV)}
+\subsection{Sintaks dan aturan penggunaan}
+Bentuk umum: \texttt{MOV destination, source} \cite{hyde2010art}. Aturan pokok: ukuran operand harus sama; perpindahan memori-ke-memori langsung tidak diperbolehkan (harus melalui register); beberapa register khusus (\texttt{CS}) tidak dapat ditulis langsung dengan \texttt{MOV} biasa \cite{susanto1995belajar}.
 
 \subsubsection{Antar register}
 \begin{verbatim}
@@ -48,9 +47,9 @@ sub ax, 10     ; AX = FFFEh (jika 16-bit), SF=1, mungkin CF=1
 \textbf{Catatan}: \texttt{ADD}/\texttt{SUB} memutakhirkan \texttt{CF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}, \texttt{AF}, \texttt{PF} sesuai hasil.
 
 \subsubsection{MUL dan DIV}
-\texttt{MUL} dan \texttt{DIV} menggunakan register implisit:\newline
+\texttt{MUL} dan \texttt{DIV} menggunakan register implisit \cite{hyde2010art}:\newline
 \textbf{8-bit}: \texttt{MUL r/m8} -> \texttt{AX = AL * r/m8}; \texttt{DIV r/m8} -> \texttt{AL = AX / r/m8}, \texttt{AH = AX mod r/m8}.\newline
-\textbf{16-bit}: \texttt{MUL r/m16} -> hasil di \texttt{DX:AX}; \texttt{DIV r/m16} -> \texttt{AX = DX:AX / r/m16}, sisa di \texttt{DX}.
+\textbf{16-bit}: \texttt{MUL r/m16} -> hasil di \texttt{DX:AX}; \texttt{DIV r/m16} -> \texttt{AX = DX:AX / r/m16}, sisa di \texttt{DX} \cite{susanto1995belajar}.
 \begin{verbatim}
 ; Perkalian 16-bit
 mov ax, 1234h
@@ -163,7 +162,4 @@ END START
 \end{itemize}
 
 \section{Referensi}
-\begin{itemize}
-  \item Hyde, Randall. \textit{The Art of Assembly Language}, 2nd ed., No Starch Press, 2010.
-  \item Susanto. \textit{Belajar Pemrograman Bahasa Assembly}, Elex Media Komputindo, 1995.
-\end{itemize}
+% Bibliography is handled by the main document
