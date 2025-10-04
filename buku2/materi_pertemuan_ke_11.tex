@@ -68,6 +68,19 @@ Gunakan arahan perakitan bersyarat (bergantung assembler) untuk variasi ekspansi
 \subsubsection{Perbedaan makro vs. prosedur}
 Makro: tanpa overhead \texttt{CALL}/\texttt{RET}, namun memperbesar ukuran biner jika sering digunakan. Prosedur: lebih kecil di biner jika dipanggil berulang, namun memiliki overhead panggilan.
 
+\section{Pendalaman}\label{sec:modular-pendalaman}
+\subsection{Organisasi proyek multi-berkas}
+Pisahkan modul berdasarkan domain (mis. \texttt{io.asm}, \texttt{math.asm}, \texttt{ui.asm}) dan satu berkas utama \texttt{main.asm}. Gunakan \texttt{PUBLIC}/\texttt{EXTRN} (TASM/MASM) untuk mengekspor/mengimpor simbol lintas-berkas. Pastikan kesesuaian prototipe (ukuran parameter) dan konvensi pemanggilan. \cite{borland1990tasm}
+
+\subsection{Makro tingkat lanjut}
+Makro dengan parameter mendukung substitusi token dan kondisi perakitan (bergantung assembler). Hindari makro yang mengubah konteks tak terduga (mis., register) tanpa mendokumentasikan efek samping. Untuk debug, sediakan makro \texttt{TRACE} yang dapat diaktif/nonaktifkan \textit{compile-time}. \cite{nasm_manual}
+
+\subsection{Pedoman API prosedur}
+Dokumentasikan: parameter (urutan, ukuran, interpretasi bertanda/tak bertanda), return value, register yang dimodifikasi, dan prasyarat segmen (\texttt{DS}/\texttt{ES}). Sertakan kasus tepi dan perilaku error (mis., mengembalikan kode di \texttt{AX}). \cite{osdev_wiki}
+
+\subsection{Strategi pengujian}
+Bangun program uji kecil per modul yang memverifikasi kontrak rutinitas. Untuk rutinitas murni (tanpa I/O), validasi tabel-kasus. Gunakan debugger (TD) untuk memeriksa state sebelum/sesudah panggilan. \cite{borland1990tasm}
+
 \subsection{Organisasi Program Modular}
 \subsubsection{Struktur file dan include}
 Kumpulkan makro umum dalam berkas \texttt{.INC}; sertakan dengan \texttt{INCLUDE}. Simpan prosedur utilitas dalam modul terpisah untuk \textit{link}-time reuse.

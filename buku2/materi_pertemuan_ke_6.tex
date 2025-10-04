@@ -73,6 +73,20 @@ Tombol \textit{non-printable} menghasilkan \texttt{AL=0} dan \texttt{AH} berisi 
 \subsubsection{Function, arrow, control keys}
 F1--F12 umumnya menghasilkan \texttt{AL=0} (atau \texttt{E0h} sebagai \textit{prefix} pada beberapa sistem) dan \texttt{AH} menunjukkan kode; panah memerlukan interpretasi \textit{scan code}. \texttt{Ctrl}/\texttt{Alt}/\texttt{Shift} memodifikasi kode dan terekam pada status flags (fungsi 02h).
 
+\section{Pendalaman}\label{sec:keyboard-pendalaman}
+\subsection{Detail INT 16h dan kompatibilitas}
+Beberapa BIOS/klon memiliki variasi perilaku untuk kombinasi tombol tertentu. Gunakan \texttt{01h} (non-blocking) sebelum pemanggilan \texttt{00h} untuk menjaga responsif. Untuk \textit{extended keys}, sebagian sistem mengembalikan \texttt{AL=E0h} sebagai prefix; normalisasi input pada rutinitas Anda. \cite{rbil}
+
+\subsection{Penanganan debounce dan repeat rate}
+Keyboard PC menghasilkan \textit{make/break} code dan \textit{repeat} saat tombol ditahan. Antarmuka BIOS telah mengabstraksikannya, namun aplikasi interaktif bisa menambahkan \textit{debounce} sederhana (abaikan kejadian yang terlalu cepat) atau mengatur \textit{repeat rate} via \texttt{INT 16h} fungsi tertentu (bergantung BIOS). \cite{osdev_wiki}
+
+\subsection{Timeout input dan integrasi timer}
+Gabungkan polling \texttt{AH=01h} dengan \texttt{INT 1Ah} (BIOS timer) untuk mewujudkan \textit{timeout}. Hitung \textit{tick} (55 ms per tick pada DOS klasik) dan batasi durasi menunggu input. \cite{rbil}
+
+\subsection{Validasi string dan pengeditan baris}
+Untuk mode \texttt{AH=0Ah} (buffered input DOS), perhatikan format buffer: kapasitas, panjang aktual, dan isi. Untuk mengimplementasikan editor baris kustom: tangani Backspace, Delete (hapus karakter di posisi kursor), panah kiri/kanan (opsional, memerlukan \texttt{INT 10h} untuk kursor). \cite{dosbox_manual}
+
+
 \section{Praktikum}
 \begin{enumerate}
   \item Program pembaca karakter tunggal: tampilkan ASCII dan \textit{scan code} dalam heksadesimal.

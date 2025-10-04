@@ -52,6 +52,19 @@ Koordinat (x,y) berbasis 0. Pastikan berada dalam batas resolusi. Untuk warna, p
 \subsubsection{Akses memori video langsung}
 Selain \texttt{INT 10h, 0Ch}, dapat menulis langsung ke \texttt{A000:0000 + y*320 + x} untuk kinerja. Pastikan \texttt{ES} menunjuk \texttt{A000h} dan gunakan \texttt{MOV} ke \texttt{ES:[DI]}/\texttt{ES:[BX]}.
 
+\section{Pendalaman}\label{sec:grafik-pendalaman}
+\subsection{Mode VGA 13h dan palet}
+Pada mode 13h, satu byte merepresentasikan indeks palet (0..255). Pengaturan palet (DAC) dilakukan dengan port I/O VGA (di luar cakupan dasar ini), namun penting dipahami bahwa nilai piksel bukan RGB langsung. \cite{abrash_black_book}
+
+\subsection{Akses langsung vs INT 10h}
+Pemanggilan \texttt{INT 10h} untuk setiap piksel bersifat mahal. Untuk kinerja tinggi, gunakan akses langsung ke memori video: muat \texttt{ES=A000h}, hitung offset \(y\cdot 320 + x\), lalu simpan byte warna. Gunakan \texttt{REP STOSB} untuk mengisi area. \cite{abrash_black_book}
+
+\subsection{Algoritma garis: DDA vs Bresenham}
+DDA menggunakan penambahan pecahan dan pembulatan; sederhana namun lebih lambat. Bresenham memakai hanya integer, cocok untuk perangkat keras lama. Uji di emulator untuk melihat perbedaan jumlah instruksi. \cite{abrash_black_book}
+
+\subsection{Clipping sederhana}
+Selalu periksa \(0 \le x < 320\) dan \(0 \le y < 200\) sebelum menulis. Untuk garis, lakukan \textit{trivial reject} ketika seluruh segmen di luar batas; untuk implementasi penuh, terapkan Cohen–Sutherland (lanjutan). \cite{osdev_wiki}
+
 \subsection{Algoritma Menggambar Garis}
 \subsubsection{DDA (Digital Differential Analyzer)}
 Menginkremen koordinat dengan langkah pecahan. Mudah dipahami namun menggunakan operasi pecahan/float atau perkiraan \textit{fixed-point}; dapat lebih lambat.

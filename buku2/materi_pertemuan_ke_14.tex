@@ -51,6 +51,19 @@ Baca/tulis dalam blok yang lebih besar untuk mengurangi \textit{overhead} panggi
 \subsubsection{Batch operations dan pemulihan error}
 Kelompokkan pembaruan; pada error, lakukan \textit{rollback} sederhana atau catat log status untuk pemulihan manual.
 
+\section{Pendalaman}\label{sec:randomio-pendalaman}
+\subsection{Layout record dan alignment}
+Tentukan \texttt{record\_size} eksak dan pertimbangkan perataan (alignment) jika diperlukan untuk akses cepat. Gunakan padding tetap untuk memudahkan seek ke \(i\cdot \text{record\_size}\). \cite{osdev_wiki}
+
+\subsection{Indeks sederhana}
+Untuk akses cepat berdasarkan kunci pendek (mis. NIM), bangun berkas indeks berisi pasangan (kunci, nomor rekaman). Muat sebagian indeks ke memori untuk mempercepat pencarian linear/binary. Sinkronkan pembaruan antara berkas data dan indeks. \cite{osdev_wiki}
+
+\subsection{Update in-place vs append-only}
+\textit{In-place} memperbarui pada offset yang sama, efisien namun berisiko korupsi pada kegagalan di tengah. Pola \textit{append-only} menulis versi baru di akhir dan menandai lama sebagai usang; memerlukan kompaksi berkala. Pilih sesuai kebutuhan keandalan/kinerja. \cite{osdev_wiki}
+
+\subsection{Endianness dan portabilitas}
+Simpan angka multi-byte dalam little-endian (konsisten dengan 8086). Jika berkas akan dipakai lintas arsitektur, dokumentasikan endianness dan lakukan konversi saat diperlukan. \cite{wiki_endianness}
+
 \section{Praktikum}
 \begin{enumerate}
   \item Demonstrasi \texttt{LSEEK}: lompat ke posisi tertentu dan tulis tanda penanda; verifikasi dengan membaca kembali.
