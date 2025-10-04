@@ -39,7 +39,7 @@ Pilih sesuai interpretasi data untuk menghindari logika salah.
 \subsubsection{Conditional jumps dan jangkauan}
 Lompatan bersyarat menggunakan offset relatif pendek (\(\pm 128\) byte pada 8086). Untuk jangkauan lebih jauh, gunakan skema \textit{inverted branch} + \texttt{JMP} jauh.
 
-\section{Pendalaman}\label{sec:branch-mouse-pendalaman}
+% (diintegrasikan ke materi utama)
 \subsection{Pola kontrol alur yang umum}
 Gunakan pola \textbf{if-else}, \textbf{switch-like} (tabel lompatan/\textit{jump table} berbasis indeks), dan \textbf{loop counted} (\texttt{CX}) vs \textbf{loop sentinel} (berhenti pada kondisi). Tabel lompatan dapat diimplementasikan dengan daftar alamat dan \texttt{JMP [BX+SI]}. \cite{intel2019manual32}
 

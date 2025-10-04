@@ -73,7 +73,7 @@ Tombol \textit{non-printable} menghasilkan \texttt{AL=0} dan \texttt{AH} berisi 
 \subsubsection{Function, arrow, control keys}
 F1--F12 umumnya menghasilkan \texttt{AL=0} (atau \texttt{E0h} sebagai \textit{prefix} pada beberapa sistem) dan \texttt{AH} menunjukkan kode; panah memerlukan interpretasi \textit{scan code}. \texttt{Ctrl}/\texttt{Alt}/\texttt{Shift} memodifikasi kode dan terekam pada status flags (fungsi 02h).
 
-\section{Pendalaman}\label{sec:keyboard-pendalaman}
+% (diintegrasikan ke materi utama)
 \subsection{Detail INT 16h dan kompatibilitas}
 Beberapa BIOS/klon memiliki variasi perilaku untuk kombinasi tombol tertentu. Gunakan \texttt{01h} (non-blocking) sebelum pemanggilan \texttt{00h} untuk menjaga responsif. Untuk \textit{extended keys}, sebagian sistem mengembalikan \texttt{AL=E0h} sebagai prefix; normalisasi input pada rutinitas Anda. \cite{rbil}
 

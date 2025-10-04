@@ -111,7 +111,7 @@ int 20h
 segment data
 msg db 'X', 0
 \end{verbatim}
-\section{Pendalaman}\label{sec:8086-pendalaman}
+% (diintegrasikan ke materi utama)
 \subsection{Detail register FLAGS (8086)}
 Bit penting pada \texttt{FLAGS}: \textbf{CF}(0), \textbf{PF}(2), \textbf{AF}(4), \textbf{ZF}(6), \textbf{SF}(7), \textbf{TF}(8), \textbf{IF}(9), \textbf{DF}(10), \textbf{OF}(11). Bit lain pada 8086 dicadangkan. \texttt{TF} mengaktifkan \textit{single-step interrupt} (\texttt{INT 01h}); \texttt{IF} mengizinkan interupsi maskable (\texttt{INT} perangkat keras). Pahami perbedaan \textbf{CF} vs \textbf{OF} untuk aritmatika tak bertanda/bertanda. \cite{intel2019manual32,wiki_8086}
 

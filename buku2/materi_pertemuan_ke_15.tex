@@ -42,7 +42,7 @@ Panggil \texttt{INT 21h, AH=31h} dengan \texttt{DX} berisi ukuran memori yang di
 \subsubsection{Custom interrupt}
 TSR dapat mengekspos layanan melalui nomor interupsi khusus (jarang) atau \texttt{AH} khusus pada \texttt{INT 21h}. Penanda sederhana: jika \texttt{AH=FFh}, handler mengembalikan tanda di \texttt{AL}.
 
-\section{Pendalaman}\label{sec:tsr-pendalaman}
+% (diintegrasikan ke materi utama)
 \subsection{Reentransi dan keamanan handler}
 Handler TSR sering dipicu saat DOS/BIOS mungkin tidak reentrant. Hindari memanggil layanan DOS yang tidak aman dari interupsi di dalam handler; jika perlu, setel penanda dan lakukan pekerjaan berat di titik aman (mis. hook timer dan proses di luar handler sensitif). \cite{rbil}
 
