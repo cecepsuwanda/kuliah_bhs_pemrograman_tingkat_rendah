@@ -1,3 +1,5 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
 \chapter{Arsitektur Mikroprosesor Intel 8086}
 
 \section{Tujuan Pembelajaran}
@@ -61,7 +63,7 @@ Arsitektur internal Intel 8086 menggunakan desain \textit{pipelined} yang terdir
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.7\textwidth]{8086_architecture.jpg}
+  \includegraphics[width=0.7\textwidth]{../images/8086_architecture.jpg}
   \caption{Arsitektur Internal Intel 8086}
   \label{fig:8086-architecture}
   \end{figure}
@@ -115,7 +117,7 @@ Salah satu inovasi penting 8086 adalah \textit{prefetch queue}. Ketika EU sedang
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.6\textwidth]{8086_prefetch_queue.jpg}
+  \includegraphics[width=0.6\textwidth]{../images/8086_prefetch_queue.jpg}
   \caption{Mekanisme Prefetch Queue Intel 8086}
   \label{fig:8086-prefetch-queue}
   \end{figure}
@@ -162,7 +164,7 @@ Intel 8086 memiliki sistem register yang kompleks dan terorganisir dengan baik. 
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.7\textwidth]{8086_registers.png}
+\includegraphics[width=0.7\textwidth]{../images/8086_registers.png}
 \caption{Register-Register Intel 8086}
 \label{fig:8086-registers}
 \end{figure}
@@ -358,7 +360,7 @@ ret                             ; Return
 
 % \begin{figure}[h]
 % \centering
-% \includegraphics[width=0.7\textwidth]{8086_stack_frame.jpg}
+% \includegraphics[width=0.7\textwidth]{../images/8086_stack_frame.jpg}
 % \caption{Struktur Stack Frame Intel 8086}
 % \label{fig:8086-stack-frame}
 % \end{figure}
@@ -443,7 +445,7 @@ Register FLAGS adalah register 16-bit yang menyimpan status hasil operasi dan me
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.7\textwidth]{8086_flags_register.png}
+\includegraphics[width=0.7\textwidth]{../images/8086_flags_register.png}
 \caption{Register FLAGS Intel 8086}
 \label{fig:8086-flags-register}
 \end{figure}
@@ -558,7 +560,7 @@ Segmentasi memori adalah salah satu fitur paling inovatif dari Intel 8086 yang m
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.7\textwidth]{8086_memory_segmentation.png}
+\includegraphics[width=0.7\textwidth]{../images/8086_memory_segmentation.png}
 \caption{Segmentasi Memori Intel 8086}
 \label{fig:8086-memory-segmentation}
 \end{figure}
@@ -662,7 +664,7 @@ Mode pengalamatan adalah cara menentukan lokasi operand dalam instruksi assembly
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.7\textwidth]{8086_addressing_modes.jpg}
+\includegraphics[width=0.7\textwidth]{../images/8086_addressing_modes.jpg}
 \caption{Mode Pengalamatan Intel 8086}
 \label{fig:8086-addressing-modes}
 \end{figure}
@@ -1056,3 +1058,5 @@ Direktif assembler memberikan instruksi kepada assembler tentang bagaimana menga
   \item Tentukan flags yang terpengaruh oleh instruksi \texttt{ADD}, \texttt{SUB}, dan berikan contoh singkat yang mengubah \texttt{CF} dan \texttt{OF}.
   \item Rancang sketsa struktur berkas ASM untuk program \texttt{.EXE} sederhana dengan satu prosedur dan satu data string.
 \end{enumerate}
+
+\end{document}

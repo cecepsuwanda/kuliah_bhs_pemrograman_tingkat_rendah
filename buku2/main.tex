@@ -1,0 +1,119 @@
+\documentclass[12pt,a4paper,oneside]{book}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern} % gunakan font scalable agar microtype expansion aman
+\usepackage[indonesian]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{booktabs,longtable}
+\usepackage{hyperref}
+\usepackage{subfiles}
+\usepackage{csquotes}
+\usepackage{microtype}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\setlist{nosep}
+
+% Penomoran lingkungan matematis per-bab
+\numberwithin{equation}{chapter}
+\theoremstyle{definition}
+\newtheorem{definition}{Definisi}[chapter]
+\newtheorem{example}{Contoh}[chapter]
+\theoremstyle{plain}
+\newtheorem{theorem}{Teorema}[chapter]
+\newtheorem{lemma}{Lema}[chapter]
+
+% Setup code listing
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    tabsize=2,
+    language=[x86masm]Assembler
+}
+
+% Configure csquotes for Indonesian language
+\MakeOuterQuote{"}
+
+% Setup automatic numbering
+\setcounter{chapter}{0}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+% Penomoran otomatis untuk section/subsection
+\renewcommand{\thesection}{\arabic{chapter}.\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+% Pengaturan halaman
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\fancyhead[L]{Pemrograman Bahasa Tingkat Rendah}
+\fancyhead[R]{}
+
+% Pengaturan judul chapter dengan penomoran otomatis
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{50pt}{40pt}
+
+% Pengaturan section dan subsection
+\titleformat{\section}
+{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% Pengaturan daftar isi
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+
+\title{Bahasa Pemrograman Tingkat Rendah\\(Assembly Language - Intel 8086)\\\large Program Studi Teknik Informatika\\Fakultas Teknologi Informasi\\Universitas Bale Bandung}
+\author{Cecep Suwanda, S.Si., M.Kom.}
+\date{\today}
+
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+% Bab-bab (sesuai materi per pertemuan)
+\subfile{chapters/ch01}
+\subfile{chapters/ch02}
+\subfile{chapters/ch03}
+\subfile{chapters/ch04}
+\subfile{chapters/ch05}
+\subfile{chapters/ch06}
+\subfile{chapters/ch07}
+\subfile{chapters/ch08}
+\subfile{chapters/ch09}
+\subfile{chapters/ch10}
+\subfile{chapters/ch11}
+\subfile{chapters/ch12}
+\subfile{chapters/ch13}
+\subfile{chapters/ch14}
+\subfile{chapters/ch15}
+
+\backmatter
+\bibliographystyle{plainnat}
+\bibliography{references}
+\addcontentsline{toc}{chapter}{Daftar Pustaka}
+\end{document}
