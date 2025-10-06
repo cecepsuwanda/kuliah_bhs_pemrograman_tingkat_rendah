@@ -139,12 +139,12 @@ Assembly language masih digunakan dalam berbagai bidang khusus, terutama dalam a
 
 \begin{itemize}
     \item \textbf{Perangkat tertanam (embedded)}: \textit{firmware} mikrokontroler, \textit{device driver}, \textit{interrupt service routine}
-    \item \textbf{Sistem rendah tingkat}: \textit{bootloader}, BIOS/UEFI, bagian \textit{kernel} yang sensitif kinerja
+    \item \textbf{Sistem tingkat rendah }: \textit{bootloader}, BIOS/UEFI, bagian \textit{kernel} yang sensitif kinerja
     \item \textbf{Optimasi hotspot}: Bagian kecil dari aplikasi yang memerlukan latensi minimal
     \item \textbf{Rekayasa balik dan keamanan}: Analisis \textit{malware}, \textit{exploit development}, \textit{debugging} pada level instruksi
     \item \textbf{Sistem operasi dan kernel}: Komponen inti yang memerlukan kontrol langsung terhadap hardware
     \item \textbf{Game engine dan aplikasi real-time}: Bagian kritis yang memerlukan kinerja optimal
-    \item \textbf{Keamanan siber dan forensik digital}: Analisis dan reverse engineering
+    \item \textbf{Keamanan siber dan digital forensik}: Analisis dan reverse engineering
     \item \textbf{Pengembangan compiler dan interpreter}: Komponen runtime yang sensitif terhadap kinerja
 \end{itemize}
 
@@ -189,50 +189,238 @@ Catatan: Sistem posisi (positional) untuk bilangan menjelaskan bahwa nilai digit
 \subsubsection{Sistem bilangan heksadesimal (basis 16)}
 Heksadesimal menggunakan digit 0--9 dan A--F (A=10, B=11, \ldots, F=15). Setiap digit heksadesimal memetakan tepat ke 4 bit (\textit{nibble}). Contoh: \(\mathrm{D6}_{16} = 13\cdot 16^1 + 6\cdot 16^0 = 214_{10}\) dan dalam biner menjadi \(\mathrm{D} = 1101\), \(6 = 0110\) sehingga \(\mathrm{D6}_{16} = 1101\,0110_2\).
 
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Decimal} & \textbf{Biner} & \textbf{Hexadecimal} \\
+\hline
+0 & 0000 & 0 \\
+1 & 0001 & 1 \\
+2 & 0010 & 2 \\
+3 & 0011 & 3 \\
+4 & 0100 & 4 \\
+5 & 0101 & 5 \\
+6 & 0110 & 6 \\
+7 & 0111 & 7 \\
+8 & 1000 & 8 \\
+9 & 1001 & 9 \\
+10 & 1010 & A \\
+11 & 1011 & B \\
+12 & 1100 & C \\
+13 & 1101 & D \\
+14 & 1110 & E \\
+15 & 1111 & F \\
+\hline
+\end{tabular}
+\end{center}
+
 Dalam praktik pemrograman, notasi yang sering dipakai: awalan \texttt{0x} untuk heksadesimal dan \texttt{0b} untuk biner (di banyak bahasa pemrograman), sedangkan dalam beberapa assembler gaya Intel angka heksadesimal dapat ditulis dengan sufiks \texttt{h}. Hubungan digit heksadesimal dan \textit{nibble} memudahkan konversi antar biner dan heksadesimal \cite{wiki_hexadecimal}.
 
 \subsubsection{Konversi antar sistem bilangan}
-\paragraph{Desimal ke biner} gunakan pembagian berulang oleh 2 dan catat sisa; baca sisa dari belakang. Contoh: \(255_{10} \to 11111111_2\).
-\paragraph{Biner ke desimal} gunakan penjumlahan nilai tempat. Contoh: \(11010110_2 = 128+64+16+4+2 = 214_{10}\).
-\paragraph{Desimal ke heksadesimal} gunakan pembagian berulang oleh 16. Contoh: \(255_{10} \to \mathrm{FF}_{16}\).
-\paragraph{Heksadesimal ke desimal} gunakan nilai tempat basis 16. Contoh: \(\mathrm{A5F}_{16} = 10\cdot 16^2 + 5\cdot 16 + 15 = 2655_{10}\).
-\paragraph{Heksadesimal ke biner} peta setiap digit ke 4 bit: \(\mathrm{A5F}_{16} = 1010\,0101\,1111_2\).
 
-\paragraph{Biner ke heksadesimal} kelompokkan biner menjadi blok 4-bit dari kanan ke kiri, lalu petakan tiap blok ke satu digit heksadesimal. Contoh: \(11010110_2 = 1101\,0110_2 = \mathrm{D6}_{16}\) \cite{wiki_hexadecimal}.
+Berikut adalah metode konversi yang sistematis dan contoh detail untuk setiap jenis konversi:
 
-\paragraph{Contoh langkah demi langkah: \(214_{10} \to \text{biner}\)}\mbox{}
-\begin{verbatim}
-214 / 2 = 107 sisa 0
-107 / 2 =  53 sisa 1
- 53 / 2 =  26 sisa 1
- 26 / 2 =  13 sisa 0
- 13 / 2 =   6 sisa 1
-  6 / 2 =   3 sisa 0
-  3 / 2 =   1 sisa 1
-  1 / 2 =   0 sisa 1
-\end{verbatim}
-Membaca sisa dari bawah ke atas menghasilkan \(1110\,1011\,0_2\). Setelah menghapus nol terdepan yang tidak signifikan: \(11010110_2\), sesuai dengan contoh sebelumnya \cite{wiki_binary_number,wiki_positional_numeral_system}.
+\begin{enumerate}
+\item{Konversi Desimal ke Biner}
 
-\paragraph{Contoh cepat: \(\mathrm{2F3}_{16} \leftrightarrow \text{biner}\)}\mbox{}\\
-\(\mathrm{2F3}_{16} = 0010\,1111\,0011_2\) karena \(2\to 0010\), \(\mathrm{F}\to 1111\), \(3\to 0011\). Sebaliknya, mengelompokkan biner per 4-bit mengembalikan \(\mathrm{2F3}_{16}\) \cite{wiki_hexadecimal}.
+Gunakan metode pembagian berulang oleh 2 dan catat sisa pembagiannya. Urutan sisa dari bawah ke atas membentuk bilangan biner.
+
+\textbf{Contoh detail: Konversi \(214_{10}\) ke biner}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} \\
+\hline
+1 & 214 $\div$ 2 & 107 & 0 \\
+2 & 107 $\div$ 2 & 53 & 1 \\
+3 & 53 $\div$ 2 & 26 & 1 \\
+4 & 26 $\div$ 2 & 13 & 0 \\
+5 & 13 $\div$ 2 & 6 & 1 \\
+6 & 6 $\div$ 2 & 3 & 0 \\
+7 & 3 $\div$ 2 & 1 & 1 \\
+8 & 1 $\div$ 2 & 0 & 1 \\
+\hline
+\end{tabular}
+\end{center}
+
+Membaca sisa dari bawah ke atas: \(11010110_2\)
+
+Jadi, \(214_{10} = 11010110_2\)
+
+\item{Konversi Biner ke Desimal}
+
+Kalikan setiap digit biner dengan 2 pangkat posisi digit tersebut, dimulai dari 0 di posisi paling kanan, lalu jumlahkan hasilnya.
+
+\textbf{Contoh detail: Konversi \(11010110_2\) ke desimal}
+
+\begin{align*}
+11010110_2 &= (1 \times 2^7) + (1 \times 2^6) + (0 \times 2^5) + (1 \times 2^4) + (0 \times 2^3) + (1 \times 2^2) + (1 \times 2^1) + (0 \times 2^0) \\
+&= (1 \times 128) + (1 \times 64) + (0 \times 32) + (1 \times 16) + (0 \times 8) + (1 \times 4) + (1 \times 2) + (0 \times 1) \\
+&= 128 + 64 + 0 + 16 + 0 + 4 + 2 + 0 \\
+&= 214_{10}
+\end{align*}
+
+\item{Konversi Desimal ke Heksadesimal}
+
+Gunakan metode pembagian berulang oleh 16 dan catat sisa pembagiannya. Jika sisa lebih dari 9, gunakan huruf A-F untuk mewakili nilai 10-15.
+
+\textbf{Contoh detail: Konversi \(255_{10}\) ke heksadesimal}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} & \textbf{Representasi} \\
+\hline
+1 & 255 $\div$ 16 & 15 & 15 & F \\
+2 & 15 $\div$ 16 & 0 & 15 & F \\
+\hline
+\end{tabular}
+\end{center}
+
+Membaca sisa dari bawah ke atas: \(\mathrm{FF}_{16}\)
+
+Jadi, \(255_{10} = \mathrm{FF}_{16}\)
+
+\item{Konversi Heksadesimal ke Desimal}
+
+Kalikan setiap digit heksadesimal dengan 16 pangkat posisi digit tersebut, dimulai dari 0 di posisi paling kanan, lalu jumlahkan hasilnya.
+
+\textbf{Contoh detail: Konversi \(\mathrm{A5F}_{16}\) ke desimal}
+
+\begin{align*}
+\mathrm{A5F}_{16} &= (\mathrm{A} \times 16^2) + (5 \times 16^1) + (\mathrm{F} \times 16^0) \\
+&= (10 \times 256) + (5 \times 16) + (15 \times 1) \\
+&= 2560 + 80 + 15 \\
+&= 2655_{10}
+\end{align*}
+
+\item{Konversi Heksadesimal ke Biner}
+
+Konversi setiap digit heksadesimal ke representasi biner 4-bit yang setara.
+
+\textbf{Contoh detail: Konversi \(\mathrm{A5F}_{16}\) ke biner}
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Digit Heksadesimal} & \textbf{Decimal} & \textbf{Representasi Biner} \\
+\hline
+A & 10 & 1010 \\
+5 & 5 & 0101 \\
+F & 15 & 1111 \\
+\hline
+\end{tabular}
+\end{center}
+
+Menggabungkan representasi biner: \(1010\,0101\,1111_2\)
+
+Jadi, \(\mathrm{A5F}_{16} = 1010\,0101\,1111_2\)
+
+\item{Konversi Biner ke Heksadesimal}
+
+Kelompokkan digit biner menjadi blok 4-bit dari kanan ke kiri, lalu petakan tiap blok ke satu digit heksadesimal.
+
+\textbf{Contoh detail: Konversi \(11010110_2\) ke heksadesimal}
+
+Kelompokkan biner: \(1101\,0110\)
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Grup Biner} & \textbf{Decimal} & \textbf{Digit Heksadesimal} \\
+\hline
+1101 & 13 & D \\
+0110 & 6 & 6 \\
+\hline
+\end{tabular}
+\end{center}
+
+Menggabungkan hasil: \(\mathrm{D6}_{16}\)
+
+Jadi, \(11010110_2 = \mathrm{D6}_{16}\)
+
+\end{enumerate}
 
 \subsubsection{Operasi aritmatika dalam biner}
-Penjumlahan biner mengikuti aturan: \(0+0=0\), \(0+1=1\), \(1+1=10_2\) (tulis 0, simpan \textit{carry} 1). Contoh:
-\begin{verbatim}
-   1011   (11 desimal)
- + 1101   (13 desimal)
- -------
-  11000   (24 desimal)
-\end{verbatim}
 
-\textbf{Pengurangan biner} menggunakan peminjaman (\textit{borrow}). Contoh: \(10010_2 - 01101_2 = 00101_2\) (\(18-13=5\)):
-\begin{verbatim}
-   10010
- - 01101
- -------
-   00101
-\end{verbatim}
-Pada arsitektur x86, operasi ini memengaruhi bendera (flag) seperti Carry dan Overflow, yang relevan untuk percabangan berbasis hasil operasi.
+\begin{enumerate}
+\item \textbf{Penjumlahan Biner}
+
+Penjumlahan biner mengikuti aturan dasar:
+\begin{itemize}
+    \item \(0 + 0 = 0\)
+    \item \(0 + 1 = 1\)
+    \item \(1 + 0 = 1\)
+    \item \(1 + 1 = 10_2\) (tulis 0, simpan carry 1)
+\end{itemize}
+
+\textbf{Contoh detail: Penjumlahan \(1011_2 + 1101_2\)}
+
+\begin{center}
+\begin{tabular}{cccccc}
+  &   & 1 & 0 & 1 & 1 \\
++ &   & 1 & 1 & 0 & 1 \\
+\hline
+  & 1 & 1 & 0 & 0 & 0 \\
+\end{tabular}
+\end{center}
+
+\textbf{Langkah-langkah:}
+\begin{enumerate}
+    \item Bit paling kanan: \(1 + 1 = 10_2\) → tulis 0, carry 1
+    \item Bit kedua: \(1 + 0 + 1 = 10_2\) → tulis 0, carry 1
+    \item Bit ketiga: \(0 + 1 + 1 = 10_2\) → tulis 0, carry 1
+    \item Bit keempat: \(1 + 1 + 1 = 11_2\) → tulis 1, carry 1
+    \item Carry terakhir: 1
+\end{enumerate}
+
+Hasil: \(1011_2 + 1101_2 = 11000_2\) (\(11 + 13 = 24\))
+
+\item \textbf{Pengurangan Biner}
+
+Pengurangan biner menggunakan konsep peminjaman (\textit{borrow}). Aturan dasar:
+\begin{itemize}
+    \item \(0 - 0 = 0\)
+    \item \(1 - 0 = 1\)
+    \item \(1 - 1 = 0\)
+    \item \(0 - 1 = 1\) (dengan borrow dari posisi kiri)
+\end{itemize}
+
+\textbf{Contoh detail: Pengurangan \(10010_2 - 01101_2\)}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+  & 1 & 0 & 0 & 1 & 0 & \\
+- &   & 0 & 1 & 1 & 0 & 1 \\
+\hline
+  &   & 0 & 0 & 1 & 0 & 1 \\
+\end{tabular}
+\end{center}
+
+\textbf{Langkah-langkah:}
+\begin{enumerate}
+    \item Bit paling kanan: \(0 - 1\) → borrow dari kiri, \(10 - 1 = 1\)
+    \item Bit kedua: \(0 - 0 = 0\) (setelah borrow)
+    \item Bit ketiga: \(0 - 1\) → borrow dari kiri, \(10 - 1 = 1\)
+    \item Bit keempat: \(0 - 1\) → borrow dari kiri, \(10 - 1 = 1\)
+    \item Bit kelima: \(0 - 0 = 0\) (setelah borrow)
+\end{enumerate}
+
+Hasil: \(10010_2 - 01101_2 = 00101_2\) (\(18 - 13 = 5\))
+
+\item \textbf{Implikasi pada Arsitektur x86}
+
+Pada arsitektur x86, operasi aritmatika memengaruhi bendera (flags) penting:
+\begin{itemize}
+    \item \textbf{Carry Flag (CF):} Set jika terjadi carry out atau borrow
+    \item \textbf{Overflow Flag (OF):} Set jika hasil operasi signed overflow
+    \item \textbf{Zero Flag (ZF):} Set jika hasil operasi adalah nol
+    \item \textbf{Sign Flag (SF):} Set jika hasil operasi negatif (bit MSB = 1)
+\end{itemize}
+
+Bendera-bendera ini sangat penting untuk operasi percabangan dan perbandingan dalam assembly language.
+\end{enumerate}
 
 \subsection{Representasi Data dalam Komputer}\label{subsec:pengenalan-representasi-data}
 
@@ -245,31 +433,135 @@ Pada arsitektur x86, operasi ini memengaruhi bendera (flag) seperti Carry dan Ov
 \end{itemize}
 
 \subsubsection{Representasi bilangan bertanda (Two's Complement)}
-Two's complement adalah metode representasi bilangan bulat bertanda di mana \(-x\) diperoleh dengan komplemen satu kemudian tambah satu \cite{wiki_two_complement}. Contoh (8-bit): \(-13\) dari \(00001101_2\) menjadi \(11110011_2\).
 
-\textbf{Contoh langkah}: Representasikan \(-27\) pada 8-bit. Mula-mula tulis \(+27\) dalam biner 8-bit: \(27_{10}=00011011_2\). Komplemen satu: \(11100100_2\). Tambah satu: \(11100101_2\). Verifikasi: \(11100101_2 + 00011011_2 = 1\,00000000_2\) (buang carry tertinggi) $\Rightarrow$ \(0\) modulo 256 \cite{wiki_two_complement}.
+Dalam komputer, kita perlu merepresentasikan bilangan positif dan negatif menggunakan hanya bit 0 dan 1. Ada beberapa metode untuk ini, tetapi yang paling umum digunakan adalah \textbf{Two's Complement}.
 
-\textbf{Keunggulan Two's Complement:}
+\paragraph{Mengapa Two's Complement?}
+Sebelum memahami Two's Complement, mari kita lihat metode lain yang lebih sederhana namun memiliki kelemahan:
+
+\textbf{Metode Sign-Magnitude:}
 \begin{itemize}
-    \item Satu representasi untuk nol (tidak ada +0 dan -0)
-    \item Operasi aritmatika sederhana
-    \item Range simetris: untuk n-bit, range adalah \(-2^{n-1}\) sampai \(2^{n-1}-1\)
+    \item Bit paling kiri (MSB) digunakan sebagai tanda: 0 = positif, 1 = negatif
+    \item Bit sisanya menunjukkan nilai absolut
+    \item Contoh: \(+5 = 00000101\), \(-5 = 10000101\)
+    \item \textbf{Kelemahan:} Ada dua cara menulis nol (\(00000000\) dan \(10000000\))
 \end{itemize}
 
-\subsubsection{Endianness (Little-Endian pada 8086)}
-Endianness menentukan urutan penyimpanan byte dalam memori \cite{wiki_endianness}. 8086 menggunakan little-endian: \textit{least significant byte} disimpan pada alamat memori terendah. Contoh: word \(0x1234\) disimpan sebagai byte \(0x34\) lalu \(0x12\).
+\textbf{Metode 1's Complement:}
+\begin{itemize}
+    \item Bilangan negatif = flip semua bit dari bilangan positif
+    \item Contoh: \(+5 = 00000101\), \(-5 = 11111010\)
+    \item \textbf{Kelemahan:} Masih ada dua cara menulis nol (\(00000000\) dan \(11111111\))
+\end{itemize}
 
-\textbf{Contoh 32-bit}: Dword \(0x12345678\) pada alamat dasar $A$ disimpan sebagai berikut (little-endian):
+\paragraph{Cara Kerja Two's Complement}
+Two's Complement mengatasi kelemahan metode sebelumnya dengan langkah sederhana:
+
+\textbf{Langkah-langkah membuat bilangan negatif:}
+\begin{enumerate}
+    \item Tulis bilangan positif dalam biner
+    \item Flip semua bit (0 jadi 1, 1 jadi 0) - ini disebut "1's complement"
+    \item Tambahkan 1 ke hasilnya
+\end{enumerate}
+
+\textbf{Contoh sederhana: Membuat \(-5\) dalam 8-bit}
+\begin{enumerate}
+    \item \(+5\) dalam biner: \(00000101\)
+    \item Flip semua bit: \(11111010\)
+    \item Tambah 1: \(11111010 + 1 = 11111011\)
+    \item Jadi \(-5 = 11111011\)
+\end{enumerate}
+
+\textbf{Contoh lain: Membuat \(-27\) dalam 8-bit}
+\begin{enumerate}
+    \item \(+27\) dalam biner: \(00011011\)
+    \item Flip semua bit: \(11100100\)
+    \item Tambah 1: \(11100100 + 1 = 11100101\)
+    \item Jadi \(-27 = 11100101\)
+\end{enumerate}
+
+\paragraph{Keunggulan Two's Complement}
+\begin{itemize}
+    \item \textbf{Hanya satu cara menulis nol:} \(00000000\) (tidak ada \(+0\) dan \(-0\))
+    \item \textbf{Operasi aritmatika mudah:} Penjumlahan dan pengurangan bisa dilakukan dengan cara yang sama
+    \item \textbf{Range simetris:} Untuk 8-bit: \(-128\) sampai \(+127\)
+    \item \textbf{Verifikasi mudah:} Bilangan positif + bilangan negatif = 0
+\end{itemize}
+
+\textbf{Contoh verifikasi:} \(-5 + 5 = 0\)
+\begin{align}
+11111011_2 + 00000101_2 &= 1\,00000000_2 \\
+&= 0 \text{ (buang carry yang keluar)}
+\end{align}
+
+\subsubsection{Endianness (Little-Endian pada 8086)}
+
+Endianness adalah cara komputer menyimpan dan mengatur urutan byte dalam memori untuk data yang lebih besar dari satu byte (seperti 16-bit, 32-bit, atau 64-bit). Bayangkan kita memiliki bilangan yang terdiri dari beberapa byte - komputer harus memutuskan byte mana yang disimpan di alamat memori mana.
+
+\paragraph{Apa itu Endianness?}
+Ada dua cara utama menyimpan data multi-byte:
+
+\textbf{Big-Endian (Big-Endian):}
+\begin{itemize}
+    \item Menyimpan byte paling penting (Most Significant Byte/MSB) di alamat memori terkecil
+    \item Seperti menulis tanggal: "2025-10-04" (tahun-bulan-hari)
+    \item Data dibaca dari kiri ke kanan sesuai urutan aslinya
+\end{itemize}
+
+\textbf{Little-Endian (Little-Endian):}
+\begin{itemize}
+    \item Menyimpan byte paling tidak penting (Least Significant Byte/LSB) di alamat memori terkecil
+    \item Seperti menulis tanggal: "04-10-2025" (hari-bulan-tahun)
+    \item Data dibaca terbalik dari urutan aslinya
+\end{itemize}
+
+\paragraph{Contoh Praktis}
+Mari kita lihat bagaimana bilangan 32-bit \(0x12345678\) disimpan dalam memori:
+
+\textbf{Big-Endian:}
 \begin{center}
-\begin{tabular}{cccc}
-\toprule
-Alamat & $A$ & $A+1$ & $A+2$ & $A+3$ \\
-\midrule
-Byte   & $0x78$ & $0x56$ & $0x34$ & $0x12$ \\
-\bottomrule
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Alamat Memori} & \textbf{Byte} & \textbf{Keterangan} \\
+\hline
+1000 & 0x12 & Byte paling penting \\
+1001 & 0x34 & \\
+1002 & 0x56 & \\
+1003 & 0x78 & Byte paling tidak penting \\
+\hline
 \end{tabular}
 \end{center}
-Urutan terbalik ini penting saat membaca/membentuk nilai multi-byte dari memori \cite{wiki_endianness}.
+
+\textbf{Little-Endian (yang digunakan 8086):}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Alamat Memori} & \textbf{Byte} & \textbf{Keterangan} \\
+\hline
+1000 & 0x78 & Byte paling tidak penting \\
+1001 & 0x56 & \\
+1002 & 0x34 & \\
+1003 & 0x12 & Byte paling penting \\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Mengapa Penting dalam Assembly?}
+\begin{itemize}
+    \item \textbf{Debugging:} Saat melihat memori, kita perlu tahu urutan byte yang benar
+    \item \textbf{Data Transfer:} Saat membaca/menulis data multi-byte dari memori
+    \item \textbf{Network Communication:} Protokol jaringan biasanya menggunakan big-endian
+    \item \textbf{File Format:} Format file tertentu mungkin menggunakan endianness berbeda
+\end{itemize}
+
+\paragraph{Contoh pada 8086}
+Pada prosesor 8086, word 16-bit \(0x1234\) disimpan sebagai:
+\begin{itemize}
+    \item Alamat 1000: 0x34 (byte rendah)
+    \item Alamat 1001: 0x12 (byte tinggi)
+\end{itemize}
+
+Ini berarti saat kita membaca word dari memori, kita harus "membalik" urutan byte untuk mendapatkan nilai yang benar.
 
 \subsubsection{Rentang nilai untuk $n$-bit}
 Untuk bilangan \textit{unsigned} $n$-bit, rentang nilainya adalah $0$ hingga $2^n-1$. Untuk two's complement (bertanda), rentangnya adalah $-2^{n-1}$ hingga $2^{n-1}-1$ \cite{wiki_binary_number,wiki_two_complement}. Contoh ringkas:
@@ -295,37 +587,263 @@ Untuk bilangan \textit{unsigned} $n$-bit, rentang nilainya adalah $0$ hingga $2^
 \end{itemize}
 
 \section{Contoh Soal dan Pembahasan}\label{sec:pengenalan-contoh}
+
+Berikut adalah contoh soal dengan pembahasan lengkap untuk setiap jenis konversi:
+
 \begin{enumerate}
-    \item \textbf{Konversikan bilangan desimal 255 ke biner dan heksadesimal.}\\
-    \(255_{10} = 11111111_2 = \mathrm{FF}_{16}\).
+    \item \textbf{Konversikan bilangan desimal 255 ke biner dan heksadesimal.}
+    
+    \textbf{Pembahasan:}
+    
+    \textit{Konversi ke biner:}
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} \\
+    \hline
+    1 & 255 $\div$ 2 & 127 & 1 \\
+    2 & 127 $\div$ 2 & 63 & 1 \\
+    3 & 63 $\div$ 2 & 31 & 1 \\
+    4 & 31 $\div$ 2 & 15 & 1 \\
+    5 & 15 $\div$ 2 & 7 & 1 \\
+    6 & 7 $\div$ 2 & 3 & 1 \\
+    7 & 3 $\div$ 2 & 1 & 1 \\
+    8 & 1 $\div$ 2 & 0 & 1 \\
+    \hline
+    \end{tabular}
+    \end{center}
+    
+    Membaca sisa dari bawah ke atas: \(11111111_2\)
+    
+    \textit{Konversi ke heksadesimal:}
+    \begin{center}
+    \begin{tabular}{|c|c|c|c|c|}
+    \hline
+    \textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} & \textbf{Representasi} \\
+    \hline
+    1 & 255 $\div$ 16 & 15 & 15 & F \\
+    2 & 15 $\div$ 16 & 0 & 15 & F \\
+    \hline
+    \end{tabular}
+    \end{center}
+    
+    Membaca sisa dari bawah ke atas: \(\mathrm{FF}_{16}\)
+    
+    \textbf{Jawaban:} \(255_{10} = 11111111_2 = \mathrm{FF}_{16}\)
 
-    \item \textbf{Konversikan bilangan biner \(11010110_2\) ke desimal dan heksadesimal.}\\
-    Nilai tempat: \(128+64+16+4+2 = 214\). Kelompok 4-bit: \(1101\,0110_2 = \mathrm{D6}_{16}\).
+    \item \textbf{Konversikan bilangan biner \(11010110_2\) ke desimal dan heksadesimal.}
+    
+    \textbf{Pembahasan:}
+    
+    \textit{Konversi ke desimal:}
+    \begin{align*}
+    11010110_2 &= (1 \times 2^7) + (1 \times 2^6) + (0 \times 2^5) + (1 \times 2^4) + (0 \times 2^3) + (1 \times 2^2) + (1 \times 2^1) + (0 \times 2^0) \\
+    &= 128 + 64 + 0 + 16 + 0 + 4 + 2 + 0 \\
+    &= 214_{10}
+    \end{align*}
+    
+    \textit{Konversi ke heksadesimal:}
+    Kelompokkan biner: \(1101\,0110\)
+    \begin{center}
+    \begin{tabular}{|c|c|}
+    \hline
+    \textbf{Grup Biner} & \textbf{Digit Heksadesimal} \\
+    \hline
+    1101 & D \\
+    0110 & 6 \\
+    \hline
+    \end{tabular}
+    \end{center}
+    
+    \textbf{Jawaban:} \(11010110_2 = 214_{10} = \mathrm{D6}_{16}\)
 
-    \item \textbf{Konversikan bilangan heksadesimal \(\mathrm{A5F}_{16}\) ke desimal dan biner.}\\
-    \(10\cdot 256 + 5\cdot 16 + 15 = 2655_{10}\). Biner: \(\mathrm{A}\to 1010\), \(\mathrm{5}\to 0101\), \(\mathrm{F}\to 1111\) sehingga \(1010\,0101\,1111_2\).
+    \item \textbf{Konversikan bilangan heksadesimal \(\mathrm{A5F}_{16}\) ke desimal dan biner.}
+    
+    \textbf{Pembahasan:}
+    
+    \textit{Konversi ke desimal:}
+    \begin{align*}
+    \mathrm{A5F}_{16} &= (\mathrm{A} \times 16^2) + (5 \times 16^1) + (\mathrm{F} \times 16^0) \\
+    &= (10 \times 256) + (5 \times 16) + (15 \times 1) \\
+    &= 2560 + 80 + 15 \\
+    &= 2655_{10}
+    \end{align*}
+    
+    \textit{Konversi ke biner:}
+    \begin{center}
+    \begin{tabular}{|c|c|}
+    \hline
+    \textbf{Digit Heksadesimal} & \textbf{Representasi Biner} \\
+    \hline
+    A & 1010 \\
+    5 & 0101 \\
+    F & 1111 \\
+    \hline
+    \end{tabular}
+    \end{center}
+    
+    Menggabungkan: \(1010\,0101\,1111_2\)
+    
+    \textbf{Jawaban:} \(\mathrm{A5F}_{16} = 2655_{10} = 1010\,0101\,1111_2\)
 
-    \item \textbf{Lakukan operasi penjumlahan biner: \(1011_2 + 1101_2\).}\\
-    Hasil: \(11000_2\) sebagaimana langkah pembawaan pada contoh di atas (\(11+13=24\)).
+    \item \textbf{Lakukan operasi penjumlahan biner: \(1011_2 + 1101_2\).}
+    
+    \textbf{Pembahasan:}
+    
+    \begin{center}
+    \begin{tabular}{cccccc}
+      &   & 1 & 0 & 1 & 1 \\
+    + &   & 1 & 1 & 0 & 1 \\
+    \hline
+      & 1 & 1 & 0 & 0 & 0 \\
+    \end{tabular}
+    \end{center}
+    
+    \textbf{Langkah-langkah:}
+    \begin{enumerate}
+        \item Bit paling kanan: \(1 + 1 = 10_2\) → tulis 0, carry 1
+        \item Bit kedua: \(1 + 0 + 1 = 10_2\) → tulis 0, carry 1
+        \item Bit ketiga: \(0 + 1 + 1 = 10_2\) → tulis 0, carry 1
+        \item Bit keempat: \(1 + 1 + 1 = 11_2\) → tulis 1, carry 1
+        \item Carry terakhir: 1
+    \end{enumerate}
+    
+    \textbf{Jawaban:} \(1011_2 + 1101_2 = 11000_2\) (\(11 + 13 = 24\))
+
+    \item \textbf{Representasikan bilangan \(-27\) menggunakan 8-bit two's complement.}
+    
+    \textbf{Pembahasan:}
+    
+    \textit{Langkah 1:} Tulis \(+27\) dalam biner 8-bit
+    \begin{align*}
+    27_{10} &= 00011011_2
+    \end{align*}
+    
+    \textit{Langkah 2:} Komplemen satu (flip semua bit)
+    \begin{align*}
+    00011011_2 \rightarrow 11100100_2
+    \end{align*}
+    
+    \textit{Langkah 3:} Tambah satu
+    \begin{align*}
+    11100100_2 + 1_2 = 11100101_2
+    \end{align*}
+    
+    \textit{Verifikasi:} \(11100101_2 + 00011011_2 = 1\,00000000_2\) (buang carry tertinggi) = \(0\) modulo 256
+    
+    \textbf{Jawaban:} \(-27_{10} = 11100101_2\) dalam 8-bit two's complement
 \end{enumerate}
 
 \section{Latihan}
-Kerjakan tanpa kalkulator, tulis langkah konversi/aritmatika secara jelas.
+
+Kerjakan soal-soal berikut tanpa menggunakan kalkulator. Tuliskan langkah-langkah konversi dan operasi aritmatika secara jelas dan sistematis.
+
+\subsection{Konversi Sistem Bilangan}
+
 \begin{enumerate}
-    \item Ubah ke biner dan heksadesimal: \(37_{10}\), \(1023_{10}\), \(4095_{10}\).
-    \item Ubah ke desimal dan heksadesimal: \(10010101_2\), \(11110000_2\), \(101011110101_2\).
-    \item Ubah ke desimal dan biner: \(\mathrm{7B}_{16}\), \(\mathrm{1C3}_{16}\), \(\mathrm{FE}_{16}\).
-    \item Hitung penjumlahan biner: \(11101_2 + 10111_2\), \(101010_2 + 1111_2\).
-    \item Untuk 8-bit two's complement, representasikan \(-5\), \(-27\), dan verifikasi dengan penjumlahan dengan nilai positifnya menghasilkan nol (modulo 256).
+    \item \textbf{Konversi Desimal ke Biner dan Heksadesimal}\\
+    Ubah bilangan berikut ke biner dan heksadesimal:
+    \begin{itemize}
+        \item \(37_{10}\)
+        \item \(1023_{10}\)
+        \item \(4095_{10}\)
+        \item \(1000_{10}\)
+    \end{itemize}
+
+    \item \textbf{Konversi Biner ke Desimal dan Heksadesimal}\\
+    Ubah bilangan biner berikut ke desimal dan heksadesimal:
+    \begin{itemize}
+        \item \(10010101_2\)
+        \item \(11110000_2\)
+        \item \(101011110101_2\)
+        \item \(110011001100_2\)
+    \end{itemize}
+
+    \item \textbf{Konversi Heksadesimal ke Desimal dan Biner}\\
+    Ubah bilangan heksadesimal berikut ke desimal dan biner:
+    \begin{itemize}
+        \item \(\mathrm{7B}_{16}\)
+        \item \(\mathrm{1C3}_{16}\)
+        \item \(\mathrm{FE}_{16}\)
+        \item \(\mathrm{ABC}_{16}\)
+    \end{itemize}
+
+    \item \textbf{Konversi Oktal}\\
+    Lakukan konversi berikut:
+    \begin{itemize}
+        \item \(377_8\) ke desimal dan biner
+        \item \(1000_{10}\) ke oktal
+        \item \(10101010_2\) ke oktal
+    \end{itemize}
 \end{enumerate}
 
-\section{Tugas}
-\begin{itemize}
-    \item \textbf{Tabel konversi 0--15}: Buat tabel berisi tiga kolom: desimal, biner (4-bit), heksadesimal. Gunakan lingkungan \texttt{tabular} LaTeX, pastikan format rapi dan konsisten.
-    \item \textbf{Esai singkat (300--500 kata)}: Jelaskan mengapa heksadesimal sering digunakan dalam pemrograman \textit{low-level} (alamat memori, \textit{debugging}, \textit{bitmask}, korespondensi nibble--hex, keterbacaan). Sertakan contoh konkret (mis., merepresentasikan pola \textit{bit} register prosesor).
-    \item \textbf{Aplikasi assembly dalam kehidupan sehari-hari}: Berikan minimal dua contoh nyata (mis., \textit{bootloader}, \textit{driver} perangkat, \textit{firmware} mikrokontroler). Jelaskan alur singkat peran assembly dan alasannya digunakan (kinerja, determinisme, ukuran kode).
-\end{itemize}
-\noindent\textbf{Keluaran yang dikumpulkan}: 
-(i) berkas PDF berisi jawaban dan tabel; 
-(ii) berkas \LaTeX{} sumber; 
-(iii) jika menggunakan kode, lampirkan cuplikan dan komentar.
+\subsection{Operasi Aritmatika Biner}
+
+\begin{enumerate}
+    \item \textbf{Penjumlahan Biner}\\
+    Hitung penjumlahan berikut dan tunjukkan proses carry:
+    \begin{itemize}
+        \item \(11101_2 + 10111_2\)
+        \item \(101010_2 + 1111_2\)
+        \item \(110011_2 + 101101_2\)
+        \item \(11111111_2 + 1_2\)
+    \end{itemize}
+
+    \item \textbf{Pengurangan Biner}\\
+    Hitung pengurangan berikut dan tunjukkan proses borrow:
+    \begin{itemize}
+        \item \(10010_2 - 01101_2\)
+        \item \(101010_2 - 1111_2\)
+        \item \(1000000_2 - 1_2\)
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Two's Complement}
+
+\begin{enumerate}
+    \item \textbf{Representasi Bilangan Negatif}\\
+    Untuk 8-bit two's complement, representasikan bilangan berikut:
+    \begin{itemize}
+        \item \(-5_{10}\)
+        \item \(-27_{10}\)
+        \item \(-128_{10}\)
+        \item \(-1_{10}\)
+    \end{itemize}
+    
+    Verifikasi setiap jawaban dengan menambahkan bilangan positifnya dan memastikan hasilnya adalah nol (modulo 256).
+
+    \item \textbf{Konversi Two's Complement}\\
+    Konversikan bilangan two's complement berikut ke desimal:
+    \begin{itemize}
+        \item \(11111011_2\) (8-bit)
+        \item \(10000000_2\) (8-bit)
+        \item \(1111111111111111_2\) (16-bit)
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Analisis dan Aplikasi}
+
+\begin{enumerate}
+    \item \textbf{Endianness}\\
+    Jika word \(0x1234\) disimpan di alamat memori \(0x1000\) dalam little-endian, bagaimana byte-byte tersebut tersusun di memori? Tunjukkan alamat dan nilai byte untuk setiap lokasi.
+
+    \item \textbf{Rentang Nilai}\\
+    Tentukan rentang nilai yang dapat direpresentasikan untuk:
+    \begin{itemize}
+        \item 12-bit unsigned integer
+        \item 12-bit signed integer (two's complement)
+        \item 24-bit unsigned integer
+        \item 24-bit signed integer (two's complement)
+    \end{itemize}
+
+    \item \textbf{Aplikasi dalam Assembly}\\
+    Jelaskan mengapa pemahaman sistem bilangan penting dalam:
+    \begin{itemize}
+        \item Debugging program assembly
+        \item Optimasi kode
+        \item Manipulasi data di level bit
+        \item Pemrograman embedded systems
+    \end{itemize}
+\end{enumerate}
+
+
