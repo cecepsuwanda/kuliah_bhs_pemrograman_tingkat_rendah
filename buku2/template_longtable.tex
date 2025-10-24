@@ -1,0 +1,99 @@
+% Template untuk mengkonversi tabel biasa ke longtable
+% File ini menunjukkan cara mengubah tabel yang panjang menjadi longtable
+% yang dapat dibagi secara otomatis di halaman yang berbeda
+
+% ========================================
+% CONTOH 1: Tabel biasa yang panjang
+% ========================================
+\begin{table}[H]
+    \centering
+    \caption{Tabel Biasa (Tidak Dapat Dibagi Halaman)}
+    \begin{tabular}{|p{2cm}|p{3cm}|p{6cm}|}
+        \hline
+        \textbf{Kolom 1} & \textbf{Kolom 2} & \textbf{Kolom 3} \\
+        \hline
+        Data 1 & Data 2 & Data 3 \\
+        \hline
+        % ... banyak baris data ...
+        \hline
+    \end{tabular}
+    \label{tab:biasa}
+\end{table}
+
+% ========================================
+% CONTOH 2: Konversi ke longtable
+% ========================================
+\begin{centeredlongtable}{|p{2cm}|p{3cm}|p{6cm}|}
+    \caption{Tabel Panjang (Dapat Dibagi Halaman)}\\
+    \hline
+    \textbf{Kolom 1} & \textbf{Kolom 2} & \textbf{Kolom 3} \\
+    \hline
+    \endfirsthead
+    
+    \multicolumn{3}{c}%
+    {{\bfseries \tablename\ \thetable{} -- lanjutan dari halaman sebelumnya}} \\
+    \hline
+    \textbf{Kolom 1} & \textbf{Kolom 2} & \textbf{Kolom 3} \\
+    \hline
+    \endhead
+    
+    \hline \multicolumn{3}{|r|}{{Lanjutan di halaman berikutnya}} \\ \hline
+    \endfoot
+    
+    \hline
+    \endlastfoot
+    
+    Data 1 & Data 2 & Data 3 \\
+    Data 2 & Data 3 & Data 4 \\
+    Data 3 & Data 4 & Data 5 \\
+    % ... banyak baris data ...
+    Data n & Data n+1 & Data n+2 \\
+    \label{tab:longtable}
+\end{centeredlongtable}
+
+% ========================================
+% CONTOH 3: Longtable dengan header berulang
+% ========================================
+\begin{centeredlongtable}{|p{2cm}|p{3cm}|p{6cm}|}
+    \caption{Tabel dengan Header Berulang}\\
+    \hline
+    \textbf{Kolom 1} & \textbf{Kolom 2} & \textbf{Kolom 3} \\
+    \hline
+    \endfirsthead
+    
+    \hline
+    \textbf{Kolom 1} & \textbf{Kolom 2} & \textbf{Kolom 3} \\
+    \hline
+    \endhead
+    
+    \hline
+    \endfoot
+    
+    \hline
+    \endlastfoot
+    
+    Data 1 & Data 2 & Data 3 \\
+    Data 2 & Data 3 & Data 4 \\
+    % ... banyak baris data ...
+    \label{tab:header-berulang}
+\end{centeredlongtable}
+
+% ========================================
+% CARA PENGGUNAAN:
+% ========================================
+% 1. Ganti \begin{table}[H] dengan \begin{centeredlongtable}
+% 2. Ganti \end{table} dengan \end{centeredlongtable}
+% 3. Tambahkan \endfirsthead, \endhead, \endfoot, \endlastfoot
+% 4. Pindahkan caption ke dalam centeredlongtable
+% 5. Hapus \centering dan \caption dari luar longtable
+%
+% CATATAN: Environment centeredlongtable sekarang menggunakan
+%          \LTleft dan \LTright dengan "plus 1fill" untuk
+%          centering otomatis yang benar sesuai sumber terbuka.
+%
+% KEUNTUNGAN:
+% - Tabel dapat dibagi secara otomatis di halaman berbeda
+% - Header dapat berulang di setiap halaman
+% - Tidak ada halaman kosong karena tabel yang terlalu panjang
+% - Lebih fleksibel dalam layout halaman
+% - Tabel otomatis terpusat di halaman

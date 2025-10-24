@@ -1,249 +1,773 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Instruksi Dasar dan Operasi Aritmatika}\label{ch:instruksi-dasar}
+\chapter{Percabangan dan Perulangan}
 
-\section{Tujuan Pembelajaran}\label{sec:instruksi-dasar-tujuan}
-Setelah mengikuti pertemuan ini, mahasiswa diharapkan mampu:
+\section{Tujuan Pembelajaran}
+Mahasiswa mampu:
 \begin{itemize}
-    \item Mengidentifikasi dan menjelaskan fungsi instruksi MOV, ADD, SUB, MUL, DIV dalam konteks operasi register dan memori.
-    \item Menerapkan instruksi aritmatika dasar dengan operand 8-bit dan 16-bit pada contoh praktis.
-    \item Menjelaskan dampak operasi aritmatika terhadap register flags (CF, OF, SF, ZF, AF, PF).
-    \item Menggunakan instruksi logika dasar (AND, OR, XOR, NOT) untuk manipulasi bit dan register.
-    \item Mengimplementasikan operasi shift dan rotate untuk manipulasi bit dan perkalian/pembagian dengan pangkat 2.
-    \item Menjelaskan perbedaan antara operasi signed dan unsigned serta dampaknya pada flags.
+    \item Menggunakan instruksi \texttt{CMP} untuk perbandingan dan membaca dampaknya pada \textit{flags}.
+    \item Menerapkan lompatan bersyarat \texttt{JE}, \texttt{JNE}, \texttt{JL}/\texttt{JG} dan variasinya (bertanda/tak bertanda).
+    \item Menggunakan \texttt{LOOP}, \texttt{LOOPE}/\texttt{LOOPZ}, \texttt{LOOPNE}/\texttt{LOOPNZ} untuk perulangan berbasis \texttt{CX}.
+    \item Menyusun program yang menggabungkan percabangan dan perulangan secara tepat.
 \end{itemize}
 
-\section{Pendahuluan}\label{sec:instruksi-dasar-pendahuluan}
-Instruksi dasar dalam bahasa assembly Intel 8086 mencakup operasi data transfer, aritmatika, dan logika yang membentuk fondasi pemrograman tingkat rendah. Pemahaman yang mendalam tentang instruksi-instruksi ini, termasuk efeknya terhadap register flags dan cara penanganan operand, sangat penting untuk mengembangkan program assembly yang efisien dan benar.
+\section{Pendahuluan}
+Kontrol alur adalah inti dari setiap program \cite{tutorials_point_assembly}. Pada 8086, \texttt{CMP} mengatur \textit{flags} yang selanjutnya diinterpretasikan oleh lompatan bersyarat \cite{8086_instruction_set_reference}. Untuk iterasi, instruksi keluarga \texttt{LOOP} memanfaatkan \texttt{CX} sebagai pencacah. Materi perangkat (mis. mouse) dibahas pada bab lanjutan.
 
-\section{Instruksi Transfer Data}\label{sec:instruksi-dasar-transfer}
-\subsection{Instruksi MOV}
-Instruksi MOV (move) adalah instruksi transfer data yang paling fundamental. Sintaks: \texttt{MOV destination, source}.
+\section{Instruksi Perbandingan (CMP)}
+        Instruksi CMP (Compare) adalah salah satu instruksi paling penting dalam pemrograman assembly karena memungkinkan program membuat keputusan berdasarkan perbandingan nilai. CMP tidak mengubah operand, tetapi hanya mengatur flag register untuk digunakan oleh instruksi jump bersyarat.
 
-\subsubsection{Kombinasi operand yang valid}
+\subsection{Dasar-dasar CMP}
+            \subsubsection{Sintaks dan Cara Kerja}
+\texttt{CMP dest, src} menghitung \(dest - src\) tanpa menyimpan hasil, namun memperbarui \textit{flags} (\texttt{ZF}, \texttt{SF}, \texttt{CF}, \texttt{OF}, \texttt{PF}, \texttt{AF}). \textit{Flags} kemudian digunakan oleh lompat bersyarat.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Dasar Instruksi CMP, label={lst:cmp-basic}]
+; Contoh dasar penggunaan CMP
+mov ax, 10          ; AX = 10
+cmp ax, 10          ; Bandingkan AX dengan 10
+; Hasil: ZF=1, SF=0, CF=0 (equal)
+
+mov bx, 15          ; BX = 15
+cmp ax, bx          ; Bandingkan AX (10) dengan BX (15)
+; Hasil: ZF=0, SF=1, CF=1 (AX < BX)
+
+mov cx, 5           ; CX = 5
+cmp ax, cx          ; Bandingkan AX (10) dengan CX (5)
+; Hasil: ZF=0, SF=0, CF=0 (AX > CX)
+\end{lstlisting}
+
+\textbf{Flag yang Dipengaruhi oleh CMP}:
 \begin{itemize}
-    \item Register ke register: \texttt{MOV AX, BX}
-    \item Immediate ke register: \texttt{MOV AL, 5Ah}
-    \item Register ke memori: \texttt{MOV [1234h], AX}
-    \item Memori ke register: \texttt{MOV AX, [1234h]}
-    \item Immediate ke memori: \texttt{MOV [BX], 100h}
+    \item \textbf{ZF (Zero Flag)}: Set jika hasil perbandingan = 0 (nilai sama)
+    \item \textbf{SF (Sign Flag)}: Set jika hasil perbandingan negatif (nilai pertama < nilai kedua)
+    \item \textbf{CF (Carry Flag)}: Set jika ada borrow dalam operasi (untuk unsigned comparison)
+    \item \textbf{OF (Overflow Flag)}: Set jika terjadi overflow dalam operasi (untuk signed comparison)
+    \item \textbf{PF (Parity Flag)}: Set jika jumlah bit 1 pada byte rendah hasil genap
+    \item \textbf{AF (Auxiliary Carry Flag)}: Set jika ada carry dari bit 3 ke bit 4
 \end{itemize}
 
-\subsubsection{Pembatasan dan aturan}
-\begin{itemize}
-    \item Tidak dapat memindahkan memori ke memori langsung
-    \item Ukuran operand source dan destination harus sama
-    \item Tidak mempengaruhi register flags
-    \item Tidak dapat memindahkan immediate ke segment register
-\end{itemize}
+            \subsubsection{Perbandingan vs Operasi Aritmatika}
+\texttt{CMP} setara dengan \texttt{SUB} yang hasilnya dibuang. Gunakan \texttt{TEST} untuk perbandingan bitwise (seperti \texttt{AND} tanpa menyimpan).
 
-\subsection{Contoh penggunaan MOV}
-\begin{verbatim}
-org 100h
-; Inisialisasi register
-mov ax, 1234h        ; AX = 1234h
-mov bx, ax           ; BX = AX = 1234h
-mov cx, 5678h        ; CX = 5678h
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Perbandingan CMP vs SUB vs TEST, label={lst:cmp-vs-sub-test}]
+; Perbandingan CMP vs SUB vs TEST
 
-; Akses memori
-mov [1000h], ax      ; Simpan AX ke memori
-mov dx, [1000h]      ; Baca dari memori ke DX
+; 1. CMP - Compare (tidak mengubah operand)
+mov ax, 10
+mov bx, 15
+cmp ax, bx          ; AX tetap 10, BX tetap 15
+; Hanya mengatur flags
 
-int 20h
-\end{verbatim}
+; 2. SUB - Subtract (mengubah operand pertama)
+mov ax, 10
+mov bx, 15
+sub ax, bx          ; AX = -5, BX tetap 15
+; Mengubah AX dan mengatur flags
 
-\section{Instruksi Aritmatika}\label{sec:instruksi-dasar-aritmatika}
-\subsection{Instruksi ADD dan SUB}
-\subsubsection{ADD (Addition)}
-Menambahkan source ke destination: \texttt{ADD destination, source}
+; 3. TEST - Bitwise AND (tidak mengubah operand)
+mov ax, 0FF00h      ; AX = 1111111100000000b
+test ax, 0F000h     ; Test bit 12-15
+; Hasil: ZF=0 (bit 12-15 set), AX tidak berubah
 
-Contoh:
-\begin{verbatim}
-mov ax, 1000h
-mov bx, 2000h
-add ax, bx           ; AX = AX + BX = 3000h
-add al, 5            ; AL = AL + 5
-\end{verbatim}
+; Contoh penggunaan TEST untuk cek bit
+mov al, 00001000b   ; AL = 8 (bit 3 set)
+test al, 00001000b  ; Test bit 3
+jnz bit3_set        ; Lompat jika bit 3 set
 
-\subsubsection{SUB (Subtraction)}
-Mengurangkan source dari destination: \texttt{SUB destination, source}
+bit3_set:
+    ; Bit 3 adalah set
+\end{lstlisting}
 
-Contoh:
-\begin{verbatim}
-mov ax, 3000h
-mov bx, 1000h
-sub ax, bx           ; AX = AX - BX = 2000h
-\end{verbatim}
+        \subsection{Instruksi Percabangan (Conditional Jumps)}
+            Instruksi percabangan memungkinkan program untuk mengubah alur eksekusi berdasarkan kondisi tertentu. Semua instruksi jump bersyarat menggunakan flag register yang diatur oleh instruksi sebelumnya (biasanya CMP atau TEST).
 
-\subsection{Instruksi MUL dan DIV}
-\subsubsection{MUL (Multiplication)}
-Perkalian unsigned: \texttt{MUL source}
+            \subsubsection{Jump untuk Kesetaraan (JE/JNE)}
+\texttt{JE}/\texttt{JZ} melompat bila \texttt{ZF=1}; \texttt{JNE}/\texttt{JNZ} bila \texttt{ZF=0}. Cocok untuk kesetaraan/kesetidaksetaraan umum.
 
-\begin{itemize}
-    \item 8-bit: \texttt{AL × source} → \texttt{AX}
-    \item 16-bit: \texttt{AX × source} → \texttt{DX:AX}
-\end{itemize}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Perbandingan dengan Conditional Jumps, label={lst:je-jne}]
+;/=========================================\; 
+;     Program : CMPJ.ASM                    ; 
+;     Author  : S?to                        ; 
+;     Fungsi  : Mendemokan perintah lompat  ; 
+;               yang mengikuti perintah CMP ; 
+;                                           ; 
+;\=========================================/; 
+  .MODEL SMALL 
+  .DATA
+    
+   BilA DB 67 
+   BilB DB 66 
+   Kal0 DB 'Bilangan A lebih kecil dari bilangan B $' 
+   Kal1 DB 'Bilangan A sama dengan bilangan B $' 
+   Kal2 DB 'Bilangan A lebih besar dari bilangan B $' 
+  
+  .CODE 
+   ORG 100h 
+ 
 
-Contoh:
-\begin{verbatim}
-mov al, 10
-mov bl, 5
-mul bl               ; AX = 10 × 5 = 50
-\end{verbatim}
+Proses: 
+      MOV AX, @data   ; Mengatur segment data
+      MOV DS, AX      ; Memuat segment data ke DS
+     
+      MOV AL,BilA ; Masukkan bilangan A pada AL 
+      CMP AL,BilB ; Bandingkan AL(BilA) dengan Bilangan B 
+      JB AKecil ; Jika BilA < BilB, lompat ke AKecil 
+      JE Sama ; Jika BilA = BilB, lompat ke Sama 
+      JA ABesar ; Jika BilA > BilB, lompat ke ABesar 
+  AKecil:
+      LEA DX,Kal0 ; Ambil offset Kal0 
+      JMP Cetak ; Lompat ke cetak 
+  Sama: 
+      LEA DX,Kal1 ; Ambil offset Kal1 
+      JMP Cetak ; Lompat ke cetak 
+  ABesar: 
+      LEA DX,Kal2 ; Ambil offset Kal2 
+  Cetak: 
+      MOV AH,09 ; Servis untuk mencetak kalimat 
+      INT 21h ; Cetak kalimat !! 
+ EXIT: 
+       MOV AH,4CH         ; Keluar dari program dengan kode 0
+       MOV AL,0
+       INT 21H            ; Memanggil interrupt untuk mengakhiri program 
+END Proses
+\end{lstlisting}
 
-\subsubsection{DIV (Division)}
-Pembagian unsigned: \texttt{DIV source}
+            \subsubsection{Jump untuk Perbandingan Bertanda vs Tak Bertanda}
+Penting untuk memahami perbedaan antara perbandingan bertanda (signed) dan tak bertanda (unsigned) untuk menghindari kesalahan logika.
 
-\begin{itemize}
-    \item 8-bit: \texttt{AX ÷ source} → \texttt{AL} (quotient), \texttt{AH} (remainder)
-    \item 16-bit: \texttt{DX:AX ÷ source} → \texttt{AX} (quotient), \texttt{DX} (remainder)
-\end{itemize}
+\begin{table}[H]
+\centering
+\caption{Perbandingan Jump Instructions}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Instruksi} & \textbf{Condition} & \textbf{Type} & \textbf{Deskripsi} \\
+\hline
+JE/JZ & ZF=1 & Both & Jump if equal/zero \\
+JNE/JNZ & ZF=0 & Both & Jump if not equal/not zero \\
+\hline
+JL/JNGE & SF != OF & Signed & Jump if less (signed) \\
+JLE/JNG & ZF=1 OR SF != OF & Signed & Jump if less or equal \\
+JG/JNLE & ZF=0 AND SF=OF & Signed & Jump if greater \\
+JGE/JNL & SF=OF & Signed & Jump if greater or equal \\
+\hline
+JB/JC/JNAE & CF=1 & Unsigned & Jump if below/carry \\
+JBE/JNA & CF=1 OR ZF=1 & Unsigned & Jump if below or equal \\
+JA/JNBE & CF=0 AND ZF=0 & Unsigned & Jump if above \\
+JAE/JNC/JNB & CF=0 & Unsigned & Jump if above or equal \\
+\hline
+\end{tabular}
+\end{table}
 
-Contoh:
-\begin{verbatim}
-mov ax, 100          ; Dividend
-mov bl, 7            ; Divisor
-div bl               ; AL = 14 (quotient), AH = 2 (remainder)
-\end{verbatim}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Perbandingan Bertanda vs Tak Bertanda, label={lst:signed-unsigned-ch08}]
+; Contoh perbandingan bertanda vs tak bertanda
+.MODEL SMALL
+.STACK 100h
+.DATA
+    msg_signed DB 'Perbandingan bertanda:$'
+    msg_unsigned DB 'Perbandingan tak bertanda:$'
+    msg_less DB 'Nilai pertama lebih kecil$'
+    msg_greater DB 'Nilai pertama lebih besar$'
+    msg_equal DB 'Nilai sama$'
+    
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Contoh 1: Perbandingan bertanda
+    ; -128 (signed) vs 127 (signed)
+    MOV AL, -128       ; AL = 80h (128 dalam signed)
+    MOV BL, 127        ; BL = 7Fh (127 dalam signed)
+    CMP AL, BL
+    JL signed_less     ; -128 < 127 (signed comparison)
+    
+    ; Contoh 2: Perbandingan tak bertanda
+    ; 80h (128 unsigned) vs 7Fh (127 unsigned)
+    MOV AL, 80h        ; AL = 128 (unsigned)
+    MOV BL, 7Fh        ; BL = 127 (unsigned)
+    CMP AL, BL
+    JA unsigned_greater ; 128 > 127 (unsigned comparison)
+    
+    ; Contoh 3: Kesalahan penggunaan
+    MOV AL, -1         ; AL = FFh (-1 signed, 255 unsigned)
+    MOV BL, 1          ; BL = 01h (1 signed dan unsigned)
+    CMP AL, BL
+    ; Jika menggunakan JB (unsigned): FFh < 01h = FALSE
+    ; Jika menggunakan JL (signed): -1 < 1 = TRUE
+    
+signed_less:
+    MOV AH, 09h
+    MOV DX, OFFSET msg_less
+    INT 21h
+    JMP end_program
+    
+unsigned_greater:
+    MOV AH, 09h
+    MOV DX, OFFSET msg_greater
+    INT 21h
+    
+end_program:
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{lstlisting}
 
-\subsection{Dampak terhadap Register Flags}
-\begin{itemize}
-    \item \textbf{CF (Carry Flag)}: Set jika ada carry out dari MSB (unsigned overflow)
-    \item \textbf{OF (Overflow Flag)}: Set jika ada signed overflow
-    \item \textbf{ZF (Zero Flag)}: Set jika hasil operasi adalah nol
-    \item \textbf{SF (Sign Flag)}: Set jika hasil negatif (MSB = 1)
-    \item \textbf{AF (Auxiliary Carry)}: Set jika ada carry dari bit 3 ke bit 4
-    \item \textbf{PF (Parity Flag)}: Set jika jumlah bit 1 dalam byte terendah genap
-\end{itemize}
+            \subsubsection{Conditional Jumps dan Jangkauan}
+Lompatan bersyarat menggunakan offset relatif pendek (\(\pm 128\) byte pada 8086). Untuk jangkauan lebih jauh, gunakan skema \textit{inverted branch} + \texttt{JMP} jauh.
 
-\section{Instruksi Logika}\label{sec:instruksi-dasar-logika}
-\subsection{AND, OR, XOR, NOT}
-\subsubsection{AND}
-Operasi logika AND bit-per-bit: \texttt{AND destination, source}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Jangkauan Jump dan Inverted Branch, label={lst:jump-range}]
+; Contoh jump dengan jangkauan pendek (default)
+CMP AX, BX
+JE short_jump     ; Jangkauan pendek ($\pm$128 byte)
 
-Contoh:
-\begin{verbatim}
-mov al, 10101100b
-and al, 11110000b    ; AL = 10100000b
-\end{verbatim}
+; Contoh jump dengan jangkauan jauh (inverted branch)
+CMP AX, BX
+JNE skip_far_jump ; Inverted condition
+JMP far_label     ; JMP jauh ke label yang jauh
 
-\subsubsection{OR}
-Operasi logika OR bit-per-bit: \texttt{OR destination, source}
+skip_far_jump:
+    ; Kode untuk kondisi tidak sama
+    
+far_label:
+    ; Kode untuk kondisi sama (jauh dari CMP)
+\end{lstlisting}
 
-Contoh:
-\begin{verbatim}
-mov al, 10101100b
-or al, 00001111b     ; AL = 10101111b
-\end{verbatim}
+\subsubsection{Pola Kontrol Alur yang Umum}
+Gunakan pola \textbf{if-else}, \textbf{switch-like} (tabel lompatan/\textit{jump table} berbasis indeks), dan \textbf{loop counted} (\texttt{CX}) vs \textbf{loop sentinel} (berhenti pada kondisi). Tabel lompatan dapat diimplementasikan dengan daftar alamat dan \texttt{JMP [BX+SI]}. 
 
-\subsubsection{XOR}
-Operasi logika XOR bit-per-bit: \texttt{XOR destination, source}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Jump Table (Switch-like), label={lst:jump-table}]
+; Contoh implementasi jump table
+.MODEL SMALL
+.STACK 100h
+.DATA
+    msg1 DB 'Menu 1 dipilih$'
+    msg2 DB 'Menu 2 dipilih$'
+    msg3 DB 'Menu 3 dipilih$'
+    msg_default DB 'Menu tidak valid$'
+    jump_table DW case1, case2, case3
+    
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Simulasi input menu (1-3)
+    MOV AX, 2           ; Menu yang dipilih
+    CMP AX, 1
+    JL invalid_menu
+    CMP AX, 3
+    JG invalid_menu
+    
+    ; Hitung offset untuk jump table
+    DEC AX              ; AX = 0, 1, atau 2
+    SHL AX, 1           ; AX = 0, 2, atau 4 (word offset)
+    MOV BX, AX
+    JMP jump_table[BX]
+    
+case1:
+    MOV AH, 09h
+    MOV DX, OFFSET msg1
+    INT 21h
+    JMP end_program
+    
+case2:
+    MOV AH, 09h
+    MOV DX, OFFSET msg2
+    INT 21h
+    JMP end_program
+    
+case3:
+    MOV AH, 09h
+    MOV DX, OFFSET msg3
+    INT 21h
+    JMP end_program
+    
+invalid_menu:
+    MOV AH, 09h
+    MOV DX, OFFSET msg_default
+    INT 21h
+    
+end_program:
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{lstlisting}
 
-Contoh:
-\begin{verbatim}
-mov al, 10101100b
-xor al, 11111111b    ; AL = 01010011b (bit flip)
-\end{verbatim}
+\subsubsection{Optimasi Cabang}
+Cabang pendek (\texttt{Jcc} 8-bit) lebih padat; restrukturisasi kondisi untuk memanfaatkan jangkauan pendek saat mungkin. Hindari memodifikasi \texttt{CX} tak sengaja saat memakai \texttt{LOOP}. 
 
-\subsubsection{NOT}
-Komplemen bit-per-bit: \texttt{NOT destination}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Optimasi Cabang, label={lst:branch-optimization}]
+; Contoh optimasi cabang
 
-Contoh:
-\begin{verbatim}
-mov al, 10101100b
-not al               ; AL = 01010011b
-\end{verbatim}
+; Versi tidak optimal (menggunakan JMP tidak perlu)
+CMP AX, BX
+JE equal_case
+JMP not_equal_case    ; JMP tidak perlu
 
-\section{Instruksi Shift dan Rotate}\label{sec:instruksi-dasar-shift}
-\subsection{SHL/SHR (Logical Shift)}
-\subsubsection{SHL (Shift Left)}
-Geser bit ke kiri, isi dengan 0: \texttt{SHL destination, count}
+equal_case:
+    ; Kode untuk equal
+    JMP end_if
+    
+not_equal_case:
+    ; Kode untuk not equal
+    
+end_if:
 
-Contoh:
-\begin{verbatim}
-mov al, 00001010b    ; 10 desimal
-shl al, 1            ; AL = 00010100b (20 desimal)
-\end{verbatim}
+; Versi optimal (menghilangkan JMP yang tidak perlu)
+CMP AX, BX
+JE equal_case_opt
 
-\subsubsection{SHR (Shift Right)}
-Geser bit ke kanan, isi dengan 0: \texttt{SHR destination, count}
+; Kode untuk not equal (fall through)
 
-Contoh:
-\begin{verbatim}
-mov al, 00010100b    ; 20 desimal
-shr al, 1            ; AL = 00001010b (10 desimal)
-\end{verbatim}
+equal_case_opt:
+    ; Kode untuk equal
+\end{lstlisting}
 
-\subsection{SAL/SAR (Arithmetic Shift)}
-\subsubsection{SAL (Shift Arithmetic Left)}
-Sama dengan SHL untuk bilangan positif.
+\subsection{Instruksi Perulangan (LOOP)}
+            Instruksi LOOP adalah cara efisien untuk membuat perulangan dalam assembly 8086. Semua instruksi LOOP menggunakan register CX sebagai counter dan secara otomatis menurunkan nilainya setiap iterasi.
 
-\subsubsection{SAR (Shift Arithmetic Right)}
-Geser bit ke kanan, pertahankan sign bit: \texttt{SAR destination, count}
+            \subsubsection{LOOP Dasar}
+Menurunkan \texttt{CX} dan melompat jika \texttt{CX} \(\neq 0\). Perhatikan bahwa \texttt{CX} berkurang terlebih dahulu, lalu diuji.
 
-Contoh:
-\begin{verbatim}
-mov al, 11110100b    ; -12 desimal (two's complement)
-sar al, 1            ; AL = 11111010b (-6 desimal)
-\end{verbatim}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Penggunaan LOOP Dasar, label={lst:loop-basic}]
+; Contoh perulangan sederhana dengan LOOP
+.MODEL SMALL
+.STACK 100h
+.DATA
+    msg DB 'Iterasi ke-$'
+    newline DB 0Dh, 0Ah, '$'
+    
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Perulangan 5 kali
+    MOV CX, 5
+loop_start:
+    ; Tampilkan pesan
+    MOV AH, 09h
+    MOV DX, OFFSET msg
+    INT 21h
+    
+    ; Tampilkan nomor iterasi (5-CX+1)
+    MOV AX, 5
+    SUB AX, CX
+    ADD AX, 1
+    ADD AL, '0'     ; Konversi ke ASCII
+    MOV DL, AL
+    MOV AH, 02h
+    INT 21h
+    
+    ; Tampilkan newline
+    MOV AH, 09h
+    MOV DX, OFFSET newline
+    INT 21h
+    
+    LOOP loop_start
+    
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{lstlisting}
 
-\subsection{ROL/ROR (Rotate)}
-\subsubsection{ROL (Rotate Left)}
-Rotasi bit ke kiri: \texttt{ROL destination, count}
+            \subsubsection{LOOPZ/LOOPE dan LOOP menjelaskan kondisi ZF}
+\texttt{LOOPZ}/\texttt{LOOPE} (Loop While Zero/Equal) dan \texttt{LOOPNZ}/\texttt{LOOPNE} (Loop While Not Zero/Not Equal) adalah varian LOOP yang mempertimbangkan Zero Flag (ZF).
 
-\subsubsection{ROR (Rotate Right)}
-Rotasi bit ke kanan: \texttt{ROR destination, count}
+\begin{table}[H]
+\centering
+\caption{Instruksi LOOP dan Kondisi}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Instruksi} & \textbf{Kondisi} & \textbf{Deskripsi} \\
+\hline
+LOOP & CX $\neq$ 0 & Loop selama CX tidak nol \\
+LOOPZ/LOOPE & CX $\neq$ 0 AND ZF = 1 & Bloop selama CX tidak nol dan ZF set \\
+LOOPNZ/LOOPNE & CX $\neq$ 0 AND ZF = 0 & Loop selama CX tidak nol dan ZF clear \\
+\hline
+\end{tabular}
+\end{table}
 
-\section{Operasi Signed vs Unsigned}\label{sec:instruksi-dasar-signed}
-\subsection{Perbedaan Interpretasi}
-\begin{itemize}
-    \item \textbf{Unsigned}: Semua bit diinterpretasikan sebagai nilai positif
-    \item \textbf{Signed}: MSB sebagai sign bit, sisanya menggunakan two's complement
-\end{itemize}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Penggunaan LOOPZ dan LOOPNZ, label={lst:loopz-loopnz}]
+; Contoh pencarian dalam array menggunakan LOOPZ/LOOPNZ
+.MODEL SMALL
+.STACK 100h
+.DATA
+    array DB 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+    array_size EQU 10
+    target DB 7
+    found_msg DB 'Nilai ditemukan di posisi: $'
+    not_found_msg DB 'Nilai tidak ditemukan$'
+    newline DB 0Dh, 0Ah, '$'
+    
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    
+    ; Pencarian menggunakan LOOPNZ
+    MOV CX, array_size
+    MOV SI, 0
+    MOV AL, target
+    
+search_loop:
+    CMP array[SI], AL     ; Bandingkan elemen dengan target
+    JE found              ; Jika ditemukan, keluar dari loop
+    INC SI                ; Pindah ke elemen berikutnya
+    LOOPNZ search_loop    ; Lanjut jika CX $\neq$ 0 dan ZF = 0
+    
+    ; Jika sampai sini, nilai tidak ditemukan
+    MOV AH, 09h
+    MOV DX, OFFSET not_found_msg
+    INT 21h
+    JMP end_program
+    
+found:
+    ; Tampilkan posisi yang ditemukan
+    MOV AH, 09h
+    MOV DX, OFFSET found_msg
+    INT 21h
+    
+    ; Tampilkan posisi (SI + 1)
+    MOV AX, SI
+    INC AX
+    ADD AL, '0'
+    MOV DL, AL
+    MOV AH, 02h
+    INT 21h
+    
+end_program:
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{lstlisting}
 
-\subsection{Contoh Perhitungan}
-\begin{verbatim}
-mov al, 11110100b    ; 244 (unsigned) atau -12 (signed)
-add al, 1            ; 245 (unsigned) atau -11 (signed)
-\end{verbatim}
+            \subsubsection{Kontrol Perulangan dan Alternatif}
+Hindari mengubah \texttt{CX} di dalam body kecuali disengaja. Untuk iterasi kompleks, kombinasi \texttt{DEC/JNZ} sering lebih fleksibel.
 
-\section{Contoh Soal dan Pembahasan}\label{sec:instruksi-dasar-contoh}
-\begin{enumerate}
-    \item \textbf{Jelaskan hasil operasi \texttt{MOV AX, 1234h} kemudian \texttt{ADD AX, 5678h}.}\\
-    AX akan berisi 1234h + 5678h = 68ACh. Flags yang terpengaruh: CF=0 (tidak ada carry), OF=0 (tidak ada signed overflow), ZF=0 (hasil bukan nol), SF=0 (hasil positif).
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Perbandingan LOOP vs DEC/JNZ, label={lst:loop-vs-dec-jnz}]
+; Perbandingan LOOP vs DEC/JNZ
 
-    \item \textbf{Berapa hasil \texttt{MUL BL} jika AL=10 dan BL=5?}\\
-    AX = 10 × 5 = 50 (32h dalam heksadesimal).
+; Metode 1: Menggunakan LOOP (otomatis decrement CX)
+MOV CX, 10
+loop_method:
+    ; Body loop
+    ; CX otomatis berkurang
+    LOOP loop_method
 
-    \item \textbf{Jelaskan operasi \texttt{AND AL, 0F0h} pada AL=ABh.}\\
-    ABh = 10101011b, 0F0h = 11110000b. Hasil AND: 10100000b = A0h. Operasi ini mempertahankan 4 bit atas dan mengosongkan 4 bit bawah.
+; Metode 2: Menggunakan DEC/JNZ (manual control)
+MOV CX, 10
+dec_method:
+    ; Body loop
+    DEC CX              ; Manual decrement
+    JNZ dec_method      ; Manual jump jika tidak nol
 
-    \item \textbf{Berapa hasil \texttt{SHL AX, 1} jika AX=5?}\\
-    AX = 5 = 0000000000000101b. Setelah SHL 1: AX = 0000000000001010b = 10. Ini setara dengan perkalian dengan 2.
-\end{enumerate}
+; Metode 3: Loop dengan kondisi kompleks
+MOV CX, 10
+complex_loop:
+    ; Body loop
+    ; Kondisi keluar dari loop
+    CMP AX, BX
+    JE exit_loop        ; Keluar jika kondisi terpenuhi
+    
+    DEC CX
+    JNZ complex_loop    ; Lanjut jika CX tidak nol
+    
+exit_loop:
+    ; Keluar dari loop
+\end{lstlisting}
 
-\section{Latihan}\label{sec:instruksi-dasar-latihan}
-\begin{enumerate}
-    \item Tulis program untuk menghitung (AX + BX) × CX dan simpan hasil di DX.
-    \item Implementasikan operasi swap antara register AX dan BX tanpa menggunakan register tambahan.
-    \item Buat program yang menggunakan operasi bit untuk memeriksa apakah suatu bilangan genap atau ganjil.
-    \item Gunakan instruksi shift untuk mengalikan AX dengan 8 dan bagi BX dengan 4.
-    \item Tulis program yang melakukan operasi XOR untuk mengenkripsi string sederhana.
-\end{enumerate}
+        \section{Contoh Program Terintegrasi}
+            Berikut adalah contoh program yang menggabungkan percabangan dan perulangan dalam satu aplikasi sederhana.
 
-\section{Tugas}\label{sec:instruksi-dasar-tugas}
-\begin{itemize}
-    \item \textbf{Kalkulator sederhana}: Buat program assembly yang melakukan operasi aritmatika dasar (+, -, ×, ÷) pada dua bilangan yang dimasukkan pengguna.
-    \item \textbf{Analisis flags}: Buat tabel yang menunjukkan kondisi flags setelah berbagai operasi aritmatika dengan contoh nilai yang berbeda.
-    \item \textbf{Manipulasi bit}: Implementasikan fungsi untuk mengatur, menghapus, dan memeriksa bit tertentu dalam register menggunakan operasi logika.
-    \item \textbf{Esai (400--600 kata)}: Bandingkan efisiensi operasi aritmatika dalam assembly dengan bahasa tingkat tinggi, sertakan contoh konkret dan analisis kinerja.
-\end{itemize}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Kalkulator Sederhana dengan Percabangan dan Perulangan, label={lst:integrated-program}]
+            ; Program Kalkulator Sederhana
+            TITLE Kalkulator dengan Percabangan dan Perulangan
+            .MODEL SMALL
+            .STACK 100h
 
-\section{Referensi}\label{sec:instruksi-dasar-referensi}
-\begin{itemize}
-    \item \cite{hyde2010art}
-    \item \cite{nopi2003tutorial}
-    \item \cite{intel2019manual32}
-\end{itemize}
+            .DATA
+; Pesan menu
+msg_menu DB '=== KALKULATOR SEDERHANA ===$'
+msg_ops DB '1. Tambah$'
+msg_ops2 DB '2. Kurang$'
+msg_ops3 DB '3. Kali$'
+msg_ops4 DB '4. Bagi$'
+msg_ops5 DB '5. Keluar$'
+msg_pilih DB 'Pilih operasi (1-5): $'
+
+; Pesan input/output
+msg_input1 DB 'Masukkan bilangan pertama: $'
+msg_input2 DB 'Masukkan bilangan kedua: $'
+msg_result DB 'Hasil: $'
+msg_newline DB 0Dh, 0Ah, '$'
+
+; Variabel
+num1 DW ?
+num2 DW ?
+result DW ?
+choice DB ?
+
+            .CODE
+            START:
+MOV AX, @DATA
+MOV DS, AX
+
+            main_loop:
+; Tampilkan menu
+CALL display_menu
+
+; Baca pilihan user
+CALL read_choice
+
+; Validasi pilihan
+CMP choice, 1
+JL invalid_choice
+CMP choice, 5
+JG invalid_choice
+
+; Percabangan berdasarkan pilihan
+CMP choice, 1
+JE addition
+CMP choice, 2
+JE subtraction
+CMP choice, 3
+JE multiplication
+CMP choice, 4
+JE division
+CMP choice, 5
+JE exit_program
+
+            invalid_choice:
+; Tampilkan pesan error dan ulangi
+JMP main_loop
+
+            addition:
+CALL get_two_numbers
+CALL add_numbers
+CALL display_result
+JMP main_loop
+
+            subtraction:
+CALL get_two_numbers
+CALL sub_numbers
+CALL display_result
+JMP main_loop
+
+            multiplication:
+CALL get_two_numbers
+CALL mul_numbers
+CALL display_result
+JMP main_loop
+
+            division:
+CALL get_two_numbers
+CALL div_numbers
+CALL display_result
+JMP main_loop
+
+            exit_program:
+MOV AH, 4Ch
+INT 21h
+
+            ; Prosedur untuk menampilkan menu
+            display_menu PROC
+MOV AH, 09h
+MOV DX, OFFSET msg_menu
+INT 21h
+MOV DX, OFFSET msg_newline
+INT 21h
+MOV DX, OFFSET msg_ops
+INT 21h
+MOV DX, OFFSET msg_ops2
+INT 21h
+MOV DX, OFFSET msg_ops3
+INT 21h
+MOV DX, OFFSET msg_ops4
+INT 21h
+MOV DX, OFFSET msg_ops5
+INT 21h
+MOV DX, OFFSET msg_newline
+INT 21h
+MOV DX, OFFSET msg_pilih
+INT 21h
+RET
+            display_menu ENDP
+
+            ; Prosedur untuk membaca pilihan
+            read_choice PROC
+MOV AH, 01h      ; Baca karakter
+INT 21h
+SUB AL, '0'      ; Konversi ke angka
+MOV choice, AL
+MOV AH, 09h      ; Tampilkan newline
+MOV DX, OFFSET msg_newline
+INT 21h
+RET
+            read_choice ENDP
+
+            ; Prosedur untuk membaca dua bilangan
+            get_two_numbers PROC
+MOV AH, 09h
+MOV DX, OFFSET msg_input1
+INT 21h
+; Baca bilangan pertama (sederhana)
+MOV num1, 10     ; Contoh nilai
+
+MOV DX, OFFSET msg_input2
+INT 21h
+; Baca bilangan kedua (sederhana)
+MOV num2, 5      ; Contoh nilai
+
+MOV DX, OFFSET msg_newline
+INT 21h
+RET
+            get_two_numbers ENDP
+
+            ; Prosedur penjumlahan
+            add_numbers PROC
+MOV AX, num1
+ADD AX, num2
+MOV result, AX
+RET
+            add_numbers ENDP
+
+            ; Prosedur pengurangan
+            sub_numbers PROC
+MOV AX, num1
+SUB AX, num2
+MOV result, AX
+RET
+            sub_numbers ENDP
+
+            ; Prosedur perkalian
+            mul_numbers PROC
+MOV AX, num1
+MUL num2         ; AX = AX * num2
+MOV result, AX
+RET
+            mul_numbers ENDP
+
+            ; Prosedur pembagian
+            div_numbers PROC
+MOV DX, 0        ; Clear DX untuk DIV
+MOV AX, num1
+DIV num2         ; AX = AX / num2
+MOV result, AX
+RET
+            div_numbers ENDP
+
+            ; Prosedur untuk menampilkan hasil
+            display_result PROC
+MOV AH, 09h
+MOV DX, OFFSET msg_result
+INT 21h
+
+; Tampilkan hasil (sederhana)
+MOV AX, result
+ADD AL, '0'      ; Konversi ke ASCII
+MOV DL, AL
+MOV AH, 02h
+INT 21h
+
+MOV AH, 09h
+MOV DX, OFFSET msg_newline
+INT 21h
+RET
+            display_result ENDP
+
+            END START
+            \end{lstlisting}
+
+        \section{Contoh Program Tambahan}
+            Berikut adalah contoh program sederhana yang mendemonstrasikan penggunaan percabangan dan perulangan secara terpisah untuk pemahaman yang lebih baik.
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Faktorial Sederhana, label={lst:factorial-program}]
+            ; Program Menghitung Faktorial
+            .MODEL SMALL
+            .STACK 100h
+            .DATA
+msg_input DB 'Masukkan angka (1-5): $'
+msg_result DB 'Faktorial dari $'
+msg_equals DB ' = $'
+msg_newline DB 0Dh, 0Ah, '$'
+input_num DB ?
+result DW ?
+
+            .CODE
+            START:
+MOV AX, @DATA
+MOV DS, AX
+
+; Tampilkan pesan input
+MOV AH, 09h
+MOV DX, OFFSET msg_input
+INT 21h
+
+; Baca input (sederhana - gunakan nilai tetap)
+MOV input_num, 5    ; Contoh: faktorial 5
+
+; Tampilkan pesan hasil
+MOV AH, 09h
+MOV DX, OFFSET msg_result
+INT 21h
+
+; Tampilkan angka input
+MOV DL, input_num
+ADD DL, '0'
+MOV AH, 02h
+INT 21h
+
+MOV AH, 09h
+MOV DX, OFFSET msg_equals
+INT 21h
+
+; Hitung faktorial
+MOV AL, input_num
+MOV AH, 0
+MOV result, AX
+
+; Perulangan untuk menghitung faktorial
+MOV CX, input_num
+DEC CX              ; Loop (n-1) kali
+
+            factorial_loop:
+MOV AX, result
+MUL CX              ; AX = result * CX
+MOV result, AX
+LOOP factorial_loop
+
+; Tampilkan hasil
+MOV AX, result
+CALL display_number
+
+MOV AH, 4Ch
+INT 21h
+
+            ; Prosedur untuk menampilkan angka
+            display_number PROC
+; Konversi dan tampilkan hasil (sederhana untuk angka kecil)
+ADD AL, '0'
+MOV DL, AL
+MOV AH, 02h
+INT 21h
+RET
+            display_number ENDP
+
+            END START
+            \end{lstlisting}
+
+        \section{Kesimpulan}
+            Bab ini telah membahas konsep fundamental kontrol alur dalam pemrograman assembly 8086:
+
+            \begin{itemize}
+\item \textbf{Instruksi CMP} memungkinkan perbandingan nilai tanpa mengubah operand, hanya mengatur flag register untuk digunakan oleh jump bersyarat.
+\item \textbf{Jump Bersyarat} menggunakan flag register untuk mengubah alur eksekusi berdasarkan kondisi tertentu, dengan perbedaan penting antara perbandingan bertanda dan tak bertanda.
+\item \textbf{Instruksi LOOP} menyediakan cara efisien untuk iterasi dengan register CX sebagai counter, dengan varian LOOPZ/LOOPE dan LOOPNZ/LOOPNE untuk kondisi yang lebih kompleks.
+\item \textbf{Kombinasi Percabangan dan Perulangan} memungkinkan pembuatan program yang kompleks dengan kontrol alur yang fleksibel.
+            \end{itemize}
+
+            Pemahaman yang baik tentang konsep-konsep ini adalah fondasi untuk pengembangan program assembly yang lebih kompleks di bab-bab selanjutnya.
+
 
 \end{document}

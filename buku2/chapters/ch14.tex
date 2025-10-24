@@ -1,193 +1,103 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Pemrosesan File Lanjutan}
+\chapter{Pemrograman Grafik Dasar}
 
-\section{Tujuan Pembelajaran}
-Mahasiswa mampu:
-\begin{itemize}
-    \item Menggunakan \texttt{INT 21h, AH=42h} (LSEEK) untuk memosisikan \textit{file pointer} relatif terhadap awal, posisi kini, atau akhir.
-    \item Menerapkan akses acak (random access) pada berkas dengan struktur rekaman (record) tetap/variabel.
-    \item Merancang penyimpanan data terformat (record-based) lengkap dengan validasi dan pembaruan in-place.
-    \item Menyusun aplikasi berkas yang modular (address book/inventory) dengan operasi CRUD.
-\end{itemize}
+    \section{Tujuan Pembelajaran}
+        Mahasiswa mampu:
+        \begin{itemize}
+            \item Menjelaskan perbedaan mode teks dan grafik, resolusi, palet warna, dan organisasi memori video.
+            \item Menggunakan layanan BIOS \texttt{INT 10h} untuk mengatur mode grafik, menulis/membaca piksel, dan memeriksa mode aktif.
+            \item Menggambar piksel dan garis di layar pada koordinat tertentu dengan warna yang dipilih.
+            \item Mengimplementasikan algoritma garis (DDA/Bresenham) dan memahami trade-off kinerja/akurasi.
+            \item Mengembangkan program grafik sederhana berbasis mode 13h (320x200x256) sebagai studi kasus.
+        \end{itemize}
 
-\section{Pendahuluan}
-Operasi berkas lanjutan meliputi pemindahan \textit{file pointer} untuk membaca/menulis pada posisi tertentu. Dengan \texttt{LSEEK} (\texttt{AH=42h}), program dapat mengakses bagian mana pun dari berkas secara efisien tanpa membaca dari awal. Pengorganisasian data ke dalam rekaman tetap (\textit{fixed-length}) atau variabel (\textit{variable-length}) memudahkan pengelolaan dan mempercepat pencarian serta pembaruan.
+    \section{Pendahuluan}
+        Mode grafik menyediakan akses piksel-tingkat ke layar, berbeda dengan mode teks yang berbasis karakter. Pada lingkungan DOS, BIOS menyediakan fungsi \texttt{INT 10h} untuk mengatur mode, menulis/membaca piksel, dan berbagai operasi tampilan. Mode 13h (320x200 dengan 256 warna) populer untuk pembelajaran karena memori video \textit{linear} (satu byte per piksel) yang mudah diakses. Materi ini ditempatkan setelah percabangan dan perulangan agar contoh dapat menggunakan kontrol alur yang tepat.
 
-\section{Manipulasi File Pointer}
-\subsection{Konsep pointer dan posisi}
-\textit{File pointer} adalah offset dari awal berkas yang menentukan lokasi baca/tulis berikutnya. Semua operasi baca/tulis memulai dari pointer ini dan memajukannya sesuai jumlah byte yang dioperasikan.
+    \section{Konsep Mode Grafik}
+        \subsection{Perbedaan mode teks dan grafik}
+            Mode teks menampilkan karakter dari tabel font di layar, sedangkan mode grafik memetakan memori video langsung ke piksel. Mode teks lebih hemat memori dan sederhana; mode grafik memberi fleksibilitas menggambar bentuk bebas.
 
-\subsubsection{Fungsi 42h: LSEEK}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AH=42h}, \texttt{AL=origin} (0=awal, 1=kini, 2=akhir), \texttt{BX=handle}, \texttt{CX:DX=offset 32-bit}.
-  \item \textbf{Keluaran}: \texttt{DX:AX} berisi posisi baru; CF=1 saat error.
-\end{itemize}
-Gunakan nilai 32-bit untuk berkas besar. Hati-hati terhadap tanda (gunakan offset tak bertanda untuk maju; untuk mundur, gunakan representasi dua komplemen).
+        \subsubsection{Resolusi layar dan palet}
+            Resolusi menyatakan jumlah piksel horizontal x vertikal. Pada mode 13h: 320x200 piksel, 256 warna (palet 8-bit). Nilai warna \(0..255\) memetakan ke entri palet yang dapat diatur (di luar cakupan dasar ini).
 
-\subsubsection{Random access}
-Dengan menghitung offset rekaman ke-\(i\) (mis., \(i \cdot \text{record\_size}\)) dan memanggil \texttt{LSEEK}, kita dapat langsung membaca/menulis rekaman tersebut tanpa memproses rekaman sebelumnya.
+        \subsubsection{Organisasi memori video dan pengalamatan piksel}
+            Pada mode 13h, buffer video mulai di \texttt{A000:0000}. Offset piksel \((x,y)\) adalah \(y\cdot 320 + x\). Untuk mode lain (planar EGA/VGA), organisasi lebih kompleks.
 
-\subsection{Data Terformat}
-\subsubsection{Konsep dan pilihan desain}
-\begin{itemize}
-  \item \textbf{Fixed-length}: setiap rekaman memiliki ukuran konstan; akses mudah via aritmetika offset.
-  \item \textbf{Variable-length}: hemat ruang untuk data bervariasi; memerlukan indeks atau delimiter.
-  \item \textbf{Serialization}: representasi \textit{in-memory} menjadi urutan byte yang konsisten, memperhatikan endianness dan \textit{alignment}.
-\end{itemize}
+        \subsection{Interupsi INT 10h untuk Grafik}
+            \subsubsection{Fungsi 00h: Set Video Mode}
+                \begin{itemize}
+                    \item \textbf{Masukan}: \texttt{AH=00h}, \texttt{AL=mode} (\texttt{13h} untuk 320x200x256, \texttt{03h} kembali ke teks 80x25).
+                    \item \textbf{Efek}: Mengatur mode tampilan dan membersihkan layar.
+                \end{itemize}
 
-\subsubsection{Record-based data}
-Contoh rekaman: nama (15 byte, \textit{padded space}), umur (1 byte), gaji (2 byte, little-endian). Tentukan \texttt{record\_size} dan \texttt{schema} secara eksplisit.
+            \subsubsection{Fungsi 0Ch: Write Pixel}
+                \begin{itemize}
+                    \item \textbf{Masukan}: \texttt{AH=0Ch}, \texttt{AL=color}, \texttt{BH=page}, \texttt{CX=x}, \texttt{DX=y}.
+                    \item \textbf{Efek}: Menggambar piksel pada koordinat (x,y) dengan warna.
+                \end{itemize}
 
-\subsection{Database Sederhana}
-\subsubsection{Struktur record dan indeks}
-Sediakan berkas data dan opsional berkas indeks (kunci -> nomor rekaman). Operasi CRUD: buat (append), baca (seek + read), ubah (seek + write), hapus (mark as deleted atau kompaksi).
+            \subsubsection{Fungsi 0Dh: Read Pixel}
+                \begin{itemize}
+                    \item \textbf{Masukan}: \texttt{AH=0Dh}, \texttt{BH=page}, \texttt{CX=x}, \texttt{DX=y}.
+                    \item \textbf{Keluaran}: \texttt{AL=color} pada piksel (x,y).
+                \end{itemize}
 
-\subsubsection{File locking dan validasi}
-Pada DOS single-tasking, penguncian sering tidak diperlukan, namun tetap validasikan input (panjang nama, rentang umur/gaji) dan tangani kondisi balapan pada akses bersamaan (jika ada).
+            \subsubsection{Fungsi 0Fh: Get Video Mode}
+                Mengembalikan mode saat ini, ukuran kolom, dan nomor halaman aktif.
 
-\subsection{Optimasi Akses Berkas}
-\subsubsection{Buffering dan caching}
-Baca/tulis dalam blok yang lebih besar untuk mengurangi \textit{overhead} panggilan sistem. Cache rekaman sering diakses untuk mempercepat operasi berulang.
+        \subsection{Menggambar Piksel}
+            \subsubsection{Koordinat dan warna}
+                Koordinat (x,y) berbasis 0. Pastikan berada dalam batas resolusi. Untuk warna, pilih nilai palet \(0..255\).
 
-\subsubsection{Batch operations dan pemulihan error}
-Kelompokkan pembaruan; pada error, lakukan \textit{rollback} sederhana atau catat log status untuk pemulihan manual.
+            \subsubsection{Akses memori video langsung}
+                Selain \texttt{INT 10h, 0Ch}, dapat menulis langsung ke \texttt{A000:0000 + y*320 + x} untuk kinerja. Pastikan \texttt{ES} menunjuk \texttt{A000h} dan gunakan \texttt{MOV} ke \texttt{ES:[DI]}/\texttt{ES:[BX]}.
 
-\subsubsection{Layout Record dan Alignment}
-Tentukan \texttt{record\_size} eksak dan pertimbangkan perataan (alignment) jika diperlukan untuk akses cepat. Gunakan padding tetap untuk memudahkan seek ke \(i\cdot \text{record\_size}\). 
-\subsubsection{Indeks Sederhana}
-Untuk akses cepat berdasarkan kunci pendek (mis. NIM), bangun berkas indeks berisi pasangan (kunci, nomor rekaman). Muat sebagian indeks ke memori untuk mempercepat pencarian linear/binary. Sinkronkan pembaruan antara berkas data dan indeks. 
-\subsubsection{Update In-place vs Append-only}
-\textit{In-place} memperbarui pada offset yang sama, efisien namun berisiko korupsi pada kegagalan di tengah. Pola \textit{append-only} menulis versi baru di akhir dan menandai lama sebagai usang; memerlukan kompaksi berkala. Pilih sesuai kebutuhan keandalan/kinerja. 
-\subsubsection{Endianness dan Portabilitas}
-Simpan angka multi-byte dalam little-endian (konsisten dengan 8086). Jika berkas akan dipakai lintas arsitektur, dokumentasikan endianness dan lakukan konversi saat diperlukan. 
-\section{Praktikum}
-\begin{enumerate}
-  \item Demonstrasi \texttt{LSEEK}: lompat ke posisi tertentu dan tulis tanda penanda; verifikasi dengan membaca kembali.
-  \item Random access: baca rekaman ke-\(n\) dan tampilkan.
-  \item Data terformat: simpan beberapa rekaman tetap, lalu ubah satu rekaman di tempat (in-place update).
-  \item DB sederhana: operasi CRUD pada berkas data; tampilkan daftar seluruh rekaman.
-  \item Manajemen berkas: hapus (mark) rekaman lalu lakukan kompaksi untuk menghilangkan celah.
-\end{enumerate}
+            \subsubsection{Mode VGA 13h dan Palet}
+                Pada mode 13h, satu byte merepresentasikan indeks palet (0..255). Pengaturan palet (DAC) dilakukan dengan port I/O VGA (di luar cakupan dasar ini), namun penting dipahami bahwa nilai piksel bukan RGB langsung.
 
-\section{Contoh Kode}
-\begin{verbatim}
-; Program demonstrasi manipulasi file pointer dan data terformat (ringkas)
-TITLE Pemrosesan File Lanjutan
-.MODEL SMALL
-.STACK 100h
+            \subsubsection{Akses Langsung vs INT 10h}
+                Pemanggilan \texttt{INT 10h} untuk setiap piksel bersifat mahal. Untuk kinerja tinggi, gunakan akses langsung ke memori video: muat \texttt{ES=A000h}, hitung offset \(y\cdot 320 + x\), lalu simpan byte warna. Gunakan \texttt{REP STOSB} untuk mengisi area.
 
-.DATA
-    nama_file   DB 'data.dat', 0
-    file_handle DW ?
+            \subsubsection{Algoritma Garis: DDA vs Bresenham}
+                DDA menggunakan penambahan pecahan dan pembulatan; sederhana namun lebih lambat. Bresenham memakai hanya integer, cocok untuk perangkat keras lama. Uji di emulator untuk melihat perbedaan jumlah instruksi.
 
-    record_size EQU 20
-    ; Data contoh (fixed-length)
-    data1 DB 'John Doe       ', 25, 1000
-    data2 DB 'Jane Smith     ', 30, 1500
-    data3 DB 'Bob Johnson    ', 35, 2000
+            \subsubsection{Clipping Sederhana}
+                Selalu periksa \(0 \le x < 320\) dan \(0 \le y < 200\) sebelum menulis. Untuk garis, lakukan \textit{trivial reject} ketika seluruh segmen di luar batas; untuk implementasi penuh, terapkan Cohen–Sutherland (lanjutan).
 
-    buffer DB record_size DUP(?)
-    pesan_error DB 'Error dalam operasi!$'
+        \subsection{Algoritma Menggambar Garis}
+            \subsubsection{DDA (Digital Differential Analyzer)}
+                Menginkremen koordinat dengan langkah pecahan. Mudah dipahami namun menggunakan operasi pecahan/float atau perkiraan \textit{fixed-point}; dapat lebih lambat.
 
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
+            \subsubsection{Bresenham}
+                Menggunakan aritmatika integer dan \textit{error term} untuk menentukan piksel berikutnya. Lebih efisien dan akurat untuk layar raster. Materi ini ditempatkan setelah percabangan dan perulangan agar contoh dapat menggunakan kontrol alur yang tepat.
 
-    ; Buat dan tulis 3 rekaman
-    MOV AH, 3Ch
-    MOV CX, 0
-    MOV DX, OFFSET nama_file
-    INT 21h
-    JC  error
-    MOV file_handle, AX
+            \subsubsection{Implementasi ringkas}
+                \begin{verbatim}
+; Pseudo: Bresenham integer
+ dx = abs(x1-x0); dy = -abs(y1-y0)
+ sx = x0<x1 ? 1 : -1
+ sy = y0<y1 ? 1 : -1
+ err = dx + dy
+ while true:
+   plot(x0,y0)
+   if x0==x1 && y0==y1: break
+   e2 = 2*err
+   if e2 >= dy: err += dy; x0 += sx
+   if e2 <= dx: err += dx; y0 += sy
+                \end{verbatim}
 
-    ; Tulis data1..data3 (masing2 record_size byte)
-    MOV AH, 40h
-    MOV BX, file_handle
-    MOV CX, record_size
-    MOV DX, OFFSET data1
-    INT 21h
-    JC  error
-    MOV DX, OFFSET data2
-    INT 21h
-    JC  error
-    MOV DX, OFFSET data3
-    INT 21h
-    JC  error
+        \subsection{Koordinat dan Transformasi}
+            \subsubsection{Sistem koordinat}
+                Asal (0,0) di pojok kiri atas; x ke kanan, y ke bawah. Transformasi translasi/skalasi dapat diterapkan sebelum penggambaran.
 
-    ; Baca rekaman ke-2 via LSEEK (offset = 1*record_size)
-    MOV AH, 42h
-    MOV AL, 0          ; from beginning
-    MOV BX, file_handle
-    MOV CX, 0
-    MOV DX, record_size
-    INT 21h
-    JC  error
+            \subsubsection{Clipping dan viewport}
+                Batasi penggambaran dalam area tertentu untuk menghindari akses memori di luar layar. Sederhana: \textit{reject} jika di luar; lanjutkan jika di dalam.
 
-    ; Baca ke buffer
-    MOV AH, 3Fh
-    MOV BX, file_handle
-    MOV CX, record_size
-    MOV DX, OFFSET buffer
-    INT 21h
-    JC  error
 
-    ; Update rekaman ke-2 in-place: LSEEK mundur record_size
-    MOV AH, 42h
-    MOV AL, 1          ; from current
-    MOV BX, file_handle
-    MOV CX, 0
-    MOV DX, -record_size
-    INT 21h
-    JC  error
 
-    ; (Modifikasi buffer terlebih dahulu, kemudian tulis kembali)
-    ; Contoh: ubah umur (offset 15) dan gaji (offset 16..17)
-    MOV BYTE PTR buffer[15], 31
-    MOV WORD PTR buffer[16], 1600
 
-    ; Tulis balik
-    MOV AH, 40h
-    MOV BX, file_handle
-    MOV CX, record_size
-    MOV DX, OFFSET buffer
-    INT 21h
-    JC  error
-
-    ; Tutup dan selesai
-    MOV AH, 3Eh
-    MOV BX, file_handle
-    INT 21h
-    JMP done
-
-error:
-    MOV AH, 09h
-    MOV DX, OFFSET pesan_error
-    INT 21h
-
-done:
-    MOV AH, 4Ch
-    INT 21h
-END START
-\end{verbatim}
-
-\section{Latihan}
-\begin{enumerate}
-  \item Baca rekaman ke-\(k\) dari berkas dan tampilkan seluruh field.
-  \item Ubah field tertentu pada rekaman ke-\(k\) lalu tulis kembali (uji beberapa nilai k).
-  \item Tandai rekaman sebagai terhapus (byte status) dan buat utilitas kompaksi yang menuliskan ulang hanya rekaman aktif.
-  \item Tambahkan utilitas pencarian berdasarkan sebagian nama (\textit{prefix search}).
-\end{enumerate}
-
-\section{Tugas}
-\begin{itemize}
-  \item \textbf{Address book}: Rekaman berisi nama (padded), telepon, dan email; implementasikan CRUD lengkap dan simpan dalam berkas.
-  \item \textbf{Inventory sederhana}: Rekaman berisi id, nama barang, jumlah, dan harga; dukung pembaruan stok dan laporan.
-  \item \textbf{Student database}: Rekaman berisi NIM, nama, nilai; sediakan pencarian berdasarkan NIM dan penghitungan rata-rata kelas.
-  \item \textbf{Optimasi}: Dokumentasikan strategi buffering dan batch write yang Anda terapkan serta pengaruhnya terhadap kinerja.
-\end{itemize}
 
 
 \end{document}

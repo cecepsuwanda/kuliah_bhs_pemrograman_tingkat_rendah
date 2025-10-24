@@ -1,191 +1,1675 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Array dan String}
+\chapter{Input dari Keyboard dan Penanganan Buffer}
 
 \section{Tujuan Pembelajaran}
 Mahasiswa mampu:
 \begin{itemize}
-    \item Menjelaskan representasi array dan string dalam memori serta pengalamatan elemennya.
-    \item Menggunakan instruksi string \texttt{MOVS}, \texttt{CMPS}, \texttt{SCAS}, \texttt{LODS}, \texttt{STOS} dengan benar.
-    \item Mengoptimalkan operasi berulang menggunakan awalan \texttt{REP}/\texttt{REPE}/\texttt{REPNE} dan pengelolaan \texttt{DF}.
-    \item Membangun rutinitas manipulasi string/array (salin, banding, cari, panjang, balik, gabung, urut).
+    \item Menggunakan layanan BIOS \texttt{INT 16h} untuk membaca input keyboard (blocking/non-blocking) dan memeriksa status.
+    \item Menjelaskan konsep keyboard buffer, mekanisme kerja, dan teknik \textit{flush}/penanganan buffer penuh.
+    \item Mengembangkan program interaktif berbasis input karakter dan string (dengan/ tanpa echo) dengan validasi.
+    \item Menginterpretasikan kode ASCII vs. \textit{scan code} serta menangani tombol khusus (function, arrow, control).
 \end{itemize}
 
 \section{Pendahuluan}
-Array dan string adalah struktur data fundamental. Pada 8086, operasi berulang terhadap data berurutan didukung oleh instruksi string yang menggabungkan pembacaan/penulisan data dengan peningkatan/penurunan indeks otomatis (\texttt{SI}/\texttt{DI}) dan pengurangan pencacah (\texttt{CX}) bila digabung dengan awalan \texttt{REP}. Pengelolaan \texttt{Direction Flag} (\texttt{DF}) menentukan arah iterasi (naik dengan \texttt{CLD}, turun dengan \texttt{STD}).
+Interaksi pengguna pada lingkungan DOS banyak bertumpu pada layanan BIOS untuk perangkat input seperti keyboard \cite{rbil}. \texttt{INT 16h} menyediakan antarmuka tingkat rendah yang konsisten untuk membaca tombol, memeriksa ketersediaan input, dan mendapatkan status \textit{modifier} (Shift/Ctrl/Alt) \cite{osdev_wiki}. Memahami perbedaan operasi \textit{blocking} dan \textit{non-blocking} penting agar program responsif dan tidak \textit{hang} menunggu masukan. Materi ini ditempatkan setelah percabangan dan perulangan agar contoh program dapat menggunakan kontrol alur yang tepat.
 
-\section{Konsep Array dan String}
-\subsection{Definisi dan penyimpanan}
-Array adalah koleksi elemen bertipe homogen yang tersusun kontigu. String dapat dipandang sebagai array karakter dengan konvensi terminasi (mis. \texttt{0} atau \texttt{\$}). Penyimpanan memperhatikan ukuran elemen (byte/word) untuk perhitungan offset.
+\section{Interupsi BIOS INT 16h}
+        Interupsi BIOS INT 16h menyediakan antarmuka tingkat rendah untuk mengakses keyboard pada sistem IBM PC dan kompatibel. Fungsi ini mengabstraksi kompleksitas hardware keyboard dan menyediakan API yang konsisten untuk membaca input pengguna.
 
-\subsubsection{Pengalamatan dan perhitungan offset}
-Offset elemen ke-\(i\) pada array byte: \(base + i\). Pada array word: \(base + 2\cdot i\). Gunakan \texttt{SI}/\texttt{DI} sebagai indeks sumber/tujuan.
+\subsection{Fungsi Keyboard}
+            BIOS INT 16h menyediakan beberapa fungsi untuk interaksi keyboard, masing-masing dengan tujuan dan perilaku yang spesifik.
 
-\subsubsection{String berterminasi}
+\subsubsection{Fungsi 00h: Read Key (Blocking)}
+Fungsi ini membaca satu karakter dari keyboard buffer dengan mode blocking, artinya program akan menunggu hingga ada tombol yang ditekan.
+
 \begin{itemize}
-  \item \textbf{Null-terminated (C)}: berakhir dengan \texttt{0}. Fungsi seperti panjang memindai hingga \texttt{0}.
-  \item \textbf{DOS \$-terminated}: digunakan oleh \texttt{INT 21h, AH=09h}; berakhir dengan \texttt{\$}.
-\end{itemize}
-Konsisten gunakan satu konvensi per rutinitas.
-
-\subsection{Penyimpanan Array}
-\subsubsection{Satu dimensi}
-Akses langsung via indeks. Untuk word, manfaatkan \texttt{XLAT} atau perhitungan manual \(i\times 2\).
-
-\subsubsection{Multi dimensi}
-Gunakan perataan baris (row-major). Offset \((r,c)\) pada array word berdimensi \(R\times C\): \(base + 2\cdot (r\cdot C + c)\).
-
-\subsection{Instruksi String}
-\subsubsection{MOVS}
-Menyalin dari \texttt{DS:SI} ke \texttt{ES:DI}; varian \texttt{MOVSB}/\texttt{MOVSW}. Dengan \texttt{REP}, menyalin \texttt{CX} elemen.
-\begin{verbatim}
-cld
-mov  cx, len
-lea  si, src
-lea  di, dst
-rep  movsb
-\end{verbatim}
-
-\subsubsection{CMPS}
-Membandingkan \texttt{DS:SI} dengan \texttt{ES:DI}; atur \textit{flags}. Dengan \texttt{REPE}/\texttt{REPZ} berhenti pada perbedaan atau saat \texttt{CX}=0.
-\begin{verbatim}
-cld
-mov  cx, n
-lea  si, s1
-lea  di, s2
-repe cmpsb
-jne  berbeda
-\end{verbatim}
-
-\subsubsection{SCAS}
-Membandingkan \texttt{AL}/\texttt{AX} dengan \texttt{ES:DI}. Umum untuk mencari karakter/word.
-\begin{verbatim}
-cld
-mov  al, ch
-mov  cx, n
-lea  di, buf
-repne scasb
-jne  not_found
-\end{verbatim}
-
-\subsubsection{LODS}
-Memuat dari \texttt{DS:SI} ke \texttt{AL}/\texttt{AX}, menaikkan/menurunkan \texttt{SI}.
-
-\subsubsection{STOS}
-Menyimpan dari \texttt{AL}/\texttt{AX} ke \texttt{ES:DI}; dengan \texttt{REP}, mengisi blok dengan nilai yang sama.
-\begin{verbatim}
-cld
-mov  al, 0
-mov  cx, 80
-lea  di, line
-rep  stosb
-\end{verbatim}
-
-\subsubsection{Awalan REP dan Direction Flag}
-\texttt{REP} mengulang hingga \texttt{CX}=0. \texttt{REPE}/\texttt{REPZ} mengulang selama \texttt{ZF=1}; \texttt{REPNE}/\texttt{REPNZ} selama \texttt{ZF=0}. Gunakan \texttt{CLD} untuk iterasi maju, \texttt{STD} untuk mundur; kembalikan ke \texttt{CLD} demi konsistensi.
-
-\subsection{Register untuk Operasi String}
-\begin{itemize}
-  \item \textbf{SI/DI}: indeks sumber/tujuan (\texttt{DS:SI}, \texttt{ES:DI}).
-  \item \textbf{CX}: pencacah pengulangan untuk \texttt{REP}.
-  \item \textbf{AL/AX}: akumulator untuk \texttt{LODS}/\texttt{SCAS}/\texttt{STOS}.
-  \item \textbf{DF}: arah iterasi; atur dengan \texttt{CLD}/\texttt{STD}.
-  \item \textbf{ES}: segmen tujuan harus diinisialisasi (sering disamakan dengan \texttt{DS} bila menyalin dalam segmen sama).
+    \item \textbf{Masukan}: \texttt{AH=00h}
+    \item \textbf{Keluaran}: 
+        \begin{itemize}
+            \item \texttt{AL=ASCII code} (0 jika tombol non-printable)
+            \item \texttt{AH=scan code}
+        \end{itemize}
+    \item \textbf{Perilaku}: Menunggu hingga tombol ditekan; gunakan untuk input yang memerlukan sinkronisasi.
+    \item \textbf{Contoh Penggunaan}: Input karakter tunggal, menu pilihan sederhana
 \end{itemize}
 
-\section{Praktikum}
-\begin{enumerate}
-  \item Demonstrasi akses elemen array (byte/word) dan perhitungan offset.
-  \item Salin string menggunakan \texttt{REP MOVSB} dan verifikasi.
-  \item Bandingkan dua string dengan \texttt{REPE CMPSB}; tampilkan hasil sama/berbeda.
-  \item Cari karakter dalam string dengan \texttt{REPNE SCASB}; laporkan posisi ditemukan.
-  \item Implementasi rutin panjang dan pembalik string menggunakan \texttt{LODS}/\texttt{STOS}.
-\end{enumerate}
-
-\section{Contoh Kode}
-\begin{verbatim}
-; Program demonstrasi array dan string
-TITLE Array dan String
-.MODEL SMALL
-.STACK 100h
-
-.DATA
-    array   DW 10, 20, 30, 40, 50
-    string1 DB 'Hello World$'
-    string2 DB 20 DUP('$')
-    string3 DB 'Assembly$'
-    string4 DB 'Assembly$'
-    karakter DB 'l'
-    panjang EQU $ - string1
-
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
-    MOV ES, AX
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Lengkap - Keyboard Input Demo, label={lst:int16h-00h}]
+;/========================================\; 
+; Program : READKEY.ASM                    ; 
+; Fungsi  : Input satu karakter            ; 
+;           dari keyboard.                 ; 
+;==========================================; 
+;             INTERUPSI 16h                ; 
+;==========================================; 
+;      Input:        OutPut:               ; 
+;      AH = 0    Jika tombol biasa, maka:  ; 
+;                AL = ASCII                ; 
+;                AH = SCAN                 ; 
+;                                          ; 
+;                Jika Tombol khusus, maka  ; 
+;                AL = 00                   ; 
+;                AH = Extended             ; 
+;                                          ; 
+;\========================================/; 
+ .MODEL SMALL 
+ .DATA
+ 
+  kal DB 'Tekan sembarang Tombol (tekan q untuk berhenti) : $'
+  T_ASCII DB 'Anda menekan tombol ASCII : $' 
+  T_Extended DB 'Anda menekan tombol Extended $' 
+  T_Enter DB 13,10,'$'
+  
+ .CODE 
+ ORG 100h 
+ 
+ Proses : 
+    MOV AX, @data   ; Mengatur segment data
+    MOV DS, AX      ; Memuat segment data ke DS
     
-    ; Akses elemen array (word): indeks ke-2 (basis 0)
-    MOV BX, 2
-    SHL BX, 1            ; *2 untuk word
-    MOV AX, array[BX]    ; AX = 30
-    
-    ; Copy string menggunakan MOVS
-    LEA SI, string1
-    LEA DI, string2
-    MOV CX, panjang
-    CLD
-    REP MOVSB
-    
-    ; Perbandingan string menggunakan CMPS
-    LEA SI, string3
-    LEA DI, string4
-    MOV CX, 8
-    CLD
-    REPE CMPSB
-    JE sama
-    JMP lanjut
-sama:
-    ; String sama
-lanjut:
-    ; Pencarian karakter menggunakan SCAS
-    LEA DI, string1
-    MOV AL, karakter
-    MOV CX, panjang
-    CLD
-    REPNE SCASB
-    JE ditemukan
-    JMP selesai
+    LEA DX,kal     ; Ambil alamat efektif kal 
+    MOV AH,09      ; Servis cetak kalimat 
+    INT 21h        ; Cetak kalimat !
+    MOV AH,0     ; Servis Input satu karakter 
+    INT 16h      ; Laksanakan 
+    PUSH AX      ; Simpan hasil pembacaan pada stack 
+    CMP AL,00    ; Apakah ini karakter extended ? 
+    JE Extended  ; Ya !, Lompat ke Extended 
+ ASCII: 
+    LEA DX,T_Enter ; Ambil alamat efektif T_Enter 
+    MOV AH,09      ; Servis cetak kalimat 
+    INT 21h        ; Cetak kalimat !
+    LEA DX,T_ASCII ; Ambil alamat efektif T_ASCII 
+    MOV AH,09      ; Servis cetak kalimat 
+    INT 21h        ; Cetak kalimat ! 
+    POP AX         ; Ambil kembali nilai AX pada stack 
+    MOV DL,AL      ; Ambil kode ASCII yang ditekan 
+    MOV AH,2       ; Servis cetak karakter 
+    INT 21h        ; Cetak karakter !
+    LEA DX,T_Enter ; Ambil alamat efektif T_Enter 
+    MOV AH,09      ; Servis cetak kalimat 
+    INT 21h        ; Cetak kalimat !
+    CMP AL,'Q'     ; Apakah yang ditekan huruf 'Q' ? 
+    JE exit        ; Ya !, lompat ke Exit 
+    CMP AL,'q'     ; Apakah yang ditekan huruf 'q' ? 
+    JE exit        ; Ya !, lompat ke Exit 
+    JMP Proses     ; Lompat ke Proses 
+ Extended: 
+    LEA DX,T_Enter ; Ambil alamat efektif T_Enter 
+    MOV AH,09      ; Servis cetak kalimat 
+    INT 21h        ; Cetak kalimat !
+    LEA DX,T_Extended ; Ambil alamat efektif T_Extended 
+    MOV AH,09         ; Servis cetak kalimat 
+    INT 21h           ; Cetak kalimat !
+    LEA DX,T_Enter ; Ambil alamat efektif T_Enter 
+    MOV AH,09      ; Servis cetak kalimat 
+    INT 21h        ; Cetak kalimat !
+    JMP Proses        ; Lompat ke Proses 
+ exit: 
+      MOV AH,4CH         ; Keluar dari program dengan kode 0
+      MOV AL,0
+      INT 21H            ; Memanggil interrupt untuk mengakhiri program
+ END Proses
+\end{lstlisting}
 
-ditemukan:
-    ; Karakter ditemukan (posisi dapat dihitung)
-selesai:
-    ; Isi blok dengan 'X' menggunakan STOS
-    LEA DI, string2
-    MOV AL, 'X'
-    MOV CX, 5
-    CLD
-    REP STOSB
-    
-    MOV AH, 4Ch
-    INT 21h
-END START
-\end{verbatim}
+\subsubsection{Fungsi 01h: Check for Key (Non-blocking)}
+Fungsi ini memeriksa apakah ada karakter tersedia di keyboard buffer tanpa menunggu atau menghapus karakter dari buffer.
 
-\section{Latihan}
-\begin{enumerate}
-  \item Akses elemen array dengan indeks dan tampilkan nilainya dalam heksadesimal.
-  \item Salin string dari satu lokasi ke lokasi lain menggunakan \texttt{MOVS}; pastikan terminator ikut disalin sesuai konvensi.
-  \item Bandingkan dua string dengan panjang berbeda; tentukan hasil leksikografis sederhana.
-  \item Cari semua kemunculan karakter dalam string dan catat posisinya ke array hasil.
-\end{enumerate}
-
-\section{Tugas}
 \begin{itemize}
-  \item \textbf{Panjang string}: Implementasikan \texttt{strlen} untuk terminator \texttt{0} \textbf{atau} \texttt{'{\$}'} (pilih salah satu) menggunakan \texttt{SCASB}.
-  \item \textbf{Balik string}: Implementasikan pembalik in-place menggunakan dua indeks (awal/akhir) atau \texttt{LODS}/\texttt{STOS} ke buffer sementara.
-  \item \textbf{Gabung string}: Implementasikan \texttt{strcat} sederhana; pastikan tidak terjadi \textit{overflow} buffer tujuan.
-  \item \textbf{Urutkan array}: Urutkan array word kecil (mis. 10 elemen) dengan \textit{bubble sort}; tampilkan hasil setiap putaran.
+    \item \textbf{Masukan}: \texttt{AH=01h}
+    \item \textbf{Keluaran}: 
+        \begin{itemize}
+            \item \texttt{ZF=1} jika tidak ada tombol tersedia
+            \item \texttt{ZF=0} jika ada tombol, \texttt{AL}/\texttt{AH} berisi kode tanpa menghapus dari buffer
+        \end{itemize}
+    \item \textbf{Perilaku}: \textit{Polling} status keyboard; gunakan untuk antarmuka yang tidak boleh menunggu.
+    \item \textbf{Contoh Penggunaan}: Game loop, real-time applications, timeout input
 \end{itemize}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Fungsi 01h - Check for Key Non-blocking, label={lst:int16h-01h}]
+; Contoh penggunaan INT 16h AH=01h untuk polling
+check_keyboard:
+    mov ah, 01h          ; Fungsi check for key
+    int 16h              ; Panggil BIOS keyboard service
+    
+    jz no_key_pressed    ; Jika ZF=1, tidak ada tombol
+    
+    ; Jika ZF=0, ada tombol tersedia
+    mov ah, 00h          ; Sekarang baca tombol tersebut
+    int 16h              ; AL=ASCII, AH=scan code
+    
+    cmp al, 27           ; ESC key (ASCII 27)
+    je exit_program      ; Keluar jika ESC ditekan
+    
+    ; Handle tombol lain
+    jmp continue_program
+    
+no_key_pressed:
+    ; Tidak ada tombol, lanjutkan program
+    jmp continue_program
+    
+continue_program:
+    ; Lakukan pekerjaan lain
+    jmp check_keyboard   ; Loop kembali untuk cek keyboard
+    
+exit_program:
+\end{lstlisting}
+
+\subsubsection{Fungsi 02h: Get Keyboard Flags}
+Fungsi ini membaca status flag keyboard yang menunjukkan keadaan tombol modifier dan toggle keys.
+
+\begin{itemize}
+    \item \textbf{Masukan}: \texttt{AH=02h}
+    \item \textbf{Keluaran}: \texttt{AL} berisi bendera status dengan bit-bit berikut:
+        \begin{itemize}
+            \item Bit 0: Right Shift pressed
+            \item Bit 1: Left Shift pressed  
+            \item Bit 2: Ctrl pressed
+            \item Bit 3: Alt pressed
+            \item Bit 4: Scroll Lock active
+            \item Bit 5: Num Lock active
+            \item Bit 6: Caps Lock active
+            \item Bit 7: Insert mode active
+        \end{itemize}
+\end{itemize}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Fungsi 02h - Get Keyboard Flags, label={lst:int16h-02h}]
+; Contoh penggunaan INT 16h AH=02h untuk cek modifier keys
+mov ah, 02h          ; Fungsi get keyboard flags
+int 16h              ; Panggil BIOS keyboard service
+
+; AL sekarang berisi status flags
+test al, 00000010b   ; Test bit 1 (Left Shift)
+jnz shift_pressed    ; Lompat jika Shift ditekan
+
+test al, 00000100b   ; Test bit 2 (Ctrl)
+jnz ctrl_pressed     ; Lompat jika Ctrl ditekan
+
+test al, 00001000b   ; Test bit 3 (Alt)
+jnz alt_pressed      ; Lompat jika Alt ditekan
+
+test al, 01000000b   ; Test bit 6 (Caps Lock)
+jnz caps_active      ; Lompat jika Caps Lock aktif
+
+; Tidak ada modifier key yang ditekan
+jmp normal_key
+
+shift_pressed:
+    ; Handle Shift key combination
+    jmp end_check
+    
+ctrl_pressed:
+    ; Handle Ctrl key combination
+    jmp end_check
+    
+alt_pressed:
+    ; Handle Alt key combination
+    jmp end_check
+    
+caps_active:
+    ; Handle Caps Lock state
+    jmp end_check
+    
+normal_key:
+    ; Handle normal key press
+    
+end_check:
+\end{lstlisting}
+
+            \subsubsection{Parameter dan Nilai Kembali}
+Penting untuk memahami bagaimana parameter dan nilai kembali bekerja dalam BIOS INT 16h:
+
+\begin{itemize}
+    \item \textbf{Register Input}: Fungsi yang dipanggil ditentukan oleh nilai dalam register AH
+    \item \textbf{Register Output}: Hasil dikembalikan dalam register AL dan/atau AH
+    \item \textbf{Flag Register}: Beberapa fungsi mengubah flag register (terutama ZF untuk fungsi 01h)
+    \item \textbf{Buffer Management}: Fungsi 00h menghapus karakter dari buffer, fungsi 01h tidak
+\end{itemize}
+
+            \subsubsection{Blocking vs. Non-blocking}
+Pemahaman perbedaan antara blocking dan non-blocking sangat penting dalam pemrograman interaktif:
+
+\begin{itemize}
+    \item \textbf{Blocking (AH=00h)}:
+        \begin{itemize}
+            \item Menyederhanakan alur program
+            \item Program menunggu hingga ada input
+            \item Berisiko mengunci UI jika tidak ada input
+            \item Cocok untuk program yang memerlukan input wajib
+        \end{itemize}
+    \item \textbf{Non-blocking (AH=01h)}:
+        \begin{itemize}
+            \item Memungkinkan program tetap responsif
+            \item Dapat melakukan pekerjaan lain sambil menunggu input
+            \item Memerlukan polling loop
+            \item Cocok untuk aplikasi real-time dan game
+        \end{itemize}
+\end{itemize}
+
+\subsection{Keyboard Buffer}
+            Keyboard buffer adalah area memori yang digunakan BIOS untuk menyimpan penekanan tombol sebelum diproses oleh program. Memahami cara kerja buffer ini penting untuk menangani input dengan benar.
+
+            \subsubsection{Konsep dan Cara Kerja}
+\begin{itemize}
+    \item \textbf{Ring Buffer}: BIOS menggunakan struktur ring buffer untuk menyimpan penekanan tombol
+    \item \textbf{Kapasitas}: Buffer biasanya memiliki kapasitas 15-32 karakter
+    \item \textbf{Input/Output}: 
+        \begin{itemize}
+            \item Input: Hardware keyboard mengisi buffer saat tombol ditekan
+            \item Output: Program membaca buffer menggunakan INT 16h
+        \end{itemize}
+    \item \textbf{Operasi Buffer}:
+        \begin{itemize}
+            \item \texttt{INT 16h AH=00h}: Menghapus karakter dari buffer (FIFO)
+            \item \texttt{INT 16h AH=01h}: Membaca tanpa menghapus (peek)
+        \end{itemize}
+\end{itemize}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Penggunaan Keyboard Buffer, label={lst:keyboard-buffer}]
+; Contoh program yang mendemonstrasikan keyboard buffer
+org 100h
+
+start:
+    mov dx, offset msg_welcome
+    mov ah, 09h
+    int 21h                     ; Tampilkan pesan selamat datang
+    
+main_loop:
+    ; Cek apakah ada tombol yang tersedia
+    mov ah, 01h
+    int 16h
+    jz main_loop               ; Loop jika tidak ada tombol
+    
+    ; Ada tombol tersedia, baca tombol tersebut
+    mov ah, 00h
+    int 16h                    ; AL=ASCII, AH=scan code
+    
+    ; Handle tombol yang ditekan
+    cmp al, 27                 ; ESC key
+    je exit_program
+    
+    cmp al, '1'
+    je option_1
+    
+    cmp al, '2'
+    je option_2
+    
+    ; Tombol tidak dikenali
+    mov dx, offset msg_invalid
+    mov ah, 09h
+    int 21h
+    jmp main_loop
+    
+option_1:
+    mov dx, offset msg_option1
+    mov ah, 09h
+    int 21h
+    jmp main_loop
+    
+option_2:
+    mov dx, offset msg_option2
+    mov ah, 09h
+    int 21h
+    jmp main_loop
+    
+exit_program:
+    mov ah, 4Ch
+    int 21h
+
+; Data section
+msg_welcome db 'Press 1, 2, or ESC to exit$'
+msg_option1 db 'Option 1 selected$'
+msg_option2 db 'Option 2 selected$'
+msg_invalid db 'Invalid key$'
+\end{lstlisting}
+
+            \subsubsection{Penanganan Buffer Penuh}
+Ketika keyboard buffer penuh, penekanan tombol berikutnya dapat:
+\begin{itemize}
+    \item Hilang (discarded)
+    \item Menimpa entri lama (overwrite)
+    \item Menyebabkan beep sound sebagai indikasi
+\end{itemize}
+
+\textbf{Strategi Penanganan}:
+\begin{itemize}
+    \item Baca buffer secara reguler untuk mencegah overflow
+    \item Gunakan polling loop untuk aplikasi real-time
+    \item Implementasikan timeout untuk mencegah hang
+\end{itemize}
+
+            \subsubsection{Flushing Keyboard Buffer}
+Membersihkan keyboard buffer penting untuk menghilangkan input yang tidak diinginkan, terutama setelah mengubah mode input atau menampilkan menu.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Flushing Keyboard Buffer, label={lst:flush-buffer}]
+; Fungsi untuk membersihkan keyboard buffer
+flush_keyboard_buffer:
+    push ax
+    
+flush_loop:
+    mov ah, 01h                ; Check for key
+    int 16h
+    jz buffer_empty            ; Jika ZF=1, buffer kosong
+    
+    ; Ada tombol di buffer, hapus dengan membaca
+    mov ah, 00h                ; Read key
+    int 16h
+    jmp flush_loop             ; Loop hingga buffer kosong
+    
+buffer_empty:
+    pop ax
+    ret
+
+; Contoh penggunaan flush buffer
+show_menu:
+    ; Tampilkan menu
+    mov dx, offset menu_text
+    mov ah, 09h
+    int 21h
+    
+    ; Bersihkan buffer sebelum menunggu input
+    call flush_keyboard_buffer
+    
+    ; Sekarang tunggu input baru
+    mov ah, 00h
+    int 16h
+    ; AL sekarang berisi input yang valid
+    ret
+\end{lstlisting}
+
+\textbf{Alternatif dengan DOS}:
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Flush Buffer dengan DOS INT 21h, label={lst:dos-flush}]
+; Menggunakan DOS INT 21h AH=0Ch untuk flush buffer
+mov ah, 0Ch                   ; Flush buffer and read character
+mov al, 00h                   ; Function to call after flush
+int 21h                       ; Flush buffer, tidak membaca karakter
+\end{lstlisting}
+
+            \subsubsection{Status Keyboard Buffer}
+Memeriksa status keyboard buffer berguna untuk:
+\begin{itemize}
+    \item Menghindari blocking operations
+    \item Implementasi timeout
+    \item Real-time applications
+\end{itemize}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Status Keyboard Buffer dengan Timeout, label={lst:buffer-status}]
+; Fungsi untuk cek status buffer dengan timeout
+; Input: CX = timeout value (ticks)
+; Output: AL = 0 jika timeout, 1 jika ada input
+
+check_buffer_with_timeout:
+    push bx
+    push cx
+    
+check_loop:
+    ; Cek keyboard buffer
+    mov ah, 01h
+    int 16h
+    jnz input_available       ; Jika ada input, keluar
+    
+    ; Cek timeout menggunakan timer
+    mov ah, 00h
+    int 1Ah                   ; Get system time
+    cmp dx, [timeout_value]
+    jae timeout_reached       ; Jika timeout tercapai
+    
+    ; Belum timeout, loop lagi
+    jmp check_loop
+    
+input_available:
+    mov al, 1                 ; Ada input
+    jmp end_check
+    
+timeout_reached:
+    mov al, 0                 ; Timeout
+    
+end_check:
+    pop cx
+    pop bx
+    ret
+    
+timeout_value dw 0            ; Variable untuk menyimpan timeout value
+\end{lstlisting}
+
+\subsection{Input Karakter dan String}
+            Input karakter dan string adalah bagian fundamental dari program interaktif. BIOS INT 16h dan DOS INT 21h menyediakan berbagai cara untuk membaca input pengguna.
+
+            \subsubsection{Karakter Tunggal}
+Membaca karakter tunggal dapat dilakukan dengan berbagai cara tergantung kebutuhan program.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Input Karakter Tunggal, label={lst:single-char}]
+; Fungsi untuk membaca karakter tunggal dengan validasi
+; Input: Tidak ada
+; Output: AL = karakter yang valid (A-Z, a-z, 0-9)
+
+read_single_char:
+    push bx
+    
+read_loop:
+    mov ah, 00h                ; Read key blocking
+    int 16h                    ; AL = ASCII, AH = scan code
+    
+    ; Validasi karakter
+    cmp al, 'A'
+    jb check_lower             ; Jika < 'A', cek lowercase
+    cmp al, 'Z'
+    jbe valid_char             ; Jika 'A' <= AL <= 'Z', valid
+    
+check_lower:
+    cmp al, 'a'
+    jb check_digit             ; Jika < 'a', cek digit
+    cmp al, 'z'
+    jbe valid_char             ; Jika 'a' <= AL <= 'z', valid
+    
+check_digit:
+    cmp al, '0'
+    jb invalid_char            ; Jika < '0', invalid
+    cmp al, '9'
+    jbe valid_char             ; Jika '0' <= AL <= '9', valid
+    
+invalid_char:
+    ; Karakter tidak valid, tampilkan pesan
+    mov dx, offset msg_invalid_char
+    mov ah, 09h
+    int 21h
+    jmp read_loop              ; Coba lagi
+    
+valid_char:
+    ; Karakter valid, tampilkan echo
+    mov dl, al
+    mov ah, 02h
+    int 21h
+    
+    pop bx
+    ret
+    
+msg_invalid_char db 'Invalid character. Please enter A-Z, a-z, or 0-9.$'
+\end{lstlisting}
+
+\textbf{Input dengan Timeout}:
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Input Karakter dengan Timeout, label={lst:char-timeout}]
+; Fungsi untuk membaca karakter dengan timeout
+; Input: CX = timeout dalam ticks
+; Output: AL = karakter (0 jika timeout), CF = 1 jika timeout
+
+read_char_timeout:
+    push bx
+    push cx
+    
+    ; Simpan waktu mulai
+    mov ah, 00h
+    int 1Ah                    ; Get system time
+    mov [start_time], dx
+    
+timeout_loop:
+    ; Cek apakah ada tombol
+    mov ah, 01h
+    int 16h
+    jnz key_available          ; Ada tombol
+    
+    ; Cek timeout
+    mov ah, 00h
+    int 1Ah                    ; Get current time
+    sub dx, [start_time]       ; Hitung selisih waktu
+    cmp dx, cx                 ; Bandingkan dengan timeout
+    jae timeout_reached        ; Timeout tercapai
+    
+    ; Belum timeout, loop lagi
+    jmp timeout_loop
+    
+key_available:
+    ; Baca tombol yang tersedia
+    mov ah, 00h
+    int 16h                    ; AL = karakter
+    clc                        ; Clear carry flag (success)
+    jmp end_read
+    
+timeout_reached:
+    xor al, al                 ; AL = 0 (no character)
+    stc                        ; Set carry flag (timeout)
+    
+end_read:
+    pop cx
+    pop bx
+    ret
+    
+start_time dw 0
+\end{lstlisting}
+
+            \subsubsection{String dengan Echo}
+Input string dengan echo menggunakan DOS INT 21h AH=0Ah yang menyediakan fitur editing baris otomatis.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Input String dengan Echo, label={lst:string-echo}]
+; Program untuk input string dengan echo menggunakan DOS
+org 100h
+
+start:
+    ; Tampilkan prompt
+    mov dx, offset prompt
+    mov ah, 09h
+    int 21h
+    
+    ; Input string menggunakan DOS buffered input
+    mov dx, offset input_buffer
+    mov ah, 0Ah
+    int 21h
+    
+    ; Tambahkan null terminator
+    mov bx, offset input_buffer + 1
+    mov cl, [bx]               ; CL = panjang string
+    xor ch, ch                 ; CH = 0
+    add bx, cx
+    inc bx                     ; BX menunjuk ke akhir string
+    mov byte ptr [bx], 0       ; Tambahkan null terminator
+    
+    ; Tampilkan string yang diinput
+    mov dx, offset msg_entered
+    mov ah, 09h
+    int 21h
+    
+    ; Tampilkan string (mulai dari offset + 2)
+    mov dx, offset input_buffer + 2
+    mov ah, 09h
+    int 21h
+    
+    ; Keluar dari program
+    mov ah, 4Ch
+    int 21h
+
+; Data section
+prompt db 'Enter your name: $'
+msg_entered db 'You entered: $'
+input_buffer db 80             ; Maximum length
+           db ?                ; Actual length (filled by DOS)
+           db 80 dup(?)        ; Buffer untuk string
+\end{lstlisting}
+
+            \subsubsection{String tanpa Echo (Password)}
+Input password memerlukan pembacaan karakter per karakter tanpa menampilkan karakter asli.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Input Password tanpa Echo, label={lst:password-input}]
+; Fungsi untuk input password tanpa echo
+; Input: SI = offset buffer untuk menyimpan password
+;        CX = maksimum panjang password
+; Output: String di buffer dengan null terminator
+
+read_password:
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    
+    mov bx, 0                  ; Counter panjang password
+    
+password_loop:
+    ; Baca karakter
+    mov ah, 00h
+    int 16h                    ; AL = karakter
+    
+    ; Cek karakter khusus
+    cmp al, 13                 ; Enter key
+    je password_done
+    
+    cmp al, 8                  ; Backspace key
+    je handle_backspace
+    
+    cmp al, 27                 ; ESC key
+    je password_cancelled
+    
+    ; Cek apakah masih ada ruang untuk karakter
+    cmp bx, cx
+    jae password_loop          ; Buffer penuh, abaikan karakter
+    
+    ; Simpan karakter di buffer
+    mov [si + bx], al
+    inc bx
+    
+    ; Tampilkan asterisk
+    mov dl, '*'
+    mov ah, 02h
+    int 21h
+    
+    jmp password_loop
+    
+handle_backspace:
+    ; Cek apakah ada karakter untuk dihapus
+    cmp bx, 0
+    je password_loop           ; Tidak ada karakter, abaikan
+    
+    ; Hapus karakter dari buffer
+    dec bx
+    
+    ; Hapus asterisk dari layar
+    mov dl, 8                  ; Backspace
+    mov ah, 02h
+    int 21h
+    mov dl, ' '                ; Space
+    int 21h
+    mov dl, 8                  ; Backspace lagi
+    int 21h
+    
+    jmp password_loop
+    
+password_done:
+    ; Tambahkan null terminator
+    mov byte ptr [si + bx], 0
+    
+    ; Tampilkan newline
+    mov dl, 13                 ; Carriage return
+    mov ah, 02h
+    int 21h
+    mov dl, 10                 ; Line feed
+    int 21h
+    
+    mov al, 1                  ; Success
+    jmp end_password
+    
+password_cancelled:
+    mov al, 0                  ; Cancelled
+    
+end_password:
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+
+; Contoh penggunaan
+org 100h
+
+start:
+    mov dx, offset msg_prompt
+    mov ah, 09h
+    int 21h
+    
+    mov si, offset password_buffer
+    mov cx, 20                 ; Maksimum 20 karakter
+    call read_password
+    
+    cmp al, 0
+    je cancelled
+    
+    ; Password berhasil diinput
+    mov dx, offset msg_success
+    mov ah, 09h
+    int 21h
+    jmp end_program
+    
+cancelled:
+    mov dx, offset msg_cancelled
+    mov ah, 09h
+    int 21h
+    
+end_program:
+    mov ah, 4Ch
+    int 21h
+
+; Data section
+msg_prompt db 'Enter password: $'
+msg_success db 'Password entered successfully.$'
+msg_cancelled db 'Password input cancelled.$'
+password_buffer db 21 dup(?)   ; Buffer untuk password
+\end{lstlisting}
+
+            \subsubsection{Validasi Input dan Karakter Khusus}
+Validasi input penting untuk memastikan program menerima data yang sesuai dengan ekspektasi.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Validasi Input dengan Edit Line, label={lst:input-validation}]
+; Fungsi untuk input string dengan validasi dan editing
+; Input: SI = offset buffer
+;        CX = maksimum panjang
+;        BX = offset karakter yang diizinkan (0 = semua)
+; Output: String di buffer dengan null terminator
+
+read_string_with_validation:
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    
+    mov di, 0                  ; Position dalam buffer
+    
+edit_loop:
+    ; Baca karakter
+    mov ah, 00h
+    int 16h                    ; AL = karakter
+    
+    ; Cek karakter khusus
+    cmp al, 13                 ; Enter
+    je string_done
+    
+    cmp al, 8                  ; Backspace
+    je handle_bs
+    
+    cmp al, 27                 ; ESC
+    je string_cancelled
+    
+    ; Validasi karakter
+    cmp bx, 0                  ; BX = 0 berarti semua karakter diizinkan
+    je char_valid
+    
+    ; Cek apakah karakter diizinkan
+    push si
+    mov si, bx
+check_allowed:
+    cmp byte ptr [si], 0       ; End of allowed chars
+    je char_invalid
+    cmp al, [si]
+    je char_valid
+    inc si
+    jmp check_allowed
+    
+char_invalid:
+    pop si
+    ; Karakter tidak diizinkan, tampilkan beep
+    mov dl, 7
+    mov ah, 02h
+    int 21h
+    jmp edit_loop
+    
+char_valid:
+    pop si
+    
+    ; Cek apakah masih ada ruang
+    cmp di, cx
+    jae edit_loop              ; Buffer penuh
+    
+    ; Simpan karakter
+    mov [si + di], al
+    inc di
+    
+    ; Tampilkan karakter
+    mov dl, al
+    mov ah, 02h
+    int 21h
+    
+    jmp edit_loop
+    
+handle_bs:
+    ; Handle backspace
+    cmp di, 0
+    je edit_loop               ; Tidak ada karakter untuk dihapus
+    
+    ; Hapus dari buffer
+    dec di
+    
+    ; Hapus dari layar
+    mov dl, 8                  ; Backspace
+    mov ah, 02h
+    int 21h
+    mov dl, ' '                ; Space
+    int 21h
+    mov dl, 8                  ; Backspace lagi
+    int 21h
+    
+    jmp edit_loop
+    
+string_done:
+    ; Tambahkan null terminator
+    mov byte ptr [si + di], 0
+    
+    ; Newline
+    mov dl, 13
+    mov ah, 02h
+    int 21h
+    mov dl, 10
+    int 21h
+    
+    mov al, 1                  ; Success
+    jmp end_validation
+    
+string_cancelled:
+    mov al, 0                  ; Cancelled
+    
+end_validation:
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+
+; Data untuk validasi
+allowed_alpha db 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 0
+allowed_numeric db '0123456789', 0
+allowed_alphanum db 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 0
+\end{lstlisting}
+
+\subsection{Karakter Khusus}
+            Tombol keyboard dapat menghasilkan dua jenis kode: ASCII code dan scan code. Memahami perbedaan keduanya penting untuk menangani input keyboard dengan benar.
+
+            \subsubsection{Scan Code vs. ASCII}
+\begin{itemize}
+    \item \textbf{ASCII Code}: Kode standar untuk karakter printable (huruf, angka, simbol)
+    \item \textbf{Scan Code}: Kode hardware untuk setiap tombol fisik keyboard
+    \item \textbf{Non-printable Keys}: Tombol seperti F1-F12, arrow keys, Ctrl, Alt menghasilkan AL=0 dan scan code di AH
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Tabel Scan Code untuk Tombol Khusus}
+    \begin{tabular}{|p{2cm}|p{2cm}|p{3cm}|p{6cm}|}
+        \hline
+        \textbf{Tombol} & \textbf{Scan Code} & \textbf{ASCII} & \textbf{Keterangan} \\
+        \hline
+        ESC & 01h & 1Bh & Escape key \\
+        \hline
+        F1-F12 & 3Bh-44h & 00h & Function keys \\
+        \hline
+        Home & 47h & 00h & Home key \\
+        \hline
+        Up Arrow & 48h & 00h & Arrow up \\
+        \hline
+        Page Up & 49h & 00h & Page up \\
+        \hline
+        Left Arrow & 4Bh & 00h & Arrow left \\
+        \hline
+        Right Arrow & 4Dh & 00h & Arrow right \\
+        \hline
+        End & 4Fh & 00h & End key \\
+        \hline
+        Down Arrow & 50h & 00h & Arrow down \\
+        \hline
+        Page Down & 51h & 00h & Page down \\
+        \hline
+        Insert & 52h & 00h & Insert key \\
+        \hline
+        Delete & 53h & 00h & Delete key \\
+        \hline
+    \end{tabular}
+    \label{tab:scan-codes}
+\end{table}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Deteksi Tombol Khusus dengan Scan Code, label={lst:special-keys}]
+; Fungsi untuk mendeteksi tombol khusus menggunakan scan code
+; Output: AL = 1 jika tombol khusus, 0 jika tombol normal
+;         AH = scan code jika AL = 1
+
+detect_special_key:
+    mov ah, 00h
+    int 16h                    ; AL = ASCII, AH = scan code
+    
+    ; Cek apakah tombol khusus (AL = 0 untuk special keys)
+    cmp al, 0
+    je is_special_key
+    
+    ; Tombol normal (printable)
+    xor al, al                 ; AL = 0 (not special)
+    jmp end_detect
+    
+is_special_key:
+    ; Tombol khusus terdeteksi
+    ; AH sudah berisi scan code
+    mov al, 1                  ; AL = 1 (special key)
+    
+    ; Handle berdasarkan scan code
+    cmp ah, 3Bh                ; F1
+    je handle_f1
+    cmp ah, 3Ch                ; F2
+    je handle_f2
+    cmp ah, 48h                ; Up Arrow
+    je handle_up
+    cmp ah, 50h                ; Down Arrow
+    je handle_down
+    cmp ah, 4Bh                ; Left Arrow
+    je handle_left
+    cmp ah, 4Dh                ; Right Arrow
+    je handle_right
+    cmp ah, 1Bh                ; ESC
+    je handle_escape
+    
+    ; Scan code tidak dikenali
+    jmp end_detect
+    
+handle_f1:
+    ; Handle F1 key
+    jmp end_detect
+    
+handle_f2:
+    ; Handle F2 key
+    jmp end_detect
+    
+handle_up:
+    ; Handle Up Arrow
+    jmp end_detect
+    
+handle_down:
+    ; Handle Down Arrow
+    jmp end_detect
+    
+handle_left:
+    ; Handle Left Arrow
+    jmp end_detect
+    
+handle_right:
+    ; Handle Right Arrow
+    jmp end_detect
+    
+handle_escape:
+    ; Handle ESC key
+    jmp end_detect
+    
+end_detect:
+    ret
+\end{lstlisting}
+
+            \subsubsection{Function, Arrow, Control Keys}
+Tombol function, arrow, dan control keys memerlukan penanganan khusus karena tidak menghasilkan ASCII code standar.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Handler untuk Function dan Arrow Keys, label={lst:arrow-function}]
+; Program contoh untuk menangani function dan arrow keys
+org 100h
+
+start:
+    mov dx, offset msg_instructions
+    mov ah, 09h
+    int 21h
+    
+main_loop:
+    call detect_special_key
+    cmp al, 1
+    jne main_loop              ; Ulangi jika bukan tombol khusus
+    
+    ; Tombol khusus terdeteksi, handle berdasarkan scan code
+    cmp ah, 48h                ; Up Arrow
+    je move_up
+    cmp ah, 50h                ; Down Arrow
+    je move_down
+    cmp ah, 4Bh                ; Left Arrow
+    je move_left
+    cmp ah, 4Dh                ; Right Arrow
+    je move_right
+    cmp ah, 1Bh                ; ESC
+    je exit_program
+    
+    jmp main_loop
+    
+move_up:
+    mov dx, offset msg_up
+    mov ah, 09h
+    int 21h
+    jmp main_loop
+    
+move_down:
+    mov dx, offset msg_down
+    mov ah, 09h
+    int 21h
+    jmp main_loop
+    
+move_left:
+    mov dx, offset msg_left
+    mov ah, 09h
+    int 21h
+    jmp main_loop
+    
+move_right:
+    mov dx, offset msg_right
+    mov ah, 09h
+    int 21h
+    jmp main_loop
+    
+exit_program:
+    mov ah, 4Ch
+    int 21h
+
+; Data section
+msg_instructions db 'Use arrow keys to move, ESC to exit$'
+msg_up db 'Moving UP$'
+msg_down db 'Moving DOWN$'
+msg_left db 'Moving LEFT$'
+msg_right db 'Moving RIGHT$'
+\end{lstlisting}
+
+\subsubsection{Detail INT 16h dan Kompatibilitas}
+Beberapa hal penting terkait kompatibilitas dan implementasi INT 16h:
+
+\begin{itemize}
+    \item \textbf{Extended Keys}: Beberapa tombol menghasilkan AL=E0h sebagai prefix
+    \item \textbf{BIOS Variations}: Implementasi dapat bervariasi antar vendor BIOS
+    \item \textbf{Key Combinations}: Ctrl, Alt, Shift memodifikasi scan code
+    \item \textbf{Buffer Management}: Perilaku buffer dapat berbeda pada sistem yang berbeda
+\end{itemize}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Handler untuk Extended Keys, label={lst:extended-keys}]
+; Fungsi untuk menangani extended keys (AL = E0h)
+handle_extended_key:
+    push ax
+    
+    ; Baca extended key
+    mov ah, 00h
+    int 16h
+    
+    ; Cek apakah extended key
+    cmp al, 0E0h
+    jne not_extended
+    
+    ; Extended key terdeteksi
+    ; AH berisi extended scan code
+    cmp ah, 47h                ; Home
+    je handle_home
+    cmp ah, 4Fh                ; End
+    je handle_end
+    cmp ah, 49h                ; Page Up
+    je handle_pageup
+    cmp ah, 51h                ; Page Down
+    je handle_pagedown
+    cmp ah, 52h                ; Insert
+    je handle_insert
+    cmp ah, 53h                ; Delete
+    je handle_delete
+    
+    ; Extended key tidak dikenali
+    jmp end_extended
+    
+handle_home:
+    ; Handle Home key
+    jmp end_extended
+    
+handle_end:
+    ; Handle End key
+    jmp end_extended
+    
+handle_pageup:
+    ; Handle Page Up key
+    jmp end_extended
+    
+handle_pagedown:
+    ; Handle Page Down key
+    jmp end_extended
+    
+handle_insert:
+    ; Handle Insert key
+    jmp end_extended
+    
+handle_delete:
+    ; Handle Delete key
+    jmp end_extended
+    
+not_extended:
+    ; Normal key handling
+    
+end_extended:
+    pop ax
+    ret
+\end{lstlisting}
+
+\subsubsection{Penanganan Debounce dan Repeat Rate}
+Keyboard hardware menghasilkan make/break code dan repeat saat tombol ditahan. BIOS mengabstraksi ini, tetapi aplikasi dapat mengimplementasikan debounce manual.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Debounce Implementation, label={lst:debounce}]
+; Fungsi untuk debounce keyboard input
+; Menghindari multiple trigger dari satu penekanan tombol
+
+debounce_keyboard:
+    push ax
+    push bx
+    push cx
+    
+    ; Baca tombol
+    mov ah, 00h
+    int 16h
+    
+    ; Simpan kode tombol
+    mov bl, al                 ; ASCII code
+    mov bh, ah                 ; Scan code
+    
+    ; Simpan waktu penekanan
+    mov ah, 00h
+    int 1Ah                    ; Get system time
+    mov [last_key_time], dx
+    
+    ; Cek apakah tombol sama dengan sebelumnya
+    cmp bl, [last_ascii]
+    jne new_key
+    cmp bh, [last_scan]
+    jne new_key
+    
+    ; Tombol sama, cek timing
+    mov ax, [last_key_time]
+    sub dx, ax                 ; Hitung selisih waktu
+    cmp dx, [debounce_time]    ; Bandingkan dengan threshold
+    jb ignore_key              ; Terlalu cepat, abaikan
+    
+new_key:
+    ; Tombol baru atau cukup lama
+    mov [last_ascii], bl
+    mov [last_scan], bh
+    mov al, 1                  ; Key accepted
+    jmp end_debounce
+    
+ignore_key:
+    mov al, 0                  ; Key ignored
+    
+end_debounce:
+    pop cx
+    pop bx
+    pop ax
+    ret
+    
+; Data untuk debounce
+last_ascii db 0
+last_scan db 0
+last_key_time dw 0
+debounce_time dw 3             ; 3 ticks (sekitar 165ms)
+\end{lstlisting}
+
+\subsubsection{Timeout Input dan Integrasi Timer}
+Implementasi timeout untuk input keyboard menggunakan BIOS timer (INT 1Ah).
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Input dengan Timeout menggunakan Timer, label={lst:timeout-timer}]
+; Fungsi untuk input dengan timeout menggunakan BIOS timer
+; Input: CX = timeout dalam ticks (1 tick = ~55ms)
+; Output: AL = 1 jika ada input, 0 jika timeout
+;         BL = ASCII code jika ada input
+;         BH = Scan code jika ada input
+
+input_with_timeout:
+    push ax
+    push cx
+    push dx
+    
+    ; Simpan waktu mulai
+    mov ah, 00h
+    int 1Ah                    ; Get system time
+    mov [start_time], dx
+    
+timeout_loop:
+    ; Cek keyboard buffer
+    mov ah, 01h
+    int 16h
+    jnz key_available          ; Ada tombol tersedia
+    
+    ; Cek timeout
+    mov ah, 00h
+    int 1Ah                    ; Get current time
+    sub dx, [start_time]       ; Hitung elapsed time
+    cmp dx, cx                 ; Bandingkan dengan timeout
+    jae timeout_reached        ; Timeout tercapai
+    
+    ; Belum timeout, loop lagi
+    jmp timeout_loop
+    
+key_available:
+    ; Baca tombol yang tersedia
+    mov ah, 00h
+    int 16h                    ; AL = ASCII, AH = scan code
+    mov bl, al                 ; Simpan ASCII
+    mov bh, ah                 ; Simpan scan code
+    mov al, 1                  ; Success
+    jmp end_timeout
+    
+timeout_reached:
+    xor al, al                 ; Timeout
+    xor bx, bx                 ; Clear key codes
+    
+end_timeout:
+    pop dx
+    pop cx
+    pop ax
+    ret
+    
+start_time dw 0
+\end{lstlisting}
+
+    \section{Contoh Program Lengkap}
+        Berikut adalah contoh program lengkap yang mengintegrasikan berbagai konsep input keyboard yang telah dibahas.
+
+        \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Lengkap - Keyboard Input Demo, label={lst:complete-demo}]
+        ; Program demo lengkap untuk input keyboard
+        ; Menggunakan berbagai teknik input yang telah dipelajari
+        
+        org 100h
+        
+        start:
+            ; Tampilkan menu utama
+            call show_main_menu
+            
+        main_loop:
+            ; Baca input dari user
+            mov ah, 00h
+            int 16h
+            
+            ; Handle berdasarkan pilihan
+            cmp al, '1'
+            je demo_single_char
+            cmp al, '2'
+            je demo_string_input
+            cmp al, '3'
+            je demo_password_input
+            cmp al, '4'
+            je demo_special_keys
+            cmp al, '5'
+            je demo_timeout_input
+            cmp al, '0'
+            je exit_program
+            
+            ; Input tidak valid
+            call show_invalid_input
+            jmp main_loop
+            
+        demo_single_char:
+            call demo_single_character
+            jmp main_loop
+            
+        demo_string_input:
+            call demo_string_input_function
+            jmp main_loop
+            
+        demo_password_input:
+            call demo_password_function
+            jmp main_loop
+            
+        demo_special_keys:
+            call demo_special_keys_function
+            jmp main_loop
+            
+        demo_timeout_input:
+            call demo_timeout_function
+            jmp main_loop
+            
+        exit_program:
+            mov ah, 4Ch
+            int 21h
+        
+        ; Fungsi untuk menampilkan menu utama
+        show_main_menu:
+            push dx
+            push ax
+            
+            ; Clear screen
+            mov ax, 0003h
+            int 10h
+            
+            ; Tampilkan menu
+            mov dx, offset menu_title
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset menu_option1
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset menu_option2
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset menu_option3
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset menu_option4
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset menu_option5
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset menu_option0
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset menu_prompt
+            mov ah, 09h
+            int 21h
+            
+            pop ax
+            pop dx
+            ret
+        
+        ; Fungsi demo input karakter tunggal
+        demo_single_character:
+            push dx
+            push ax
+            
+            mov dx, offset demo1_title
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset demo1_instruction
+            mov ah, 09h
+            int 21h
+            
+            ; Baca karakter
+            mov ah, 00h
+            int 16h
+            
+            ; Tampilkan hasil
+            mov dx, offset demo1_result
+            mov ah, 09h
+            int 21h
+            
+            ; Tampilkan karakter yang ditekan
+            mov dl, al
+            mov ah, 02h
+            int 21h
+            
+            ; Tampilkan scan code
+            mov dx, offset demo1_scan
+            mov ah, 09h
+            int 21h
+            
+            ; Konversi scan code ke hex dan tampilkan
+            mov al, ah
+            call print_hex
+            
+            ; Tunggu tombol untuk kembali
+            mov dx, offset press_any_key
+            mov ah, 09h
+            int 21h
+            
+            mov ah, 00h
+            int 16h
+            
+            pop ax
+            pop dx
+            ret
+        
+        ; Fungsi demo input string
+        demo_string_input_function:
+            push dx
+            push ax
+            
+            mov dx, offset demo2_title
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset demo2_instruction
+            mov ah, 09h
+            int 21h
+            
+            ; Input string menggunakan DOS
+            mov dx, offset string_buffer
+            mov ah, 0Ah
+            int 21h
+            
+            ; Tampilkan hasil
+            mov dx, offset demo2_result
+            mov ah, 09h
+            int 21h
+            
+            ; Tampilkan string yang diinput
+            mov dx, offset string_buffer + 2
+            mov ah, 09h
+            int 21h
+            
+            ; Tunggu tombol untuk kembali
+            mov dx, offset press_any_key
+            mov ah, 09h
+            int 21h
+            
+            mov ah, 00h
+            int 16h
+            
+            pop ax
+            pop dx
+            ret
+        
+        ; Fungsi demo input password
+        demo_password_function:
+            push dx
+            push ax
+            push si
+            push cx
+            
+            mov dx, offset demo3_title
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset demo3_instruction
+            mov ah, 09h
+            int 21h
+            
+            ; Input password
+            mov si, offset password_buffer
+            mov cx, 20
+            call read_password
+            
+            ; Tampilkan hasil
+            mov dx, offset demo3_result
+            mov ah, 09h
+            int 21h
+            
+            ; Tampilkan password (untuk demo)
+            mov dx, offset password_buffer
+            mov ah, 09h
+            int 21h
+            
+            ; Tunggu tombol untuk kembali
+            mov dx, offset press_any_key
+            mov ah, 09h
+            int 21h
+            
+            mov ah, 00h
+            int 16h
+            
+            pop cx
+            pop si
+            pop ax
+            pop dx
+            ret
+        
+        ; Fungsi demo tombol khusus
+        demo_special_keys_function:
+            push dx
+            push ax
+            
+            mov dx, offset demo4_title
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset demo4_instruction
+            mov ah, 09h
+            int 21h
+            
+        special_keys_loop:
+            ; Baca tombol
+            mov ah, 00h
+            int 16h
+            
+            ; Cek tombol khusus
+            cmp al, 0
+            je handle_special
+            
+            ; Tombol normal
+            mov dx, offset demo4_normal
+            mov ah, 09h
+            int 21h
+            
+            mov dl, al
+            mov ah, 02h
+            int 21h
+            
+            jmp special_keys_loop
+            
+        handle_special:
+            ; Tombol khusus
+            mov dx, offset demo4_special
+            mov ah, 09h
+            int 21h
+            
+            ; Tampilkan scan code
+            mov al, ah
+            call print_hex
+            
+            ; Cek ESC untuk keluar
+            cmp ah, 1Bh
+            je end_special_demo
+            
+            jmp special_keys_loop
+            
+        end_special_demo:
+            pop ax
+            pop dx
+            ret
+        
+        ; Fungsi demo input dengan timeout
+        demo_timeout_function:
+            push dx
+            push ax
+            push bx
+            push cx
+            
+            mov dx, offset demo5_title
+            mov ah, 09h
+            int 21h
+            
+            mov dx, offset demo5_instruction
+            mov ah, 09h
+            int 21h
+            
+            ; Input dengan timeout (5 detik = ~91 ticks)
+            mov cx, 91
+            call input_with_timeout
+            
+            cmp al, 1
+            je timeout_success
+            
+            ; Timeout
+            mov dx, offset demo5_timeout
+            mov ah, 09h
+            int 21h
+            jmp end_timeout_demo
+            
+        timeout_success:
+            ; Input berhasil
+            mov dx, offset demo5_success
+            mov ah, 09h
+            int 21h
+            
+            ; Tampilkan karakter
+            mov dl, bl
+            mov ah, 02h
+            int 21h
+            
+        end_timeout_demo:
+            ; Tunggu tombol untuk kembali
+            mov dx, offset press_any_key
+            mov ah, 09h
+            int 21h
+            
+            mov ah, 00h
+            int 16h
+            
+            pop cx
+            pop bx
+            pop ax
+            pop dx
+            ret
+        
+        ; Fungsi untuk menampilkan pesan input tidak valid
+        show_invalid_input:
+            push dx
+            push ax
+            
+            mov dx, offset invalid_input_msg
+            mov ah, 09h
+            int 21h
+            
+            ; Tunggu sebentar
+            mov cx, 18
+        delay_loop:
+            push cx
+            mov cx, 0FFFFh
+        inner_delay:
+            loop inner_delay
+            pop cx
+            loop delay_loop
+            
+            pop ax
+            pop dx
+            ret
+        
+        ; Fungsi untuk mencetak nilai hex
+        print_hex:
+            push ax
+            push bx
+            push cx
+            push dx
+            
+            mov bx, ax
+            mov cx, 4
+            
+        hex_loop:
+            rol bx, 4
+            mov al, bl
+            and al, 0Fh
+            cmp al, 9
+            jbe hex_digit
+            add al, 7
+        hex_digit:
+            add al, '0'
+            mov dl, al
+            mov ah, 02h
+            int 21h
+            loop hex_loop
+            
+            pop dx
+            pop cx
+            pop bx
+            pop ax
+            ret
+        
+        ; Data section
+        menu_title db '=== KEYBOARD INPUT DEMO ===$'
+        menu_option1 db '1. Single Character Input$'
+        menu_option2 db '2. String Input$'
+        menu_option3 db '3. Password Input$'
+        menu_option4 db '4. Special Keys Demo$'
+        menu_option5 db '5. Timeout Input Demo$'
+        menu_option0 db '0. Exit$'
+        menu_prompt db 'Choose option (0-5): $'
+        
+        demo1_title db 'Single Character Input Demo$'
+        demo1_instruction db 'Press any key...$'
+        demo1_result db 'You pressed: $'
+        demo1_scan db ', Scan Code: $'
+        
+        demo2_title db 'String Input Demo$'
+        demo2_instruction db 'Enter your name: $'
+        demo2_result db 'Hello, $'
+        
+        demo3_title db 'Password Input Demo$'
+        demo3_instruction db 'Enter password: $'
+        demo3_result db 'Password entered: $'
+        
+        demo4_title db 'Special Keys Demo$'
+        demo4_instruction db 'Press special keys (ESC to exit)...$'
+        demo4_normal db 'Normal key: $'
+        demo4_special db 'Special key, Scan Code: $'
+        
+        demo5_title db 'Timeout Input Demo$'
+        demo5_instruction db 'Press a key within 5 seconds...$'
+        demo5_success db 'Key pressed: $'
+        demo5_timeout db 'Timeout! No key pressed.$'
+        
+        press_any_key db 'Press any key to continue...$'
+        invalid_input_msg db 'Invalid input! Please choose 0-5.$'
+        
+        string_buffer db 80, ?, 80 dup(?)
+        password_buffer db 21 dup(?)
+        \end{lstlisting}
+
+    \section{Kesimpulan}
+        Bab ini telah membahas secara mendalam tentang input keyboard dan penanganan buffer pada Intel 8086 assembly language. Materi yang telah dipelajari meliputi:
+
+        \begin{itemize}
+            \item \textbf{BIOS INT 16h Functions}: Fungsi-fungsi untuk membaca input keyboard (blocking dan non-blocking)
+            \item \textbf{Keyboard Buffer Management}: Cara kerja buffer keyboard dan teknik flushing
+            \item \textbf{Input Validation}: Teknik validasi input karakter dan string
+            \item \textbf{Special Keys Handling}: Penanganan tombol khusus seperti function keys dan arrow keys
+            \item \textbf{Timeout Implementation}: Implementasi timeout untuk input keyboard
+            \item \textbf{Practical Applications}: Contoh-contoh program lengkap yang mengintegrasikan berbagai teknik
+        \end{itemize}
+
+        Pemahaman yang baik tentang input keyboard sangat penting untuk mengembangkan program interaktif yang responsif dan user-friendly. Teknik-teknik yang dipelajari dapat diterapkan dalam berbagai aplikasi seperti game, editor teks, dan program interaktif lainnya.
+
 
 
 \end{document}

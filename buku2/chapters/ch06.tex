@@ -1,166 +1,1222 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Input dari Keyboard dan Penanganan Buffer}
+\chapter{Interrupt dan Sistem BIOS/DOS}
 
-\section{Tujuan Pembelajaran}
-Mahasiswa mampu:
-\begin{itemize}
-    \item Menggunakan layanan BIOS \texttt{INT 16h} untuk membaca input keyboard (blocking/non-blocking) dan memeriksa status.
-    \item Menjelaskan konsep keyboard buffer, mekanisme kerja, dan teknik \textit{flush}/penanganan buffer penuh.
-    \item Mengembangkan program interaktif berbasis input karakter dan string (dengan/ tanpa echo) dengan validasi.
-    \item Menginterpretasikan kode ASCII vs. \textit{scan code} serta menangani tombol khusus (function, arrow, control).
-\end{itemize}
+    \section{Tujuan Pembelajaran}
+        Mahasiswa mampu:
+        \begin{itemize}
+            \item Menjelaskan konsep interrupt dan perbedaannya dengan subroutine biasa.
+            \item Memahami struktur interrupt vector table dan mekanisme pengalihan kontrol.
+            \item Menggunakan BIOS interrupt (INT 10h) untuk operasi video dan layar.
+            \item Menggunakan DOS interrupt (INT 21h) untuk operasi sistem dan file.
+            \item Menggunakan keyboard interrupt (INT 16h) untuk input dari keyboard.
+            \item Menggunakan timer interrupt (INT 1Ah) untuk operasi waktu.
+            \item Memahami konsep interrupt flag dan maskable/non-maskable interrupt.
+            \item Mengimplementasikan interrupt handler custom dan error handling.
+            \item Memahami interrupt chaining dan reentrancy issues.
+        \end{itemize}
 
-\section{Pendahuluan}
-Interaksi pengguna pada lingkungan DOS banyak bertumpu pada layanan BIOS untuk perangkat input seperti keyboard. \texttt{INT 16h} menyediakan antarmuka tingkat rendah yang konsisten untuk membaca tombol, memeriksa ketersediaan input, dan mendapatkan status \textit{modifier} (Shift/Ctrl/Alt). Memahami perbedaan operasi \textit{blocking} dan \textit{non-blocking} penting agar program responsif dan tidak \textit{hang} menunggu masukan.
+    \section{Pendahuluan}
+        Interrupt adalah mekanisme fundamental dalam sistem komputer yang memungkinkan perangkat keras atau perangkat lunak untuk menghentikan sementara eksekusi program utama dan mengalihkan kontrol ke rutinitas penanganan khusus \cite{rbil}. Dalam konteks Intel 8086 dan sistem DOS/BIOS, interrupt memainkan peran penting dalam komunikasi antara program aplikasi dengan sistem operasi dan perangkat keras \cite{osdev_wiki}. Materi ini ditempatkan setelah operator dasar agar mahasiswa sudah memahami konsep dasar assembly sebelum mempelajari mekanisme interrupt yang lebih kompleks.
 
-\section{Interupsi BIOS INT 16h}
-\subsection{Fungsi Keyboard}
-\subsubsection{Fungsi 00h: Read Key (Blocking)}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AH=00h}
-  \item \textbf{Keluaran}: \texttt{AL=ASCII code} (0 jika \textit{non-printable}), \texttt{AH=scan code}
-  \item \textbf{Perilaku}: Menunggu hingga tombol ditekan; gunakan untuk input yang memerlukan sinkronisasi.
-\end{itemize}
+        Sistem interrupt pada Intel 8086 menyediakan antarmuka standar untuk:
+        \begin{itemize}
+            \item Komunikasi dengan perangkat keras (keyboard, mouse, printer, disk)
+            \item Akses ke layanan sistem operasi (file operations, memory management)
+            \item Penanganan kondisi khusus (division by zero, overflow)
+            \item Implementasi program TSR (Terminate and Stay Resident)
+        \end{itemize}
 
-\subsubsection{Fungsi 01h: Check for Key (Non-blocking)}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AH=01h}
-  \item \textbf{Keluaran}: \texttt{ZF=1} jika tidak ada tombol; jika ada, \texttt{AL}/\texttt{AH} berisi kode tanpa menghapus dari buffer.
-  \item \textbf{Perilaku}: \textit{Polling} status keyboard; gunakan untuk antarmuka yang tidak boleh menunggu.
-\end{itemize}
+    \section{Konsep Dasar Interrupt}
+        \subsection{Definisi dan Jenis Interrupt}
+            Interrupt adalah sinyal yang menghentikan eksekusi normal program dan mengalihkan kontrol ke rutinitas penanganan interrupt (interrupt handler). Terdapat beberapa jenis interrupt berdasarkan sumbernya:
+            
+            \begin{table}[H]
+                \centering
+                \caption{Jenis-jenis Interrupt Intel 8086}
+                \begin{tabular}{|p{2.5cm}|p{3.5cm}|p{7cm}|}
+                    \hline
+                    \textbf{Jenis} & \textbf{Sumber} & \textbf{Contoh dan Keterangan} \\
+                    \hline
+                    \textbf{Hardware Interrupt} & Perangkat keras eksternal & Keyboard (IRQ 1), Timer (IRQ 0), Disk drive (IRQ 6) \\
+                    \hline
+                    \textbf{Software Interrupt} & Instruksi INT dalam program & INT 21h (DOS), INT 10h (BIOS), INT 16h (Keyboard) \\
+                    \hline
+                    \textbf{Internal Interrupt} & Kondisi internal processor & Division by zero (INT 0), Overflow (INT 4) \\
+                    \hline
+                    \textbf{Maskable Interrupt} & Dapat dinonaktifkan dengan IF & Hardware interrupt (IRQ 0-7) \\
+                    \hline
+                    \textbf{Non-maskable Interrupt} & Tidak dapat dinonaktifkan & Memory parity error, Power failure \\
+                    \hline
+                \end{tabular}
+            \end{table}
 
-\subsubsection{Fungsi 02h: Get Keyboard Flags}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AH=02h}
-  \item \textbf{Keluaran}: \texttt{AL} berisi bendera status (Shift, Ctrl, Alt, Caps Lock, Num Lock, Scroll Lock).
-  \item Interpretasikan bit-bit sesuai tabel referensi BIOS.
-\end{itemize}
+        \subsection{Interrupt Vector Table}
+            Interrupt vector table adalah tabel yang berisi alamat rutinitas penanganan interrupt. Pada sistem 8086, tabel ini terletak di alamat memori 0000:0000 hingga 0000:03FF (1024 byte pertama memori).
+            
+            \begin{itemize}
+                \item Setiap entri terdiri dari 4 byte: 2 byte untuk CS (Code Segment) dan 2 byte untuk IP (Instruction Pointer)
+                \item Total terdapat 256 entri (0-255), masing-masing untuk satu nomor interrupt
+                \item Format: [IP][CS] dalam little-endian
+                \item Alamat fisik handler = (CS × 16) + IP
+            \end{itemize}
 
-\subsubsection{Parameter dan nilai kembali}
-Pastikan menyimpan nilai \texttt{AL}/\texttt{AH} segera jika akan digunakan, karena pemanggilan layanan berikutnya dapat menimpanya. Untuk \texttt{01h}, cek \texttt{ZF} sebelum membaca.
+            \begin{centeredlongtable}{|L{0.9cm}|L{1.6cm}|L{1.8cm}|L{4.4cm}|}
+                \caption{Contoh Interrupt Vector Table}\\
+                \hline
+                \textbf{INT \#} & \textbf{Alamat Vector} & \textbf{Handler} & \textbf{Fungsi} \\
+                \hline
+                \endfirsthead
+                
+                \multicolumn{4}{c}%
+                {{\bfseries \tablename\ \thetable{} -- lanjutan dari halaman sebelumnya}} \\
+                \hline
+                \textbf{INT \#} & \textbf{Alamat Vector} & \textbf{Handler} & \textbf{Fungsi} \\
+                \hline
+                \endhead
+                
+                \hline \multicolumn{4}{|r|}{{Lanjutan di halaman berikutnya}} \\ \hline
+                \endfoot
+                
+                \hline
+                \endlastfoot
+                
+                00h & 0000:0000 & Divide Error & Pembagian dengan nol \\
+                \hline
+                10h & 0000:0040 & BIOS Video & Operasi video dan layar \\
+                \hline
+                16h & 0000:0058 & BIOS Keyboard & Input dari keyboard \\
+                \hline
+                1Ah & 0000:0068 & BIOS Timer & Operasi waktu sistem \\
+                \hline
+                21h & 0000:0084 & DOS Services & Layanan sistem DOS \\
+            \end{centeredlongtable}
 
-\subsubsection{Blocking vs. non-blocking}
-\textit{Blocking} menyederhanakan alur namun berisiko mengunci UI. \textit{Non-blocking} memungkinkan pembaruan layar/pekerjaan lain saat menunggu input menggunakan \textit{polling} atau \textit{timeout}.
+        \subsection{Interrupt Flag (IF)}
+            Interrupt Flag dalam register FLAGS mengontrol apakah processor akan merespons interrupt maskable:
+            \begin{itemize}
+                \item IF = 1: Interrupt maskable diaktifkan
+                \item IF = 0: Interrupt maskable dinonaktifkan
+                \item Instruksi CLI (Clear Interrupt) dan STI (Set Interrupt) mengontrol flag ini
+            \end{itemize}
 
-\subsection{Keyboard Buffer}
-\subsubsection{Konsep dan cara kerja}
-BIOS menempatkan penekanan tombol pada antrian (buffer). Panggilan baca (00h) mengeluarkan entri dari buffer; pemeriksaan (01h) tidak mengeluarkan.
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Penggunaan CLI dan STI, label={lst:cli-sti}]
+; Contoh: Menonaktifkan interrupt sementara
+CLI                 ; Clear Interrupt Flag
+; Kode kritis yang tidak boleh diinterrupt
+MOV AX, [critical_data]
+ADD AX, 1
+MOV [critical_data], AX
+STI                 ; Set Interrupt Flag kembali
 
-\subsubsection{Penanganan buffer penuh}
-Ketika buffer penuh, penekanan tombol berikut dapat hilang atau menimpa entri lama tergantung implementasi/driver. Program interaktif harus membaca buffer secara reguler.
+; Contoh: Handler interrupt yang aman
+my_handler PROC FAR
+    CLI             ; Nonaktifkan interrupt
+    PUSH AX         ; Simpan register
+    PUSH BX
+    ; Kode handler
+    POP BX          ; Pulihkan register
+    POP AX
+    STI             ; Aktifkan interrupt kembali
+    IRET
+my_handler ENDP
+            \end{lstlisting}
 
-\subsubsection{Flushing keyboard buffer}
-DOS menyediakan \texttt{INT 21h, AH=0Ch} dengan parameter di \texttt{AL} untuk membersihkan buffer dan memproses input keyboard. Gunakan setelah mengubah mode input agar sisa tombol tidak mengganggu.
+        \subsection{Mekanisme Eksekusi Interrupt}
+            Ketika interrupt terjadi, processor melakukan langkah-langkah berikut:
+            \begin{enumerate}
+                \item Menyimpan FLAGS register ke stack
+                \item Menyimpan CS:IP ke stack
+                \item Mengambil alamat handler dari interrupt vector table
+                \item Mengalihkan kontrol ke interrupt handler
+                \item Handler mengembalikan kontrol dengan instruksi IRET
+            \end{enumerate}
 
-\subsubsection{Status keyboard buffer}
-Gunakan \texttt{01h} untuk memeriksa ketersediaan. Beberapa BIOS menyediakan fungsi lain untuk panjang buffer, tetapi tidak portabel.
+            \begin{figure}[H]
+                \centering
+                \begin{verbatim}
+Stack sebelum interrupt:
+    [data]
+    [data]
+    [data]
+    SP -> [data]
 
-\subsection{Input Karakter dan String}
-\subsubsection{Karakter tunggal}
-Gunakan \texttt{AH=00h} (blocking) untuk membaca satu tombol. Untuk menghindari \textit{hang}, kombinasikan dengan \texttt{01h}.
+Stack setelah interrupt:
+    [data]
+    [data]
+    [data]
+    [FLAGS]     <- SP (baru)
+    [CS]
+    [IP]
+                \end{verbatim}
+                \caption{Perubahan Stack saat Interrupt}
+            \end{figure}
 
-\subsubsection{String dengan echo}
-Gunakan \texttt{INT 21h, AH=0Ah} untuk masukan baris dengan echo; siapkan struktur buffer DOS: byte pertama kapasitas, byte kedua panjang, diikuti penampung.
+    \section{BIOS Interrupt (INT 10h)}
+        BIOS (Basic Input/Output System) menyediakan layanan interrupt untuk operasi video dan layar melalui INT 10h. BIOS video services menyediakan antarmuka standar untuk berbagai mode video dan operasi grafis.
 
-\subsubsection{String tanpa echo (password)}
-Baca per karakter dengan \texttt{INT 16h, AH=00h} dan tampilkan tanda \texttt{'*'} menggunakan \texttt{INT 10h, AH=0Eh}; simpan ke buffer hingga Enter.
+        \subsection{Mode Video dan Resolusi}
+            \begin{table}[H]
+                \centering
+                \caption{Mode Video BIOS yang Umum Digunakan}
+                \begin{tabular}{|p{1.5cm}|p{2.5cm}|p{2cm}|p{7cm}|}
+                    \hline
+                    \textbf{Mode} & \textbf{Resolusi} & \textbf{Warna} & \textbf{Keterangan} \\
+                    \hline
+                    00h & 40×25 & 16 & Text mode, 8×8 font \\
+                    \hline
+                    03h & 80×25 & 16 & Text mode standar \\
+                    \hline
+                    13h & 320×200 & 256 & Graphics mode, 256 warna \\
+                    \hline
+                    12h & 640×480 & 16 & VGA graphics mode \\
+                    \hline
+                \end{tabular}
+            \end{table}
 
-\subsubsection{Validasi input dan karakter khusus}
-Tolak karakter di luar rentang yang diizinkan; tangani Backspace dengan menghapus dari buffer dan memundurkan kursor; Enter mengakhiri masukan.
+        \subsection{Fungsi Dasar Video}
+            \subsubsection{AH=00h: Set Video Mode}
+                Mengatur mode video (text atau graphics):
+                \begin{itemize}
+                    \item AL = mode video (00h=text 40x25, 03h=text 80x25, 13h=graphics 320x200)
+                \end{itemize}
 
-\subsection{Karakter Khusus}
-\subsubsection{Scan code vs. ASCII}
-Tombol \textit{non-printable} menghasilkan \texttt{AL=0} dan \texttt{AH} berisi \textit{scan code}. Tombol huruf/angka memberikan ASCII di \texttt{AL}.
-
-\subsubsection{Function, arrow, control keys}
-F1--F12 umumnya menghasilkan \texttt{AL=0} (atau \texttt{E0h} sebagai \textit{prefix} pada beberapa sistem) dan \texttt{AH} menunjukkan kode; panah memerlukan interpretasi \textit{scan code}. \texttt{Ctrl}/\texttt{Alt}/\texttt{Shift} memodifikasi kode dan terekam pada status flags (fungsi 02h).
-
-\subsubsection{Detail INT 16h dan Kompatibilitas}
-Beberapa BIOS/klon memiliki variasi perilaku untuk kombinasi tombol tertentu. Gunakan \texttt{01h} (non-blocking) sebelum pemanggilan \texttt{00h} untuk menjaga responsif. Untuk \textit{extended keys}, sebagian sistem mengembalikan \texttt{AL=E0h} sebagai prefix; normalisasi input pada rutinitas Anda. 
-\subsubsection{Penanganan Debounce dan Repeat Rate}
-Keyboard PC menghasilkan \textit{make/break} code dan \textit{repeat} saat tombol ditahan. Antarmuka BIOS telah mengabstraksikannya, namun aplikasi interaktif bisa menambahkan \textit{debounce} sederhana (abaikan kejadian yang terlalu cepat) atau mengatur \textit{repeat rate} via \texttt{INT 16h} fungsi tertentu (bergantung BIOS). 
-\subsubsection{Timeout Input dan Integrasi Timer}
-Gabungkan polling \texttt{AH=01h} dengan \texttt{INT 1Ah} (BIOS timer) untuk mewujudkan \textit{timeout}. Hitung \textit{tick} (55 ms per tick pada DOS klasik) dan batasi durasi menunggu input. 
-\subsubsection{Validasi String dan Pengeditan Baris}
-Untuk mode \texttt{AH=0Ah} (buffered input DOS), perhatikan format buffer: kapasitas, panjang aktual, dan isi. Untuk mengimplementasikan editor baris kustom: tangani Backspace, Delete (hapus karakter di posisi kursor), panah kiri/kanan (opsional, memerlukan \texttt{INT 10h} untuk kursor). 
-
-\section{Praktikum}
-\begin{enumerate}
-  \item Program pembaca karakter tunggal: tampilkan ASCII dan \textit{scan code} dalam heksadesimal.
-  \item Program input string dengan echo menggunakan \texttt{AH=0Ah}; cetak kembali string.
-  \item Program input password tanpa echo dengan masking dan dukungan Backspace.
-  \item Program \textit{buffer-aware}: baca semua karakter tertunda (\texttt{01h}) dan \texttt{flush} sebelum kembali ke menu.
-  \item Program menu interaktif: navigasi dengan panah atas/bawah; Enter untuk memilih; Esc untuk kembali.
-\end{enumerate}
-
-\section{Contoh Kode}
-\begin{verbatim}
-; Program input keyboard dan penanganan buffer
-TITLE Input Keyboard
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Set Video Mode, label={lst:set-video-mode}]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;   PROGRAM : VIDEO_MODE.ASM     ;
+;   FUNGSI  : DEMO SET VIDEO     ;
+;             MODE               ;
+;===========================S?to=;
 .MODEL SMALL
-.STACK 100h
-
 .DATA
-    prompt DB 'Masukkan nama: $'
-    nama   DB 50 DUP('$')
-    pesan  DB 'Halo, $'
-    buffer DB 50 DUP(?)
-
+    ; Data segment kosong untuk contoh sederhana
 .CODE
-START:
-    MOV AX, @DATA
+ORG 100h
+Proses:
+    ; Inisialisasi data segment
+    MOV AX, @data
     MOV DS, AX
     
-    ; Tampilkan prompt
+    ; Set ke mode text 80x25
+    MOV AH, 00h
+    MOV AL, 03h
+    INT 10h
+    
+    ; Set ke mode graphics 320x200 dengan 256 warna
+    MOV AH, 00h
+    MOV AL, 13h
+    INT 10h
+    
+    ; Kembali ke mode text
+    MOV AH, 00h
+    MOV AL, 03h
+    INT 10h
+    
+    MOV AH, 4CH         ; Keluar dari program dengan kode 0
+    MOV AL, 0
+    INT 21H            ; Memanggil interrupt untuk mengakhiri program
+
+END Proses
+                \end{lstlisting}
+
+            \subsubsection{AH=02h: Set Cursor Position}
+                Memindahkan kursor ke posisi tertentu:
+                \begin{itemize}
+                    \item DH = baris (row) - 0-24 untuk mode 80x25
+                    \item DL = kolom (column) - 0-79 untuk mode 80x25
+                    \item BH = nomor halaman (biasanya 0)
+                \end{itemize}
+
+            \subsubsection{AH=08h: Read Character and Attribute}
+                Membaca karakter dan atribut di posisi kursor:
+                \begin{itemize}
+                    \item BH = nomor halaman
+                    \item Keluaran: AL = karakter ASCII, AH = atribut warna
+                \end{itemize}
+
+        \subsection{Output Karakter dan String}
+            \subsubsection{AH=09h: Write Character and Attribute}
+                Menulis karakter dengan atribut warna:
+                \begin{itemize}
+                    \item AL = karakter ASCII
+                    \item BH = nomor halaman
+                    \item BL = atribut warna
+                    \item CX = jumlah karakter yang ditulis
+                \end{itemize}
+
+            \subsubsection{AH=0Eh: Write Character in TTY Mode}
+                Menulis karakter dengan pemrosesan TTY (Terminal Type):
+                \begin{itemize}
+                    \item AL = karakter ASCII
+                    \item BH = nomor halaman
+                    \item BL = warna foreground (graphics mode)
+                \end{itemize}
+
+            \subsubsection{AH=13h: Write String}
+                Menulis string dengan berbagai opsi:
+                \begin{itemize}
+                    \item AL = mode penulisan (0-3)
+                    \item BH = nomor halaman
+                    \item BL = atribut warna
+                    \item CX = panjang string
+                    \item DH = baris tujuan
+                    \item DL = kolom tujuan
+                    \item ES:BP = alamat string
+                \end{itemize}
+
+        \subsection{Atribut Warna Text Mode}
+            \begin{table}[H]
+                \centering
+                \caption{Kode Warna untuk Text Mode}
+                \begin{tabular}{|p{1.5cm}|p{2cm}|p{1.5cm}|p{2cm}|p{6cm}|}
+                    \hline
+                    \textbf{Hex} & \textbf{Warna} & \textbf{Hex} & \textbf{Warna} & \textbf{Keterangan} \\
+                    \hline
+                    00h & Hitam & 08h & Abu-abu gelap & Background/foreground \\
+                    \hline
+                    01h & Biru & 09h & Biru terang & \\
+                    \hline
+                    02h & Hijau & 0Ah & Hijau terang & \\
+                    \hline
+                    03h & Cyan & 0Bh & Cyan terang & \\
+                    \hline
+                    04h & Merah & 0Ch & Merah terang & \\
+                    \hline
+                    05h & Magenta & 0Dh & Magenta terang & \\
+                    \hline
+                    06h & Kuning & 0Eh & Kuning terang & \\
+                    \hline
+                    07h & Putih & 0Fh & Putih terang & \\
+                    \hline
+                \end{tabular}
+            \end{table}
+
+        \subsection{Contoh Program Video Lengkap}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Demo Video BIOS, label={lst:video-demo}]
+.model small
+.stack 100h
+.data
+    message db 'Hello, World!', '$'
+    colors db 01h, 02h, 03h, 04h, 05h, 06h, 07h, 0Eh, 0Fh
+    color_index db 0
+
+.code
+main PROC
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Set video mode 80x25
+    MOV AH, 00h
+    MOV AL, 03h
+    INT 10h
+    
+    ; Clear screen
+    MOV AH, 06h
+    MOV AL, 0
+    MOV BH, 07h
+    MOV CX, 0
+    MOV DX, 184Fh
+    INT 10h
+    
+    ; Display message with different colors
+    MOV CX, 9
+    MOV DH, 5
+display_loop:
+    ; Set cursor position
+    MOV AH, 02h
+    MOV DL, 30
+    MOV BH, 0
+    INT 10h
+    
+    ; Get color
+    MOV BX, OFFSET colors
+    ADD BX, color_index
+    MOV BL, [BX]
+    
+    ; Display character with color
+    MOV AH, 09h
+    MOV AL, 'A'
+    MOV BH, 0
+    MOV CX, 1
+    INT 10h
+    
+    ; Next color
+    INC color_index
+    INC DH
+    LOOP display_loop
+    
+    ; Wait for keypress
+    MOV AH, 00h
+    INT 16h
+    
+    ; Return to DOS
+    MOV AH, 4Ch
+    MOV AL, 0
+    INT 21h
+main ENDP
+END main
+            \end{lstlisting}
+
+    \section{DOS Interrupt (INT 21h)}
+        DOS (Disk Operating System) menyediakan layanan interrupt untuk operasi sistem dan file melalui INT 21h. DOS services menyediakan antarmuka standar untuk operasi file, console I/O, dan kontrol program.
+
+        \subsection{Fungsi Console I/O}
+            \subsubsection{AH=01h: Read Character with Echo}
+                Membaca karakter dari keyboard dan menampilkannya di layar:
+                \begin{itemize}
+                    \item Keluaran: AL = karakter ASCII yang dibaca
+                \end{itemize}
+
+            \subsubsection{AH=02h: Write Character}
+                Menulis karakter ke layar:
+                \begin{itemize}
+                    \item DL = karakter ASCII yang akan ditulis
+                \end{itemize}
+
+            \subsubsection{AH=09h: Write String}
+                Menulis string yang diakhiri dengan `\$':
+                \begin{itemize}
+                    \item DS:DX = alamat string
+                \end{itemize}
+
+            \subsubsection{AH=0Ah: Read String}
+                Membaca string dari keyboard:
+                \begin{itemize}
+                    \item DS:DX = alamat buffer
+                    \item Byte pertama buffer = panjang maksimum
+                    \item Byte kedua = panjang aktual yang dibaca
+                \end{itemize}
+
+        \subsection{Fungsi File Operations}
+            \subsubsection{AH=3Ch: Create File}
+                Membuat file baru:
+                \begin{itemize}
+                    \item DS:DX = alamat nama file (ASCIIZ)
+                    \item CX = atribut file
+                    \item Keluaran: AX = file handle (jika berhasil)
+                \end{itemize}
+
+            \subsubsection{AH=3Dh: Open File}
+                Membuka file yang sudah ada:
+                \begin{itemize}
+                    \item DS:DX = alamat nama file (ASCIIZ)
+                    \item AL = mode akses (0=read, 1=write, 2=read/write)
+                    \item Keluaran: AX = file handle
+                \end{itemize}
+
+            \subsubsection{AH=3Eh: Close File}
+                Menutup file:
+                \begin{itemize}
+                    \item BX = file handle
+                \end{itemize}
+
+            \subsubsection{AH=3Fh: Read File}
+                Membaca data dari file:
+                \begin{itemize}
+                    \item BX = file handle
+                    \item CX = jumlah byte yang akan dibaca
+                    \item DS:DX = alamat buffer
+                    \item Keluaran: AX = jumlah byte yang berhasil dibaca
+                \end{itemize}
+
+            \subsubsection{AH=40h: Write File}
+                Menulis data ke file:
+                \begin{itemize}
+                    \item BX = file handle
+                    \item CX = jumlah byte yang akan ditulis
+                    \item DS:DX = alamat buffer
+                    \item Keluaran: AX = jumlah byte yang berhasil ditulis
+                \end{itemize}
+
+        \subsection{Fungsi Program Control}
+            \subsubsection{AH=4Ch: Terminate Program}
+                Mengakhiri program dan mengembalikan kontrol ke DOS:
+                \begin{itemize}
+                    \item AL = exit code
+                \end{itemize}
+
+        \subsection{Contoh Program File Operations}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program File Operations Lengkap, label={lst:file-ops}]
+.model small
+.stack 100h
+.data
+    filename db 'test.txt', 0
+    message db 'Hello, File World!', 13, 10
+    msg_len equ $ - message
+    buffer db 100 dup(?)
+    file_handle dw ?
+    error_msg db 'Error occurred!', '$'
+    success_msg db 'File operations successful!', '$'
+
+.code
+main PROC
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Create file
+    MOV AH, 3Ch
+    MOV DX, OFFSET filename
+    MOV CX, 0          ; Normal file
+    INT 21h
+    JC error_exit
+    MOV file_handle, AX
+    
+    ; Write to file
+    MOV AH, 40h
+    MOV BX, file_handle
+    MOV CX, msg_len
+    MOV DX, OFFSET message
+    INT 21h
+    JC error_exit
+    
+    ; Close file
+    MOV AH, 3Eh
+    MOV BX, file_handle
+    INT 21h
+    JC error_exit
+    
+    ; Open file for reading
+    MOV AH, 3Dh
+    MOV DX, OFFSET filename
+    MOV AL, 0          ; Read mode
+    INT 21h
+    JC error_exit
+    MOV file_handle, AX
+    
+    ; Read from file
+    MOV AH, 3Fh
+    MOV BX, file_handle
+    MOV CX, 100
+    MOV DX, OFFSET buffer
+    INT 21h
+    JC error_exit
+    
+    ; Close file
+    MOV AH, 3Eh
+    MOV BX, file_handle
+    INT 21h
+    JC error_exit
+    
+    ; Display success message
+    MOV AH, 09h
+    MOV DX, OFFSET success_msg
+    INT 21h
+    JMP exit_program
+    
+error_exit:
+    MOV AH, 09h
+    MOV DX, OFFSET error_msg
+    INT 21h
+    
+exit_program:
+    MOV AH, 4Ch
+    MOV AL, 0
+    INT 21h
+main ENDP
+END main
+            \end{lstlisting}
+
+    \section{Keyboard Interrupt (INT 16h)}
+        BIOS menyediakan layanan keyboard melalui INT 16h untuk membaca input dari keyboard. Keyboard services menyediakan berbagai fungsi untuk membaca input dengan berbagai mode.
+
+        \subsection{Fungsi Keyboard}
+            \subsubsection{AH=00h: Read Key}
+                Membaca tombol yang ditekan (blocking):
+                \begin{itemize}
+                    \item Keluaran: AL = ASCII code, AH = scan code
+                \end{itemize}
+
+            \subsubsection{AH=01h: Check for Key}
+                Memeriksa apakah ada tombol yang ditekan (non-blocking):
+                \begin{itemize}
+                    \item Keluaran: ZF = 1 jika tidak ada tombol, ZF = 0 jika ada tombol
+                    \item Jika ada tombol: AL = ASCII code, AH = scan code
+                \end{itemize}
+
+            \subsubsection{AH=02h: Get Keyboard Flags}
+                Mendapatkan status keyboard flags:
+                \begin{itemize}
+                    \item Keluaran: AL = keyboard flags
+                \end{itemize}
+
+        \subsection{Keyboard Buffer}
+            Keyboard memiliki buffer internal yang menyimpan maksimal 15 karakter. Jika buffer penuh, karakter tambahan akan hilang.
+
+        \subsection{Scan Codes dan Special Keys}
+            \begin{table}[H]
+                \centering
+                \caption{Scan Codes untuk Special Keys}
+                \begin{tabular}{|p{2cm}|p{2cm}|p{2cm}|p{7cm}|}
+                    \hline
+                    \textbf{Key} & \textbf{Scan Code} & \textbf{ASCII} & \textbf{Keterangan} \\
+                    \hline
+                    Escape & 01h & 1Bh & Escape key \\
+                    \hline
+                    F1-F10 & 3Bh-44h & 00h & Function keys \\
+                    \hline
+                    Home & 47h & 00h & Home key \\
+                    \hline
+                    Up Arrow & 48h & 00h & Cursor up \\
+                    \hline
+                    Page Up & 49h & 00h & Page up \\
+                    \hline
+                    Left Arrow & 4Bh & 00h & Cursor left \\
+                    \hline
+                    Right Arrow & 4Dh & 00h & Cursor right \\
+                    \hline
+                    End & 4Fh & 00h & End key \\
+                    \hline
+                    Down Arrow & 50h & 00h & Cursor down \\
+                    \hline
+                    Page Down & 51h & 00h & Page down \\
+                    \hline
+                \end{tabular}
+            \end{table}
+
+        \subsection{Contoh Program Keyboard Lengkap}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Keyboard Input Lengkap, label={lst:keyboard-demo}]
+.model small
+.stack 100h
+.data
+    prompt db 'Press any key (ESC to exit): $'
+    key_info db 'ASCII: $'
+    scan_info db 'Scan: $'
+    newline db 13, 10, '$'
+    ascii_hex db '00h', '$'
+    scan_hex db '00h', '$'
+    temp_byte db ?
+
+.code
+main PROC
+    MOV AX, @data
+    MOV DS, AX
+    
+main_loop:
+    ; Display prompt
     MOV AH, 09h
     MOV DX, OFFSET prompt
     INT 21h
     
-    ; Input string dengan echo (DOS buffered input)
-    MOV AH, 0Ah
-    MOV DX, OFFSET buffer
+    ; Read key
+    MOV AH, 00h
+    INT 16h
+    
+    ; Check for ESC
+    CMP AL, 1Bh
+    JE exit_program
+    
+    ; Convert ASCII to hex
+    MOV temp_byte, AL
+    CALL byte_to_hex
+    MOV AX, OFFSET temp_byte
+    MOV BX, OFFSET ascii_hex
+    CALL convert_byte
+    
+    ; Convert scan code to hex
+    MOV temp_byte, AH
+    CALL byte_to_hex
+    MOV AX, OFFSET temp_byte
+    MOV BX, OFFSET scan_hex
+    CALL convert_byte
+    
+    ; Display results
+    MOV AH, 09h
+    MOV DX, OFFSET newline
     INT 21h
     
-    ; Input karakter tunggal (blocking)
-    MOV AH, 00h
-    INT 16h
-    ; AL = ASCII code, AH = Scan code
+    MOV AH, 09h
+    MOV DX, OFFSET key_info
+    INT 21h
     
-    ; Check for key (non-blocking)
+    MOV AH, 09h
+    MOV DX, OFFSET ascii_hex
+    INT 21h
+    
+    MOV AH, 09h
+    MOV DX, OFFSET newline
+    INT 21h
+    
+    MOV AH, 09h
+    MOV DX, OFFSET scan_info
+    INT 21h
+    
+    MOV AH, 09h
+    MOV DX, OFFSET scan_hex
+    INT 21h
+    
+    MOV AH, 09h
+    MOV DX, OFFSET newline
+    INT 21h
+    
+    JMP main_loop
+    
+exit_program:
+    MOV AH, 4Ch
+    MOV AL, 0
+    INT 21h
+main ENDP
+
+; Convert byte to hex string
+byte_to_hex PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    
+    MOV AL, temp_byte
+    MOV AH, 0
+    MOV BL, 16
+    DIV BL
+    
+    ; Convert high nibble
+    CMP AL, 10
+    JL high_digit
+    ADD AL, 7
+high_digit:
+    ADD AL, '0'
+    MOV [BX], AL
+    
+    ; Convert low nibble
+    MOV AL, AH
+    CMP AL, 10
+    JL low_digit
+    ADD AL, 7
+low_digit:
+    ADD AL, '0'
+    MOV [BX+1], AL
+    
+    POP CX
+    POP BX
+    POP AX
+    RET
+byte_to_hex ENDP
+
+END main
+            \end{lstlisting}
+
+    \section{Timer Interrupt (INT 1Ah)}
+        BIOS menyediakan layanan timer melalui INT 1Ah untuk operasi waktu sistem. Timer services menyediakan fungsi untuk membaca dan mengatur waktu sistem.
+
+        \subsection{Fungsi Timer}
+            \subsubsection{AH=00h: Read System Time}
+                Membaca waktu sistem:
+                \begin{itemize}
+                    \item Keluaran: CX:DX = tick count (18.2 ticks per detik)
+                    \item AL = midnight flag (1 jika sudah lewat tengah malam)
+                \end{itemize}
+
+            \subsubsection{AH=01h: Set System Time}
+                Mengatur waktu sistem:
+                \begin{itemize}
+                    \item CX:DX = tick count
+                \end{itemize}
+
+        \subsection{Contoh Program Timer Lengkap}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Timer dan Delay, label={lst:timer-demo}]
+.model small
+.stack 100h
+.data
+    start_time dw ?, ?
+    current_time dw ?, ?
+    delay_ticks dw 18      ; 1 second delay
+    message db 'Timer demo - Press any key to exit', 13, 10, '$'
+    time_msg db 'Time elapsed: $'
+    seconds db ' seconds', 13, 10, '$'
+    temp_word dw ?
+
+.code
+main PROC
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Display message
+    MOV AH, 09h
+    MOV DX, OFFSET message
+    INT 21h
+    
+    ; Get start time
+    MOV AH, 00h
+    INT 1Ah
+    MOV start_time, DX
+    MOV start_time+2, CX
+    
+timer_loop:
+    ; Check for keypress (non-blocking)
     MOV AH, 01h
     INT 16h
-    JZ no_key
-    ; Key available, read it
+    JNZ exit_program
+    
+    ; Get current time
+    MOV AH, 00h
+    INT 1Ah
+    MOV current_time, DX
+    MOV current_time+2, CX
+    
+    ; Calculate elapsed time
+    MOV AX, current_time
+    SUB AX, start_time
+    MOV BX, current_time+2
+    SBB BX, start_time+2
+    
+    ; Convert ticks to seconds
+    MOV CX, 18
+    DIV CX
+    
+    ; Display elapsed time
+    MOV AH, 09h
+    MOV DX, OFFSET time_msg
+    INT 21h
+    
+    ; Convert seconds to string and display
+    MOV temp_word, AX
+    CALL word_to_string
+    
+    MOV AH, 09h
+    MOV DX, OFFSET seconds
+    INT 21h
+    
+    ; Small delay
+    CALL delay_100ms
+    
+    JMP timer_loop
+    
+exit_program:
+    ; Clear keyboard buffer
     MOV AH, 00h
     INT 16h
     
-no_key:
-    ; Flush keyboard buffer (DOS)
-    MOV AH, 0Ch
-    MOV AL, 00h
+    MOV AH, 4Ch
+    MOV AL, 0
+    INT 21h
+main ENDP
+
+; Delay for approximately 100ms
+delay_100ms PROC
+    PUSH AX
+    PUSH CX
+    PUSH DX
+    
+    MOV AH, 00h
+    INT 1Ah
+    MOV CX, DX
+    ADD CX, 2       ; ~100ms delay
+    
+delay_loop:
+    MOV AH, 00h
+    INT 1Ah
+    CMP DX, CX
+    JL delay_loop
+    
+    POP DX
+    POP CX
+    POP AX
+    RET
+delay_100ms ENDP
+
+; Convert word to string
+word_to_string PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    
+    MOV AX, temp_word
+    MOV BX, 10
+    MOV CX, 0
+    
+convert_loop:
+    MOV DX, 0
+    DIV BX
+    PUSH DX
+    INC CX
+    CMP AX, 0
+    JNE convert_loop
+    
+    ; Pop digits and display
+display_loop:
+    POP DX
+    ADD DL, '0'
+    MOV AH, 02h
+    INT 21h
+    LOOP display_loop
+    
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    RET
+word_to_string ENDP
+
+END main
+            \end{lstlisting}
+
+    \section{Interrupt Handler Custom}
+        Program dapat membuat interrupt handler sendiri untuk menangani interrupt khusus. Custom interrupt handler memungkinkan program untuk menangani interrupt yang tidak standar atau menambahkan fungsionalitas khusus.
+
+        \subsection{Instalasi Interrupt Handler}
+            \subsubsection{INT 21h, AH=25h: Set Interrupt Vector}
+                Mengatur interrupt vector:
+                \begin{itemize}
+                    \item AL = nomor interrupt
+                    \item DS:DX = alamat interrupt handler
+                \end{itemize}
+
+            \subsubsection{INT 21h, AH=35h: Get Interrupt Vector}
+                Mendapatkan interrupt vector:
+                \begin{itemize}
+                    \item AL = nomor interrupt
+                    \item Keluaran: ES:BX = alamat interrupt handler
+                \end{itemize}
+
+        \subsection{Struktur Interrupt Handler}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Template Interrupt Handler, label={lst:interrupt-template}]
+my_interrupt_handler PROC FAR
+    PUSH AX          ; Simpan register yang digunakan
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    PUSH SI
+    PUSH DI
+    PUSH DS
+    PUSH ES
+    
+    ; Kode penanganan interrupt
+    ; Pastikan handler cepat dan efisien
+    
+    POP ES           ; Pulihkan register
+    POP DS
+    POP DI
+    POP SI
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    
+    IRET             ; Kembali dari interrupt
+my_interrupt_handler ENDP
+            \end{lstlisting}
+
+        \subsection{Contoh Program Custom Interrupt}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Custom Interrupt Handler, label={lst:custom-interrupt}]
+.model small
+.stack 100h
+.data
+    old_int60h dd ?      ; Simpan vector lama
+    counter dw 0         ; Counter untuk interrupt
+    message db 'Custom interrupt handler installed!', 13, 10
+            db 'Press ESC to exit', 13, 10, '$'
+    counter_msg db 'Interrupt count: $'
+    newline db 13, 10, '$'
+
+.code
+main PROC
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Simpan vector lama
+    MOV AH, 35h
+    MOV AL, 60h
+    INT 21h
+    MOV WORD PTR old_int60h, BX
+    MOV WORD PTR old_int60h+2, ES
+    
+    ; Install handler baru
+    MOV AH, 25h
+    MOV AL, 60h
+    MOV DX, OFFSET my_handler
+    INT 21h
+    
+    ; Display message
+    MOV AH, 09h
+    MOV DX, OFFSET message
+    INT 21h
+    
+    ; Main loop
+main_loop:
+    ; Trigger custom interrupt
+    INT 60h
+    
+    ; Display counter
+    MOV AH, 09h
+    MOV DX, OFFSET counter_msg
+    INT 21h
+    
+    ; Convert counter to string
+    MOV AX, counter
+    CALL word_to_string
+    
+    MOV AH, 09h
+    MOV DX, OFFSET newline
+    INT 21h
+    
+    ; Check for ESC
+    MOV AH, 01h
+    INT 16h
+    JZ main_loop
+    
+    MOV AH, 00h
+    INT 16h
+    CMP AL, 1Bh
+    JE restore_handler
+    
+    JMP main_loop
+    
+restore_handler:
+    ; Restore original handler
+    MOV AH, 25h
+    MOV AL, 60h
+    MOV DX, WORD PTR old_int60h
+    MOV DS, WORD PTR old_int60h+2
     INT 21h
     
     MOV AH, 4Ch
+    MOV AL, 0
     INT 21h
-END START
-\end{verbatim}
+main ENDP
 
-\section{Latihan}
-\begin{enumerate}
-  \item Buat program yang menunggu input dari keyboard dan menampilkan nilai ASCII/scan code setiap tombol.
-  \item Buat program yang menampilkan \textit{scan code} untuk function keys F1--F4 dan mengeksekusi aksi berbeda.
-  \item Buat program input password dengan masking dan validasi panjang (min 6, maks 16), dukung Backspace.
-  \item Buat program yang mendeteksi kondisi buffer penuh (simulasikan dengan input cepat), kemudian melakukan \texttt{flush} dan menampilkan pesan peringatan.
-\end{enumerate}
+; Custom interrupt handler
+my_handler PROC FAR
+    PUSH AX
+    PUSH DS
+    
+    MOV AX, @data
+    MOV DS, AX
+    
+    INC counter
+    
+    POP DS
+    POP AX
+    IRET
+my_handler ENDP
 
-\section{Tugas}
-\begin{itemize}
-  \item \textbf{Login sederhana}: Validasi username dan password yang disimpan di memori; berikan tiga kesempatan; kunci selama 5 detik (simulasikan delay) setelah 3 kegagalan.
-  \item \textbf{Menu interaktif}: Navigasi dengan arrow keys, Enter untuk pilih, Esc untuk kembali; sorot pilihan aktif menggunakan warna.
-  \item \textbf{Timeout input}: Implementasikan \textit{timeout} 5 detik untuk menekan tombol berikutnya (gunakan \textit{polling} \texttt{01h} dan penundaan berbasis \texttt{INT 1Ah} atau loop terkalibrasi); jika habis, batalkan input.
-  \item \textbf{Dokumentasi INT 16h}: Ringkas parameter dan nilai kembali untuk fungsi 00h, 01h, 02h; sertakan tabel contoh keluaran.
-\end{itemize}
+; Convert word to string
+word_to_string PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    
+    MOV AX, counter
+    MOV BX, 10
+    MOV CX, 0
+    
+convert_loop:
+    MOV DX, 0
+    DIV BX
+    PUSH DX
+    INC CX
+    CMP AX, 0
+    JNE convert_loop
+    
+display_loop:
+    POP DX
+    ADD DL, '0'
+    MOV AH, 02h
+    INT 21h
+    LOOP display_loop
+    
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    RET
+word_to_string ENDP
 
+END main
+            \end{lstlisting}
+
+    \section{Error Handling}
+        Kebanyakan interrupt mengembalikan status error melalui Carry Flag (CF):
+        \begin{itemize}
+            \item CF = 0: Operasi berhasil
+            \item CF = 1: Operasi gagal, AX berisi kode error
+        \end{itemize}
+
+        \subsection{Kode Error DOS}
+            \begin{table}[H]
+                \centering
+                \caption{Kode Error DOS yang Umum}
+                \begin{tabular}{|p{1.5cm}|p{3cm}|p{8.5cm}|}
+                    \hline
+                    \textbf{Kode} & \textbf{Nama} & \textbf{Keterangan} \\
+                    \hline
+                    01h & Invalid function & Fungsi tidak valid \\
+                    \hline
+                    02h & File not found & File tidak ditemukan \\
+                    \hline
+                    03h & Path not found & Path tidak ditemukan \\
+                    \hline
+                    04h & Too many open files & Terlalu banyak file terbuka \\
+                    \hline
+                    05h & Access denied & Akses ditolak \\
+                    \hline
+                    06h & Invalid handle & Handle tidak valid \\
+                    \hline
+                    12h & No more files & Tidak ada file lagi \\
+                    \hline
+                \end{tabular}
+            \end{table}
+
+        \subsection{Contoh Error Handling Lengkap}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Error Handling Lengkap, label={lst:error-handling}]
+.model small
+.stack 100h
+.data
+    filename db 'nonexistent.txt', 0
+    buffer db 100 dup(?)
+    file_handle dw ?
+    error_messages dw offset err_invalid_func, offset err_file_not_found
+                   dw offset err_path_not_found, offset err_too_many_files
+                   dw offset err_access_denied, offset err_invalid_handle
+    
+    err_invalid_func db 'Invalid function', 13, 10, '$'
+    err_file_not_found db 'File not found', 13, 10, '$'
+    err_path_not_found db 'Path not found', 13, 10, '$'
+    err_too_many_files db 'Too many open files', 13, 10, '$'
+    err_access_denied db 'Access denied', 13, 10, '$'
+    err_invalid_handle db 'Invalid handle', 13, 10, '$'
+    err_unknown db 'Unknown error', 13, 10, '$'
+    success_msg db 'File operations successful', 13, 10, '$'
+
+.code
+main PROC
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Try to open file
+    MOV AH, 3Dh
+    MOV DX, OFFSET filename
+    MOV AL, 0          ; Read mode
+    INT 21h
+    
+    JC handle_error    ; Jump if error
+    MOV file_handle, AX
+    
+    ; File opened successfully
+    MOV AH, 09h
+    MOV DX, OFFSET success_msg
+    INT 21h
+    
+    ; Close file
+    MOV AH, 3Eh
+    MOV BX, file_handle
+    INT 21h
+    
+    JMP exit_program
+    
+handle_error:
+    ; AX contains error code
+    CMP AX, 6          ; Check if error code is valid
+    JA unknown_error
+    
+    ; Get error message
+    DEC AX             ; Convert to 0-based index
+    SHL AX, 1          ; Multiply by 2 (word size)
+    MOV BX, AX
+    MOV DX, error_messages[BX]
+    
+    ; Display error message
+    MOV AH, 09h
+    INT 21h
+    JMP exit_program
+    
+unknown_error:
+    MOV AH, 09h
+    MOV DX, OFFSET err_unknown
+    INT 21h
+    
+exit_program:
+    MOV AH, 4Ch
+    MOV AL, 0
+    INT 21h
+main ENDP
+
+END main
+            \end{lstlisting}
+
+    \section{Interrupt Chaining dan Reentrancy}
+        \subsection{Interrupt Chaining}
+            Interrupt chaining memungkinkan beberapa program untuk menangani interrupt yang sama. Program baru dapat memanggil handler lama setelah memproses interrupt.
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Interrupt Chaining, label={lst:interrupt-chaining}]
+; Install new handler yang memanggil handler lama
+install_handler PROC
+    ; Simpan vector lama
+    MOV AH, 35h
+    MOV AL, 21h
+    INT 21h
+    MOV WORD PTR old_int21h, BX
+    MOV WORD PTR old_int21h+2, ES
+    
+    ; Install handler baru
+    MOV AH, 25h
+    MOV AL, 21h
+    MOV DX, OFFSET new_int21h
+    INT 21h
+    RET
+install_handler ENDP
+
+; Handler baru yang memanggil handler lama
+new_int21h PROC FAR
+    ; Proses interrupt jika diperlukan
+    CMP AH, 09h
+    JNE call_old_handler
+    
+    ; Log string output
+    PUSH AX
+    PUSH DX
+    PUSH DS
+    ; Log ke file atau buffer
+    POP DS
+    POP DX
+    POP AX
+    
+call_old_handler:
+    ; Panggil handler lama
+    JMP DWORD PTR old_int21h
+new_int21h ENDP
+            \end{lstlisting}
+
+        \subsection{Reentrancy Issues}
+            Reentrancy adalah kemampuan suatu fungsi untuk dipanggil secara bersamaan oleh beberapa thread atau interrupt. Masalah reentrancy dapat terjadi ketika interrupt handler memanggil fungsi yang tidak aman untuk dipanggil dari interrupt.
+
+            \begin{table}[H]
+                \centering
+                \caption{Fungsi DOS yang Aman dan Tidak Aman untuk Interrupt}
+                \begin{tabular}{|p{3cm}|p{3cm}|p{7cm}|}
+                    \hline
+                    \textbf{Status} & \textbf{Fungsi} & \textbf{Keterangan} \\
+                    \hline
+                    \textbf{AMAN} & INT 21h, AH=02h & Write character \\
+                    \hline
+                    & INT 21h, AH=06h & Direct console I/O \\
+                    \hline
+                    & INT 21h, AH=30h & Get DOS version \\
+                    \hline
+                    \textbf{TIDAK AMAN} & INT 21h, AH=09h & Write string \\
+                    \hline
+                    & INT 21h, AH=3Dh & Open file \\
+                    \hline
+                    & INT 21h, AH=40h & Write file \\
+                    \hline
+                \end{tabular}
+            \end{table}
+
+    \section{Kesimpulan}
+        Interrupt adalah mekanisme fundamental dalam pemrograman assembly yang memungkinkan komunikasi antara program aplikasi dengan sistem operasi dan perangkat keras. Penguasaan interrupt BIOS dan DOS sangat penting untuk membuat program yang dapat berinteraksi dengan pengguna dan sistem. Materi ini memberikan fondasi yang kuat untuk bab-bab selanjutnya yang akan menggunakan interrupt secara ekstensif dalam operasi I/O, file processing, dan program TSR.
+
+        \textbf{Poin-poin penting yang telah dipelajari:}
+        \begin{itemize}
+            \item Interrupt vector table menyimpan alamat handler untuk 256 interrupt (0-255)
+            \item BIOS interrupt (INT 10h) menyediakan layanan video dan grafis
+            \item DOS interrupt (INT 21h) menyediakan layanan sistem dan file operations
+            \item Keyboard interrupt (INT 16h) menyediakan input dari keyboard
+            \item Timer interrupt (INT 1Ah) menyediakan operasi waktu sistem
+            \item Custom interrupt handler memungkinkan penanganan interrupt khusus
+            \item Error handling menggunakan Carry Flag untuk mendeteksi kesalahan
+            \item Interrupt chaining memungkinkan beberapa handler untuk interrupt yang sama
+            \item Reentrancy issues harus dipertimbangkan saat memanggil fungsi dari interrupt
+        \end{itemize}
+
+        Dengan pemahaman yang baik tentang interrupt, mahasiswa dapat mengembangkan program assembly yang lebih interaktif dan fungsional, serta memahami dasar-dasar sistem operasi dan komunikasi dengan perangkat keras.
 
 \end{document}

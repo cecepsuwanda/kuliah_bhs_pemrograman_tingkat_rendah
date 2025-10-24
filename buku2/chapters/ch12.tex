@@ -1,200 +1,1910 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Pemrograman Grafik Dasar}
+\chapter{Array dan String}
 
-\section{Tujuan Pembelajaran}
-Mahasiswa mampu:
-\begin{itemize}
-    \item Menjelaskan perbedaan mode teks dan grafik, resolusi, palet warna, dan organisasi memori video.
-    \item Menggunakan layanan BIOS \texttt{INT 10h} untuk mengatur mode grafik, menulis/membaca piksel, dan memeriksa mode aktif.
-    \item Menggambar piksel dan garis di layar pada koordinat tertentu dengan warna yang dipilih.
-    \item Mengimplementasikan algoritma garis (DDA/Bresenham) dan memahami trade-off kinerja/akurasi.
-    \item Mengembangkan program grafik sederhana berbasis mode 13h (320x200x256) sebagai studi kasus.
-\end{itemize}
+    \section{Tujuan Pembelajaran}
+        Mahasiswa mampu:
+        \begin{itemize}
+            \item Menjelaskan representasi array dan string dalam memori serta pengalamatan elemennya.
+            \item Menggunakan instruksi string \texttt{MOVS}, \texttt{CMPS}, \texttt{SCAS}, \texttt{LODS}, \texttt{STOS} dengan benar.
+            \item Mengoptimalkan operasi berulang menggunakan awalan \texttt{REP}/\texttt{REPE}/\texttt{REPNE} dan pengelolaan \texttt{DF}.
+            \item Membangun rutinitas manipulasi string/array (salin, banding, cari, panjang, balik, gabung, urut).
+        \end{itemize}
 
-\section{Pendahuluan}
-Mode grafik menyediakan akses piksel-tingkat ke layar, berbeda dengan mode teks yang berbasis karakter. Pada lingkungan DOS, BIOS menyediakan fungsi \texttt{INT 10h} untuk mengatur mode, menulis/membaca piksel, dan berbagai operasi tampilan. Mode 13h (320x200 dengan 256 warna) populer untuk pembelajaran karena memori video \textit{linear} (satu byte per piksel) yang mudah diakses.
+    \section{Pendahuluan}
+        Array dan string adalah struktur data fundamental \cite{assembly_language_programming_guide}. Pada 8086, operasi berulang terhadap data berurutan didukung oleh instruksi string yang menggabungkan pembacaan/penulisan data dengan peningkatan/penurunan indeks otomatis (\texttt{SI}/\texttt{DI}) dan pengurangan pencacah (\texttt{CX}) bila digabung dengan awalan \texttt{REP} \cite{8086_instruction_set_reference}. Pengelolaan \texttt{Direction Flag} (\texttt{DF}) menentukan arah iterasi (naik dengan \texttt{CLD}, turun dengan \texttt{STD}). Materi ini ditempatkan setelah percabangan dan perulangan agar contoh dapat menggunakan kontrol alur yang tepat.
 
-\section{Konsep Mode Grafik}
-\subsection{Perbedaan mode teks dan grafik}
-Mode teks menampilkan karakter dari tabel font di layar, sedangkan mode grafik memetakan memori video langsung ke piksel. Mode teks lebih hemat memori dan sederhana; mode grafik memberi fleksibilitas menggambar bentuk bebas.
+    \section{Konsep Array dan String}
+        \subsection{Definisi dan penyimpanan}
+            Array adalah struktur data fundamental yang terdiri dari koleksi elemen bertipe homogen yang tersusun secara kontigu dalam memori. String dapat dipandang sebagai array karakter khusus dengan konvensi terminasi tertentu. Pada Intel 8086, penyimpanan array dan string memperhatikan ukuran elemen (byte/word) untuk perhitungan offset yang akurat.
 
-\subsubsection{Resolusi layar dan palet}
-Resolusi menyatakan jumlah piksel horizontal x vertikal. Pada mode 13h: 320x200 piksel, 256 warna (palet 8-bit). Nilai warna \(0..255\) memetakan ke entri palet yang dapat diatur (di luar cakupan dasar ini).
+            \begin{table}[H]
+                \centering
+                \caption{Karakteristik Array dan String pada Intel 8086}
+                \begin{tabular}{|p{3cm}|p{4cm}|p{6cm}|}
+                    \hline
+                    \textbf{Aspek} & \textbf{Array Byte} & \textbf{Array Word} \\
+                    \hline
+                    \textbf{Ukuran Elemen} & 1 byte & 2 bytes \\
+                    \hline
+                    \textbf{Offset Formula} & base + index & base + (index × 2) \\
+                    \hline
+                    \textbf{Register Indeks} & SI/DI & SI/DI \\
+                    \hline
+                    \textbf{Instruksi String} & MOVSB, CMPSB, SCASB, LODSB, STOSB & MOVSW, CMPSW, SCASW, LODSW, STOSW \\
+                    \hline
+                    \textbf{Contoh Deklarasi} & \texttt{arr db 1,2,3,4,5} & \texttt{arr dw 100,200,300} \\
+                    \hline
+                \end{tabular}
+                \label{tab:array-characteristics}
+            \end{table}
 
-\subsubsection{Organisasi memori video dan pengalamatan piksel}
-Pada mode 13h, buffer video mulai di \texttt{A000:0000}. Offset piksel \((x,y)\) adalah \(y\cdot 320 + x\). Untuk mode lain (planar EGA/VGA), organisasi lebih kompleks.
+        \subsubsection{Pengalamatan dan perhitungan offset}
+            Pengalamatan elemen array memerlukan perhitungan offset yang tepat berdasarkan ukuran elemen. Register \texttt{SI} dan \texttt{DI} digunakan sebagai indeks sumber dan tujuan dalam operasi string.
 
-\subsection{Interupsi INT 10h untuk Grafik}
-\subsubsection{Fungsi 00h: Set Video Mode}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AH=00h}, \texttt{AL=mode} (\texttt{13h} untuk 320x200x256, \texttt{03h} kembali ke teks 80x25).
-  \item \textbf{Efek}: Mengatur mode tampilan dan membersihkan layar.
-\end{itemize}
+            \textbf{Formula Pengalamatan:}
+            \begin{itemize}
+                \item \textbf{Array Byte}: Offset = Base Address + Index
+                \item \textbf{Array Word}: Offset = Base Address + (Index × 2)
+            \end{itemize}
 
-\subsubsection{Fungsi 0Ch: Write Pixel}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AH=0Ch}, \texttt{AL=color}, \texttt{BH=page}, \texttt{CX=x}, \texttt{DX=y}.
-  \item \textbf{Efek}: Menggambar piksel pada koordinat (x,y) dengan warna.
-\end{itemize}
-
-\subsubsection{Fungsi 0Dh: Read Pixel}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AH=0Dh}, \texttt{BH=page}, \texttt{CX=x}, \texttt{DX=y}.
-  \item \textbf{Keluaran}: \texttt{AL=color} pada piksel (x,y).
-\end{itemize}
-
-\subsubsection{Fungsi 0Fh: Get Video Mode}
-Mengembalikan mode saat ini, ukuran kolom, dan nomor halaman aktif.
-
-\subsection{Menggambar Piksel}
-\subsubsection{Koordinat dan warna}
-Koordinat (x,y) berbasis 0. Pastikan berada dalam batas resolusi. Untuk warna, pilih nilai palet \(0..255\).
-
-\subsubsection{Akses memori video langsung}
-Selain \texttt{INT 10h, 0Ch}, dapat menulis langsung ke \texttt{A000:0000 + y*320 + x} untuk kinerja. Pastikan \texttt{ES} menunjuk \texttt{A000h} dan gunakan \texttt{MOV} ke \texttt{ES:[DI]}/\texttt{ES:[BX]}.
-
-\subsubsection{Mode VGA 13h dan Palet}
-Pada mode 13h, satu byte merepresentasikan indeks palet (0..255). Pengaturan palet (DAC) dilakukan dengan port I/O VGA (di luar cakupan dasar ini), namun penting dipahami bahwa nilai piksel bukan RGB langsung.
-
-\subsubsection{Akses Langsung vs INT 10h}
-Pemanggilan \texttt{INT 10h} untuk setiap piksel bersifat mahal. Untuk kinerja tinggi, gunakan akses langsung ke memori video: muat \texttt{ES=A000h}, hitung offset \(y\cdot 320 + x\), lalu simpan byte warna. Gunakan \texttt{REP STOSB} untuk mengisi area.
-
-\subsubsection{Algoritma Garis: DDA vs Bresenham}
-DDA menggunakan penambahan pecahan dan pembulatan; sederhana namun lebih lambat. Bresenham memakai hanya integer, cocok untuk perangkat keras lama. Uji di emulator untuk melihat perbedaan jumlah instruksi.
-
-\subsubsection{Clipping Sederhana}
-Selalu periksa \(0 \le x < 320\) dan \(0 \le y < 200\) sebelum menulis. Untuk garis, lakukan \textit{trivial reject} ketika seluruh segmen di luar batas; untuk implementasi penuh, terapkan Cohen–Sutherland (lanjutan).
-
-\subsection{Algoritma Menggambar Garis}
-\subsubsection{DDA (Digital Differential Analyzer)}
-Menginkremen koordinat dengan langkah pecahan. Mudah dipahami namun menggunakan operasi pecahan/float atau perkiraan \textit{fixed-point}; dapat lebih lambat.
-
-\subsubsection{Bresenham}
-Menggunakan aritmatika integer dan \textit{error term} untuk menentukan piksel berikutnya. Lebih efisien dan akurat untuk layar raster.
-
-\subsubsection{Implementasi ringkas}
-\begin{verbatim}
-; Pseudo: Bresenham integer
- dx = abs(x1-x0); dy = -abs(y1-y0)
- sx = x0<x1 ? 1 : -1
- sy = y0<y1 ? 1 : -1
- err = dx + dy
- while true:
-   plot(x0,y0)
-   if x0==x1 && y0==y1: break
-   e2 = 2*err
-   if e2 >= dy: err += dy; x0 += sx
-   if e2 <= dx: err += dx; y0 += sy
-\end{verbatim}
-
-\subsection{Koordinat dan Transformasi}
-\subsubsection{Sistem koordinat}
-Asal (0,0) di pojok kiri atas; x ke kanan, y ke bawah. Transformasi translasi/skalasi dapat diterapkan sebelum penggambaran.
-
-\subsubsection{Clipping dan viewport}
-Batasi penggambaran dalam area tertentu untuk menghindari akses memori di luar layar. Sederhana: \textit{reject} jika di luar; lanjutkan jika di dalam.
-
-\section{Praktikum}
-\begin{enumerate}
-  \item Atur mode 13h dan gambar beberapa piksel berwarna acak.
-  \item Gambar garis horizontal/vertikal dengan perulangan sederhana (inkremen x atau y).
-  \item Implementasikan DDA untuk menggambar garis diagonal; bandingkan dengan implementasi sederhana.
-  \item Implementasikan Bresenham dan bandingkan jumlah operasi serta kelicinan garis dengan DDA.
-  \item Gambar bentuk geometri sederhana (persegi, segitiga) menggunakan fungsi garis.
-\end{enumerate}
-
-\section{Contoh Kode}
-\begin{verbatim}
-; Program demonstrasi grafik dasar (mode 13h)
-TITLE Pemrograman Grafik
-.MODEL SMALL
-.STACK 100h
-
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Pengalamatan Array, label={lst:array-addressing}]
+; Contoh pengalamatan array byte
 .DATA
-    x1    DW 100
-    y1    DW 100
-    x2    DW 200
-    y2    DW 150
-    color DB 15  ; Putih
+    byte_array db 10, 20, 30, 40, 50    ; Array byte
+    word_array dw 100, 200, 300, 400    ; Array word
 
 .CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
-    
-    ; Set mode grafik 320x200, 256 warna
-    MOV AH, 00h
-    MOV AL, 13h
-    INT 10h
-    
-    ; Gambar piksel tunggal
-    MOV AH, 0Ch
-    MOV AL, color
-    MOV BH, 00h
-    MOV CX, 160  ; X coordinate
-    MOV DX, 100  ; Y coordinate
-    INT 10h
-    
-    ; Gambar garis horizontal
-    MOV CX, 50   ; X start
-    MOV DX, 50   ; Y coordinate
-    MOV BX, 100  ; X end
+; Akses elemen ke-2 array byte (index 1)
+mov si, 1                    ; Index = 1
+mov al, byte_array[si]       ; AL = 20
 
-gambar_horizontal:
-    MOV AH, 0Ch
-    MOV AL, color
-    MOV BH, 00h
-    INT 10h
-    INC CX
-    CMP CX, BX
-    JLE gambar_horizontal
-    
-    ; Gambar garis vertikal
-    MOV CX, 50   ; X coordinate
-    MOV DX, 50   ; Y start
-    MOV BX, 100  ; Y end
+; Akses elemen ke-3 array word (index 2)
+mov si, 2                    ; Index = 2
+mov ax, word_array[si]       ; AX = 300
 
-gambar_vertikal:
-    MOV AH, 0Ch
-    MOV AL, color
-    MOV BH, 00h
-    INT 10h
-    INC DX
-    CMP DX, BX
-    JLE gambar_vertikal
-    
-    ; (Implementasi DDA/Bresenham dapat ditambahkan di sini)
-    
-    ; Tunggu input keyboard
-    MOV AH, 00h
-    INT 16h
-    
-    ; Kembali ke mode teks
-    MOV AH, 00h
-    MOV AL, 03h
-    INT 10h
-    
-    MOV AH, 4Ch
-    INT 21h
-END START
-\end{verbatim}
+; Akses menggunakan perhitungan manual
+mov si, 3                    ; Index = 3
+mov bx, offset word_array    ; BX = alamat array
+add bx, si                   ; BX = BX + SI
+add bx, si                   ; BX = BX + SI (karena word = 2 bytes)
+mov ax, [bx]                 ; AX = word_array[3] = 400
+            \end{lstlisting}
 
-\section{Latihan}
-\begin{enumerate}
-  \item Buat program menggambar kotak di posisi dan ukuran tertentu; parameterkan warna.
-  \item Buat program menggambar segitiga dari tiga titik; gunakan tiga panggilan fungsi garis.
-  \item Buat program menggambar lingkaran sederhana (mis. \textit{midpoint circle}) atau pendekatan parametris dasar.
-  \item Buat program menggambar pola grid dan diagonal untuk menguji kerapatan piksel.
-\end{enumerate}
+        \subsubsection{String berterminasi}
+            String dalam assembly dapat menggunakan berbagai konvensi terminasi. Pemilihan konvensi yang konsisten sangat penting untuk operasi string yang benar.
 
-\section{Tugas}
-\begin{itemize}
-  \item \textbf{Bresenham}: Implementasikan penuh algoritma Bresenham untuk garis, dokumentasikan langkah dan bandingkan dengan DDA.
-  \item \textbf{Grafik fungsi}: Gambar grafik \(y=f(x)\) (mis. \(\sin x\) terdiskretisasi) pada area layar; skalakan ke piksel.
-  \item \textbf{Mini paint}: Buat program kecil yang memungkinkan menggambar garis dengan keyboard/mouse sederhana; simpan layar sementara di memori.
-  \item \textbf{Dokumentasi}: Jelaskan perbedaan organisasi memori antar mode dan konsekuensi kinerja untuk write pixel via \texttt{INT 10h} vs akses langsung.
-\end{itemize}
+            \begin{table}[H]
+                \centering
+                \caption{Konvensi Terminasi String}
+                \begin{tabular}{|p{3cm}|p{4cm}|p{6cm}|}
+                    \hline
+                    \textbf{Konvensi} & \textbf{Terminator} & \textbf{Penggunaan} \\
+                    \hline
+                    \textbf{Null-terminated} & \texttt{0} (00h) & Standard C, umum digunakan \\
+                    \hline
+                    \textbf{DOS \$} & \texttt{\$} (24h) & INT 21h, AH=09h (print string) \\
+                    \hline
+                    \textbf{Length-prefixed} & Byte pertama = panjang & Pascal, beberapa sistem \\
+                    \hline
+                    \textbf{Fixed-length} & Panjang tetap & Database, struktur data \\
+                    \hline
+                \end{tabular}
+                \label{tab:string-termination}
+            \end{table}
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh String dengan Berbagai Konvensi, label={lst:string-conventions}]
+.DATA
+    ; Null-terminated string (C style)
+    c_string db 'Hello', 0
+    
+    ; DOS $-terminated string
+    dos_string db 'Hello$'
+    
+    ; Length-prefixed string (Pascal style)
+    pascal_string db 5, 'Hello'
+    
+    ; Fixed-length string
+    fixed_string db 'Hello     '  ; 10 karakter dengan padding
+
+.CODE
+; Contoh penggunaan null-terminated string
+mov si, offset c_string
+call print_c_string
+
+; Contoh penggunaan DOS $-terminated string
+mov dx, offset dos_string
+mov ah, 09h
+int 21h
+
+print_c_string:
+    mov ah, 02h
+print_loop:
+    mov dl, [si]
+    cmp dl, 0
+    je print_done
+    int 21h
+    inc si
+    jmp print_loop
+print_done:
+    ret
+            \end{lstlisting}
+
+        \subsection{Penyimpanan Array}
+            \subsubsection{Satu dimensi}
+                Array satu dimensi adalah struktur data paling sederhana dengan elemen-elemen yang tersusun secara linear. Akses elemen dilakukan melalui indeks dengan perhitungan offset yang sesuai dengan ukuran elemen.
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Operasi Array Satu Dimensi, label={lst:one-dim-array}]
+.DATA
+    ; Array byte satu dimensi
+    numbers db 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    array_size equ 10
+    
+    ; Array word satu dimensi
+    scores dw 85, 92, 78, 96, 88, 91, 83, 89, 94, 87
+    scores_size equ 10
+    
+    ; Variabel untuk hasil
+    sum dw 0
+    average dw 0
+
+.CODE
+; Contoh: Menghitung jumlah elemen array byte
+calculate_sum_byte:
+    mov cx, array_size
+    mov si, 0
+    mov ax, 0               ; AX = accumulator
+    
+sum_loop_byte:
+    mov bl, numbers[si]     ; Load elemen array
+    mov bh, 0               ; Extend to word
+    add ax, bx              ; Add to accumulator
+    inc si                  ; Next element
+    loop sum_loop_byte
+    
+    mov sum, ax             ; Simpan hasil
+    ret
+
+; Contoh: Menghitung rata-rata array word
+calculate_average_word:
+    mov cx, scores_size
+    mov si, 0
+    mov ax, 0               ; AX = sum
+    mov dx, 0               ; DX = high word of sum
+    
+sum_loop_word:
+    add ax, scores[si]      ; Add element to sum
+    adc dx, 0               ; Add carry to high word
+    add si, 2               ; Next element (word = 2 bytes)
+    loop sum_loop_word
+    
+    ; Calculate average: DX:AX / CX
+    div cx                  ; AX = average
+    mov average, ax
+    ret
+
+; Contoh: Mencari nilai maksimum dalam array
+find_maximum:
+    mov cx, scores_size
+    mov si, 0
+    mov ax, scores[si]      ; AX = first element (current max)
+    add si, 2               ; Start from second element
+    
+max_loop:
+    cmp ax, scores[si]      ; Compare with current element
+    jge max_continue        ; If AX >= scores[si], continue
+    mov ax, scores[si]      ; Update maximum
+max_continue:
+    add si, 2               ; Next element
+    loop max_loop
+    
+    ; AX contains maximum value
+    ret
+                \end{lstlisting}
+
+            \subsubsection{Multi dimensi}
+                Array multi dimensi memerlukan perhitungan offset yang lebih kompleks menggunakan row-major order. Offset elemen pada posisi (row, col) dihitung dengan formula: base + (row $\times$ columns + col) $\times$ element\_size.
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Operasi Array Multi Dimensi, label={lst:multi-dim-array}]
+.DATA
+    ; Array 2D: 3x4 matrix (3 rows, 4 columns)
+    matrix db 1, 2, 3, 4
+           db 5, 6, 7, 8
+           db 9, 10, 11, 12
+    
+    ROWS equ 3
+    COLS equ 4
+    
+    ; Array 2D word: 2x3 matrix
+    word_matrix dw 100, 200, 300
+                dw 400, 500, 600
+    
+    WORD_ROWS equ 2
+    WORD_COLS equ 3
+    
+    ; Variabel untuk hasil
+    element_value db 0
+    row_sum dw 0
+
+.CODE
+; Contoh: Akses elemen matrix[row][col]
+; Parameter: BH = row, BL = col
+; Return: AL = value
+get_matrix_element:
+    push ax
+    push bx
+    push cx
+    push dx
+    
+    ; Calculate offset: row * COLS + col
+    mov al, bh              ; AL = row
+    mov ah, COLS            ; AH = COLS
+    mul ah                  ; AX = row * COLS
+    add al, bl              ; AL = row * COLS + col
+    mov si, ax              ; SI = offset
+    
+    mov al, matrix[si]      ; AL = matrix[row][col]
+    mov element_value, al
+    
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+
+; Contoh: Menghitung jumlah baris tertentu
+; Parameter: BH = row number
+; Return: AX = sum of row
+calculate_row_sum:
+    push bx
+    push cx
+    push si
+    
+    mov al, bh              ; AL = row
+    mov ah, COLS            ; AH = COLS
+    mul ah                  ; AX = row * COLS
+    mov si, ax              ; SI = base offset for row
+    
+    mov cx, COLS            ; CX = number of columns
+    mov ax, 0               ; AX = accumulator
+    
+row_sum_loop:
+    mov bl, matrix[si]      ; Load element
+    mov bh, 0               ; Extend to word
+    add ax, bx              ; Add to sum
+    inc si                  ; Next element
+    loop row_sum_loop
+    
+    mov row_sum, ax
+    
+    pop si
+    pop cx
+    pop bx
+    ret
+
+; Contoh: Transpose matrix (3x4 -> 4x3)
+transpose_matrix:
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    
+    mov bx, 0               ; BH = source row, BL = source col
+    
+transpose_outer:
+    mov bh, 0               ; Reset source row
+transpose_inner:
+    ; Calculate source offset
+    mov al, bh              ; AL = source row
+    mov ah, COLS            ; AH = COLS
+    mul ah                  ; AX = source row * COLS
+    add al, bl              ; AL = source offset
+    mov si, ax              ; SI = source offset
+    
+    ; Calculate destination offset (transposed)
+    mov al, bl              ; AL = source col (becomes dest row)
+    mov ah, ROWS            ; AH = ROWS (transposed)
+    mul ah                  ; AX = dest row * ROWS
+    add al, bh              ; AL = dest offset
+    mov di, ax              ; DI = dest offset
+    
+    ; Copy element (simplified - assumes destination array exists)
+    mov al, matrix[si]      ; Load from source
+    ; mov transposed[di], al ; Store to destination (if array exists)
+    
+    inc bl                  ; Next source column
+    cmp bl, COLS
+    jl transpose_inner
+    
+    inc bh                  ; Next source row
+    cmp bh, ROWS
+    jl transpose_outer
+    
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+                \end{lstlisting}
+
+                \textbf{Formula Offset Array Multi Dimensi:}
+                \begin{itemize}
+                    \item \textbf{2D Array Byte}: Offset = Base + (Row × Cols + Col)
+                    \item \textbf{2D Array Word}: Offset = Base + (Row × Cols + Col) × 2
+                    \item \textbf{3D Array}: Offset = Base + (Row × Cols × Depths + Col × Depths + Depth) × ElementSize
+                \end{itemize}
+
+        \subsection{Instruksi String}
+            Instruksi string pada Intel 8086 dirancang khusus untuk operasi berulang pada data berurutan. Instruksi ini mengintegrasikan operasi data dengan peningkatan/penurunan indeks otomatis dan pengurangan pencacah, membuat operasi string sangat efisien.
+
+            \begin{table}[H]
+                \centering
+                \caption{Instruksi String Intel 8086}
+                \begin{tabular}{|p{2cm}|p{3cm}|p{4cm}|p{4cm}|}
+                    \hline
+                    \textbf{Instruksi} & \textbf{Operasi} & \textbf{Byte Variant} & \textbf{Word Variant} \\
+                    \hline
+                    \textbf{MOVS} & Copy string & MOVSB & MOVSW \\
+                    \hline
+                    \textbf{CMPS} & Compare string & CMPSB & CMPSW \\
+                    \hline
+                    \textbf{SCAS} & Scan string & SCASB & SCASW \\
+                    \hline
+                    \textbf{LODS} & Load string & LODSB & LODSW \\
+                    \hline
+                    \textbf{STOS} & Store string & STOSB & STOSW \\
+                    \hline
+                \end{tabular}
+                \label{tab:string-instructions}
+            \end{table}
+
+            \subsubsection{MOVS (Move String)}
+                Instruksi MOVS menyalin data dari sumber (\texttt{DS:SI}) ke tujuan (\texttt{ES:DI}). Dengan awalan \texttt{REP}, dapat menyalin blok data secara efisien.
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Instruksi MOVS, label={lst:movs-examples}]
+.DATA
+    source_string db 'Hello World!', 0
+    dest_string db 20 dup(0)
+    source_array dw 100, 200, 300, 400, 500
+    dest_array dw 5 dup(0)
+    buffer db 100 dup(0)
+
+.CODE
+; Contoh 1: Menyalin string null-terminated
+copy_string:
+    cld                     ; Clear direction flag (increment)
+    mov si, offset source_string
+    mov di, offset dest_string
+    mov cx, 12              ; Length of string
+    rep movsb               ; Copy CX bytes
+    ret
+
+; Contoh 2: Menyalin array word
+copy_word_array:
+    cld
+    mov si, offset source_array
+    mov di, offset dest_array
+    mov cx, 5               ; Number of words
+    rep movsw               ; Copy CX words
+    ret
+
+; Contoh 3: Menyalin dengan loop manual (tanpa REP)
+copy_manual:
+    cld
+    mov si, offset source_string
+    mov di, offset dest_string
+    mov cx, 12
+    
+copy_loop:
+    movsb                   ; Copy one byte
+    loop copy_loop          ; Repeat CX times
+    ret
+
+; Contoh 4: Menyalin dengan kondisi (sampai null terminator)
+copy_until_null:
+    cld
+    mov si, offset source_string
+    mov di, offset dest_string
+    
+copy_null_loop:
+    movsb                   ; Copy one byte
+    cmp byte ptr [si-1], 0  ; Check if copied byte is null
+    jne copy_null_loop      ; Continue if not null
+    ret
+
+; Contoh 5: Menyalin dengan overlap handling
+copy_with_overlap:
+    ; Check for overlap: if DI < SI, use forward copy
+    cmp di, si
+    jb forward_copy
+    
+    ; Backward copy for overlapping regions
+    std                     ; Set direction flag (decrement)
+    add si, 11              ; Point to end of source
+    add di, 11              ; Point to end of destination
+    mov cx, 12
+    rep movsb
+    cld                     ; Restore direction flag
+    ret
+    
+forward_copy:
+    cld
+    mov cx, 12
+    rep movsb
+    ret
+                \end{lstlisting}
+
+            \subsubsection{CMPS (Compare String)}
+                Instruksi CMPS membandingkan data antara sumber (\texttt{DS:SI}) dan tujuan (\texttt{ES:DI}), mengatur flags berdasarkan hasil perbandingan.
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Instruksi CMPS, label={lst:cmps-examples}]
+.DATA
+    string1 db 'Hello World!', 0
+    string2 db 'Hello World!', 0
+    string3 db 'Hello Earth!', 0
+    array1 dw 100, 200, 300, 400
+    array2 dw 100, 200, 300, 400
+    array3 dw 100, 200, 350, 400
+
+.CODE
+; Contoh 1: Membandingkan string dengan REPE
+compare_strings_equal:
+    cld
+    mov si, offset string1
+    mov di, offset string2
+    mov cx, 12              ; Length to compare
+    repe cmpsb               ; Compare while equal
+    ; ZF = 1 if all equal, ZF = 0 if different
+    ret
+
+; Contoh 2: Membandingkan string dengan REPNE
+compare_strings_different:
+    cld
+    mov si, offset string1
+    mov di, offset string3
+    mov cx, 12
+    repne cmpsb              ; Compare while not equal
+    ; ZF = 1 if found difference, ZF = 0 if all equal
+    ret
+
+; Contoh 3: Membandingkan array word
+compare_word_arrays:
+    cld
+    mov si, offset array1
+    mov di, offset array2
+    mov cx, 4               ; Number of words
+    repe cmpsw               ; Compare words while equal
+    ret
+
+; Contoh 4: Membandingkan dengan panjang dinamis
+compare_dynamic_length:
+    cld
+    mov si, offset string1
+    mov di, offset string2
+    mov cx, 0                ; Initialize counter
+    
+length_loop1:
+    cmp byte ptr [si], 0     ; Check for null terminator
+    je length_done1
+    inc si
+    inc cx
+    jmp length_loop1
+    
+length_done1:
+    mov si, offset string1   ; Reset SI
+    repe cmpsb               ; Compare CX bytes
+    ret
+
+; Contoh 5: Membandingkan dengan case-insensitive
+compare_case_insensitive:
+    cld
+    mov si, offset string1
+    mov di, offset string2
+    mov cx, 12
+    
+case_loop:
+    mov al, [si]             ; Load character from string1
+    mov bl, [di]             ; Load character from string2
+    
+    ; Convert to uppercase
+    cmp al, 'a'
+    jb skip_conv1
+    cmp al, 'z'
+    ja skip_conv1
+    sub al, 32               ; Convert to uppercase
+skip_conv1:
+    
+    cmp bl, 'a'
+    jb skip_conv2
+    cmp bl, 'z'
+    ja skip_conv2
+    sub bl, 32               ; Convert to uppercase
+skip_conv2:
+    
+    cmp al, bl               ; Compare converted characters
+    jne different
+    inc si
+    inc di
+    loop case_loop
+    
+    ; Strings are equal (case-insensitive)
+    mov ax, 1
+    ret
+    
+different:
+    mov ax, 0
+    ret
+                \end{lstlisting}
+
+            \subsubsection{SCAS (Scan String)}
+                Instruksi SCAS membandingkan nilai dalam \texttt{AL}/\texttt{AX} dengan data di \texttt{ES:DI}, berguna untuk mencari karakter atau nilai tertentu dalam string/array.
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Instruksi SCAS, label={lst:scas-examples}]
+.DATA
+    text db 'The quick brown fox jumps over the lazy dog', 0
+    numbers dw 10, 25, 30, 45, 60, 75, 90
+    search_char db 'o'
+    search_value dw 45
+    found_position dw 0
+
+.CODE
+; Contoh 1: Mencari karakter dalam string
+find_character:
+    cld
+    mov al, search_char      ; Character to search
+    mov di, offset text
+    mov cx, 43               ; Length of text
+    repne scasb              ; Scan until found
+    ; ZF = 1 if found, ZF = 0 if not found
+    ; DI points to position after found character
+    jne not_found_char
+    dec di                   ; Point to found character
+    mov found_position, di
+    mov ax, 1                ; Found
+    ret
+    
+not_found_char:
+    mov ax, 0                ; Not found
+    ret
+
+; Contoh 2: Mencari nilai dalam array word
+find_word_value:
+    cld
+    mov ax, search_value     ; Value to search
+    mov di, offset numbers
+    mov cx, 7                ; Number of elements
+    repne scasw              ; Scan words until found
+    jne not_found_word
+    sub di, 2                ; Point to found word
+    mov found_position, di
+    mov ax, 1                ; Found
+    ret
+    
+not_found_word:
+    mov ax, 0                ; Not found
+    ret
+
+; Contoh 3: Menghitung jumlah kemunculan karakter
+count_character:
+    cld
+    mov al, search_char
+    mov di, offset text
+    mov cx, 43
+    mov bx, 0                ; Counter
+    
+count_loop:
+    repne scasb              ; Find next occurrence
+    jne count_done           ; No more occurrences
+    inc bx                   ; Increment counter
+    cmp cx, 0                ; Check if CX reached 0
+    jne count_loop           ; Continue if more to scan
+    
+count_done:
+    mov ax, bx               ; Return count
+    ret
+
+; Contoh 4: Mencari karakter pertama yang bukan spasi
+find_non_space:
+    cld
+    mov al, ' '              ; Space character
+    mov di, offset text
+    mov cx, 43
+    repe scasb               ; Skip spaces
+    ; DI points to first non-space character
+    dec di                   ; Adjust to point to character
+    mov found_position, di
+    ret
+
+; Contoh 5: Mencari karakter terakhir
+find_last_character:
+    std                     ; Set direction flag (decrement)
+    mov al, search_char
+    mov di, offset text + 42 ; Point to end of string
+    mov cx, 43
+    repne scasb              ; Scan backward
+    ; DI points to position after found character
+    inc di                   ; Point to found character
+    cld                     ; Restore direction flag
+    mov found_position, di
+    ret
+                \end{lstlisting}
+
+            \subsubsection{LODS (Load String)}
+                Instruksi LODS memuat data dari \texttt{DS:SI} ke \texttt{AL}/\texttt{AX} dan secara otomatis menaikkan/menurunkan \texttt{SI}.
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Instruksi LODS, label={lst:lods-examples}]
+.DATA
+    source_string db 'Hello World!', 0
+    source_array dw 100, 200, 300, 400, 500
+    processed_chars db 20 dup(0)
+    processed_words dw 10 dup(0)
+
+.CODE
+; Contoh 1: Memproses setiap karakter dalam string
+process_string_chars:
+    cld
+    mov si, offset source_string
+    mov di, offset processed_chars
+    mov cx, 12
+    
+process_loop:
+    lodsb                   ; Load character to AL
+    ; Process character (example: convert to uppercase)
+    cmp al, 'a'
+    jb skip_convert
+    cmp al, 'z'
+    ja skip_convert
+    sub al, 32               ; Convert to uppercase
+skip_convert:
+    mov [di], al             ; Store processed character
+    inc di
+    loop process_loop
+    ret
+
+; Contoh 2: Memproses array word
+process_word_array:
+    cld
+    mov si, offset source_array
+    mov di, offset processed_words
+    mov cx, 5
+    
+word_process_loop:
+    lodsw                   ; Load word to AX
+    ; Process word (example: multiply by 2)
+    shl ax, 1               ; Multiply by 2
+    mov [di], ax             ; Store processed word
+    add di, 2
+    loop word_process_loop
+    ret
+
+; Contoh 3: Menghitung checksum string
+calculate_checksum:
+    cld
+    mov si, offset source_string
+    mov cx, 12
+    mov ax, 0                ; Checksum accumulator
+    
+checksum_loop:
+    lodsb                   ; Load character
+    add ax, ax               ; Add to checksum
+    loop checksum_loop
+    ret
+
+; Contoh 4: Mencari karakter dengan LODS
+find_char_with_lods:
+    cld
+    mov si, offset source_string
+    mov cx, 12
+    mov bl, 'o'              ; Character to find
+    
+find_lods_loop:
+    lodsb                   ; Load character
+    cmp al, bl               ; Compare with target
+    je found_with_lods
+    loop find_lods_loop
+    
+    mov ax, 0                ; Not found
+    ret
+    
+found_with_lods:
+    dec si                   ; Point to found character
+    mov ax, 1                ; Found
+    ret
+                \end{lstlisting}
+
+            \subsubsection{STOS (Store String)}
+                Instruksi STOS menyimpan nilai dari \texttt{AL}/\texttt{AX} ke \texttt{ES:DI} dan secara otomatis menaikkan/menurunkan \texttt{DI}.
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Instruksi STOS, label={lst:stos-examples}]
+.DATA
+    buffer db 100 dup(0)
+    word_buffer dw 50 dup(0)
+    pattern db 'ABC'
+    fill_char db '*'
+    fill_value dw 1234
+
+.CODE
+; Contoh 1: Mengisi buffer dengan karakter
+fill_buffer_with_char:
+    cld
+    mov al, fill_char        ; Character to fill
+    mov di, offset buffer
+    mov cx, 100             ; Buffer size
+    rep stosb               ; Fill CX bytes
+    ret
+
+; Contoh 2: Mengisi array word dengan nilai
+fill_word_array:
+    cld
+    mov ax, fill_value      ; Value to fill
+    mov di, offset word_buffer
+    mov cx, 50              ; Number of words
+    rep stosw               ; Fill CX words
+    ret
+
+; Contoh 3: Menginisialisasi buffer dengan pola
+initialize_with_pattern:
+    cld
+    mov di, offset buffer
+    mov cx, 100
+    mov si, offset pattern
+    mov bx, 0               ; Pattern index
+    
+pattern_loop:
+    mov al, [si + bx]       ; Load pattern character
+    stosb                   ; Store character
+    inc bx                  ; Next pattern character
+    cmp bx, 3               ; Pattern length
+    jne pattern_continue
+    mov bx, 0               ; Reset pattern index
+pattern_continue:
+    loop pattern_loop
+    ret
+
+; Contoh 4: Mengisi dengan nilai bertahap
+fill_with_increment:
+    cld
+    mov di, offset buffer
+    mov cx, 100
+    mov al, 0               ; Starting value
+    
+increment_loop:
+    stosb                   ; Store current value
+    inc al                  ; Increment value
+    loop increment_loop
+    ret
+
+; Contoh 5: Mengisi dengan nilai acak (pseudo-random)
+fill_with_random:
+    cld
+    mov di, offset buffer
+    mov cx, 100
+    mov ax, 12345           ; Seed value
+    
+random_loop:
+    ; Simple pseudo-random generator
+    mov bx, ax
+    shl ax, 1
+    add ax, bx
+    add ax, 7
+    stosb                   ; Store random byte
+    loop random_loop
+    ret
+                \end{lstlisting}
+
+            \subsubsection{Awalan REP dan Direction Flag}
+                Awalan REP memungkinkan pengulangan instruksi string secara otomatis berdasarkan kondisi tertentu. Direction Flag (DF) menentukan arah iterasi.
+
+                \begin{table}[H]
+                    \centering
+                    \caption{Awalan REP dan Kondisi Pengulangan}
+                    \begin{tabular}{|p{2.5cm}|p{4cm}|p{6cm}|}
+                        \hline
+                        \textbf{Awalan} & \textbf{Kondisi} & \textbf{Penggunaan} \\
+                        \hline
+                        \textbf{REP} & CX $\neq$ 0 & Ulangi hingga CX = 0 \\
+                        \hline
+                        \textbf{REPE/REPZ} & CX $\neq$ 0 AND ZF = 1 & Ulangi selama sama \\
+                        \hline
+                        \textbf{REPNE/REPNZ} & CX $\neq$ 0 AND ZF = 0 & Ulangi selama berbeda \\
+                        \hline
+                    \end{tabular}
+                    \label{tab:rep-prefixes}
+                \end{table}
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Penggunaan REP dan Direction Flag, label={lst:rep-direction-examples}]
+.DATA
+    source db 'Hello World!', 0
+    dest db 20 dup(0)
+    text1 db 'Hello World!', 0
+    text2 db 'Hello Earth!', 0
+
+.CODE
+; Contoh 1: Penggunaan REP dengan MOVS
+copy_with_rep:
+    cld                     ; Clear direction flag (forward)
+    mov si, offset source
+    mov di, offset dest
+    mov cx, 12              ; Number of bytes to copy
+    rep movsb               ; Copy CX bytes forward
+    ret
+
+; Contoh 2: Penggunaan STD (backward copy)
+copy_backward:
+    std                     ; Set direction flag (backward)
+    mov si, offset source + 11  ; Point to end
+    mov di, offset dest + 11    ; Point to end
+    mov cx, 12
+    rep movsb               ; Copy CX bytes backward
+    cld                     ; Restore direction flag
+    ret
+
+; Contoh 3: Penggunaan REPE dengan CMPS
+compare_equal:
+    cld
+    mov si, offset text1
+    mov di, offset text2
+    mov cx, 12
+    repe cmpsb              ; Compare while equal
+    ; ZF = 1 if all equal, ZF = 0 if different
+    ret
+
+; Contoh 4: Penggunaan REPNE dengan SCAS
+find_first_difference:
+    cld
+    mov al, 'l'             ; Character to find
+    mov di, offset text1
+    mov cx, 12
+    repne scasb             ; Find first occurrence
+    ; DI points to position after found character
+    ret
+
+; Contoh 5: Kombinasi REP dengan STOS
+fill_pattern:
+    cld
+    mov di, offset dest
+    mov cx, 20
+    mov al, '*'
+    rep stosb               ; Fill 20 bytes with '*'
+    ret
+
+; Contoh 6: Penggunaan REP dengan LODS dan STOS
+transform_string:
+    cld
+    mov si, offset source
+    mov di, offset dest
+    mov cx, 12
+    
+transform_loop:
+    lodsb                   ; Load character
+    ; Transform: convert to uppercase
+    cmp al, 'a'
+    jb skip_transform
+    cmp al, 'z'
+    ja skip_transform
+    sub al, 32
+skip_transform:
+    stosb                   ; Store transformed character
+    loop transform_loop
+    ret
+                \end{lstlisting}
+
+        \subsection{Register untuk Operasi String}
+            Operasi string pada Intel 8086 menggunakan register khusus yang bekerja secara terintegrasi untuk efisiensi maksimal.
+
+            \begin{table}[H]
+                \centering
+                \caption{Register untuk Operasi String}
+                \begin{tabular}{|p{2cm}|p{4cm}|p{7cm}|}
+                    \hline
+                    \textbf{Register} & \textbf{Fungsi} & \textbf{Penggunaan} \\
+                    \hline
+                    \textbf{SI} & Source Index & Menunjuk ke data sumber (\texttt{DS:SI}) \\
+                    \hline
+                    \textbf{DI} & Destination Index & Menunjuk ke data tujuan (\texttt{ES:DI}) \\
+                    \hline
+                    \textbf{CX} & Counter & Pencacah untuk awalan \texttt{REP} \\
+                    \hline
+                    \textbf{AL/AX} & Accumulator & Data untuk \texttt{LODS}/\texttt{SCAS}/\texttt{STOS} \\
+                    \hline
+                    \textbf{DF} & Direction Flag & Arah iterasi (0=maju, 1=mundur) \\
+                    \hline
+                    \textbf{ES} & Extra Segment & Segmen untuk operasi tujuan \\
+                    \hline
+                \end{tabular}
+                \label{tab:string-registers}
+            \end{table}
+
+            \textbf{Inisialisasi Register untuk Operasi String:}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Inisialisasi Register String, label={lst:string-register-init}]
+; Setup untuk operasi string
+setup_string_operation:
+    ; Setup segment registers
+    mov ax, @data
+    mov ds, ax               ; DS = data segment
+    mov es, ax               ; ES = data segment (sama dengan DS)
+    
+    ; Setup direction flag
+    cld                     ; Clear direction flag (forward)
+    ; atau std             ; Set direction flag (backward)
+    
+    ; Setup index registers
+    mov si, offset source   ; SI = source address
+    mov di, offset dest     ; DI = destination address
+    
+    ; Setup counter
+    mov cx, length          ; CX = number of elements
+    
+    ; Setup accumulator (jika diperlukan)
+    mov al, search_char     ; AL = character to search
+    ; atau mov ax, search_value ; AX = value to search
+    ret
+            \end{lstlisting}
+
+    \section{Rutinitas Manipulasi String dan Array}
+        \subsection{Fungsi Dasar String}
+            Berikut adalah implementasi fungsi-fungsi dasar untuk manipulasi string menggunakan instruksi string Intel 8086.
+
+            \subsubsection{Menghitung Panjang String}
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Menghitung Panjang String, label={lst:string-length}]
+.DATA
+    input_string db 'Hello World!', 0
+    string_length dw 0
+
+.CODE
+; Fungsi: Menghitung panjang string null-terminated
+; Input: SI = address of string
+; Output: AX = length of string
+strlen:
+    push cx
+    push di
+    
+    cld
+    mov di, si               ; DI = string address
+    mov cx, 0FFFFh          ; Maximum possible length
+    mov al, 0               ; Search for null terminator
+    repne scasb             ; Scan until null found
+    
+    ; Calculate length
+    mov ax, 0FFFFh          ; Maximum length
+    sub ax, cx              ; Subtract remaining count
+    dec ax                  ; Adjust for null terminator
+    
+    pop di
+    pop cx
+    ret
+
+; Fungsi: Menghitung panjang string dengan loop manual
+strlen_manual:
+    push si
+    push cx
+    
+    mov cx, 0               ; Initialize counter
+    cld
+    
+length_loop:
+    lodsb                   ; Load character
+    cmp al, 0               ; Check for null terminator
+    je length_done
+    inc cx                  ; Increment counter
+    jmp length_loop
+    
+length_done:
+    mov ax, cx              ; Return length
+    pop cx
+    pop si
+    ret
+                \end{lstlisting}
+
+            \subsubsection{Menyalin String}
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Menyalin String, label={lst:string-copy}]
+.DATA
+    source_str db 'Hello World!', 0
+    dest_str db 50 dup(0)
+
+.CODE
+; Fungsi: Menyalin string null-terminated
+; Input: SI = source address, DI = destination address
+; Output: String copied to destination
+strcpy:
+    push ax
+    push cx
+    push si
+    push di
+    
+    cld
+    
+copy_loop:
+    lodsb                   ; Load character from source
+    stosb                   ; Store character to destination
+    cmp al, 0               ; Check for null terminator
+    jne copy_loop           ; Continue if not null
+    
+    pop di
+    pop si
+    pop cx
+    pop ax
+    ret
+
+; Fungsi: Menyalin string dengan REP (lebih efisien)
+strcpy_rep:
+    push ax
+    push cx
+    push si
+    push di
+    
+    ; Calculate source length first
+    push si
+    call strlen
+    pop si
+    
+    mov cx, ax              ; CX = length
+    inc cx                  ; Include null terminator
+    
+    cld
+    rep movsb               ; Copy CX bytes
+    
+    pop di
+    pop si
+    pop cx
+    pop ax
+    ret
+                \end{lstlisting}
+
+            \subsubsection{Membandingkan String}
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Membandingkan String, label={lst:string-compare}]
+.DATA
+    str1 db 'Hello World!', 0
+    str2 db 'Hello World!', 0
+    str3 db 'Hello Earth!', 0
+
+.CODE
+; Fungsi: Membandingkan dua string
+; Input: SI = first string, DI = second string
+; Output: AX = 0 (equal), AX = 1 (first > second), AX = -1 (first < second)
+strcmp:
+    push bx
+    push cx
+    push si
+    push di
+    
+    cld
+    
+compare_loop:
+    lodsb                   ; Load character from first string
+    mov bl, [di]            ; Load character from second string
+    inc di                  ; Move to next character
+    
+    cmp al, bl              ; Compare characters
+    jg first_greater        ; First string is greater
+    jl first_less           ; First string is less
+    
+    cmp al, 0               ; Check for null terminator
+    je strings_equal        ; Both strings ended
+    
+    jmp compare_loop        ; Continue comparison
+    
+first_greater:
+    mov ax, 1
+    jmp compare_done
+    
+first_less:
+    mov ax, -1
+    jmp compare_done
+    
+strings_equal:
+    mov ax, 0
+    
+compare_done:
+    pop di
+    pop si
+    pop cx
+    pop bx
+    ret
+
+; Fungsi: Membandingkan string dengan REPE
+strcmp_repe:
+    push cx
+    push si
+    push di
+    
+    ; Calculate minimum length
+    push si
+    call strlen
+    mov bx, ax              ; BX = length of first string
+    pop si
+    
+    push di
+    call strlen
+    pop di
+    
+    cmp ax, bx              ; Compare lengths
+    jb use_first_length
+    mov cx, bx              ; Use first string length
+    jmp compare_repe
+    
+use_first_length:
+    mov cx, ax              ; Use second string length
+    
+compare_repe:
+    cld
+    repe cmpsb              ; Compare while equal
+    je check_lengths        ; All compared characters equal
+    
+    ; Characters differ
+    dec si
+    dec di
+    mov al, [si]
+    mov bl, [di]
+    cmp al, bl
+    jg first_greater_repe
+    mov ax, -1
+    jmp compare_repe_done
+    
+first_greater_repe:
+    mov ax, 1
+    jmp compare_repe_done
+    
+check_lengths:
+    cmp ax, bx              ; Compare lengths
+    je strings_equal_repe
+    jb first_less_repe
+    mov ax, 1
+    jmp compare_repe_done
+    
+first_less_repe:
+    mov ax, -1
+    jmp compare_repe_done
+    
+strings_equal_repe:
+    mov ax, 0
+    
+compare_repe_done:
+    pop di
+    pop si
+    pop cx
+    ret
+                \end{lstlisting}
+
+            \subsubsection{Mencari Karakter dalam String}
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Mencari Karakter dalam String, label={lst:string-search}]
+.DATA
+    text db 'The quick brown fox jumps over the lazy dog', 0
+    search_char db 'o'
+    found_position dw 0
+
+.CODE
+; Fungsi: Mencari karakter dalam string
+; Input: SI = string address, AL = character to search
+; Output: AX = position (0-based), AX = -1 if not found
+strchr:
+    push bx
+    push cx
+    push di
+    
+    mov di, si               ; DI = string address
+    mov bx, si               ; BX = original address (for position calculation)
+    
+    ; Calculate string length
+    push si
+    call strlen
+    pop si
+    
+    mov cx, ax              ; CX = string length
+    cld
+    repne scasb             ; Search for character
+    
+    jne not_found_chr       ; Character not found
+    
+    ; Character found
+    dec di                  ; Point to found character
+    mov ax, di              ; AX = address of found character
+    sub ax, bx              ; AX = position (0-based)
+    jmp search_done_chr
+    
+not_found_chr:
+    mov ax, -1              ; Not found
+    
+search_done_chr:
+    pop di
+    pop cx
+    pop bx
+    ret
+
+; Fungsi: Mencari substring dalam string
+; Input: SI = string address, DI = substring address
+; Output: AX = position (0-based), AX = -1 if not found
+strstr:
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    
+    mov bx, si               ; BX = original string address
+    
+    ; Calculate substring length
+    push di
+    call strlen
+    mov dx, ax              ; DX = substring length
+    pop di
+    
+    cmp dx, 0               ; Check if substring is empty
+    je empty_substring
+    
+    ; Calculate main string length
+    push si
+    call strlen
+    mov cx, ax              ; CX = main string length
+    pop si
+    
+    cmp cx, dx              ; Check if main string is shorter
+    jb not_found_str
+    
+    sub cx, dx              ; CX = number of possible positions
+    inc cx                  ; Include last possible position
+    
+search_outer:
+    push si
+    push di
+    push cx
+    
+    mov cx, dx              ; CX = substring length
+    repe cmpsb              ; Compare substring
+    
+    pop cx
+    pop di
+    pop si
+    
+    je found_substring      ; Substring found
+    
+    inc si                  ; Move to next position
+    loop search_outer
+    
+not_found_str:
+    mov ax, -1
+    jmp search_done_str
+    
+found_substring:
+    mov ax, si              ; AX = address of found substring
+    sub ax, bx              ; AX = position (0-based)
+    jmp search_done_str
+    
+empty_substring:
+    mov ax, 0               ; Empty substring found at position 0
+    
+search_done_str:
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    ret
+                \end{lstlisting}
+
+        \subsection{Fungsi Lanjutan String}
+            \subsubsection{Membalik String}
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Membalik String, label={lst:string-reverse}]
+.DATA
+    original db 'Hello World!', 0
+    reversed db 50 dup(0)
+
+.CODE
+; Fungsi: Membalik string
+; Input: SI = source string, DI = destination string
+; Output: Reversed string in destination
+strrev:
+    push ax
+    push bx
+    push cx
+    push si
+    push di
+    
+    ; Calculate string length
+    push si
+    call strlen
+    pop si
+    
+    mov cx, ax              ; CX = string length
+    mov bx, si              ; BX = source address
+    add bx, cx              ; BX = end of source string
+    dec bx                  ; BX = last character of source
+    
+    cld
+    
+reverse_loop:
+    mov al, [bx]            ; Load character from end
+    stosb                   ; Store to destination
+    dec bx                  ; Move to previous character
+    loop reverse_loop
+    
+    mov al, 0               ; Add null terminator
+    stosb
+    
+    pop di
+    pop si
+    pop cx
+    pop bx
+    pop ax
+    ret
+
+; Fungsi: Membalik string in-place
+; Input: SI = string address
+; Output: String reversed in place
+strrev_inplace:
+    push ax
+    push bx
+    push cx
+    push si
+    
+    ; Calculate string length
+    push si
+    call strlen
+    pop si
+    
+    mov cx, ax              ; CX = string length
+    mov bx, si              ; BX = start of string
+    add bx, cx              ; BX = end of string
+    dec bx                  ; BX = last character
+    
+    shr cx, 1               ; CX = length / 2 (number of swaps)
+    
+swap_loop:
+    mov al, [si]            ; Load character from start
+    mov ah, [bx]            ; Load character from end
+    
+    mov [si], ah            ; Swap characters
+    mov [bx], al
+    
+    inc si                  ; Move to next character from start
+    dec bx                  ; Move to previous character from end
+    loop swap_loop
+    
+    pop si
+    pop cx
+    pop bx
+    pop ax
+    ret
+                \end{lstlisting}
+
+            \subsubsection{Menggabungkan String}
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Menggabungkan String, label={lst:string-concatenate}]
+.DATA
+    str1 db 'Hello ', 0
+    str2 db 'World!', 0
+    result db 100 dup(0)
+
+.CODE
+; Fungsi: Menggabungkan dua string
+; Input: SI = first string, DI = second string, BX = result buffer
+; Output: Concatenated string in result buffer
+strcat:
+    push ax
+    push cx
+    push si
+    push di
+    push bx
+    
+    ; Copy first string to result
+    mov di, bx              ; DI = result buffer
+    push si
+    call strcpy
+    pop si
+    
+    ; Calculate length of first string
+    push si
+    call strlen
+    pop si
+    
+    ; Add length to result buffer pointer
+    add bx, ax              ; BX = position after first string
+    
+    ; Copy second string to result
+    mov si, [sp+2]          ; SI = second string (from stack)
+    mov di, bx              ; DI = position after first string
+    call strcpy
+    
+    pop bx
+    pop di
+    pop si
+    pop cx
+    pop ax
+    ret
+
+; Fungsi: Menggabungkan string dengan REP
+strcat_rep:
+    push ax
+    push cx
+    push si
+    push di
+    push bx
+    
+    ; Copy first string
+    mov di, bx              ; DI = result buffer
+    push si
+    call strcpy
+    pop si
+    
+    ; Calculate length of first string
+    push si
+    call strlen
+    pop si
+    
+    ; Add length to result buffer pointer
+    add bx, ax              ; BX = position after first string
+    
+    ; Copy second string with REP
+    mov si, [sp+2]          ; SI = second string
+    mov di, bx              ; DI = position after first string
+    
+    ; Calculate second string length
+    push si
+    call strlen
+    pop si
+    
+    mov cx, ax              ; CX = second string length
+    inc cx                  ; Include null terminator
+    
+    cld
+    rep movsb               ; Copy second string
+    
+    pop bx
+    pop di
+    pop si
+    pop cx
+    pop ax
+    ret
+                \end{lstlisting}
+
+        \subsection{Operasi Array Lanjutan}
+            \subsubsection{Pengurutan Array}
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Pengurutan Array, label={lst:array-sort}]
+.DATA
+    unsorted_array dw 64, 34, 25, 12, 22, 11, 90, 5
+    array_size equ 8
+    sorted_array dw 8 dup(0)
+
+.CODE
+; Fungsi: Bubble Sort untuk array word
+; Input: SI = array address, CX = array size
+; Output: Array sorted in place
+bubble_sort:
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    
+    dec cx                  ; CX = number of passes (size - 1)
+    
+outer_loop:
+    mov dx, cx              ; DX = inner loop counter
+    mov si, offset unsorted_array
+    mov bx, 0               ; BX = swap flag
+    
+inner_loop:
+    mov ax, [si]            ; Load current element
+    cmp ax, [si+2]          ; Compare with next element
+    jle no_swap             ; No swap needed
+    
+    ; Swap elements
+    mov ax, [si]            ; AX = current element
+    xchg ax, [si+2]         ; Exchange with next element
+    mov [si], ax            ; Store exchanged element
+    mov bx, 1               ; Set swap flag
+    
+no_swap:
+    add si, 2               ; Move to next element
+    dec dx                  ; Decrement inner counter
+    jnz inner_loop          ; Continue inner loop
+    
+    cmp bx, 0               ; Check if any swaps occurred
+    je sort_done            ; No swaps = array is sorted
+    
+    loop outer_loop         ; Continue outer loop
+    
+sort_done:
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+
+; Fungsi: Selection Sort untuk array word
+selection_sort:
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    
+    mov cx, array_size
+    dec cx                  ; CX = number of passes
+    
+    mov si, offset unsorted_array
+    
+outer_select:
+    mov di, si              ; DI = current position
+    mov bx, si              ; BX = minimum position
+    mov ax, [si]            ; AX = minimum value
+    mov dx, cx              ; DX = inner loop counter
+    
+inner_select:
+    add di, 2               ; Move to next element
+    cmp ax, [di]            ; Compare with current minimum
+    jle no_new_min          ; No new minimum
+    
+    mov ax, [di]            ; Update minimum value
+    mov bx, di              ; Update minimum position
+    
+no_new_min:
+    dec dx                  ; Decrement counter
+    jnz inner_select        ; Continue inner loop
+    
+    ; Swap minimum with current position
+    mov ax, [si]            ; Load current element
+    mov dx, [bx]            ; Load minimum element
+    mov [si], dx            ; Store minimum at current position
+    mov [bx], ax            ; Store current at minimum position
+    
+    add si, 2               ; Move to next position
+    loop outer_select       ; Continue outer loop
+    
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+                \end{lstlisting}
+
+            \subsubsection{Pencarian dalam Array}
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Pencarian dalam Array, label={lst:array-search}]
+.DATA
+    search_array dw 5, 12, 22, 25, 34, 64, 90
+    search_value dw 25
+    found_index dw 0
+
+.CODE
+; Fungsi: Linear Search dalam array word
+; Input: SI = array address, AX = value to search, CX = array size
+; Output: AX = index (0-based), AX = -1 if not found
+linear_search:
+    push bx
+    push cx
+    push si
+    
+    mov bx, 0               ; BX = index counter
+    
+search_loop:
+    cmp ax, [si]            ; Compare with current element
+    je found_linear         ; Found!
+    
+    add si, 2               ; Move to next element
+    inc bx                  ; Increment index
+    loop search_loop        ; Continue search
+    
+    mov ax, -1              ; Not found
+    jmp search_done_linear
+    
+found_linear:
+    mov ax, bx              ; Return index
+    
+search_done_linear:
+    pop si
+    pop cx
+    pop bx
+    ret
+
+; Fungsi: Binary Search dalam array word (array harus terurut)
+; Input: SI = array address, AX = value to search, CX = array size
+; Output: AX = index (0-based), AX = -1 if not found
+binary_search:
+    push bx
+    push cx
+    push dx
+    push si
+    
+    mov bx, 0               ; BX = left boundary
+    mov dx, cx              ; DX = right boundary
+    dec dx                  ; DX = right boundary (0-based)
+    
+binary_loop:
+    cmp bx, dx              ; Check if left > right
+    ja not_found_binary     ; Not found
+    
+    ; Calculate middle index
+    mov cx, bx              ; CX = left
+    add cx, dx              ; CX = left + right
+    shr cx, 1               ; CX = (left + right) / 2
+    
+    ; Calculate middle address
+    push si
+    add si, cx              ; SI = middle address
+    add si, cx              ; SI = middle address (word = 2 bytes)
+    
+    cmp ax, [si]            ; Compare with middle element
+    je found_binary         ; Found!
+    
+    jb search_left          ; Search left half
+    
+    ; Search right half
+    mov bx, cx              ; left = middle + 1
+    inc bx
+    pop si
+    jmp binary_loop
+    
+search_left:
+    mov dx, cx              ; right = middle - 1
+    dec dx
+    pop si
+    jmp binary_loop
+    
+found_binary:
+    mov ax, cx              ; Return middle index
+    pop si
+    jmp search_done_binary
+    
+not_found_binary:
+    mov ax, -1              ; Not found
+    pop si
+    
+search_done_binary:
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    ret
+                \end{lstlisting}
+
+    \section{Contoh Program Lengkap}
+        \subsection{Program Manipulasi String dan Array}
+            Berikut adalah contoh program lengkap yang menggunakan berbagai konsep string dan array.
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Manipulasi String dan Array Lengkap, label={lst:complete-program-ch12}]
+.MODEL SMALL
+.STACK 100h
+.DATA
+    ; String data
+    input_string db 'Hello World!', 0
+    reversed_string db 50 dup(0)
+    concatenated db 100 dup(0)
+    search_text db 'The quick brown fox jumps over the lazy dog', 0
+    
+    ; Array data
+    numbers dw 64, 34, 25, 12, 22, 11, 90, 5
+    array_size equ 8
+    sorted_numbers dw 8 dup(0)
+    
+    ; Messages
+    msg_welcome db 'String and Array Manipulation Program$'
+    msg_original db 'Original string: $'
+    msg_reversed db 'Reversed string: $'
+    msg_length db 'String length: $'
+    msg_sorted db 'Sorted array: $'
+    msg_search db 'Search results: $'
+    newline db 13, 10, '$'
+    
+    ; Variables
+    string_len dw 0
+    search_char db 'o'
+    found_count dw 0
+
+.CODE
+main PROC
+    mov ax, @data
+    mov ds, ax
+    mov es, ax
+    
+    ; Display welcome message
+    mov dx, offset msg_welcome
+    call print_string
+    call print_newline
+    
+    ; Display original string
+    mov dx, offset msg_original
+    call print_string
+    mov dx, offset input_string
+    call print_string
+    call print_newline
+    
+    ; Calculate and display string length
+    mov dx, offset msg_length
+    call print_string
+    mov si, offset input_string
+    call strlen
+    mov string_len, ax
+    call print_number
+    call print_newline
+    
+    ; Reverse string
+    mov dx, offset msg_reversed
+    call print_string
+    mov si, offset input_string
+    mov di, offset reversed_string
+    call strrev
+    mov dx, offset reversed_string
+    call print_string
+    call print_newline
+    
+    ; Concatenate strings
+    mov si, offset input_string
+    mov di, offset reversed_string
+    mov bx, offset concatenated
+    call strcat
+    mov dx, offset concatenated
+    call print_string
+    call print_newline
+    
+    ; Search for character
+    mov dx, offset msg_search
+    call print_string
+    mov si, offset search_text
+    mov al, search_char
+    call count_character_occurrences
+    mov found_count, ax
+    call print_number
+    call print_newline
+    
+    ; Sort array
+    mov dx, offset msg_sorted
+    call print_string
+    call bubble_sort
+    call print_array
+    
+    mov ax, 4C00h
+    int 21h
+main ENDP
+
+; Function: Count character occurrences
+count_character_occurrences PROC
+    push bx
+    push cx
+    push di
+    
+    mov di, si              ; DI = string address
+    mov bx, 0               ; BX = counter
+    
+    ; Calculate string length
+    push si
+    call strlen
+    pop si
+    
+    mov cx, ax              ; CX = string length
+    
+count_loop:
+    repne scasb             ; Find next occurrence
+    jne count_done          ; No more occurrences
+    inc bx                  ; Increment counter
+    cmp cx, 0               ; Check if CX reached 0
+    jne count_loop          ; Continue if more to scan
+    
+count_done:
+    mov ax, bx              ; Return count
+    pop di
+    pop cx
+    pop bx
+    ret
+count_character_occurrences ENDP
+
+; Function: Print array
+print_array PROC
+    push ax
+    push bx
+    push cx
+    push si
+    
+    mov si, offset numbers
+    mov cx, array_size
+    
+print_array_loop:
+    mov ax, [si]
+    call print_number
+    mov dl, ' '
+    mov ah, 02h
+    int 21h
+    add si, 2
+    loop print_array_loop
+    
+    call print_newline
+    pop si
+    pop cx
+    pop bx
+    pop ax
+    ret
+print_array ENDP
+
+; Function: Print string
+print_string PROC
+    push ax
+    mov ah, 09h
+    int 21h
+    pop ax
+    ret
+print_string ENDP
+
+; Function: Print newline
+print_newline PROC
+    push dx
+    push ax
+    mov dx, offset newline
+    mov ah, 09h
+    int 21h
+    pop ax
+    pop dx
+    ret
+print_newline ENDP
+
+; Function: Print number
+print_number PROC
+    push ax
+    push bx
+    push cx
+    push dx
+    
+    mov bx, 10
+    mov cx, 0
+    
+print_loop:
+    mov dx, 0
+    div bx                  ; AX = AX / 10, DX = remainder
+    push dx                 ; Push digit
+    inc cx                  ; Increment counter
+    cmp ax, 0
+    jne print_loop
+    
+print_digits:
+    pop dx                  ; Pop digit
+    add dl, '0'             ; Convert to character
+    mov ah, 02h             ; Print character
+    int 21h
+    loop print_digits
+    
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+print_number ENDP
+
+END main
+            \end{lstlisting}
+
+        \subsection{Analisis Program}
+            Program di atas menunjukkan penggunaan lengkap konsep string dan array:
+
+            \begin{itemize}
+                \item \textbf{String Operations}: Menghitung panjang, membalik, menggabungkan string
+                \item \textbf{Array Operations}: Pengurutan dan pencarian dalam array
+                \item \textbf{String Instructions}: Penggunaan MOVS, SCAS, CMPS untuk efisiensi
+                \item \textbf{Modular Design}: Program dibagi menjadi fungsi-fungsi terpisah
+                \item \textbf{Input/Output}: Menampilkan hasil operasi ke layar
+                \item \textbf{Error Handling}: Penanganan kasus tidak ditemukan
+            \end{itemize}
+
+    \section{Kesimpulan}
+        Array dan string adalah komponen fundamental dalam pemrograman assembly Intel 8086. Penguasaan konsep-konsep ini memungkinkan:
+
+        \begin{itemize}
+            \item \textbf{Efficient Data Processing}: Menggunakan instruksi string untuk operasi berulang yang efisien
+            \item \textbf{Memory Management}: Mengelola data dalam struktur yang terorganisir
+            \item \textbf{Algorithm Implementation}: Mengimplementasikan algoritma pencarian dan pengurutan
+            \item \textbf{String Manipulation}: Membangun rutinitas manipulasi string yang powerful
+            \item \textbf{Professional Development}: Mengikuti standar industri dalam pengembangan software
+        \end{itemize}
+
+        Penting untuk selalu menggunakan instruksi string yang sesuai dan mengelola register dengan benar untuk mendapatkan performa optimal.
+
+
+
+
 
 
 \end{document}

@@ -1,185 +1,657 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Percabangan, Loop, dan Interupsi Mouse}
+\chapter{Instruksi Logika dan Operasi Bit}
 
-\section{Tujuan Pembelajaran}
-Mahasiswa mampu:
+    \section{Tujuan Pembelajaran}
+        Mahasiswa mampu:
+        \begin{itemize}
+            \item Menerapkan instruksi logika \texttt{AND}, \texttt{OR}, \texttt{XOR}, \texttt{NOT} pada data 8/16-bit.
+            \item Memahami operasi bitwise, masking, set/clear bit, dan kasus penggunaan praktis.
+            \item Menggunakan layanan BIOS video \texttt{INT 10h} (fungsi \texttt{02h}, \texttt{09h}, \texttt{0Ah}, \texttt{0Eh}) untuk output teks dan kontrol kursor.
+            \item Menampilkan teks di layar dengan kontrol posisi dan atribut warna.
+        \end{itemize}
+
+    \section{Pendahuluan}
+        Instruksi logika menyediakan manipulasi bit tingkat rendah yang fundamental untuk kontrol perangkat keras, pengolahan bendera (flag), dan optimasi \cite{8086_instruction_set_reference}. Bab ini berfokus pada operasi bit dan logika; materi I/O teks BIOS dipindahkan ke bab khusus I/O teks.
+
+        Operasi logika dan bitwise pada Intel 8086 merupakan fondasi penting dalam pemrograman assembly yang memungkinkan:
+        \begin{itemize}
+            \item Manipulasi bit individual untuk kontrol perangkat keras
+            \item Implementasi algoritma enkripsi sederhana
+            \item Optimasi operasi aritmatika melalui shift dan rotate
+            \item Pengolahan data dengan efisiensi tinggi
+            \item Kontrol flag register untuk conditional branching
+        \end{itemize}
+
+        Bab ini akan membahas secara detail instruksi logika dasar, operasi shift/rotate, dan aplikasi praktis dalam pemrograman assembly.
+
+    \section{Instruksi Logika}
+        \subsection{Operasi Logika Dasar}
+            \subsubsection{AND}
+Operasi konjungsi bitwise: bit hasil 1 jika dan hanya jika kedua operand 1. Umum untuk \textit{masking} menghapus bit tertentu.
+
+\textbf{Tabel Kebenaran AND:}
+\begin{center}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        A & B & A AND B \\
+        \hline
+        0 & 0 & 0 \\
+        0 & 1 & 0 \\
+        1 & 0 & 0 \\
+        1 & 1 & 1 \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi AND, label={lst:and-examples}]
+; Contoh AND untuk masking
+mov ax, 0A5Fh        ; AX = 101001011111b
+and ax, 00FFh        ; AX = AX AND 0000000011111111b = 005Fh
+; Hasil: hanya 8 bit rendah yang tersisa
+
+; Contoh AND untuk clear bit
+mov al, 11111111b    ; AL = 11111111b
+and al, 11110111b    ; AL = AL AND 11110111b = 11110111b
+; Hasil: bit 3 di-clear (dihitung dari 0)
+
+; Contoh AND untuk ekstraksi bit
+mov ax, 1234h        ; AX = 0001001000110100b
+and ax, 0008h        ; AX = AX AND 0000000000001000b
+; Hasil: AX = 0008h jika bit 3 set, 0000h jika bit 3 clear
+
+; Contoh AND dengan register
+mov ax, 0F0F0h       ; AX = 0F0F0h
+mov bx, 00FFh        ; BX = 00FFh
+and ax, bx           ; AX = 0F0F0h AND 00FFh = 00F0h
+\end{lstlisting}
+
+\textbf{Flags}: memperbarui \texttt{ZF}, \texttt{SF}, \texttt{PF}; \texttt{CF} dan \texttt{OF} direset ke 0.
+
+            \subsubsection{OR}
+Disjungsi bitwise: bit hasil 1 jika salah satu operand 1. Berguna untuk menyetel bit spesifik.
+
+\textbf{Tabel Kebenaran OR:}
+\begin{center}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        A & B & A OR B \\
+        \hline
+        0 & 0 & 0 \\
+        0 & 1 & 1 \\
+        1 & 0 & 1 \\
+        1 & 1 & 1 \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi OR, label={lst:or-examples}]
+; Contoh OR untuk set bit
+mov al, 00110000b    ; AL = 00110000b
+or  al, 00000101b    ; AL = AL OR 00000101b = 00110101b
+; Hasil: bit 0 dan 2 di-set
+
+; Contoh OR untuk menggabungkan nilai
+mov ax, 1234h        ; AX = 0001001000110100b
+or  ax, 8000h        ; AX = AX OR 1000000000000000b = 9234h
+; Hasil: bit 15 di-set (bit tanda)
+
+; Contoh OR untuk set multiple bit
+mov bl, 00000000b    ; BL = 00000000b
+or  bl, 11110000b    ; BL = BL OR 11110000b = 11110000b
+; Hasil: bit 4-7 di-set
+
+; Contoh OR dengan register
+mov ax, 0F000h       ; AX = 0F000h
+mov bx, 00FFh        ; BX = 00FFh
+or  ax, bx           ; AX = 0F000h OR 00FFh = 0F0FFh
+
+; Contoh OR untuk flags kombinasi
+mov al, 00000001b    ; AL = 00000001b (bit 0 set)
+or  al, 00000100b    ; AL = AL OR 00000100b = 00000101b
+; Hasil: bit 0 dan 2 set
+\end{lstlisting}
+
+\textbf{Flags}: \texttt{ZF}, \texttt{SF}, \texttt{PF} diperbarui; \texttt{CF}, \texttt{OF} = 0.
+
+            \subsubsection{XOR}
+Eksklusif-or: 1 jika operand berbeda; \textit{involutif} (\texttt{x xor k xor k = x}). Biasa untuk enkripsi sederhana dan pembersihan register cepat.
+
+\textbf{Tabel Kebenaran XOR:}
+\begin{center}
+    \begin{tabular}{|c|c|c|}
+        \hline
+        A & B & A XOR B \\
+        \hline
+        0 & 0 & 0 \\
+        0 & 1 & 1 \\
+        1 & 0 & 1 \\
+        1 & 1 & 0 \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi XOR, label={lst:xor-examples}]
+; Contoh XOR untuk clear register (lebih cepat dari MOV)
+xor ax, ax           ; AX = AX XOR AX = 0
+xor bx, bx           ; BX = BX XOR BX = 0
+
+; Contoh XOR untuk toggle bit
+mov al, 00001000b    ; AL = 00001000b (bit 3 set)
+xor al, 00001000b    ; AL = AL XOR 00001000b = 00000000b (bit 3 clear)
+xor al, 00001000b    ; AL = AL XOR 00001000b = 00001000b (bit 3 set lagi)
+
+; Contoh XOR untuk enkripsi sederhana
+mov al, 'A'          ; AL = 01000001b (ASCII 'A')
+mov bl, 0FFh         ; BL = 11111111b (kunci enkripsi)
+xor al, bl           ; AL = AL XOR BL = 10111110b (hasil enkripsi)
+xor al, bl           ; AL = AL XOR BL = 01000001b (dekripsi kembali ke 'A')
+
+; Contoh XOR untuk swap nilai tanpa temporary variable
+mov ax, 1234h        ; AX = 1234h
+mov bx, 5678h        ; BX = 5678h
+xor ax, bx           ; AX = 1234h XOR 5678h = 444Ch
+xor bx, ax           ; BX = 5678h XOR 444Ch = 1234h
+xor ax, bx           ; AX = 444Ch XOR 1234h = 5678h
+; Hasil: AX = 5678h, BX = 1234h (nilai tertukar)
+
+; Contoh XOR untuk masking
+mov ax, 0F0F0h       ; AX = 0F0F0h
+xor ax, 0FFFFh       ; AX = 0F0F0h XOR 0FFFFh = 0F0Fh
+; Hasil: bit 0-7 di-inversi, bit 8-15 tetap
+\end{lstlisting}
+
+\textbf{Flags}: mirip \texttt{AND}/\texttt{OR}; \texttt{CF}, \texttt{OF} = 0.
+
+            \subsubsection{NOT}
+Komplemen bitwise (unary). Sering dipakai untuk inversi \textit{mask}.
+
+\textbf{Tabel Kebenaran NOT:}
+\begin{center}
+    \begin{tabular}{|c|c|}
+        \hline
+        A & NOT A \\
+        \hline
+        0 & 1 \\
+        1 & 0 \\
+        \hline
+    \end{tabular}
+\end{center}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi NOT, label={lst:not-examples}]
+; Contoh NOT untuk inversi mask
+mov bl, 11110000b    ; BL = 11110000b
+not bl               ; BL = NOT BL = 00001111b
+; Hasil: bit 0-3 menjadi 1, bit 4-7 menjadi 0
+
+; Contoh NOT untuk two's complement (bersama dengan INC)
+mov ax, 1234h        ; AX = 1234h
+not ax               ; AX = NOT AX = EDCBh
+inc ax               ; AX = AX + 1 = EDCDh
+; Hasil: AX = -1234h (two's complement)
+
+; Contoh NOT untuk clear semua bit
+mov al, 0FFh         ; AL = 11111111b
+not al               ; AL = NOT AL = 00000000b
+
+; Contoh NOT untuk set semua bit
+mov al, 00h          ; AL = 00000000b
+not al               ; AL = NOT AL = 11111111b
+
+; Contoh NOT dengan register 16-bit
+mov ax, 0AAAAh       ; AX = 1010101010101010b
+not ax               ; AX = NOT AX = 5555h = 0101010101010101b
+
+; Contoh NOT untuk mask inversi
+mov bl, 00111100b    ; BL = 00111100b (mask untuk bit 2-5)
+not bl               ; BL = NOT BL = 11000011b (mask untuk bit 0-1,6-7)
+\end{lstlisting}
+
+\textbf{Flags}: tidak terpengaruh (kecuali implementasi spesifik; pada 8086, flags tidak terdefinisi diubah untuk NOT—anggap tidak relevan).
+
+            \subsubsection{Instruksi SHIFT dan ROTATE}
+Operasi geser dan rotasi penting untuk manipulasi bit tingkat rendah, multiplikasi/divisi basis 2, serta ekstraksi bit-field.
+
 \begin{itemize}
-    \item Menggunakan instruksi \texttt{CMP} untuk perbandingan dan membaca dampaknya pada \textit{flags}.
-    \item Menerapkan lompatan bersyarat \texttt{JE}, \texttt{JNE}, \texttt{JL}/\texttt{JG} dan variasinya berdasarkan interpretasi bertanda/tak bertanda.
-    \item Menggunakan \texttt{LOOP}, \texttt{LOOPE}/\texttt{LOOPZ}, \texttt{LOOPNE}/\texttt{LOOPNZ} untuk perulangan berbasis \texttt{CX}.
-    \item Berinteraksi dengan mouse melalui \texttt{INT 33h}: inisialisasi, tampil/sembunyi kursor, baca posisi/tombol.
-    \item Menyusun program yang menggabungkan percabangan, perulangan, dan input mouse.
+    \item \textbf{SHL/SAL}: geser ke kiri; mengalikan tak bertanda dengan 2 per langkah; bit keluar ke \texttt{CF}.
+    \item \textbf{SHR radi}: geser ke kanan tak bertanda; membagi dengan 2 per langkah; bit keluar ke \texttt{CF}.
+    \item \textbf{SAR}: geser kanan bertanda; mempertahankan bit tanda; membagi bertanda dengan pembulatan ke bawah.
+    \item \textbf{ROL/ROR}: rotasi tanpa melalui carry; \textbf{RCL/RCR}: rotasi melalui carry (memakai \texttt{CF} sebagai bit tambahan).
 \end{itemize}
 
-\section{Pendahuluan}
-Kontrol alur adalah inti dari setiap program. Pada 8086, \texttt{CMP} mengatur \textit{flags} yang selanjutnya diinterpretasikan oleh lompat bersyarat. Untuk iterasi, instruksi keluarga \texttt{LOOP} memanfaatkan \texttt{CX} sebagai pencacah. Di sisi \textit{I/O}, \texttt{INT 33h} menyediakan API BIOS untuk mouse pada lingkungan DOS, memungkinkan antarmuka interaktif dasar.
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi SHIFT, label={lst:shift-examples}]
+; Contoh SHL (Shift Left) - perkalian dengan 2
+mov ax, 0001h        ; AX = 0001h (1 desimal)
+shl ax, 1            ; AX = AX << 1 = 0002h (2 desimal), CF=0
+shl ax, 2            ; AX = AX << 2 = 0008h (8 desimal), CF=0
 
-\section{Instruksi Perbandingan (CMP)}
-\subsection{Dasar-dasar CMP}
-\subsubsection{Sintaks dan cara kerja}
-\texttt{CMP dest, src} menghitung \(dest - src\) tanpa menyimpan hasil, namun memperbarui \textit{flags} (\texttt{ZF}, \texttt{SF}, \texttt{CF}, \texttt{OF}, \texttt{PF}, \texttt{AF}). \textit{Flags} kemudian digunakan oleh lompat bersyarat.
-\begin{verbatim}
-mov ax, 10
-cmp ax, 10      ; ZF=1 -> equal
-cmp ax, 12      ; CF=1 (tak bertanda), SF!=OF (bertanda) -> less
-\end{verbatim}
+; Contoh SHR (Shift Right) - pembagian dengan 2
+mov ax, 0010h        ; AX = 0010h (16 desimal)
+shr ax, 1            ; AX = AX >> 1 = 0008h (8 desimal), CF=0
+shr ax, 2            ; AX = AX >> 2 = 0002h (2 desimal), CF=0
 
-\subsubsection{Perbandingan vs operasi aritmatika}
-\texttt{CMP} setara dengan \texttt{SUB} yang hasilnya dibuang. Gunakan \texttt{TEST} untuk perbandingan bitwise (seperti \texttt{AND} tanpa menyimpan).
+; Contoh SAR (Shift Arithmetic Right) - pembagian bertanda
+mov ax, 0FFFEh       ; AX = 0FFFEh (-2 dalam two's complement)
+sar ax, 1            ; AX = AX >> 1 = 0FFFFh (-1), CF=0 (mempertahankan bit tanda)
 
-\subsection{Instruksi Percabangan}
-\subsubsection{JE/JNE}
-\texttt{JE}/\texttt{JZ} melompat bila \texttt{ZF=1}; \texttt{JNE}/\texttt{JNZ} bila \texttt{ZF=0}. Cocok untuk kesetaraan/kesetidaksetaraan umum.
+; Contoh SHL dengan count > 1
+mov ax, 0003h        ; AX = 0003h (3 desimal)
+shl ax, 3            ; AX = AX << 3 = 0018h (24 desimal), CF=0
+; Setara dengan perkalian dengan 2^3 = 8
 
-\subsubsection{JL/JG dan varian bertanda vs tak bertanda}
+; Contoh SHR untuk ekstraksi bit
+mov ax, 1234h        ; AX = 0001001000110100b
+shr ax, 4            ; AX = AX >> 4 = 0123h (ekstrak 4 bit tinggi)
+; Bit 0-3 dari hasil adalah bit 4-7 dari nilai asli
+\end{lstlisting}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi ROTATE, label={lst:rotate-examples}]
+; Contoh ROL (Rotate Left)
+mov ax, 8001h        ; AX = 1000000000000001b
+rol ax, 1            ; AX = 0000000000000011b, CF=1 (bit 15 masuk ke CF dan bit 0)
+
+; Contoh ROR (Rotate Right)
+mov ax, 0003h        ; AX = 0000000000000011b
+ror ax, 1            ; AX = 1000000000000001b, CF=1 (bit 0 masuk ke CF dan bit 15)
+
+; Contoh RCL (Rotate through Carry Left)
+mov ax, 8000h        ; AX = 1000000000000000b
+stc                  ; Set CF = 1
+rcl ax, 1            ; AX = 0000000000000001b, CF=1 (CF masuk ke bit 0, bit 15 ke CF)
+
+; Contoh RCR (Rotate through Carry Right)
+mov ax, 0001h        ; AX = 0000000000000001b
+stc                  ; Set CF = 1
+rcr ax, 1            ; AX = 1000000000000000b, CF=1 (CF masuk ke bit 15, bit 0 ke CF)
+
+; Contoh rotasi dengan count > 1
+mov ax, 1234h        ; AX = 1234h
+rol ax, 4            ; AX = 2341h (rotasi 4 bit ke kiri)
+ror ax, 4            ; AX = 1234h (kembali ke nilai semula)
+\end{lstlisting}
+
+            \subsubsection{Ekstraksi dan Packing Bit-field}
+Untuk mengekstrak bidang 3-bit mulai dari posisi \(p\): geser kanan \(p\) lalu mask \texttt{AND} dengan \texttt{0b111}. Untuk mengemas, geser nilai ke posisi yang diinginkan lalu gabungkan dengan \texttt{OR}.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Ekstraksi dan Packing Bit-field, label={lst:bitfield-examples}]
+; Contoh ekstraksi bit-field 3-bit dari posisi 4
+mov ax, 1234h        ; AX = 0001001000110100b
+shr ax, 4            ; AX = 0000000100100011b (geser 4 bit ke kanan)
+and ax, 0007h        ; AX = AX AND 0000000000000111b = 0003h
+; Hasil: bit-field 3-bit dari posisi 4-6 = 011b = 3
+
+; Contoh packing multiple bit-field ke dalam satu word
+mov ax, 0000h        ; AX = 0 (start dengan clean word)
+mov bx, 0005h        ; BX = 5 (nilai untuk field 1)
+mov cx, 0003h        ; CX = 3 (nilai untuk field 2)
+mov dx, 0007h        ; DX = 7 (nilai untuk field 3)
+
+; Pack field 1 (5) ke bit 0-2
+or ax, bx            ; AX = AX OR 5 = 0005h
+
+; Pack field 2 (3) ke bit 3-5
+shl cx, 3            ; CX = 3 << 3 = 0018h
+or ax, cx            ; AX = AX OR 0018h = 001Dh
+
+; Pack field 3 (7) ke bit 6-8
+shl dx, 6            ; DX = 7 << 6 = 01C0h
+or ax, dx            ; AX = AX OR 01C0h = 01DDh
+
+; Hasil: AX = 01DDh = 0000000111011101b
+; Field 1 (bit 0-2): 101b = 5
+; Field 2 (bit 3-5): 011b = 3  
+; Field 3 (bit 6-8): 111b = 7
+\end{lstlisting}
+
+            \subsubsection{Instruksi TEST}
+Instruksi \texttt{TEST} melakukan operasi \texttt{AND} tanpa menyimpan hasil, hanya untuk menguji flag. Sangat efisien untuk testing bit.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi TEST, label={lst:test-examples}]
+; Contoh TEST untuk uji bit individual
+mov al, value        ; AL = nilai yang akan diuji
+test al, 00001000b   ; Test bit 3 (hitung dari 0)
+jz bit3_clear        ; Jika ZF=1 (bit 3 clear), lompat ke bit3_clear
+jnz bit3_set         ; Jika ZF=0 (bit 3 set), lompat ke bit3_set
+
+bit3_clear:
+    ; Bit 3 clear
+    jmp end_test
+
+bit3_set:
+    ; Bit 3 set
+    jmp end_test
+
+; Contoh TEST untuk uji multiple bit
+test al, 11110000b   ; Test bit 4-7 (semua harus set)
+jnz all_upper_set    ; Jika tidak semua set, ZF=0
+
+; Contoh TEST untuk uji zero
+test ax, ax          ; Test apakah AX = 0
+jz zero_detected     ; Jika AX = 0, ZF=1
+
+; Contoh TEST untuk uji parity
+test al, 00000001b   ; Test bit 0 (parity bit)
+jp even_parity       ; Jika PF=1 (jumlah bit 1 genap)
+jnp odd_parity       ; Jika PF=0 (jumlah bit 1 ganjil)
+\end{lstlisting}
+
+            \subsubsection{Operasi bitwise dan aplikasinya}
 \begin{itemize}
-  \item \textbf{Bertanda}: \texttt{JL} (SF != OF), \texttt{JG} (ZF=0 dan SF=OF), \texttt{JLE}, \texttt{JGE}.
-  \item \textbf{Tak bertanda}: \texttt{JB}/\texttt{JC} (CF=1), \texttt{JA} (CF=0 dan ZF=0), \texttt{JBE}, \texttt{JAE}/\texttt{JNC}.
-\end{itemize}
-Pilih sesuai interpretasi data untuk menghindari logika salah.
-
-\subsubsection{Conditional jumps dan jangkauan}
-Lompatan bersyarat menggunakan offset relatif pendek (\(\pm 128\) byte pada 8086). Untuk jangkauan lebih jauh, gunakan skema \textit{inverted branch} + \texttt{JMP} jauh.
-
-\subsubsection{Pola Kontrol Alur yang Umum}
-Gunakan pola \textbf{if-else}, \textbf{switch-like} (tabel lompatan/\textit{jump table} berbasis indeks), dan \textbf{loop counted} (\texttt{CX}) vs \textbf{loop sentinel} (berhenti pada kondisi). Tabel lompatan dapat diimplementasikan dengan daftar alamat dan \texttt{JMP [BX+SI]}. 
-\subsubsection{Optimasi Cabang}
-Cabang pendek (\texttt{Jcc} 8-bit) lebih padat; restrukturisasi kondisi untuk memanfaatkan jangkauan pendek saat mungkin. Hindari memodifikasi \texttt{CX} tak sengaja saat memakai \texttt{LOOP}. 
-\subsubsection{INT 33h: Detail dan Koordinat}
-Skala koordinat mouse bergantung mode tampilan. Pada mode teks, koordinat biasanya dalam sel karakter; di mode grafik dapat berupa piksel dengan rentang yang dapat diatur (fungsi pembatasan). Selalu periksa nilai kembali inisialisasi driver (\texttt{AX=FFFFh}) sebelum memakai layanan mouse. 
-\subsubsection{Debounce Klik dan Drag Sederhana}
-Catat transisi status tombol (tekan/lepas) untuk membedakan klik tunggal vs tahan/drag. Simpan posisi terakhir untuk menghitung delta pergerakan dan ambang jarak. 
-
-\subsection{Instruksi Perulangan (LOOP)}
-\subsubsection{LOOP}
-Menurunkan \texttt{CX} dan melompat jika \texttt{CX} \(\neq 0\). Perhatikan bahwa \texttt{CX} berkurang terlebih dahulu, lalu diuji.
-\begin{verbatim}
-mov cx, 5
-ulang:
-  ; body
-  loop ulang
-\end{verbatim}
-
-\subsubsection{LOOPZ/LOOPE dan LOOPNZ/LOOPNE}
-Melompat jika \texttt{CX} \(\neq 0\) \textbf{dan} \texttt{ZF} sesuai (0 atau 1). Umum untuk mengulang pencocokan hingga gagal/berhasil.
-
-\subsubsection{Kontrol perulangan}
-Hindari mengubah \texttt{CX} di dalam body kecuali disengaja. Untuk iterasi kompleks, kombinasi \texttt{DEC/JNZ} sering lebih fleksibel.
-
-\subsection{Interupsi Mouse INT 33h}
-\subsubsection{Fungsi 00h: Initialize Mouse}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AX=0000h}
-  \item \textbf{Keluaran}: \texttt{AX=FFFFh} jika driver ada; selain itu 0.
-\end{itemize}
-
-\subsubsection{Fungsi 01h/02h: Show/Hide Cursor}
-\begin{itemize}
-  \item \texttt{AX=0001h} menampilkan; \texttt{AX=0002h} menyembunyikan.
-\end{itemize}
-
-\subsubsection{Fungsi 03h: Get Position and Buttons}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AX=0003h}
-  \item \textbf{Keluaran}: \texttt{BX}=status tombol, \texttt{CX}=X, \texttt{DX}=Y (unit tergantung mode layar).
-\end{itemize}
-
-\subsubsection{Fungsi 04h: Set Position}
-\begin{itemize}
-  \item \textbf{Masukan}: \texttt{AX=0004h}, \texttt{CX}=X, \texttt{DX}=Y.
-\end{itemize}
-
-\subsubsection{Fungsi 05h: Get Button Press Info}
-Mengembalikan informasi penekanan tombol terakhir (kode tombol, koordinat saat ditekan).
-
-\section{Praktikum}
-\begin{enumerate}
-  \item Program percabangan sederhana: bandingkan dua nilai, tampilkan pesan sesuai hasil (JE/JNE).
-  \item Program perulangan: gunakan \texttt{LOOP} untuk mencetak pola atau menghitung deret sederhana.
-  \item Kombinasi: cari nilai minimum/maksimum dalam array menggunakan \texttt{CMP} + lompatan.
-  \item Interaksi mouse: inisialisasi, tampilkan kursor, baca posisi dan tombol, tampilkan di layar.
-  \item Mini-game: gerakkan kursor teks mengikuti posisi mouse (mode teks) dan reaksi saat klik.
-\end{enumerate}
-
-\section{Contoh Kode}
-\begin{verbatim}
-; Program percabangan, loop, dan mouse
-TITLE Percabangan dan Loop
-.MODEL SMALL
-.STACK 100h
-
-.DATA
-    pesan1 DB 'Bilangan sama$'
-    pesan2 DB 'Bilangan berbeda$'
-    pesan3 DB 'Loop selesai$'
-    bil1 DW 10
-    bil2 DW 10
-
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
-    
-    ; Percabangan
-    MOV AX, bil1
-    CMP AX, bil2
-    JE sama
-    ; Jika tidak sama
-    MOV AH, 09h
-    MOV DX, OFFSET pesan2
-    INT 21h
-    JMP lanjut
-    
-sama:
-    MOV AH, 09h
-    MOV DX, OFFSET pesan1
-    INT 21h
-    
-lanjut:
-    ; Perulangan
-    MOV CX, 5
-ulang:
-    ; Kode yang diulang
-    DEC CX
-    JNZ ulang
-    
-    ; Inisialisasi mouse
-    MOV AX, 00h
-    INT 33h
-    CMP AX, 0
-    JE no_mouse
-    
-    ; Tampilkan cursor mouse
-    MOV AX, 01h
-    INT 33h
-    
-    ; Baca posisi mouse
-    MOV AX, 03h
-    INT 33h
-    ; BX = button status, CX = X position, DX = Y position
-    
-no_mouse:
-    MOV AH, 4Ch
-    INT 21h
-END START
-\end{verbatim}
-
-\section{Latihan}
-\begin{enumerate}
-  \item Buat program yang membandingkan dua bilangan dan menampilkan hasil menggunakan JE/JNE.
-  \item Buat program menghitung faktorial (n kecil) menggunakan \texttt{LOOP} atau \texttt{DEC/JNZ}.
-  \item Buat program menampilkan angka 1--10 pada baris berbeda menggunakan perulangan.
-  \item Buat program yang menampilkan koordinat mouse secara real-time (\textit{polling} \texttt{INT 33h} fungsi 03h).
-\end{enumerate}
-
-\section{Tugas}
-\begin{itemize}
-  \item \textbf{Kalkulator bercabang}: Menu berbasis \textit{branching} untuk memilih operasi aritmatika, validasi input.
-  \item \textbf{Sorting sederhana}: Implementasikan \textit{bubble sort} pada array kecil (tak bertanda), tampilkan hasil setiap pass.
-  \item \textbf{Game tebak angka + mouse}: Gunakan mouse untuk memilih rentang jawaban, tampilkan umpan balik.
-  \item \textbf{Dokumentasi}: Ringkas instruksi lompatan dan kondisi flags yang memicunya; sertakan contoh minimal.
+    \item \textbf{Masking}: \texttt{AND} untuk \textit{clear}, \texttt{OR} untuk \textit{set}, \texttt{XOR} untuk \textit{toggle}.
+    \item \textbf{Packing/unpacking} field bit dalam satu byte/word.
+    \item \textbf{Uji bit}: kombinasikan \texttt{TEST} (seperti \texttt{AND} tanpa menyimpan hasil) dan percabangan pada \texttt{ZF}.
 \end{itemize}
 
+        \subsection{Aplikasi Instruksi Logika}
+            \subsubsection{Manipulasi bit dan masking}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Manipulasi Bit dan Masking, label={lst:bit-manipulation}]
+; Contoh manipulasi bit individual
+mov al, 11111111b    ; AL = 11111111b (semua bit set)
+
+; Clear 2 bit terendah (bit 0-1)
+and al, 11111100b    ; AL = 11111100b
+
+; Set bit 7 (bit tertinggi)
+or  al, 10000000b    ; AL = 11111100b OR 10000000b = 11111100b (sudah set)
+
+; Toggle bit 4
+xor al, 00010000b    ; AL = 11111100b XOR 00010000b = 11101100b
+
+; Clear bit 3
+and al, 11110111b    ; AL = 11101100b AND 11110111b = 11100100b
+
+; Set multiple bit (bit 1-3)
+or  al, 00001110b    ; AL = 11100100b OR 00001110b = 11101110b
+
+; Contoh masking untuk ekstraksi
+mov ax, 1234h        ; AX = 1234h
+and ax, 0FF00h       ; AX = AX AND 0FF00h = 1200h (ekstrak byte tinggi)
+shr ax, 8            ; AX = AX >> 8 = 0012h (pindahkan ke posisi rendah)
+\end{lstlisting}
+
+\subsubsection{Enkripsi sederhana (XOR)}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Enkripsi XOR Sederhana, label={lst:xor-encryption}]
+; Program enkripsi/dekripsi XOR sederhana
+org 100h
+
+start:
+    mov ax, data
+    mov ds, ax
+    
+    ; Enkripsi string dengan kunci
+    mov si, offset pesan      ; SI = alamat pesan
+    mov di, offset enkripsi   ; DI = alamat buffer enkripsi
+    mov cx, panjang_pesan     ; CX = panjang pesan
+    mov bl, kunci             ; BL = kunci enkripsi
+    
+encrypt_loop:
+    mov al, [si]              ; AL = karakter dari pesan
+    xor al, bl                ; AL = AL XOR kunci (enkripsi)
+    mov [di], al              ; Simpan hasil enkripsi
+    inc si                    ; SI = SI + 1
+    inc di                    ; DI = DI + 1
+    loop encrypt_loop         ; Ulangi sampai CX = 0
+    
+    ; Dekripsi (XOR lagi dengan kunci yang sama)
+    mov si, offset enkripsi   ; SI = alamat data terenkripsi
+    mov di, offset dekripsi   ; DI = alamat buffer dekripsi
+    mov cx, panjang_pesan     ; CX = panjang pesan
+    
+decrypt_loop:
+    mov al, [si]              ; AL = karakter terenkripsi
+    xor al, bl                ; AL = AL XOR kunci (dekripsi)
+    mov [di], al              ; Simpan hasil dekripsi
+    inc si                    ; SI = SI + 1
+    inc di                    ; DI = DI + 1
+    loop decrypt_loop         ; Ulangi sampai CX = 0
+    
+    ; Keluar dari program
+    mov ah, 4Ch
+    int 21h
+
+data segment
+    pesan         db 'HELLO WORLD', 0
+    panjang_pesan dw 11
+    kunci         db 0AAh
+    enkripsi      db 11 dup(?)
+    dekripsi      db 11 dup(?)
+data ends
+
+end start
+\end{lstlisting}
+
+\textit{Catatan}: XOR cipher lemah dan hanya untuk demonstrasi. Untuk keamanan nyata, gunakan algoritma enkripsi yang lebih kuat.
+
+\subsubsection{Operasi set dan clear bit, perbandingan bit}
+Gunakan \texttt{BT}/\texttt{BTS}/\texttt{BTR} pada prosesor lebih baru; pada 8086, gunakan \texttt{AND}/\texttt{OR}/\texttt{XOR} manual. Perbandingan bit dilakukan dengan \texttt{TEST}.
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Set/Clear Bit dan Bit Testing, label={lst:bit-operations}]
+; Fungsi untuk set bit pada posisi tertentu
+; Input: AL = nilai, BL = posisi bit (0-7)
+; Output: AL = nilai dengan bit di-set
+set_bit:
+    push cx
+    mov cl, bl           ; CL = posisi bit
+    mov ch, 1            ; CH = mask bit
+    shl ch, cl           ; CH = 1 << posisi
+    or al, ch            ; AL = AL OR mask
+    pop cx
+    ret
+
+; Fungsi untuk clear bit pada posisi tertentu
+; Input: AL = nilai, BL = posisi bit (0-7)
+; Output: AL = nilai dengan bit di-clear
+clear_bit:
+    push cx
+    mov cl, bl           ; CL = posisi bit
+    mov ch, 1            ; CH = mask bit
+    shl ch, cl           ; CH = 1 << posisi
+    not ch               ; CH = NOT mask (inversi)
+    and al, ch           ; AL = AL AND inversi mask
+    pop cx
+    ret
+
+; Fungsi untuk test bit pada posisi tertentu
+; Input: AL = nilai, BL = posisi bit (0-7)
+; Output: ZF = 1 jika bit clear, ZF = 0 jika bit set
+test_bit:
+    push cx
+    mov cl, bl           ; CL = posisi bit
+    mov ch, 1            ; CH = mask bit
+    shl ch, cl           ; CH = 1 << posisi
+    test al, ch          ; Test bit dengan mask
+    pop cx
+    ret
+
+; Contoh penggunaan
+mov al, 01010101b       ; AL = 01010101b
+mov bl, 3               ; BL = posisi bit 3
+call set_bit            ; Set bit 3: AL = 01011101b
+
+mov bl, 1               ; BL = posisi bit 1
+call clear_bit          ; Clear bit 1: AL = 01011101b AND 11111101b = 01011101b
+
+mov bl, 2               ; BL = posisi bit 2
+call test_bit           ; Test bit 2: ZF = 0 (bit 2 set)
+\end{lstlisting}
+
+\section{Program Lengkap dengan Instruksi Logika}
+
+\subsection{Program Bit Manipulator}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Bit Manipulator Lengkap, label={lst:bit-manipulator-program}]
+org 100h
+
+start:
+    mov ax, data
+    mov ds, ax
+    
+    ; Program demonstrasi operasi bitwise
+    ; Input: nilai_awal = 0xAA55
+    ; Output: berbagai manipulasi bit
+    
+    ; 1. Tampilkan nilai awal
+    mov ax, nilai_awal        ; AX = 0xAA55 = 1010101001010101b
+    
+    ; 2. Operasi AND untuk masking
+    mov bx, ax                ; BX = nilai awal
+    and bx, 0x00FF            ; BX = BX AND 0x00FF = 0x0055
+    mov hasil_and, bx         ; Simpan hasil AND
+    
+    ; 3. Operasi OR untuk set bit
+    mov cx, ax                ; CX = nilai awal
+    or  cx, 0x8000            ; CX = CX OR 0x8000 = 0x2A55
+    mov hasil_or, cx          ; Simpan hasil OR
+    
+    ; 4. Operasi XOR untuk toggle bit
+    mov dx, ax                ; DX = nilai awal
+    xor dx, 0xFFFF            ; DX = DX XOR 0xFFFF = 0x55AA
+    mov hasil_xor, dx         ; Simpan hasil XOR
+    
+    ; 5. Operasi NOT untuk inversi
+    mov si, ax                ; SI = nilai awal
+    not si                    ; SI = NOT SI = 0x55AA
+    mov hasil_not, si         ; Simpan hasil NOT
+    
+    ; 6. Operasi SHIFT untuk perkalian/pembagian
+    mov di, ax                ; DI = nilai awal
+    shl di, 2                 ; DI = DI << 2 = 0xA954 (perkalian dengan 4)
+    mov hasil_shl, di         ; Simpan hasil SHL
+    
+    mov bp, ax                ; BP = nilai awal
+    shr bp, 2                 ; BP = BP >> 2 = 0x2A95 (pembagian dengan 4)
+    mov hasil_shr, bp         ; Simpan hasil SHR
+    
+    ; 7. Operasi ROTATE
+    mov ax, nilai_awal        ; AX = nilai awal
+    rol ax, 4                 ; AX = ROL(AX, 4) = 0xA55A
+    mov hasil_rol, ax         ; Simpan hasil ROL
+    
+    mov ax, nilai_awal        ; AX = nilai awal
+    ror ax, 4                 ; AX = ROR(AX, 4) = 0x5AA5
+    mov hasil_ror, ax         ; Simpan hasil ROR
+    
+    ; Keluar dari program
+    mov ah, 4Ch
+    int 21h
+
+data segment
+    nilai_awal  dw 0AA55h
+    hasil_and   dw ?
+    hasil_or    dw ?
+    hasil_xor   dw ?
+    hasil_not   dw ?
+    hasil_shl   dw ?
+    hasil_shr   dw ?
+    hasil_rol   dw ?
+    hasil_ror   dw ?
+data ends
+
+end start
+\end{lstlisting}
+
+\subsection{Program Bit Counter}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Penghitung Bit, label={lst:bit-counter-program}]
+org 100h
+
+start:
+    mov ax, data
+    mov ds, ax
+    
+    ; Program untuk menghitung jumlah bit 1 dalam suatu nilai
+    ; Input: nilai_input = 0x5A3C
+    ; Output: jumlah bit 1
+    
+    mov ax, nilai_input       ; AX = nilai yang akan dihitung
+    mov bx, 0                 ; BX = counter untuk jumlah bit 1
+    mov cx, 16                ; CX = jumlah bit yang akan dicek (16-bit)
+    
+count_bits:
+    test ax, 1                ; Test bit 0
+    jz bit_is_zero            ; Jika bit 0 = 0, lompat ke bit_is_zero
+    inc bx                    ; Jika bit 0 = 1, increment counter
+    
+bit_is_zero:
+    shr ax, 1                 ; Shift AX ke kanan untuk cek bit berikutnya
+    loop count_bits           ; Ulangi sampai CX = 0
+    
+    ; Simpan hasil
+    mov jumlah_bit_1, bx      ; Simpan jumlah bit 1
+    
+    ; Keluar dari program
+    mov ah, 4Ch
+    int 21h
+
+data segment
+    nilai_input   dw 5A3Ch    ; 0101101000111100b = 12 bit 1
+    jumlah_bit_1  dw ?
+data ends
+
+end start
+\end{lstlisting}
+
+\subsection{Program Bit Pattern Generator}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Generator Pola Bit, label={lst:bit-pattern-program}]
+org 100h
+
+start:
+    mov ax, data
+    mov ds, ax
+    
+    ; Program untuk menghasilkan pola bit tertentu
+    ; Menghasilkan pola: 1010101010101010b
+    
+    mov ax, 0                 ; AX = 0 (start clean)
+    mov bx, 0                 ; BX = 0 (counter)
+    mov cx, 8                 ; CX = 8 (jumlah pasangan bit)
+    
+generate_pattern:
+    ; Set bit 0 (bit pertama dari pasangan)
+    or ax, 1                  ; Set bit 0
+    shl ax, 1                 ; Shift left untuk bit berikutnya
+    
+    ; Set bit 0 lagi (bit kedua dari pasangan)
+    or ax, 1                  ; Set bit 0
+    shl ax, 1                 ; Shift left untuk pasangan berikutnya
+    
+    loop generate_pattern     ; Ulangi 8 kali
+    
+    ; Hasil: AX = 1010101010101010b = 0xAAAA
+    mov pola_bit, ax          ; Simpan pola bit
+    
+    ; Keluar dari program
+    mov ah, 4Ch
+    int 21h
+
+data segment
+    pola_bit dw ?
+data ends
+
+end start
+\end{lstlisting}
+
+\section{Kesimpulan}
+Bab ini telah membahas secara detail instruksi logika dan operasi bit pada Intel 8086. Materi yang telah dipelajari meliputi:
+
+\begin{itemize}
+    \item \textbf{Instruksi Logika Dasar}: AND, OR, XOR, NOT dengan tabel kebenaran dan contoh penggunaan
+    \item \textbf{Instruksi Shift dan Rotate}: SHL/SAL, SHR, SAR, ROL, ROR, RCL, RCR untuk manipulasi bit dan operasi aritmatika
+    \item \textbf{Instruksi TEST}: Untuk testing bit tanpa mengubah nilai operand
+    \item \textbf{Ekstraksi dan Packing Bit-field}: Teknik untuk memanipulasi field bit dalam data
+    \item \textbf{Aplikasi Praktis}: Manipulasi bit, enkripsi XOR, set/clear bit, dan bit testing
+    \item \textbf{Program Lengkap}: Contoh implementasi program dengan instruksi logika
+\end{itemize}
+
+Pemahaman yang baik tentang operasi logika dan bitwise akan memungkinkan:
+\begin{itemize}
+    \item Implementasi algoritma yang efisien
+    \item Kontrol perangkat keras tingkat rendah
+    \item Optimasi performa program
+    \item Pengembangan sistem embedded dan driver
+    \item Pemahaman mendalam tentang representasi data dalam komputer
+\end{itemize}
+
+Operasi bitwise merupakan fondasi penting dalam pemrograman assembly yang akan digunakan secara ekstensif dalam bab-bab berikutnya, terutama dalam implementasi struktur data, algoritma sorting, dan manipulasi string.
+
+% Bagian I/O teks dipindahkan ke bab I/O Teks Dasar
 
 \end{document}

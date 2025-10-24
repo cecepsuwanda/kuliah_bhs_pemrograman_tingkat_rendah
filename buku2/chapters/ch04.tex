@@ -1,190 +1,516 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Instruksi Dasar: Perpindahan Data dan Aritmatika}
+\chapter{Tipe Data dalam Bahasa Assembly}
 
 \section{Tujuan Pembelajaran}
-Setelah pertemuan ini, mahasiswa mampu:
+Setelah mengikuti pertemuan ini, mahasiswa diharapkan mampu:
 \begin{itemize}
-    \item Menggunakan instruksi perpindahan data \texttt{MOV} dengan benar pada variasi operand register dan memori.
-    \item Melakukan operasi aritmatika dasar (\texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV}) pada data 8/16-bit.
-    \item Menjelaskan pengaruh instruksi aritmatika terhadap \textit{flag} prosesor (\texttt{CF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}, \texttt{PF}, \texttt{AF}).
-    \item Menulis program aritmatika sederhana yang aman dan memperhatikan kasus tepi (overflow, pembagian nol).
+    \item Menjelaskan konsep tipe data dalam bahasa assembly dan perbedaannya dengan bahasa tingkat tinggi.
+    \item Mengidentifikasi berbagai tipe data dasar (byte, word, double word) dan rentang nilainya.
+    \item Menggunakan direktif data definition (DB, DW, DD) untuk mendeklarasikan variabel dengan benar.
+    \item Membedakan antara data bertanda (signed) dan tak bertanda (unsigned) dalam konteks assembly.
+    \item Mengimplementasikan deklarasi konstanta, karakter, dan string dalam program assembly.
+    \item Menjelaskan konsep memory layout dan pengalamatan data dalam segmen memori.
 \end{itemize}
 
 \section{Pendahuluan}
-Instruksi perpindahan dan aritmatika merupakan fondasi pemrograman assembly. Pemahaman mendalam mengenai operand, mode pengalamatan, dan efek \textit{flag} akan menentukan ketepatan logika program. Pada 8086, variasi operand dan pembatasan ukuran data harus dipatuhi agar instruksi valid.
+Dalam pemrograman assembly, pemahaman tentang tipe data sangat fundamental karena berhubungan langsung dengan cara data disimpan, diakses, dan dimanipulasi di dalam memori \cite{assembly_language_programming_guide}. Berbeda dengan bahasa pemrograman tingkat tinggi yang memiliki tipe data eksplisit dengan abstraksi tinggi, bahasa assembly lebih berfokus pada ukuran fisik data dan representasi memori yang tepat \cite{tutorials_point_assembly}.
 
-\section{Instruksi Perpindahan Data (MOV)}
-\subsection{Sintaks dan aturan penggunaan}
-Bentuk umum: \texttt{MOV destination, source}. Aturan pokok: ukuran operand harus sama; perpindahan memori-ke-memori langsung tidak diperbolehkan (harus melalui register); beberapa register khusus (\texttt{CS}) tidak dapat ditulis langsung dengan \texttt{MOV} biasa.
+Pada Intel 8086, semua operasi data dilakukan berdasarkan ukuran data yang eksplisit. Tidak ada konsep "tipe data otomatis" seperti dalam bahasa modern. Setiap variabel harus dideklarasikan dengan ukuran yang tepat, dan setiap instruksi harus menggunakan register yang sesuai dengan ukuran data yang dimanipulasi.
 
-\subsubsection{Antar register}
-\begin{verbatim}
-mov ax, bx      ; salin BX -> AX (16-bit)
-mov al, ah      ; salin AH -> AL (8-bit)
-\end{verbatim}
+Bab ini akan membahas konsep tipe data dalam assembly, direktif untuk mendeklarasikan data, dan cara kerja memori dalam konteks Intel 8086.
 
-\subsubsection{Instruksi Aritmatika Tambahan}
-Selain \texttt{ADD}/\texttt{SUB}/\texttt{MUL}/\texttt{DIV}, 8086 mendukung: \texttt{ADC}/\texttt{SBB} (operasi dengan carry/borrow untuk angka multi-word), \texttt{INC}/\texttt{DEC} (tanpa memengaruhi \texttt{CF}), \texttt{NEG} (dua komplemen), \texttt{CMP} (seperti \texttt{SUB} tanpa menyimpan hasil), serta \texttt{DAA}/\texttt{DAS}/\texttt{AAA}/\texttt{AAS} untuk penyesuaian BCD.
+\section{Konsep Dasar Tipe Data dalam Assembly}
 
-\subsubsection{Perluasan Tanda dan Pembagian Aman}
-Gunakan \texttt{CBW} (convert byte to word) untuk menandatangani \texttt{AL} ke \texttt{AX} sebelum \texttt{IDIV}/\texttt{IMUL} (pada 8086 hanya \texttt{MUL}/\texttt{DIV} tersedia; varian bertanda formal hadir pada generasi lebih baru namun konsep sign-extension tetap relevan). Untuk pembagian 16-bit, pastikan \texttt{DX} berisi bagian tinggi (0 untuk tak bertanda; sign-extension untuk bertanda). Cek penyebut nol untuk menghindari exception.
+\subsection{Perbedaan dengan Bahasa Tingkat Tinggi}
+Dalam bahasa pemrograman tingkat tinggi seperti C, Java, atau Python, programmer dapat mendeklarasikan variabel dengan tipe data seperti \texttt{int}, \texttt{float}, atau \texttt{string}. Compiler kemudian mengatur detail penyimpanan memori secara otomatis.
 
-\subsubsection{Aritmatika Multi-precision}
-Untuk menjumlahkan dua bilangan 32-bit tersimpan sebagai \texttt{DX:AX} dan \texttt{BX:CX} (high:low), gunakan \texttt{ADD} pada low word lalu \texttt{ADC} pada high word:
-\begin{verbatim}
-add ax, cx   ; low
-adc dx, bx   ; high + carry
-\end{verbatim}
-
-\subsubsection{Pemilihan Cabang Berdasarkan Flags}
-Untuk data tak bertanda gunakan \texttt{JA}/\texttt{JAE}/\texttt{JB}/\texttt{JBE} (berbasis \texttt{CF}/\texttt{ZF}); untuk bertanda gunakan \texttt{JG}/\texttt{JGE}/\texttt{JL}/\texttt{JLE} (berbasis \texttt{SF}/\texttt{OF}/\texttt{ZF}). Pastikan interpretasi konsisten dari sumber data.
-
-\subsubsection{Kasus Tepi Umum}
+Dalam assembly, programmer harus secara eksplisit menentukan:
 \begin{itemize}
-  \item Overflow bertanda: contoh \texttt{0x7FFF + 0x0001} menghasilkan \texttt{OF=1}, \texttt{CF=0}.
-  \item Borrow tak bertanda: \texttt{SUB AX, BX} dengan \texttt{AX<BX} akan menyetel \texttt{CF=1}.
-  \item \texttt{INC}/\texttt{DEC}: tidak mengubah \texttt{CF}; hati-hati untuk algoritma yang mengandalkan carry chain.
+    \item Ukuran data dalam bit/byte
+    \item Lokasi penyimpanan di memori
+    \item Register yang akan digunakan untuk operasi
+    \item Interpretasi data (signed/unsigned)
 \end{itemize}
 
-\subsubsection{Dari/ke memori}
-\begin{verbatim}
-mov ax, [si]        ; baca word dari DS:SI ke AX
-mov [bx+4], dl      ; tulis byte DL ke DS:[BX+4]
-\end{verbatim}
+\subsection{Ukuran Data dan Register}
+Intel 8086 menggunakan register dengan ukuran yang berbeda untuk operasi data:
 
-\subsubsection{Dengan konstanta}
-\begin{verbatim}
-mov ax, 1234h   ; immediate -> register
-mov byte ptr [di], 0 ; immediate -> memori (byte)
-\end{verbatim}
+\begin{table}[H]
+    \centering
+    \caption{Korespondensi Ukuran Data dan Register Intel 8086}
+    \begin{tabular}{|p{2cm}|p{2cm}|p{3cm}|p{6cm}|}
+        \hline
+        \textbf{Ukuran} & \textbf{Bit} & \textbf{Register} & \textbf{Keterangan} \\
+        \hline
+        Byte & 8 & AL, BL, CL, DL, AH, BH, CH, DH & Register 8-bit untuk operasi byte \\
+        \hline
+        Word & 16 & AX, BX, CX, DX, SI, DI, SP, BP & Register 16-bit untuk operasi word \\
+        \hline
+        Double Word & 32 & DX:AX (kombinasi) & Untuk operasi 32-bit \\
+        & & & (perkalian/pembagian) \\
+        \hline
+    \end{tabular}
+    \label{tab:data-size-registers}
+\end{table}
 
-\subsubsection{Contoh dan praktik baik}
-Gunakan \texttt{BYTE PTR}/\texttt{WORD PTR} untuk memperjelas ukuran operand bila ambigu. Pastikan segmen default (\texttt{DS} untuk data, \texttt{SS} untuk \texttt{BP}) dipahami saat mengakses memori.
+\section{Tipe Data Dasar}
 
-\subsection{Operasi Aritmatika}
-\subsubsection{ADD dan SUB}
-\begin{verbatim}
-mov ax, 5
-add ax, 3      ; AX = 8, ZF=0, CF=0
-sub ax, 10     ; AX = FFFEh (jika 16-bit), SF=1, mungkin CF=1
-\end{verbatim}
-\textbf{Catatan}: \texttt{ADD}/\texttt{SUB} memutakhirkan \texttt{CF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}, \texttt{AF}, \texttt{PF} sesuai hasil.
+\subsection{Byte (8-bit)}
+Byte adalah unit data terkecil yang dapat dimanipulasi secara independen dalam Intel 8086. Satu byte terdiri dari 8 bit dan dapat menyimpan nilai dari 0 hingga 255 (unsigned) atau -128 hingga 127 (signed).
 
-\subsubsection{MUL dan DIV}
-\texttt{MUL} dan \texttt{DIV} menggunakan register implisit:\newline
-\textbf{8-bit}: \texttt{MUL r/m8} -> \texttt{AX = AL * r/m8}; \texttt{DIV r/m8} -> \texttt{AL = AX / r/m8}, \texttt{AH = AX mod r/m8}.\newline
-\textbf{16-bit}: \texttt{MUL r/m16} -> hasil di \texttt{DX:AX}; \texttt{DIV r/m16} -> \texttt{AX = DX:AX / r/m16}, sisa di \texttt{DX}.
-\begin{verbatim}
-; Perkalian 16-bit
-mov ax, 1234h
-mov bx, 0002h
-mul bx           ; DX:AX = AX * BX
-
-; Pembagian 8-bit
-mov ax, 0123h    ; AL=23h, AH=01h -> 0x0123 = 291 desimal
-mov bl, 0Ah      ; 10 desimal
-div bl           ; AL=29h (41 des), AH=01h (sisa 1)
-\end{verbatim}
-\textbf{Perhatian}: \texttt{DIV} memicu kesalahan pembagian jika penyebut 0 atau hasil tidak muat dalam register hasil.
-
-\subsubsection{Penanganan overflow/underflow}
-Pantau \texttt{OF}/\texttt{CF} setelah operasi. Gunakan percabangan untuk menangani kondisi luapan. Untuk operasi bertanda, gunakan instruksi khusus (mis. \texttt{IMUL}/\texttt{IDIV} pada prosesor yang mendukung) dan interpretasi \texttt{SF}/\texttt{OF}.
-
-\subsection{Flag Register dan Operasi Aritmatika}
+\subsubsection{Rentang Nilai Byte}
 \begin{itemize}
-  \item \textbf{CF (Carry)}: Menandakan carry keluar pada penjumlahan atau borrow pada pengurangan (aritmatika tak bertanda).
-  \item \textbf{ZF (Zero)}: Hasil operasi bernilai nol.
-  \item \textbf{SF (Sign)}: Bit tertinggi hasil (menunjukkan tanda pada interpretasi bertanda).
-  \item \textbf{OF (Overflow)}: Luapan pada aritmatika bertanda (hasil tidak muat dalam rentang bertanda).
-  \item \textbf{PF (Parity)}: Paritas bit rendah dari hasil (jumlah bit 1 genap).
-  \item \textbf{AF (Auxiliary Carry)}: Carry dari bit 3 ke bit 4 (relevan untuk BCD).
+    \item \textbf{Unsigned Byte}: 0 hingga 255 (0x00 hingga 0xFF)
+    \item \textbf{Signed Byte}: -128 hingga 127 (0x80 hingga 0x7F dalam two's complement)
 \end{itemize}
-\noindent\textbf{Contoh pemeriksaan flag}
-\begin{verbatim}
-add ax, bx
-jo overflow_handler   ; jika overflow bertanda
-jc carry_handler      ; jika carry (tak bertanda)
-jz zero_handler       ; jika hasil nol
-\end{verbatim}
 
-\section{Contoh Soal dan Pembahasan}
-\begin{enumerate}
-  \item \textbf{Program perpindahan data antar register}.\\ Tunjukkan \texttt{MOV AX,BX}, \texttt{MOV CH,CL}, dan jelaskan ukuran operand.
-  \item \textbf{Penjumlahan dua bilangan 16-bit}.\\ Baca dari memori ke register, \texttt{ADD}, simpan kembali. Bahas \texttt{CF}/\texttt{OF}.
-  \item \textbf{Pengurangan dengan penanganan flag}.\\ Gunakan \texttt{SBB} bila ada carry sebelumnya; contohkan cabang jika \texttt{CF}=1.
-  \item \textbf{Perkalian dan pembagian}.\\ Tunjukkan tata letak hasil \texttt{MUL} (\texttt{DX:AX}) dan \texttt{DIV} (hasil dan sisa).
-  \item \textbf{Kalkulator sederhana}.\\ Rangka kerangka input satu digit dan operasi dasar; bahas validasi pembagian dengan nol.
-\end{enumerate}
+\subsubsection{Deklarasi Byte}
+Direktif \texttt{DB} (Define Byte) digunakan untuk mendeklarasikan variabel byte:
 
-\section{Latihan}
-\begin{enumerate}
-  \item Buat program menghitung \((A+B) - (C+D)\) untuk empat bilangan 16-bit di memori. Laporkan \texttt{CF}/\texttt{OF}.
-  \item Buat program menghitung \((X \times Y) / Z\) (8-bit), lengkapi pemeriksaan penyebut nol dan luapan hasil.
-  \item Jelaskan secara tertulis bagaimana \texttt{CF}, \texttt{OF}, \texttt{ZF}, \texttt{SF} berubah pada masing-masing operasi contoh Anda.
-  \item Buat program yang menampilkan status flag setelah \texttt{ADD} dan \texttt{SUB} menggunakan instruksi cabang bersyarat dan tulis hasil ke memori.
-\end{enumerate}
-
-\section{Praktikum}
-\begin{enumerate}
-  \item Implementasikan skenario perpindahan data antar register dan antara register-memori; verifikasi dengan debugger.
-  \item Implementasikan penjumlahan/pengurangan 16-bit, amati \texttt{CF}/\texttt{OF} di debugger.
-  \item Implementasikan \texttt{MUL}/\texttt{DIV} (8-bit dan 16-bit), catat tata letak hasil dan sisa.
-  \item Susun \textit{mini-kalkulator} yang menerima dua operand kecil (hard-coded) dan memilih operasi melalui konstanta; tampilkan hasil via \texttt{INT 21h, AH=09h} (konversi numerik sederhana dapat berupa heksadesimal).
-\end{enumerate}
-
-\section{Contoh Kode}
-\begin{verbatim}
-; Program operasi aritmatika dasar
-TITLE Operasi Aritmatika
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Deklarasi Variabel Byte, label={lst:byte-declaration}]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;   PROGRAM : BYTE_DEMO.ASM      ;
+;   FUNGSI  : DEMO DEKLARASI     ;
+;             VARIABEL BYTE      ;
+;===========================S?to=;
 .MODEL SMALL
-.STACK 100h
-
 .DATA
-    bil1 DW 15
-    bil2 DW 7
-    hasil DW ?
-
+    nilai_byte     db 42           ; Byte dengan nilai desimal 42
+    nilai_hex      db 0x2A         ; Byte dengan nilai heksadesimal 2A
+    nilai_biner     db 00101010b    ; Byte dengan nilai biner 00101010
+    karakter       db 'A'          ; Byte berisi kode ASCII 'A' (65)
+    nilai_negatif  db -10          ; Byte dengan nilai negatif -10
 .CODE
-START:
-    MOV AX, @DATA
+ORG 100h
+Proses:
+    ; Inisialisasi data segment
+    MOV AX, @data
     MOV DS, AX
     
-    ; Penjumlahan
-    MOV AX, bil1
-    ADD AX, bil2
-    MOV hasil, AX
+    ; Contoh penggunaan variabel byte
+    MOV AL, nilai_byte     ; AL = 42
+    MOV BL, nilai_hex      ; BL = 0x2A
+    MOV CL, karakter       ; CL = 'A'
     
-    ; Pengurangan
-    MOV AX, bil1
-    SUB AX, bil2
-    
-    ; Perkalian (16-bit implisit: DX:AX = AX * bil2)
-    MOV AX, bil1
-    MOV BX, bil2
-    MUL BX
-    
-    ; Pembagian (16-bit implisit: AX = DX:AX / BX, sisa di DX)
-    XOR DX, DX
-    MOV AX, bil1
-    MOV BX, bil2
-    ; Pastikan BX != 0 sebelum DIV
-    OR BX, BX
-    JZ done
-    DIV BX
+    MOV AH, 4CH         ; Keluar dari program dengan kode 0
+    MOV AL, 0
+    INT 21H            ; Memanggil interrupt untuk mengakhiri program
 
- done:
-    MOV AH, 4Ch
-    INT 21h
-END START
-\end{verbatim}
+END Proses
+\end{lstlisting}
 
-\section{Tugas}
+\subsection{Word (16-bit)}
+Word adalah unit data standar Intel 8086 yang terdiri dari 2 byte (16 bit). Word dapat menyimpan nilai yang lebih besar dan merupakan ukuran register utama dalam arsitektur 8086.
+
+\subsubsection{Rentang Nilai Word}
 \begin{itemize}
-  \item \textbf{Kalkulator sederhana}: Implementasikan operasi \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/} untuk operand 8-bit. Tampilkan hasil dalam heksadesimal; tangani pembagian nol.
-  \item \textbf{Rata-rata 5 bilangan}: Baca lima nilai 8-bit dari memori, hitung jumlah 16-bit, bagi dengan 5 menggunakan \texttt{DIV} (perhatikan sisa), tampilkan hasil.
-  \item \textbf{Dokumentasi flag}: Buat tabel eksperimen yang menunjukkan nilai \texttt{CF}, \texttt{OF}, \texttt{ZF}, \texttt{SF}, \texttt{PF}, \texttt{AF} untuk beberapa kombinasi operand; jelaskan anomali yang Anda amati.
+    \item \textbf{Unsigned Word}: 0 hingga 65,535 (0x0000 hingga 0xFFFF)
+    \item \textbf{Signed Word}: -32,768 hingga 32,767 (0x8000 hingga 0x7FFF dalam two's complement)
 \end{itemize}
 
+\subsubsection{Deklarasi Word}
+Direktif \texttt{DW} (Define Word) digunakan untuk mendeklarasikan variabel word:
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Deklarasi Variabel Word, label={lst:word-declaration}]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;   PROGRAM : WORD_DEMO.ASM      ;
+;   FUNGSI  : DEMO DEKLARASI     ;
+;             VARIABEL WORD      ;
+;===========================S?to=;
+.MODEL SMALL
+.DATA
+    nilai_word     dw 1000         ; Word dengan nilai desimal 1000
+    nilai_hex      dw 0x03E8       ; Word dengan nilai heksadesimal 03E8
+    nilai_negatif  dw -500         ; Word dengan nilai negatif -500
+    alamat_offset  dw offset pesan ; Word berisi offset ke variabel lain
+    pesan          db 'Hello', 0   ; String untuk demonstrasi offset
+.CODE
+ORG 100h
+Proses:
+    ; Inisialisasi data segment
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Contoh penggunaan variabel word
+    MOV AX, nilai_word     ; AX = 1000
+    MOV BX, nilai_hex      ; BX = 0x03E8
+    MOV CX, nilai_negatif  ; CX = -500
+    
+    MOV AH, 4CH         ; Keluar dari program dengan kode 0
+    MOV AL, 0
+    INT 21H            ; Memanggil interrupt untuk mengakhiri program
+
+END Proses
+\end{lstlisting}
+
+\subsection{Double Word (32-bit)}
+Double word terdiri dari 4 byte (32 bit) dan digunakan untuk operasi yang memerlukan presisi tinggi atau nilai yang sangat besar.
+
+\subsubsection{Rentang Nilai Double Word}
+\begin{itemize}
+    \item \textbf{Unsigned Double Word}: 0 hingga 4,294,967,295
+    \item \textbf{Signed Double Word}: -2,147,483,648 hingga 2,147,483,647
+\end{itemize}
+
+\subsubsection{Deklarasi Double Word}
+Direktif \texttt{DD} (Define Double Word) digunakan untuk mendeklarasikan variabel double word:
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Deklarasi Variabel Double Word, label={lst:dword-declaration}]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;   PROGRAM : DWORD_DEMO.ASM     ;
+;   FUNGSI  : DEMO DEKLARASI     ;
+;             VARIABEL DWORD     ;
+;===========================S?to=;
+.MODEL SMALL
+.DATA
+    nilai_dword    dd 1000000      ; Double word dengan nilai 1,000,000
+    nilai_hex      dd 0x000F4240   ; Double word dengan nilai heksadesimal
+    nilai_negatif  dd -1000000     ; Double word dengan nilai negatif
+.CODE
+ORG 100h
+Proses:
+    ; Inisialisasi data segment
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Contoh penggunaan variabel double word
+    ; Untuk double word, kita perlu menggunakan register DX:AX
+    MOV AX, WORD PTR nilai_dword      ; Bagian rendah
+    MOV DX, WORD PTR nilai_dword+2    ; Bagian tinggi
+    
+    MOV AH, 4CH         ; Keluar dari program dengan kode 0
+    MOV AL, 0
+    INT 21H            ; Memanggil interrupt untuk mengakhiri program
+
+END Proses
+\end{lstlisting}
+
+\section{Direktif Data Definition}
+
+\subsection{DB (Define Byte)}
+Direktif \texttt{DB} mengalokasikan satu byte memori dan dapat menginisialisasi dengan nilai tertentu.
+
+\subsubsection{Sintaks dan Penggunaan}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Penggunaan DB, label={lst:db-examples}]
+data segment
+    ; Inisialisasi dengan nilai tunggal
+    byte1 db 10
+    
+    ; Inisialisasi dengan array
+    array_byte db 1, 2, 3, 4, 5
+    
+    ; Inisialisasi dengan string
+    pesan db 'Hello World!'
+    
+    ; Inisialisasi dengan nilai yang tidak ditentukan
+    buffer db ?
+    
+    ; Inisialisasi dengan nilai berulang
+    zeros db 10 dup(0)
+    
+    ; Inisialisasi dengan nilai campuran
+    data_mixed db 1, 'A', 0xFF, 0
+data ends
+\end{lstlisting}
+
+\subsection{DW (Define Word)}
+Direktif \texttt{DW} mengalokasikan dua byte memori (16-bit) dan menginisialisasi dengan nilai word.
+
+\subsubsection{Sintaks dan Penggunaan}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Penggunaan DW, label={lst:dw-examples}]
+data segment
+    ; Inisialisasi dengan nilai tunggal
+    word1 dw 1000
+    
+    ; Inisialisasi dengan array word
+    array_word dw 100, 200, 300, 400
+    
+    ; Inisialisasi dengan alamat
+    pointer dw offset array_word
+    
+    ; Inisialisasi dengan nilai yang tidak ditentukan
+    buffer_word dw ?
+    
+    ; Inisialisasi dengan nilai berulang
+    ones dw 5 dup(1)
+    
+    ; Inisialisasi dengan nilai campuran
+    data_mixed dw 0x1234, -100, 0xFFFF
+data ends
+\end{lstlisting}
+
+\subsection{DD (Define Double Word)}
+Direktif \texttt{DD} mengalokasikan empat byte memori (32-bit) dan menginisialisasi dengan nilai double word.
+
+\subsubsection{Sintaks dan Penggunaan}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Penggunaan DD, label={lst:dd-examples}]
+data segment
+    ; Inisialisasi dengan nilai tunggal
+    dword1 dd 1000000
+    
+    ; Inisialisasi dengan array double word
+    array_dword dd 100000, 200000, 300000
+    
+    ; Inisialisasi dengan nilai yang tidak ditentukan
+    buffer_dword dd ?
+    
+    ; Inisialisasi dengan nilai berulang
+    max_values dd 3 dup(0xFFFFFFFF)
+data ends
+\end{lstlisting}
+
+\section{Tipe Data Karakter dan String}
+
+\subsection{Karakter}
+Dalam assembly, karakter direpresentasikan sebagai byte tunggal yang berisi kode ASCII karakter tersebut.
+
+\subsubsection{Deklarasi Karakter}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Deklarasi Karakter, label={lst:character-declaration}]
+data segment
+    karakter_a db 'A'              ; Karakter 'A' (ASCII 65)
+    karakter_b db 'B'              ; Karakter 'B' (ASCII 66)
+    karakter_newline db 0Dh        ; Carriage Return
+    karakter_linefeed db 0Ah       ; Line Feed
+    karakter_null db 0             ; Null character
+data ends
+\end{lstlisting}
+
+\subsection{String}
+String dalam assembly adalah urutan karakter yang disimpan secara berurutan di memori. String biasanya diakhiri dengan karakter null (0) untuk menandai akhir string.
+
+\subsubsection{Deklarasi String}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Deklarasi String, label={lst:string-declaration}]
+data segment
+    ; String dengan null terminator
+    pesan1 db 'Hello World!', 0
+    
+    ; String dengan panjang eksplisit
+    pesan2 db 'Assembly Language'
+    panjang_pesan2 dw 16
+    
+    ; String dengan karakter kontrol
+    pesan3 db 'Line 1', 0Dh, 0Ah, 'Line 2', 0
+    
+    ; String kosong
+    string_kosong db 0
+    
+    ; String dengan karakter khusus
+    pesan4 db 'Price: $', 0
+data ends
+\end{lstlisting}
+
+\section{Konstanta dan Simbol}
+
+\subsection{Direktif EQU}
+Direktif \texttt{EQU} digunakan untuk mendefinisikan konstanta simbolik yang nilainya tidak dapat diubah selama eksekusi program.
+
+\subsubsection{Penggunaan EQU}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Penggunaan Direktif EQU, label={lst:equ-examples}]
+; Konstanta numerik
+MAX_SIZE EQU 100
+PI EQU 3
+BUFFER_SIZE EQU 256
+
+; Konstanta karakter
+NEWLINE EQU 0Dh
+TAB EQU 09h
+SPACE EQU 20h
+
+; Konstanta string
+PROMPT_MSG EQU 'Enter value: '
+
+data segment
+    ; Penggunaan konstanta
+    buffer db MAX_SIZE dup(?)
+    nilai db PI
+data ends
+\end{lstlisting}
+
+\subsection{Direktif = (Equal)}
+Direktif \texttt{=} juga dapat digunakan untuk mendefinisikan konstanta, dengan perbedaan bahwa nilai dapat diubah selama assembly.
+
+\subsubsection{Penggunaan Direktif =}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Penggunaan Direktif =, label={lst:equal-examples}]
+; Konstanta yang dapat diubah
+counter = 0
+max_count = 10
+
+; Konstanta numerik
+value = 42
+hex_value = 0x2A
+binary_value = 00101010b
+
+data segment
+    ; Penggunaan konstanta
+    data_array db max_count dup(?)
+    current_value db value
+data ends
+\end{lstlisting}
+
+\section{Data Bertanda vs Tak Bertanda}
+
+\subsection{Konsep Dasar}
+Dalam assembly, data yang sama dapat diinterpretasikan sebagai signed (bertanda) atau unsigned (tak bertanda) tergantung pada instruksi yang digunakan untuk memanipulasinya.
+
+\subsection{Contoh Interpretasi}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Interpretasi Signed vs Unsigned, label={lst:signed-unsigned}]
+data segment
+    nilai db 0xFF          ; Byte dengan nilai 0xFF
+data ends
+
+code segment
+start:
+    mov al, nilai          ; AL = 0xFF
+    
+    ; Interpretasi sebagai unsigned (0-255)
+    ; 0xFF = 255 dalam unsigned
+    
+    ; Interpretasi sebagai signed (-128 to 127)
+    ; 0xFF = -1 dalam signed (two's complement)
+    
+    ; Instruksi yang sama, interpretasi berbeda
+    add al, 1              ; AL = 0x00
+    ; Unsigned: 255 + 1 = 0 (overflow)
+    ; Signed: -1 + 1 = 0 (normal)
+    
+    ; Conditional jump berdasarkan interpretasi
+    cmp al, 0
+    jl signed_negative     ; Jump jika signed < 0
+    jb unsigned_below      ; Jump jika unsigned < 0
+\end{lstlisting}
+
+\section{Memory Layout dan Pengalamatan}
+
+\subsection{Konsep Segmen Data}
+Dalam Intel 8086, data disimpan dalam segmen data yang diakses melalui register DS (Data Segment).
+
+\subsection{Layout Memori}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Layout Memori Data, label={lst:memory-layout}]
+data segment
+    ; Data diinisialisasi
+    nilai1 db 10
+    nilai2 dw 1000
+    pesan db 'Hello', 0
+    
+    ; Data tidak diinisialisasi
+    buffer db 100 dup(?)
+    temp dw ?
+    
+    ; Array
+    array db 1, 2, 3, 4, 5
+data ends
+\end{lstlisting}
+
+\subsection{Pengalamatan Data}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Pengalamatan Data, label={lst:data-addressing}]
+code segment
+start:
+    ; Inisialisasi data segment
+    mov ax, data
+    mov ds, ax
+    
+    ; Akses data dengan offset
+    mov al, nilai1         ; AL = 10
+    mov ax, nilai2         ; AX = 1000
+    
+    ; Akses array
+    mov si, 0              ; Index 0
+    mov al, array[si]      ; AL = array[0] = 1
+    
+    mov si, 2              ; Index 2
+    mov al, array[si]      ; AL = array[2] = 3
+    
+    ; Akses dengan register indirect
+    mov bx, offset array
+    mov al, [bx]           ; AL = array[0]
+    inc bx
+    mov al, [bx]           ; AL = array[1]
+\end{lstlisting}
+
+\section{Contoh Program Lengkap}
+
+\subsection{Program Demonstrasi Tipe Data}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Demonstrasi Tipe Data, label={lst:data-types-demo}]
+; Program demonstrasi tipe data dalam assembly
+org 100h
+
+start:
+    ; Inisialisasi data segment
+    mov ax, data
+    mov ds, ax
+    
+    ; Demonstrasi byte
+    mov al, nilai_byte     ; AL = 42
+    add al, 10             ; AL = 52
+    
+    ; Demonstrasi word
+    mov ax, nilai_word     ; AX = 1000
+    add ax, 500            ; AX = 1500
+    
+    ; Demonstrasi karakter
+    mov al, karakter       ; AL = 'A' (65)
+    add al, 1              ; AL = 'B' (66)
+    
+    ; Demonstrasi string
+    mov si, offset pesan   ; SI = alamat pesan
+    mov al, [si]           ; AL = 'H'
+    
+    ; Demonstrasi array
+    mov si, 0              ; Index 0
+    mov al, array[si]      ; AL = 1
+    
+    mov si, 1              ; Index 1
+    mov al, array[si]      ; AL = 2
+    
+    ; Keluar dari program
+    mov ah, 4Ch
+    int 21h
+
+data segment
+    ; Tipe data dasar
+    nilai_byte     db 42
+    nilai_word     dw 1000
+    nilai_dword    dd 1000000
+    
+    ; Karakter dan string
+    karakter       db 'A'
+    pesan          db 'Hello World!', 0
+    
+    ; Array
+    array          db 1, 2, 3, 4, 5
+    
+    ; Konstanta
+    MAX_SIZE       EQU 100
+    buffer         db MAX_SIZE dup(?)
+data ends
+
+end start
+\end{lstlisting}
+
+
+
+\section{Kesimpulan}\label{sec:tipe-data-kesimpulan}
+Bab ini telah membahas konsep fundamental tipe data dalam bahasa assembly Intel 8086. Materi yang telah dipelajari meliputi:
+
+\begin{itemize}
+    \item \textbf{Konsep Dasar}: Perbedaan tipe data assembly dengan bahasa tingkat tinggi
+    \item \textbf{Tipe Data Dasar}: Byte (8-bit), Word (16-bit), Double Word (32-bit)
+    \item \textbf{Direktif Data Definition}: DB, DW, DD untuk deklarasi variabel
+    \item \textbf{Karakter dan String}: Representasi dan deklarasi
+    \item \textbf{Konstanta dan Simbol}: Penggunaan EQU dan direktif =
+    \item \textbf{Data Bertanda vs Tak Bertanda}: Interpretasi data yang sama
+    \item \textbf{Memory Layout}: Pengorganisasian data dalam segmen
+\end{itemize}
+
+Pemahaman yang baik tentang tipe data dalam assembly akan menjadi fondasi penting untuk:
+\begin{itemize}
+    \item Penggunaan instruksi yang tepat sesuai ukuran data
+    \item Optimasi penggunaan memori
+    \item Penulisan program yang efisien dan benar
+    \item Pemahaman materi selanjutnya tentang instruksi dasar
+\end{itemize}
+
+Dengan penguasaan materi ini, mahasiswa telah siap untuk mempelajari instruksi dasar perpindahan data dan aritmatika pada bab berikutnya.
 
 \end{document}

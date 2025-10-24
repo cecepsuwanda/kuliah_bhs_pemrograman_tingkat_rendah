@@ -1,203 +1,497 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Instruksi Stack dan Subrutin}
+\chapter{I/O Teks Dasar (Mode Teks BIOS)}\label{ch:io-teks}
 
-\section{Tujuan Pembelajaran}
-Mahasiswa mampu:
-\begin{itemize}
-    \item Menjelaskan konsep tumpukan (stack), prinsip LIFO, serta peran \texttt{SS:SP}.
-    \item Menggunakan instruksi \texttt{PUSH}/\texttt{POP} pada register dan memori dengan aman.
-    \item Memanggil dan kembali dari subrutin menggunakan \texttt{CALL}/\texttt{RET} (near/far) dan memahami \textit{return address}.
-    \item Mengirim parameter dan menerima nilai balik melalui register, stack, atau memori.
-    \item Memodularisasi program menjadi prosedur-prosedur yang terpisah dan teruji.
-\end{itemize}
+    \section{Tujuan Pembelajaran}
+        Setelah pertemuan ini, mahasiswa mampu:
+        \begin{itemize}
+            \item Mengatur posisi kursor dan menulis karakter/teks di layar mode teks melalui BIOS \texttt{INT 10h}.
+            \item Menampilkan teks dengan atribut warna dan memahami layout atribut karakter.
+            \item Menggunakan \texttt{INT 21h, AH=02h/09h} untuk output karakter/string berakhiran \texttt{\$}.
+            \item Menangani karakter khusus (CR/LF) dan perbedaan mekanisme TTY (\texttt{AH=0Eh}).
+        \end{itemize}
 
-\section{Pendahuluan}
-Stack adalah struktur data kritis untuk pengelolaan alur eksekusi dan data sementara. Pada 8086, stack berada pada segmen \texttt{SS} dengan penunjuk \texttt{SP}. Instruksi \texttt{PUSH}/\texttt{POP} mengubah \texttt{SP} dan menyimpan/mengambil data 16-bit (atau 8-bit dipecah) dalam urutan LIFO. Instruksi \texttt{CALL}/\texttt{RET} mengandalkan stack untuk menyimpan alamat kembali ketika berpindah ke subrutin.
+    \section{Pendahuluan}
+        Bab ini membahas input/output teks dasar menggunakan layanan BIOS dan DOS pada mode teks \cite{rbil}. Materi ini ditempatkan setelah percabangan/perulangan agar contoh interaktif dapat ditulis dengan alur program yang jelas.
 
-\section{Konsep Stack}
-\subsection{Dasar-dasar Stack}
-\subsubsection{Definisi dan prinsip LIFO}
-Stack menyimpan item sedemikian rupa sehingga item terakhir yang dimasukkan akan diambil pertama kali. Pada 8086, stack tumbuh ke alamat lebih rendah: \texttt{PUSH} menurunkan \texttt{SP} lalu menyimpan data; \texttt{POP} mengambil data lalu menaikkan \texttt{SP}.
+    \section{Output Teks dengan BIOS \texttt{INT 10h}}
+        \subsection{Set Posisi Kursor (\texttt{AH=02h})}
+            \begin{itemize}
+\item Masukan: \texttt{AH=02h}, \texttt{BH=page}, \texttt{DH=row}, \texttt{DL=column}
+\item Efek: Memindahkan kursor ke koordinat (row, column) 0-berbasis
+            \end{itemize}
 
-\subsubsection{Register SS:SP dan layout memori}
-Pasangan \texttt{SS:SP} membentuk alamat efektif untuk operasi stack. Pastikan \texttt{SS} diinisialisasi benar dan \texttt{SP} memiliki ruang cukup, agar tidak menimpa data lain.
+        \subsection{Tulis Karakter + Atribut (\texttt{AH=09h})}
+            \begin{itemize}
+\item Masukan: \texttt{AH=09h}, \texttt{AL=character}, \texttt{BH=page}, \texttt{BL=attribute}, \texttt{CX=count}
+\item Menulis karakter dengan atribut warna tanpa TTY-advance otomatis pada semua mode
+            \end{itemize}
 
-\subsubsection{Operasi stack dalam assembly}
-Operasi umum: \texttt{PUSH reg/mem/flags}, \texttt{POP reg/mem}, \texttt{PUSHF}/\texttt{POPF}. Simpan register yang akan dipakai di subrutin dan kembalikan sebelum \texttt{RET}.
+        \subsection{Tulis Karakter TTY (\texttt{AH=0Eh})}
+            \begin{itemize}
+\item Masukan: \texttt{AH=0Eh}, \texttt{AL=character}, \texttt{BH=page}, \texttt{BL=color}
+\item Menulis seperti teletype: memajukan kursor dan menggulir bila perlu
+            \end{itemize}
 
-\subsection{Instruksi Stack}
-\subsubsection{PUSH/POP register}
-\begin{verbatim}
-push ax
-push bx
-; ...
-pop  bx
-pop  ax
-\end{verbatim}
-Urutan pelepasan terbalik terhadap pemasukan.
+        \subsection{Contoh Program Sederhana dengan INT 10h}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Output Teks dengan BIOS INT 10h, label={lst:bios-text-output}]
+org 100h
 
-\subsubsection{PUSH/POP memori dan immediate}
-Beberapa assembler mengizinkan \texttt{PUSH word ptr [addr]} atau \texttt{PUSH imm16}. Untuk \texttt{POP} ke memori, gunakan operand memori word yang valid.
+; Set posisi kursor ke baris 5, kolom 10
+mov ah, 02h          ; Fungsi set cursor position
+mov bh, 0            ; Page 0
+mov dh, 5            ; Row 5
+mov dl, 10           ; Column 10
+int 10h              ; Panggil BIOS
 
-\subsubsection{PUSHF/POPF (flag register)}
-\texttt{PUSHF} menyimpan FLAGS ke stack; \texttt{POPF} memulihkannya. Berguna saat memodifikasi \textit{flags} sementara.
+; Tulis karakter 'H' dengan atribut warna
+mov ah, 09h          ; Fungsi write character with attribute
+mov al, 'H'          ; Karakter yang akan ditulis
+mov bh, 0            ; Page 0
+mov bl, 0Eh          ; Attribute: Yellow on black
+mov cx, 1            ; Jumlah karakter
+int 10h              ; Panggil BIOS
 
-\subsection{Instruksi Subrutin}
-\subsubsection{CALL dan RET}
-\texttt{CALL} (near) menyimpan \texttt{IP} ke stack dan melompat dalam segmen yang sama; \texttt{CALL FAR} menyimpan \texttt{CS:IP} untuk melompat antar segmen. \texttt{RET} memulihkan alamat kembali; \texttt{RETF} untuk far return.
+; Keluar program
+int 20h
+            \end{lstlisting}
 
-\subsubsection{RET dengan parameter}
-Variasi \texttt{RET n} menambah \texttt{SP} sebesar \(n\) byte setelah mengambil alamat kembali, berguna untuk membersihkan parameter stack oleh callee (konvensi \textit{pascal}-like).
+    \section{Output Teks dengan DOS \texttt{INT 21h}}
+        \subsection{Tulis Karakter (\texttt{AH=02h})}
+            Fungsi ini menulis satu karakter ke output standar (biasanya layar).
+            \begin{itemize}
+\item Masukan: \texttt{AH=02h}, \texttt{DL=karakter}
+\item Efek: Karakter ditampilkan di posisi kursor saat ini
+            \end{itemize}
 
-\subsubsection{Penanganan return address}
-Alamat kembali adalah nilai IP (dan CS untuk far) yang \texttt{CALL} dorong ke stack; jangan menimpa area ini dengan \texttt{PUSH}/\texttt{POP} tak terkendali.
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Tulis Karakter dengan INT 21h AH=02h, label={lst:dos-write-char}]
+org 100h
 
-\subsection{Parameter dalam Subrutin}
-\subsubsection{Melalui register}
-Cepat namun terbatas jumlahnya; dokumentasikan register input/output agar konsisten.
+; Tulis karakter 'A'
+mov ah, 02h          ; Fungsi write character
+mov dl, 'A'          ; Karakter yang akan ditulis
+int 21h              ; Panggil DOS
 
-\subsubsection{Melalui stack}
-Beri \texttt{PUSH} parameter sebelum \texttt{CALL}. Di dalam prosedur: \texttt{PUSH BP}; \texttt{MOV BP, SP}; akses parameter via \texttt{[BP+offset]}. Setelah selesai, \texttt{POP BP}. Pembersihan parameter oleh caller (\texttt{ADD SP, n}) atau callee (\texttt{RET n}).
+; Tulis karakter newline (CR + LF)
+mov dl, 0Dh          ; Carriage Return
+int 21h
+mov dl, 0Ah          ; Line Feed
+int 21h
 
-\subsubsection{Melalui memori}
-Sediakan blok data global/struktur; subrutin membaca/menulis langsung. Kurangi \textit{coupling} dengan mendokumentasikan kontrak data.
+; Keluar program
+mov ah, 4Ch
+int 21h
+            \end{lstlisting}
 
-\subsubsection{Return value}
-Letakkan pada \texttt{AX} (konvensi umum) atau tulis ke lokasi memori yang disepakati.
+        \subsection{Tulis String (\texttt{AH=09h})}
+            Fungsi ini menulis string yang diakhiri dengan karakter \texttt{\$} ke output standar.
+            \begin{itemize}
+\item Masukan: \texttt{AH=09h}, \texttt{DX=offset string}
+\item String harus diakhiri dengan \texttt{\$}
+\item Efek: String ditampilkan di layar
+            \end{itemize}
 
-\subsubsection{Konvensi pemanggilan}
-Sepakati skema: siapa yang menyimpan register yang dipakai (caller-saves vs callee-saves), mekanisme pembersihan parameter, dan register pengembalian.
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Tulis String dengan INT 21h AH=09h, label={lst:dos-write-string}]
+org 100h
 
-\subsubsection{Stack Frame Berbasis BP}
-Pola prolog/epilog standar memudahkan akses parameter dan variabel lokal:
-\begin{verbatim}
-push bp
-mov  bp, sp
-sub  sp, local_size   ; alokasi lokal opsional
-  ; ... body ... akses param [bp+4], [bp+6], ...
-mov  sp, bp
-pop  bp
-ret  n                ; opsional: callee cleans n byte argumen
-\end{verbatim}
-Parameter berada pada offset positif dari \texttt{BP}; variabel lokal pada offset negatif. Dokumentasikan kontrak register yang diubah.
+; Tulis string ke layar
+mov ah, 09h          ; Fungsi write string
+mov dx, offset pesan ; DX = alamat string
+int 21h              ; Panggil DOS
 
-\subsubsection{Ragam Konvensi Pemanggilan (cdecl vs pascal)}
-Pada ekosistem DOS 16-bit, variasi lazim: \textbf{cdecl}-like (caller membersihkan argumen via \texttt{ADD SP,n}) dan \textbf{pascal}-like (callee membersihkan via \texttt{RET n}). Pilih satu secara konsisten per proyek. Biasakan menyimpan \texttt{BP}, serta menyepakati register yang wajib dipertahankan (mis. \texttt{SI}/\texttt{DI}/\texttt{BP}).
+; Keluar program
+mov ah, 4Ch
+int 21h
 
-\subsubsection{Near vs Far Call/Return}
-\textbf{Near} memanipulasi \texttt{IP} saja (push/pop 2 byte), \textbf{far} memanipulasi \texttt{CS:IP} (push/pop 4 byte). Pastikan ukuran stack memadai dan gunakan \texttt{RETF} untuk kembali dari pemanggilan far. Perhatikan biaya ekstra dan dampak segmentasi memori.
+pesan db 'Hello, World!$'
+            \end{lstlisting}
 
-\subsubsection{Rekursi dan Reentransi}
-Rekursi memerlukan stack frame yang benar dan ruang stack cukup. Untuk rutinitas yang bisa dipanggil dari interupsi, jaga \textit{reentrancy}: hindari state global tanpa proteksi, simpan/\textit{restore} register, dan batasi lama eksekusi handler.
+    \section{Atribut Warna dan Layout Karakter}
+        \subsection{Format Atribut Karakter}
+            Setiap karakter pada mode teks memiliki atribut yang menentukan warna foreground dan background. Format atribut adalah 8-bit dengan struktur sebagai berikut:
+            
+            \begin{table}[H]
+                \centering
+                \caption{Format Atribut Karakter Mode Teks}
+                \begin{tabular}{|p{1.5cm}|p{2cm}|p{7cm}|}
+                \hline
+                \textbf{Bit} & \textbf{Nilai} & \textbf{Deskripsi} \\
+                \hline
+                Bit 0-3 & 0-15 & Foreground color (warna teks) \\
+                \hline
+                Bit 4-6 & 0-7 & Background color (warna latar) \\
+                \hline
+                Bit 7 & 0/1 & Blinking (0=normal, 1=berkedip) \\
+                \hline
+                \end{tabular}
+            \end{table}
 
-\subsubsection{Interupsi dan Stack}
-Interupsi mem-\texttt{PUSH} \texttt{FLAGS} lalu \texttt{CS:IP} ke stack; \texttt{IRET} memulihkan urutan tersebut. Pastikan \texttt{SS:SP} valid setiap saat. Penggunaan \texttt{PUSHF}/\texttt{POPF} membantu menjaga status \texttt{IF}/\texttt{TF} saat memasuki/keluar dari bagian kritis.
+            \subsection{Kode Warna Standar}
+                \begin{table}[H]
+                    \centering
+                    \caption{Kode Warna Mode Teks}
+                    \begin{tabular}{|p{1.5cm}|p{2cm}|p{2cm}|p{5cm}|}
+                    \hline
+                    \textbf{Kode} & \textbf{Nama} & \textbf{Hex} & \textbf{Keterangan} \\
+                    \hline
+                    0 & Black & 0h & Hitam \\
+                    \hline
+                    1 & Blue & 1h & Biru \\
+                    \hline
+                    2 & Green & 2h & Hijau \\
+                    \hline
+                    3 & Cyan & 3h & Cyan \\
+                    \hline
+                    4 & Red & 4h & Merah \\
+                    \hline
+                    5 & Magenta & 5h & Magenta \\
+                    \hline
+                    6 & Brown & 6h & Coklat \\
+                    \hline
+                    7 & Light Gray & 7h & Abu-abu terang \\
+                    \hline
+                    8 & Dark Gray & 8h & Abu-abu gelap \\
+                    \hline
+                    9 & Light Blue & 9h & Biru terang \\
+                    \hline
+                    10 & Light Green & Ah & Hijau terang \\
+                    \hline
+                    11 & Light Cyan & Bh & Cyan terang \\
+                    \hline
+                    12 & Light Red & Ch & Merah terang \\
+                    \hline
+                    13 & Light Magenta & Dh & Magenta terang \\
+                    \hline
+                    14 & Yellow & Eh & Kuning \\
+                    \hline
+                    15 & White & Fh & Putih \\
+                    \hline
+                    \end{tabular}
+                \end{table}
 
-\subsubsection{Deteksi Overflow Stack}
-Sediakan \textit{guard} sederhana (mis., simpan nilai \texttt{SP} awal dan bandingkan saat titik-titik tertentu) atau alokasikan margin stack memadai. Pada DOS, overflow dapat merusak data lain karena tidak ada proteksi memori.
+            \subsection{Contoh Kombinasi Atribut}
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Penggunaan Atribut Warna, label={lst:color-attributes}]
+; Contoh berbagai kombinasi atribut warna
+mov ah, 09h          ; Fungsi write character with attribute
+mov al, 'A'          ; Karakter 'A'
+mov bh, 0            ; Page 0
+mov cx, 1            ; Jumlah karakter
 
-\section{Praktikum}
-\begin{enumerate}
-  \item Demonstrasi \texttt{PUSH}/\texttt{POP}: dorong beberapa register dan verifikasi urutannya dengan debugger.
-  \item Prosedur tanpa parameter: tampilkan string, gunakan \texttt{PUSH}/\texttt{POP} untuk menyimpan register yang dipakai.
-  \item Prosedur dengan parameter via stack: jumlahkan dua bilangan 16-bit; kembalikan di \texttt{AX} dan/atau memori.
-  \item Prosedur dengan return value: implementasikan \texttt{mul8(a,b)} yang mengembalikan hasil 8-bit di \texttt{AL}.
-  \item Program modular: pecah menjadi beberapa prosedur (\texttt{read\_hex}, \texttt{print\_hex}, \texttt{add16}, \texttt{menu}).
-\end{enumerate}
+; Kuning pada hitam (0Eh = 14 = Yellow)
+mov bl, 0Eh          ; Yellow on black
+int 10h
 
-\section{Contoh Kode}
-\begin{verbatim}
-; Program demonstrasi stack dan subrutin
-TITLE Stack dan Subrutin
-.MODEL SMALL
-.STACK 100h
+; Putih pada biru (1Fh = 31 = White on Blue)
+mov bl, 1Fh          ; White on blue
+int 10h
 
-.DATA
-    pesan1 DB 'Hello from main!$'
-    pesan2 DB 'Hello from subrutin!$'
-    nilai1 DW 10
-    nilai2 DW 20
-    hasil DW ?
+; Merah terang pada hijau dengan blinking (C2h = 194)
+mov bl, 0C2h         ; Light red on green with blinking
+int 10h
+                \end{lstlisting}
 
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
+    \section{Karakter Khusus dan Kontrol Layar}
+        \subsection{Karakter Kontrol Umum}
+            Dalam pemrograman teks, terdapat beberapa karakter khusus yang memiliki fungsi kontrol:
+            
+            \begin{table}[H]
+                \centering
+                \caption{Karakter Kontrol Layar}
+                \begin{tabular}{|p{1.5cm}|p{2cm}|p{2cm}|p{5cm}|}
+                \hline
+                \textbf{Kode} & \textbf{Nama} & \textbf{ASCII} & \textbf{Fungsi} \\
+                \hline
+                0Dh & CR & 13 & Carriage Return (kembali ke awal baris) \\
+                \hline
+                0Ah & LF & 10 & Line Feed (pindah ke baris berikutnya) \\
+                \hline
+                08h & BS & 8 & Backspace (mundur satu karakter) \\
+                \hline
+                07h & BEL & 7 & Bell (bunyi beep) \\
+                \hline
+                09h & TAB & 9 & Tab horizontal \\
+                \hline
+                1Bh & ESC & 27 & Escape (karakter kontrol) \\
+                \hline
+                \end{tabular}
+            \end{table}
+
+        \subsection{Perbedaan Mekanisme TTY vs Non-TTY}
+            \subsubsection{TTY Mode (AH=0Eh)}
+                TTY mode meniru perilaku teletypewriter klasik:
+                \begin{itemize}
+                    \item Kursor otomatis maju setelah menulis karakter
+                    \item Otomatis wrap ke baris berikutnya jika mencapai akhir baris
+                    \item Otomatis scroll ke atas jika mencapai akhir layar
+                    \item Karakter kontrol seperti CR/LF diproses secara khusus
+                \end{itemize}
+
+            \subsubsection{Non-TTY Mode (AH=09h)}
+                Non-TTY mode memberikan kontrol penuh:
+                \begin{itemize}
+                    \item Kursor tidak bergerak otomatis
+                    \item Tidak ada wrap atau scroll otomatis
+                    \item Karakter kontrol ditampilkan sebagai karakter biasa
+                    \item Memerlukan kontrol manual posisi kursor
+                \end{itemize}
+
+        \subsection{Contoh Perbedaan TTY vs Non-TTY}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Perbandingan TTY vs Non-TTY, label={lst:tty-comparison}]
+; Contoh TTY Mode (AH=0Eh)
+mov ah, 0Eh          ; Fungsi TTY output
+mov al, 'H'          ; Karakter 'H'
+mov bh, 0            ; Page 0
+mov bl, 0Eh          ; Yellow on black
+int 10h              ; Kursor otomatis maju
+
+mov al, 'i'          ; Karakter 'i'
+int 10h              ; Kursor otomatis maju lagi
+
+mov al, 0Dh          ; Carriage Return
+int 10h              ; Kursor kembali ke awal baris
+mov al, 0Ah          ; Line Feed
+int 10h              ; Kursor pindah ke baris berikutnya
+
+; Contoh Non-TTY Mode (AH=09h)
+mov ah, 09h          ; Fungsi write character with attribute
+mov al, 'H'          ; Karakter 'H'
+mov bh, 0            ; Page 0
+mov bl, 0Eh          ; Yellow on black
+mov cx, 1            ; Jumlah karakter
+int 10h              ; Kursor TIDAK bergerak
+
+; Harus manual set posisi kursor
+mov ah, 02h          ; Set cursor position
+mov bh, 0            ; Page 0
+mov dh, 5            ; Row 5
+mov dl, 11           ; Column 11 (posisi berikutnya)
+int 10h
+
+mov ah, 09h          ; Tulis karakter berikutnya
+mov al, 'i'
+mov cx, 1
+int 10h              ; Kursor tetap di posisi yang sama
+            \end{lstlisting}
+
+    \section{Contoh Program Lengkap}
+        \subsection{Program Menampilkan Teks dengan Warna}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Lengkap Output Teks Berwarna, label={lst:colored-text-program}]
+org 100h
+
+start:
+    ; Clear screen dengan scrolling
+    mov ah, 06h          ; Fungsi scroll up
+    mov al, 0            ; Clear entire screen
+    mov bh, 07h          ; Attribute: white on black
+    mov cx, 0            ; Upper left corner (0,0)
+    mov dx, 184Fh        ; Lower right corner (24,79)
+    int 10h              ; Panggil BIOS
     
-    ; Demonstrasi stack
-    MOV AX, 1234h
-    PUSH AX
-    MOV BX, 5678h
-    PUSH BX
+    ; Set posisi kursor ke tengah layar
+    mov ah, 02h          ; Fungsi set cursor
+    mov bh, 0            ; Page 0
+    mov dh, 12           ; Row 12 (tengah vertikal)
+    mov dl, 30           ; Column 30
+    int 10h
     
-    ; Ambil dari stack (urutan terbalik)
-    POP CX  ; CX = 5678h
-    POP DX  ; DX = 1234h
+    ; Tulis string dengan warna
+    mov si, offset pesan ; SI = alamat pesan
+    mov bl, 0Eh          ; Attribute: yellow on black
     
-    ; Panggil subrutin
-    CALL tampilkan_pesan
+tulis_loop:
+    lodsb                ; Load byte dari DS:SI ke AL
+    cmp al, 0            ; Cek akhir string
+    je selesai           ; Jika 0, selesai
     
-    ; Subrutin dengan parameter (via stack)
-    PUSH nilai1
-    PUSH nilai2
-    CALL tambahkan
-    ADD SP, 4  ; Bersihkan parameter dari stack (caller cleans)
+    mov ah, 0Eh          ; Fungsi TTY output
+    int 10h              ; Tampilkan karakter
+    jmp tulis_loop       ; Ulangi
     
-    MOV AH, 4Ch
-    INT 21h
+selesai:
+    ; Tunggu keypress
+    mov ah, 00h
+    int 16h
+    
+    ; Keluar program
+    mov ah, 4Ch
+    int 21h
 
-; Subrutin tanpa parameter
-TAMPILKAN_PESAN PROC
-    PUSH AX
-    PUSH DX
-    
-    MOV AH, 09h
-    MOV DX, OFFSET pesan2
-    INT 21h
-    
-    POP DX
-    POP AX
-    RET
-TAMPILKAN_PESAN ENDP
+pesan db 'Program Assembly - I/O Teks Dasar', 0
+            \end{lstlisting}
 
-; Subrutin dengan parameter via stack
-TAMBAHKAN PROC
-    PUSH BP
-    MOV  BP, SP
+        \subsection{Program Demonstrasi Atribut Warna}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Demonstrasi Atribut Warna, label={lst:color-demo}]
+org 100h
+
+start:
+    ; Clear screen
+    mov ah, 06h
+    mov al, 0
+    mov bh, 07h
+    mov cx, 0
+    mov dx, 184Fh
+    int 10h
     
-    PUSH AX
-    PUSH BX
+    ; Tampilkan berbagai kombinasi warna
+    mov dh, 2            ; Mulai dari baris 2
+    mov dl, 10           ; Kolom 10
     
-    MOV AX, [BP+6]  ; Parameter kedua
-    MOV BX, [BP+4]  ; Parameter pertama
-    ADD AX, BX
-    MOV hasil, AX   ; atau kembalikan di AX
+demo_loop:
+    ; Set posisi kursor
+    mov ah, 02h
+    mov bh, 0
+    int 10h
     
-    POP BX
-    POP AX
-    POP BP
-    RET
-TAMBAHKAN ENDP
+    ; Tulis karakter dengan atribut
+    mov ah, 09h
+    mov al, 'A'
+    mov bh, 0
+    mov bl, [offset warna_tabel + si] ; Ambil warna dari tabel
+    mov cx, 1
+    int 10h
+    
+    ; Tulis nama warna
+    mov ah, 09h
+    mov dx, offset nama_warna[si]
+    int 21h
+    
+    ; Pindah ke baris berikutnya
+    inc dh
+    add si, 2            ; Next warna (2 bytes per entry)
+    cmp si, 16           ; 8 warna x 2 bytes
+    jl demo_loop
+    
+    ; Tunggu keypress
+    mov ah, 00h
+    int 16h
+    
+    ; Keluar
+    mov ah, 4Ch
+    int 21h
 
-END START
-\end{verbatim}
+; Tabel warna dan nama
+warna_tabel db 0Eh, 0Ch, 0Ah, 09h, 0Bh, 0Dh, 06h, 0Fh
+nama_warna db 'Yellow$', 0Dh, 0Ah
+           db 'Light Red$', 0Dh, 0Ah
+           db 'Light Green$', 0Dh, 0Ah
+           db 'Light Blue$', 0Dh, 0Ah
+           db 'Light Cyan$', 0Dh, 0Ah
+           db 'Light Magenta$', 0Dh, 0Ah
+           db 'Brown$', 0Dh, 0Ah
+           db 'White$', 0Dh, 0Ah
+            \end{lstlisting}
 
-\section{Latihan}
-\begin{enumerate}
-  \item Gunakan stack untuk menyimpan tiga nilai sementara; ambil kembali dalam urutan yang benar dan verifikasi.
-  \item Tulis subrutin \texttt{kuadrat16(x)} yang mengembalikan \(x^2\) (perhatikan luapan). Kembalikan di \texttt{DX:AX} untuk hasil 32-bit.
-  \item Tulis subrutin \texttt{swap16(a\_ptr,b\_ptr)} yang menukar dua word di memori menggunakan stack sementara.
-  \item Rancang program yang memanggil beberapa subrutin secara berantai dengan parameter berbeda; pastikan stack seimbang.
-\end{enumerate}
+        \subsection{Program Input Karakter dengan Echo}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Input Karakter dengan Echo, label={lst:input-echo}]
+org 100h
 
-\section{Tugas}
-\begin{itemize}
-  \item \textbf{Subrutin aritmatika}: Implementasikan \texttt{add16}, \texttt{sub16}, \texttt{mul16}, \texttt{div16} dengan kontrak parameter/return yang jelas.
-  \item \textbf{Kalkulator modular}: Antarmuka teks yang memanggil subrutin operasi berdasarkan pilihan pengguna; validasi input dan tangani kesalahan (mis. pembagi nol).
-  \item \textbf{Manipulasi string}: Buat subrutin \texttt{strlen}, \texttt{strcpy}, \texttt{strcmp} sederhana untuk string berakhiran \texttt{\$} atau \texttt{0} (pilih satu dan konsisten).
-  \item \textbf{Dokumentasi}: Buat diagram stack frame untuk pemanggilan bertingkat (nested calls) dan jelaskan peran \texttt{BP}, \texttt{SP}, serta urutan penyimpanan register.
-\end{itemize}
+start:
+    ; Clear screen
+    mov ah, 06h
+    mov al, 0
+    mov bh, 07h
+    mov cx, 0
+    mov dx, 184Fh
+    int 10h
+    
+    ; Set posisi awal
+    mov dh, 10
+    mov dl, 20
+    
+    ; Tampilkan prompt
+    mov ah, 09h
+    mov dx, offset prompt
+    int 21h
+    
+input_loop:
+    ; Set posisi kursor
+    mov ah, 02h
+    mov bh, 0
+    int 10h
+    
+    ; Input karakter
+    mov ah, 00h
+    int 16h              ; Input tanpa echo
+    
+    ; Cek apakah Enter (0Dh)
+    cmp al, 0Dh
+    je exit_program
+    
+    ; Echo karakter dengan warna
+    mov ah, 0Eh
+    mov bl, 0Eh          ; Yellow
+    int 10h
+    
+    ; Maju kursor
+    inc dl
+    cmp dl, 60           ; Batas kolom
+    jl input_loop
+    
+    ; Pindah ke baris berikutnya
+    mov dl, 20
+    inc dh
+    jmp input_loop
+    
+exit_program:
+    ; Keluar
+    mov ah, 4Ch
+    int 21h
 
+prompt db 'Ketik karakter (Enter untuk keluar): $'
+            \end{lstlisting}
+
+    \section{Kesimpulan}
+        Bab ini telah membahas konsep-konsep fundamental dalam pemrograman I/O teks dasar menggunakan Intel 8086 assembly language. Berikut adalah ringkasan poin-poin penting yang telah dipelajari:
+
+        \subsection{Penguasaan Interrupt BIOS dan DOS}
+            Mahasiswa telah memahami perbedaan dan penggunaan dua sistem interrupt utama:
+            \begin{itemize}
+                \item \textbf{BIOS INT 10h}: Memberikan kontrol langsung terhadap hardware video dengan fungsi-fungsi seperti positioning kursor (\texttt{AH=02h}), menulis karakter dengan atribut (\texttt{AH=09h}), dan output TTY (\texttt{AH=0Eh})
+                \item \textbf{DOS INT 21h}: Menyediakan interface tingkat tinggi untuk output karakter (\texttt{AH=02h}) dan string (\texttt{AH=09h}) yang lebih mudah digunakan namun dengan kontrol terbatas
+            \end{itemize}
+
+        \subsection{Pemahaman Sistem Atribut Warna}
+            Sistem atribut karakter 8-bit telah dipelajari secara mendalam, meliputi:
+            \begin{itemize}
+                \item Struktur bit untuk foreground color (bit 0-3), background color (bit 4-6), dan blinking (bit 7)
+                \item 16 warna standar yang tersedia dalam mode teks, dari hitam (0h) hingga putih (Fh)
+                \item Kemampuan untuk membuat kombinasi warna yang menarik dan efek visual seperti blinking
+            \end{itemize}
+
+        \subsection{Penguasaan Karakter Kontrol}
+            Mahasiswa telah memahami pentingnya karakter kontrol dalam pemrograman teks:
+            \begin{itemize}
+                \item Karakter CR/LF untuk kontrol baris baru dan positioning
+                \item Karakter khusus seperti BS, BEL, TAB, dan ESC untuk berbagai fungsi kontrol
+                \item Perbedaan antara TTY mode yang otomatis memproses karakter kontrol dan non-TTY mode yang memerlukan kontrol manual
+            \end{itemize}
+
+        \subsection{Pemahaman Mode Operasi}
+            Perbedaan fundamental antara TTY dan non-TTY mode telah dipahami:
+            \begin{itemize}
+                \item \textbf{TTY Mode}: Meniru perilaku teletypewriter dengan kursor otomatis, wrap, dan scroll
+                \item \textbf{Non-TTY Mode}: Memberikan kontrol penuh namun memerlukan manajemen manual posisi kursor
+                \item Pemilihan mode yang tepat berdasarkan kebutuhan aplikasi
+            \end{itemize}
+
+        \subsection{Aplikasi Praktis}
+            Melalui contoh-contoh program yang telah dipelajari, mahasiswa mampu:
+            \begin{itemize}
+                \item Membuat program output teks dengan kontrol posisi dan warna yang tepat
+                \item Mengimplementasikan program interaktif dengan input dan echo berwarna
+                \item Menggabungkan berbagai konsep untuk membuat aplikasi yang lebih kompleks
+            \end{itemize}
+
+        \subsection{Pentingnya Fondasi I/O Teks}
+            Pemahaman I/O teks dasar ini menjadi fondasi penting untuk:
+            \begin{itemize}
+                \item Pengembangan program assembly yang lebih kompleks
+                \item Pemahaman konsep input/output dalam sistem komputer
+                \item Persiapan untuk mempelajari topik lanjutan seperti grafik dan interface pengguna
+            \end{itemize}
+
+        Dengan penguasaan materi ini, mahasiswa telah memiliki kemampuan dasar yang solid untuk mengembangkan program assembly yang dapat berinteraksi dengan pengguna melalui interface teks yang menarik dan fungsional.
+
+    
 
 \end{document}

@@ -1,203 +1,1277 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Pemrosesan File Dasar}
+\chapter{Pemrograman Modular dan Makro}
 
-\section{Tujuan Pembelajaran}
-Mahasiswa mampu:
-\begin{itemize}
-    \item Menjelaskan konsep berkas (file), sistem berkas, dan \textit{handle}-based I/O pada DOS.
-    \item Menggunakan \texttt{INT 21h} untuk membuat, membuka, menutup, membaca, menulis, dan menghapus berkas.
-    \item Menerapkan pola \textit{buffered I/O} sederhana dan menangani kesalahan berdasarkan kode error.
-    \item Menyusun program utilitas file dasar seperti penyalinan dan pembacaan konten.
-\end{itemize}
+    \section{Tujuan Pembelajaran}
+        Mahasiswa mampu:
+        \begin{itemize}
+            \item Menjelaskan prinsip pemrograman modular serta manfaatnya terhadap kualitas perangkat lunak.
+            \item Menggunakan \texttt{PROC}/\texttt{ENDP} untuk membangun prosedur (dengan/ tanpa parameter dan nilai balik) dengan disiplin penyimpanan register dan \textit{stack frame}.
+            \item Membuat dan memanfaatkan makro (\texttt{MACRO}/\texttt{ENDM}) dengan parameter, termasuk bentuk bersyarat sederhana.
+            \item Membedakan penggunaan prosedur vs. makro berdasarkan kebutuhan \textit{runtime}, ukuran kode, dan pemeliharaan.
+            \item Mengorganisasi program multi-berkas dengan \texttt{INCLUDE}, modul, dan pustaka prosedur.
+        \end{itemize}
 
-\section{Pendahuluan}
-Pada DOS, layanan \texttt{INT 21h} menyediakan antarmuka sistem berkas berbasiskan \textit{file handle}. Operasi utama meliputi pembuatan/ pembukaan berkas, pembacaan/penulisan data, dan penutupan. Keberhasilan/kegagalan operasi diindikasikan oleh \textit{carry flag} (CF) dan kode error di \texttt{AX} saat CF diset.
+    \section{Pendahuluan}
+        Pemrograman modular mendorong pemisahan program menjadi komponen-komponen kecil dengan tanggung jawab jelas \cite{assembly_language_programming_guide}. Dalam assembly, modularitas dicapai melalui prosedur (\texttt{PROC}) dan dapat diperkuat dengan makro untuk mengurangi pengulangan pola kode \cite{tutorials_point_assembly}. Perbedaan fundamental: prosedur dieksekusi di \textit{runtime} (overhead \texttt{CALL}/\texttt{RET}), sedangkan makro diperluas saat perakitan (\textit{compile-time}), menghasilkan duplikasi kode yang dapat menambah ukuran biner. Materi ini ditempatkan setelah stack dan subrutin agar konsep modularitas dapat dipahami dengan baik.
 
-\section{Konsep File Handling}
-\subsection{Definisi file dan file system}
-File adalah sekumpulan byte pada media penyimpanan, diorganisasikan oleh sistem berkas (FAT pada DOS). Identifikasi via nama (8.3) dan atribut (read-only, hidden, system, archive).
+    \section{Konsep Pemrograman Modular}
+        \subsection{Definisi dan keuntungan}
+            Pemrograman modular adalah pendekatan pengembangan perangkat lunak yang membagi program menjadi komponen-komponen kecil yang independen dan dapat digunakan kembali. Dalam konteks assembly Intel 8086, modularitas dicapai melalui prosedur (\texttt{PROC}) dan makro (\texttt{MACRO}).
 
-\subsubsection{File handle dan mode akses}
-Setelah berkas dibuka/dibuat, DOS mengembalikan \textit{handle} (bilangan kecil) untuk digunakan pada operasi lanjutan. Mode akses: baca (\texttt{AL=0}), tulis (\texttt{AL=1}), baca/tulis (\texttt{AL=2}); lampiran (append) dapat disimulasikan dengan memindah \textit{file pointer} ke akhir.
+            \begin{table}[H]
+                \centering
+                \caption{Keuntungan Pemrograman Modular}
+                \begin{tabular}{|p{3cm}|p{8cm}|}
+                    \hline
+                    \textbf{Aspek} & \textbf{Keuntungan} \\
+                    \hline
+                    \textbf{Readability} & Kode lebih mudah dibaca dan dipahami \\
+                    \hline
+                    \textbf{Testability} & Setiap modul dapat diuji secara independen \\
+                    \hline
+                    \textbf{Reusability} & Komponen dapat digunakan kembali dalam proyek lain \\
+                    \hline
+                    \textbf{Maintainability} & Perubahan pada satu modul tidak mempengaruhi modul lain \\
+                    \hline
+                    \textbf{Debugging} & Memudahkan identifikasi dan perbaikan bug \\
+                    \hline
+                    \textbf{Scalability} & Program dapat dikembangkan dengan mudah \\
+                    \hline
+                \end{tabular}
+                \label{tab:modular-benefits}
+            \end{table}
 
-\subsubsection{Atribut dan perizinan}
-Atribut ditentukan pada pembuatan atau dapat diubah menggunakan fungsi lain (di luar cakupan dasar). Gunakan atribut normal (\texttt{CX=0}) untuk kebanyakan kasus.
+        \subsubsection{Prinsip modularitas}
+            Prinsip-prinsip modularitas yang baik harus diterapkan dalam pengembangan program assembly:
 
-\subsubsection{Error handling}
-CF=1 menunjukkan kesalahan; \texttt{AX} memuat kode (mis. file tidak ditemukan, akses ditolak). Tanggapi dengan pesan dan \textit{cleanup} sumber daya.
+            \begin{itemize}
+                \item \textbf{Cohesion}: Setiap modul harus fokus pada satu tanggung jawab yang jelas dan spesifik.
+                \item \textbf{Coupling}: Minimalkan ketergantungan antar modul untuk mengurangi kompleksitas.
+                \item \textbf{Kontrak}: Dokumentasikan dengan jelas antarmuka modul (parameter, return value, register yang dimodifikasi).
+                \item \textbf{Encapsulation}: Sembunyikan detail implementasi internal dari modul lain.
+                \item \textbf{Abstraction}: Sediakan antarmuka yang sederhana dan mudah digunakan.
+            \end{itemize}
 
-\subsection{Interupsi INT 21h untuk File}
-\begin{itemize}
-  \item \textbf{3Ch Create File}: \texttt{AH=3Ch}, \texttt{CX=atribut}, \texttt{DX=\&nama}; keluar: \texttt{AX=handle}.
-  \item \textbf{3Dh Open File}: \texttt{AH=3Dh}, \texttt{AL=mode}, \texttt{DX=\&nama}; keluar: \texttt{AX=handle}.
-  \item \textbf{3Eh Close File}: \texttt{AH=3Eh}, \texttt{BX=handle}.
-  \item \textbf{3Fh Read File}: \texttt{AH=3Fh}, \texttt{BX=handle}, \\
-  \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluaran: \texttt{AX=byte terbaca}.
-  \item \textbf{40h Write File}: \texttt{AH=40h}, \texttt{BX=handle}, \\
-  \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluaran: \texttt{AX=byte tertulis}.
-  \item \textbf{41h Delete File}: \texttt{AH=41h}, \texttt{DX=\&nama}.
-\end{itemize}
-Perhatikan selalu pemeriksaan CF dan konsistensi \texttt{AX/CF}.
+        \subsubsection{Organisasi kode}
+            Struktur program modular yang baik memisahkan berbagai komponen berdasarkan fungsinya:
 
-\subsection{Operasi File Dasar}
-\subsubsection{Membuat dan membuka}
-Gunakan \texttt{3Ch} untuk membuat (menimpa jika ada tergantung sistem); gunakan \texttt{3Dh} untuk membuka yang sudah ada dengan mode sesuai kebutuhan.
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Struktur Program Modular, label={lst:modular-structure}]
+; ========================================
+; PROGRAM MODULAR STRUCTURE EXAMPLE
+; ========================================
 
-\subsubsection{Menutup}
-Selalu tutup \texttt{handle} dengan \texttt{3Eh} untuk mencegah kebocoran; DOS membatasi jumlah handle terbuka.
-
-\subsubsection{Membaca dan menulis}
-Gunakan buffer di segmen data. Jumlah byte aktual terbaca/tertulis dikembalikan di \texttt{AX}; periksa ketidaksamaan dengan \texttt{CX} (mis. akhir berkas pada baca).
-
-\subsubsection{Menghapus}
-\texttt{41h} menghapus berkas; pastikan ditutup sebelumnya dan atribut memungkinkan penghapusan.
-
-\subsection{File Handle dan Error Handling}
-\subsubsection{Manajemen handle}
-Simpan \texttt{AX} hasil \texttt{3Ch/3Dh} ke variabel. Hindari penggunaan handle setelah ditutup. Gunakan nilai sentinel (mis. \texttt{FFFFh}) untuk menandai tidak-valid.
-
-\subsubsection{Kode error dan validasi}
-Tangkap kasus umum: file tidak ditemukan (\texttt{2}), akses ditolak (\texttt{5}), disk penuh, dan lain-lain. Berikan pesan informatif.
-
-\subsubsection{Resource cleanup}
-Pada error di tengah rangkaian operasi, lakukan penutupan handle yang sudah terbuka sebelum keluar.
-
-\subsubsection{Kode Error Umum INT 21h}
-Contoh: \texttt{AX=02h} (file tidak ditemukan), \texttt{03h} (path tidak ditemukan), \texttt{05h} (akses ditolak), \texttt{0Dh} (data invalid). Periksa \texttt{CF} dan \texttt{AX} setelah setiap panggilan file I/O untuk menangani kegagalan dengan baik. 
-\subsubsection{EOF dan Jumlah Byte Terbaca}
-Pada operasi baca (\texttt{AH=3Fh}), nilai kembali \texttt{AX} bisa lebih kecil dari \texttt{CX} menandakan akhir berkas atau buffer tidak penuh. Jangan mengasumsikan buffer terisi penuh. 
-\subsubsection{Buffered I/O Sederhana}
-Gunakan buffer menengah untuk menyalin berkas dalam blok (mis. 128/256/512 byte). Hindari alokasi dinamis yang sulit pada DOS; gunakan buffer statik di segmen data. 
-\subsubsection{Format Teks vs Biner}
-Untuk teks, perhatikan terminator baris (\texttt{CR LF} = \texttt{0Dh 0Ah}). Untuk biner, pertahankan ukuran yang tepat dan hindari transformasi karakter. 
-
-\subsection{Buffer dan Transfer Data}
-\subsubsection{Buffer dan block transfer}
-Baca/tulis dalam blok untuk efisiensi. Untuk berkas teks, pertimbangkan terminator atau pemrosesan baris.
-
-\subsubsection{Akses sekuensial}
-Baca berulang dari awal ke akhir. Untuk acak, gunakan \texttt{INT 21h, 42h} (dibahas pertemuan lanjutan).
-
-\section{Praktikum}
-\begin{enumerate}
-  \item Program membuat berkas baru dan menulis satu baris teks.
-  \item Program membaca kembali isi berkas dan menampilkannya.
-  \item Program menyalin berkas (baca-blok/tulis-blok hingga akhir berkas).
-  \item Program dengan penanganan error: uji nama tidak valid, akses ditolak, dan disk penuh (simulasi).
-\end{enumerate}
-
-\section{Contoh Kode}
-\begin{verbatim}
-; Program demonstrasi operasi file dasar
-TITLE Pemrosesan File
 .MODEL SMALL
 .STACK 100h
 
+; ========================================
+; DATA SECTION
+; ========================================
 .DATA
-    nama_file   DB 'test.txt', 0
-    data_tulis  DB 'Hello, World!', 13, 10
-    data_baca   DB 100 DUP(?)
-    file_handle DW ?
-    pesan_sukses DB 'File berhasil dibuat!$'
-    pesan_error  DB 'Error dalam operasi file!$'
-    pesan_baca   DB 'Data dari file: $'
+    ; Global variables
+    global_var dw 0
+    buffer db 100 dup(0)
+    
+    ; Constants
+    MAX_SIZE equ 100
+    NEWLINE equ 13, 10, '$'
+
+; ========================================
+; MACRO DEFINITIONS
+; ========================================
+; Utility macros
+PRINT_STRING MACRO string
+    mov dx, offset string
+    mov ah, 09h
+    int 21h
+ENDM
+
+PRINT_CHAR MACRO char
+    mov dl, char
+    mov ah, 02h
+    int 21h
+ENDM
+
+; Contoh makro untuk operasi aritmatika
+Cetak_Bil MACRO bil_ctk
+    LOCAL Ulang
+    LOCAL Cetak
+    XOR AX,AX
+    MOV AX,bil_ctk      ; AX = angka yang akan dicetak 
+    MOV BX,10           ; BX = penyebut 
+    XOR CX,CX           ; CX = 0 
+    Ulang : 
+       XOR DX,DX           ; Cegah sisa bagi menjadi pembilang ! 
+       DIV BX              ; Bagi angka yang akan dicetak dengan 10 
+       PUSH DX             ; Simpan sisa bagi dalam stack
+
+       INC CX              ; CX ditambah 1 
+       CMP AX,0            ; Apakah hasil bagi sudah habis ? 
+       JNE Ulang           ; Jika belum, ulangi lagi ! 
+    Cetak : 
+       POP DX              ; Ambil 1 angka yang disimpan 
+       ADD DL,'0'          ; Ubah angka tersebut dalam kode ASCII 
+       MOV AH,02           ; 
+       INT 21h             ; Cetak angka tersebut 
+       LOOP Cetak
+ENDM
+
+Cetak_Opr MACRO opr_ctk
+    XOR DX,DX
+    MOV DX,opr_ctk      ; Ubah angka tersebut dalam kode ASCII 
+    MOV AH,02           ; 
+    INT 21h             ; Cetak angka tersebut
+ENDM
+
+; ========================================
+; PROCEDURE DECLARATIONS
+; ========================================
+PUBLIC calculate_sum
+PUBLIC print_number
+PUBLIC get_input
+
+; ========================================
+; MAIN PROGRAM
+; ========================================
+.CODE
+main PROC
+    mov ax, @data
+    mov ds, ax
+    
+    ; Contoh penggunaan makro Cetak_Bil dan Cetak_Opr
+    mov global_var, 2000d
+    Cetak_Bil global_var    ; Cetak bilangan pertama
+    Cetak_Opr '+'          ; Cetak operator '+'
+    
+    mov global_var, 100d
+    Cetak_Bil global_var    ; Cetak bilangan kedua
+    Cetak_Opr '='          ; Cetak operator '='
+    
+    ; Hitung hasil penjumlahan
+    mov ax, 2000d
+    add ax, 100d
+    mov global_var, ax
+    Cetak_Bil global_var    ; Cetak hasil
+    
+    mov ax, 4C00h
+    int 21h
+main ENDP
+
+; ========================================
+; UTILITY PROCEDURES
+; ========================================
+calculate_sum PROC
+    ; Procedure implementation
+    ret
+calculate_sum ENDP
+
+print_number PROC
+    ; Procedure implementation
+    ret
+print_number ENDP
+
+get_input PROC
+    ; Procedure implementation
+    ret
+get_input ENDP
+
+END main
+            \end{lstlisting}
+
+        \subsection{Prosedur dengan PROC/ENDP}
+            \subsubsection{Sintaks dan deklarasi}
+                Prosedur dalam assembly 8086 didefinisikan menggunakan \texttt{PROC} dan \texttt{ENDP}. Sintaks dasar:
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Sintaks Prosedur Dasar, label={lst:procedure-syntax}]
+; Sintaks dasar prosedur
+NamaProsedur PROC [NEAR|FAR]
+    ; Body prosedur
+    RET [n]    ; n = jumlah byte parameter untuk dibersihkan
+NamaProsedur ENDP
+                \end{lstlisting}
+
+                \textbf{Jenis Prosedur:}
+                \begin{itemize}
+                    \item \textbf{NEAR}: Prosedur dalam segmen yang sama (default)
+                    \item \textbf{FAR}: Prosedur antar segmen (untuk program besar)
+                \end{itemize}
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Prosedur Sederhana, label={lst:simple-procedure}]
+; Contoh prosedur sederhana tanpa parameter
+print_hello PROC
+    push ax
+    push dx
+    
+    mov dx, offset hello_msg
+    mov ah, 09h
+    int 21h
+    
+    pop dx
+    pop ax
+    ret
+print_hello ENDP
+
+; Contoh prosedur dengan parameter
+add_numbers PROC
+    ; Parameter: AX = angka pertama, BX = angka kedua
+    ; Return: AX = hasil penjumlahan
+    add ax, bx
+    ret
+add_numbers ENDP
+                \end{lstlisting}
+
+            \subsubsection{Parameter dan local variables}
+                Prosedur dengan parameter dan variabel lokal menggunakan stack frame:
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Prosedur dengan Stack Frame, label={lst:stack-frame-procedure}]
+; Prosedur dengan parameter dan variabel lokal
+calculate_factorial PROC
+    ; Parameter: AX = n (nilai untuk dihitung faktorial)
+    ; Return: AX = n!
+    ; Local variables: [BP-2] = counter, [BP-4] = result
+    
+    ; Prologue - setup stack frame
+    push bp
+    mov bp, sp
+    sub sp, 4          ; Alokasi 4 byte untuk variabel lokal
+    
+    ; Simpan register yang akan digunakan
+    push bx
+    push cx
+    
+    ; Inisialisasi variabel lokal
+    mov word ptr [bp-2], 1    ; counter = 1
+    mov word ptr [bp-4], 1    ; result = 1
+    
+    ; Validasi input
+    cmp ax, 0
+    jle factorial_done
+    cmp ax, 12          ; Batas maksimal untuk 16-bit
+    jg factorial_done
+    
+    ; Loop untuk menghitung faktorial
+    mov cx, ax          ; CX = n
+factorial_loop:
+    mov ax, word ptr [bp-4]    ; AX = result
+    mov bx, word ptr [bp-2]    ; BX = counter
+    mul bx              ; AX = result * counter
+    mov word ptr [bp-4], ax    ; result = AX
+    
+    inc word ptr [bp-2] ; counter++
+    loop factorial_loop
+    
+factorial_done:
+    ; Return value
+    mov ax, word ptr [bp-4]    ; AX = result
+    
+    ; Epilogue - cleanup stack frame
+    pop cx
+    pop bx
+    mov sp, bp
+    pop bp
+    ret
+calculate_factorial ENDP
+                \end{lstlisting}
+
+                \textbf{Stack Frame Layout:}
+                \begin{table}[H]
+                    \centering
+                    \caption{Layout Stack Frame}
+                    \begin{tabular}{|p{2cm}|p{3cm}|p{6cm}|}
+                        \hline
+                        \textbf{Offset} & \textbf{Konten} & \textbf{Keterangan} \\
+                        \hline
+                        \texttt{[BP+6]} & Parameter 2 & Parameter kedua (jika ada) \\
+                        \hline
+                        \texttt{[BP+4]} & Parameter 1 & Parameter pertama \\
+                        \hline
+                        \texttt{[BP+2]} & Return Address & Alamat kembali \\
+                        \hline
+                        \texttt{[BP+0]} & Old BP & Nilai BP lama \\
+                        \hline
+                        \texttt{[BP-2]} & Local 1 & Variabel lokal pertama \\
+                        \hline
+                        \texttt{[BP-4]} & Local 2 & Variabel lokal kedua \\
+                        \hline
+                    \end{tabular}
+                    \label{tab:stack-frame-layout}
+                \end{table}
+
+            \subsubsection{Return value dan konvensi pemanggilan}
+                Konvensi pemanggilan menentukan bagaimana parameter diteruskan dan nilai dikembalikan:
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Konvensi Pemanggilan, label={lst:calling-convention}]
+; Contoh konvensi pemanggilan
+; Parameter: AX = a, BX = b
+; Return: AX = a + b
+add_with_convention PROC
+    ; Callee-saves: Simpan register yang akan dimodifikasi
+    push cx
+    push dx
+    
+    ; Body prosedur
+    add ax, bx
+    
+    ; Restore register
+    pop dx
+    pop cx
+    ret
+add_with_convention ENDP
+
+; Contoh pemanggilan prosedur
+main_logic PROC
+    ; Caller-saves: Simpan register yang penting
+    push ax
+    push bx
+    
+    ; Setup parameter
+    mov ax, 10          ; Parameter 1
+    mov bx, 20          ; Parameter 2
+    
+    ; Panggil prosedur
+    call add_with_convention
+    
+    ; AX sekarang berisi hasil (30)
+    ; Simpan hasil jika diperlukan
+    mov result, ax
+    
+    ; Restore register
+    pop bx
+    pop ax
+    ret
+main_logic ENDP
+                \end{lstlisting}
+
+                \textbf{Konvensi Return Value:}
+                \begin{itemize}
+                    \item \textbf{AX}: Nilai tunggal 16-bit (umum)
+                    \item \textbf{DX:AX}: Nilai 32-bit (DX = high word, AX = low word)
+                    \item \textbf{Memori}: Untuk nilai kompleks atau array
+                    \item \textbf{Flags}: Untuk status operasi (ZF, CF, dll.)
+                \end{itemize}
+
+        \subsection{Makro (MACRO)}
+            \subsubsection{Definisi dan sintaks}
+                Makro adalah template kode yang diperluas saat perakitan (compile-time). Makro tidak memiliki overhead runtime seperti prosedur.
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Sintaks Makro Dasar, label={lst:macro-syntax}]
+; Sintaks dasar makro
+NamaMakro MACRO [param1[, param2, ...]]
+    ; Ekspansi kode
+ENDM
+                \end{lstlisting}
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Makro Sederhana, label={lst:simple-macro}]
+; Makro untuk menampilkan string
+PRINT_STRING MACRO string
+    mov dx, offset string
+    mov ah, 09h
+    int 21h
+ENDM
+
+; Makro untuk menampilkan karakter
+PRINT_CHAR MACRO char
+    mov dl, char
+    mov ah, 02h
+    int 21h
+ENDM
+
+; Makro untuk keluar program
+EXIT_PROGRAM MACRO
+    mov ax, 4C00h
+    int 21h
+ENDM
+
+; Penggunaan makro
+main PROC
+    PRINT_STRING welcome_msg
+    PRINT_CHAR 13      ; Carriage return
+    PRINT_CHAR 10      ; Line feed
+    EXIT_PROGRAM
+main ENDP
+                \end{lstlisting}
+
+            \subsubsection{Makro berparameter dan bersyarat}
+                Makro dapat menerima parameter dan menggunakan kondisi untuk ekspansi yang berbeda:
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Makro Berparameter, label={lst:parameterized-macro}]
+; Makro untuk operasi aritmetika
+ARITHMETIC_OP MACRO op, reg1, reg2
+    IFIDN <op>, <ADD>
+        add reg1, reg2
+    ELSEIFIDN <op>, <SUB>
+        sub reg1, reg2
+    ELSEIFIDN <op>, <MUL>
+        mul reg2
+    ELSEIFIDN <op>, <DIV>
+        div reg2
+    ELSE
+        ; Error handling
+        mov ax, 0FFFFh
+    ENDIF
+ENDM
+
+; Makro untuk menyimpan register
+SAVE_REGS MACRO reg_list
+    IRP reg, <reg_list>
+        push reg
+    ENDM
+ENDM
+
+; Makro untuk memulihkan register
+RESTORE_REGS MACRO reg_list
+    IRP reg, <reg_list>
+        pop reg
+    ENDM
+ENDM
+
+; Makro untuk debug
+DEBUG_PRINT MACRO msg, value
+    IFDEF DEBUG_MODE
+        push ax
+        push dx
+        mov dx, offset msg
+        mov ah, 09h
+        int 21h
+        mov ax, value
+        call print_number
+        pop dx
+        pop ax
+    ENDIF
+ENDM
+                \end{lstlisting}
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=Penggunaan Makro Berparameter, label={lst:macro-usage}]
+; Contoh penggunaan makro berparameter
+calculate PROC
+    ; Simpan register
+    SAVE_REGS <ax, bx, cx, dx>
+    
+    ; Operasi aritmetika
+    mov ax, 10
+    mov bx, 5
+    ARITHMETIC_OP ADD, ax, bx    ; ax = ax + bx
+    
+    ; Debug output
+    DEBUG_PRINT debug_msg, ax
+    
+    ; Pulihkan register
+    RESTORE_REGS <dx, cx, bx, ax>
+    ret
+calculate ENDP
+                \end{lstlisting}
+
+            \subsubsection{Perbedaan makro vs. prosedur}
+                Pemahaman perbedaan antara makro dan prosedur penting untuk memilih yang tepat:
+
+                \begin{table}[H]
+                    \centering
+                    \caption{Perbandingan Makro vs Prosedur}
+                    \begin{tabular}{|p{2.5cm}|p{4.5cm}|p{4.5cm}|}
+                        \hline
+                        \textbf{Aspek} & \textbf{Makro} & \textbf{Prosedur} \\
+                        \hline
+                        \textbf{Waktu Eksekusi} & Compile-time & Runtime \\
+                        \hline
+                        \textbf{Ukuran Kode} & Bertambah setiap penggunaan & Tetap (satu kali) \\
+                        \hline
+                        \textbf{Overhead} & Tidak ada & CALL/RET overhead \\
+                        \hline
+                        \textbf{Parameter} & Text substitution & Stack/register \\
+                        \hline
+                        \textbf{Debugging} & Sulit (kode diperluas) & Mudah \\
+                        \hline
+                        \textbf{Flexibility} & Sangat fleksibel & Terbatas \\
+                        \hline
+                        \textbf{Performance} & Cepat (inline) & Lambat (call overhead) \\
+                        \hline
+                    \end{tabular}
+                    \label{tab:macro-vs-procedure}
+                \end{table}
+
+                \textbf{Kapan Menggunakan Makro:}
+                \begin{itemize}
+                    \item Operasi sederhana yang sering digunakan
+                    \item Kode yang perlu dioptimalkan untuk kecepatan
+                    \item Template kode yang perlu disesuaikan saat compile-time
+                    \item Operasi yang memerlukan parameter konstan
+                \end{itemize}
+
+                \textbf{Kapan Menggunakan Prosedur:}
+                \begin{itemize}
+                    \item Logika kompleks yang panjang
+                    \item Kode yang perlu diuji secara independen
+                    \item Operasi yang memerlukan parameter dinamis
+                    \item Kode yang perlu digunakan kembali di banyak tempat
+                \end{itemize}
+
+    \section{Pendalaman}\label{sec:modular-pendalaman}
+        \subsection{Organisasi proyek multi-berkas}
+            Proyek besar memerlukan organisasi yang baik dengan pemisahan modul berdasarkan domain fungsional:
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Struktur Proyek Multi-Berkas, label={lst:multi-file-structure}]
+; ========================================
+; FILE: main.asm (Main Program)
+; ========================================
+.MODEL SMALL
+.STACK 100h
+
+; Include external modules
+INCLUDE io.inc
+INCLUDE math.inc
+INCLUDE ui.inc
+
+; External procedure declarations
+EXTRN init_io:NEAR
+EXTRN calculate_sum:NEAR
+EXTRN display_result:NEAR
+
+.DATA
+    result dw 0
 
 .CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
+main PROC
+    mov ax, @data
+    mov ds, ax
     
-    ; Buat file baru
-    MOV AH, 3Ch
-    MOV CX, 0        ; atribut normal
-    MOV DX, OFFSET nama_file
-    INT 21h
-    JC  error_handler
-    MOV file_handle, AX
+    ; Initialize modules
+    call init_io
     
-    ; Tampilkan pesan sukses
-    MOV AH, 09h
-    MOV DX, OFFSET pesan_sukses
-    INT 21h
+    ; Main logic
+    mov ax, 10
+    mov bx, 20
+    call calculate_sum
+    mov result, ax
     
-    ; Tulis data ke file
-    MOV AH, 40h
-    MOV BX, file_handle
-    MOV CX, 15       ; jumlah byte
-    MOV DX, OFFSET data_tulis
-    INT 21h
-    JC  error_handler
+    ; Display result
+    mov ax, result
+    call display_result
     
-    ; Tutup file
-    MOV AH, 3Eh
-    MOV BX, file_handle
-    INT 21h
-    JC  error_handler
-    
-    ; Buka file untuk dibaca
-    MOV AH, 3Dh
-    MOV AL, 0        ; mode read
-    MOV DX, OFFSET nama_file
-    INT 21h
-    JC  error_handler
-    MOV file_handle, AX
-    
-    ; Baca data dari file
-    MOV AH, 3Fh
-    MOV BX, file_handle
-    MOV CX, 100
-    MOV DX, OFFSET data_baca
-    INT 21h
-    JC  error_handler
-    
-    ; Tampilkan data yang dibaca
-    MOV AH, 09h
-    MOV DX, OFFSET pesan_baca
-    INT 21h
-    
-    ; Tambahkan terminator '$' setelah data yang dibaca
-    MOV BX, OFFSET data_baca
-    ADD BX, AX
-    MOV BYTE PTR [BX], '$'
-    
-    MOV AH, 09h
-    MOV DX, OFFSET data_baca
-    INT 21h
-    
-    ; Tutup file
-    MOV AH, 3Eh
-    MOV BX, file_handle
-    INT 21h
-    
-    JMP selesai
+    mov ax, 4C00h
+    int 21h
+main ENDP
 
-error_handler:
-    MOV AH, 09h
-    MOV DX, OFFSET pesan_error
-    INT 21h
+END main
+            \end{lstlisting}
 
-selesai:
-    MOV AH, 4Ch
-    INT 21h
-END START
-\end{verbatim}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=File: io.asm (I/O Module), label={lst:io-module}]
+; ========================================
+; FILE: io.asm (I/O Operations)
+; ========================================
+.MODEL SMALL
 
-\section{Latihan}
-\begin{enumerate}
-  \item Tulis program yang menambahkan (append) baris baru ke berkas yang ada (gunakan pengaturan \textit{file pointer}).
-  \item Tulis program yang membaca dan menampilkan berkas besar secara bertahap per blok 64 byte.
-  \item Tulis program salin berkas yang memverifikasi ukuran hasil sama dengan sumber.
-  \item Tulis program penghitung jumlah karakter alfabet, digit, dan lainnya pada berkas teks.
-\end{enumerate}
+; Public procedures
+PUBLIC init_io
+PUBLIC get_number
+PUBLIC print_number
 
-\section{Tugas}
-\begin{itemize}
-  \item \textbf{Editor teks sederhana}: Navigasi baris, tambah/hapus, simpan-buka berkas; batasi fitur inti.
-  \item \textbf{Konfigurasi}: Simpan/muat pasangan kunci-nilai sederhana ke/dari berkas; parsir format baris ``kunci=nilai''.
-  \item \textbf{Backup}: Salin berkas dari daftar nama; tampilkan ringkasan hasil (berhasil/gagal).
-  \item \textbf{Dokumentasi}: Daftar kode error umum dari \texttt{INT 21h} yang Anda temui, dan strategi penanganannya.
-\end{itemize}
+.DATA
+    input_buffer db 10 dup(0)
+    number dw 0
+
+.CODE
+; Initialize I/O system
+init_io PROC
+    ; Setup I/O parameters
+    ret
+init_io ENDP
+
+; Get number from user
+get_number PROC
+    ; Implementation for getting number
+    ret
+get_number ENDP
+
+; Print number to screen
+print_number PROC
+    ; Implementation for printing number
+    ret
+print_number ENDP
+
+END
+            \end{lstlisting}
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=File: math.asm (Math Module), label={lst:math-module}]
+; ========================================
+; FILE: math.asm (Mathematical Operations)
+; ========================================
+.MODEL SMALL
+
+; Public procedures
+PUBLIC calculate_sum
+PUBLIC calculate_product
+PUBLIC calculate_factorial
+
+.CODE
+; Calculate sum of two numbers
+; Parameters: AX = first number, BX = second number
+; Returns: AX = sum
+calculate_sum PROC
+    add ax, bx
+    ret
+calculate_sum ENDP
+
+; Calculate product of two numbers
+; Parameters: AX = first number, BX = second number
+; Returns: AX = product
+calculate_product PROC
+    mul bx
+    ret
+calculate_product ENDP
+
+; Calculate factorial
+; Parameters: AX = number
+; Returns: AX = factorial
+calculate_factorial PROC
+    push bx
+    push cx
+    
+    mov cx, ax
+    mov ax, 1
+    
+factorial_loop:
+    cmp cx, 0
+    je factorial_done
+    mul cx
+    dec cx
+    jmp factorial_loop
+    
+factorial_done:
+    pop cx
+    pop bx
+    ret
+calculate_factorial ENDP
+
+END
+            \end{lstlisting}
+
+        \subsection{Makro tingkat lanjut}
+            Makro tingkat lanjut memungkinkan ekspansi kode yang kompleks dan kondisional:
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Makro Tingkat Lanjut, label={lst:advanced-macro}]
+; Makro untuk operasi string dengan parameter dinamis
+STRING_OPERATION MACRO op, src, dst, len
+    LOCAL start_label, end_label
+    push ax
+    push bx
+    push cx
+    push si
+    push di
+    
+    mov si, offset src
+    mov di, offset dst
+    mov cx, len
+    cld
+    
+start_label:
+    IFIDN <op>, <COPY>
+        movsb
+    ELSEIFIDN <op>, <COMPARE>
+        cmpsb
+        jne end_label
+    ELSEIFIDN <op>, <SCAN>
+        scasb
+        je end_label
+    ENDIF
+    loop start_label
+    
+end_label:
+    pop di
+    pop si
+    pop cx
+    pop bx
+    pop ax
+ENDM
+
+; Makro untuk error handling
+ERROR_HANDLER MACRO error_code, message
+    LOCAL error_msg
+    .DATA
+    error_msg db message, '$'
+    .CODE
+    push ax
+    push dx
+    mov ax, error_code
+    mov dx, offset error_msg
+    mov ah, 09h
+    int 21h
+    pop dx
+    pop ax
+ENDM
+
+; Makro untuk logging
+LOG_MESSAGE MACRO level, message
+    IFDEF ENABLE_LOGGING
+        push ax
+        push dx
+        mov dx, offset message
+        mov ah, 09h
+        int 21h
+        pop dx
+        pop ax
+    ENDIF
+ENDM
+            \end{lstlisting}
+
+        \subsection{Pedoman API prosedur}
+            Dokumentasi API yang baik memudahkan penggunaan dan pemeliharaan:
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Contoh Dokumentasi API, label={lst:api-documentation}]
+; ========================================
+; PROCEDURE: calculate_fibonacci
+; ========================================
+; Description: Calculate Fibonacci number using iterative method
+; Parameters: 
+;   AX = n (input number, 0 <= n <= 20)
+; Returns:
+;   AX = Fibonacci(n)
+;   CF = 1 if error (n > 20), 0 if success
+; Registers modified: AX, BX, CX
+; Stack usage: 0 bytes
+; Example:
+;   mov ax, 10
+;   call calculate_fibonacci
+;   ; AX now contains Fibonacci(10) = 55
+; ========================================
+calculate_fibonacci PROC
+    ; Validate input
+    cmp ax, 20
+    ja fibonacci_error
+    
+    ; Handle special cases
+    cmp ax, 0
+    je fibonacci_zero
+    cmp ax, 1
+    je fibonacci_one
+    
+    ; Calculate iteratively
+    mov bx, 0          ; F(0) = 0
+    mov cx, 1          ; F(1) = 1
+    mov dx, ax          ; Save n
+    
+fibonacci_loop:
+    cmp dx, 1
+    je fibonacci_done
+    mov ax, bx          ; F(n-2)
+    add ax, cx          ; F(n-2) + F(n-1)
+    mov bx, cx          ; F(n-1) becomes F(n-2)
+    mov cx, ax          ; F(n) becomes F(n-1)
+    dec dx
+    jmp fibonacci_loop
+    
+fibonacci_zero:
+    mov ax, 0
+    clc                 ; Clear carry flag (success)
+    ret
+    
+fibonacci_one:
+    mov ax, 1
+    clc                 ; Clear carry flag (success)
+    ret
+    
+fibonacci_done:
+    mov ax, cx          ; Return F(n)
+    clc                 ; Clear carry flag (success)
+    ret
+    
+fibonacci_error:
+    mov ax, 0FFFFh      ; Error value
+    stc                 ; Set carry flag (error)
+    ret
+calculate_fibonacci ENDP
+            \end{lstlisting}
+
+        \subsection{Strategi pengujian}
+            Pengujian modular memastikan setiap komponen berfungsi dengan benar:
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Pengujian Modular, label={lst:testing-strategy}]
+; ========================================
+; FILE: test_math.asm (Math Module Tests)
+; ========================================
+.MODEL SMALL
+.STACK 100h
+
+INCLUDE math.inc
+
+.DATA
+    test_results db 'Test Results:', 13, 10, '$'
+    test_passed db 'PASSED', 13, 10, '$'
+    test_failed db 'FAILED', 13, 10, '$'
+    
+    ; Test cases
+    test_sum_1 dw 5, 3, 8      ; 5 + 3 = 8
+    test_sum_2 dw 10, 20, 30   ; 10 + 20 = 30
+    test_sum_3 dw 0, 0, 0      ; 0 + 0 = 0
+
+.CODE
+; Test procedure for calculate_sum
+test_calculate_sum PROC
+    push ax
+    push bx
+    push cx
+    push dx
+    
+    mov dx, offset test_results
+    mov ah, 09h
+    int 21h
+    
+    ; Test case 1
+    mov ax, test_sum_1
+    mov bx, test_sum_1 + 2
+    call calculate_sum
+    cmp ax, test_sum_1 + 4
+    je test1_passed
+    
+    mov dx, offset test_failed
+    mov ah, 09h
+    int 21h
+    jmp test_sum_2_start
+    
+test1_passed:
+    mov dx, offset test_passed
+    mov ah, 09h
+    int 21h
+    
+test_sum_2_start:
+    ; Test case 2
+    mov ax, test_sum_2
+    mov bx, test_sum_2 + 2
+    call calculate_sum
+    cmp ax, test_sum_2 + 4
+    je test2_passed
+    
+    mov dx, offset test_failed
+    mov ah, 09h
+    int 21h
+    jmp test_sum_3_start
+    
+test2_passed:
+    mov dx, offset test_passed
+    mov ah, 09h
+    int 21h
+    
+test_sum_3_start:
+    ; Test case 3
+    mov ax, test_sum_3
+    mov bx, test_sum_3 + 2
+    call calculate_sum
+    cmp ax, test_sum_3 + 4
+    je test3_passed
+    
+    mov dx, offset test_failed
+    mov ah, 09h
+    int 21h
+    jmp test_done
+    
+test3_passed:
+    mov dx, offset test_passed
+    mov ah, 09h
+    int 21h
+    
+test_done:
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+test_calculate_sum ENDP
+
+main PROC
+    mov ax, @data
+    mov ds, ax
+    
+    ; Run tests
+    call test_calculate_sum
+    
+    mov ax, 4C00h
+    int 21h
+main ENDP
+
+END main
+            \end{lstlisting}
+
+        \subsection{Organisasi Program Modular}
+            \subsubsection{Struktur file dan include}
+                Organisasi file yang baik memudahkan pengembangan dan pemeliharaan:
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=File: common.inc (Common Definitions), label={lst:common-include}]
+; ========================================
+; FILE: common.inc (Common Definitions)
+; ========================================
+
+; Constants
+MAX_BUFFER_SIZE equ 256
+MAX_STRING_LENGTH equ 100
+NEWLINE equ 13, 10, '$'
+
+; Error codes
+ERROR_SUCCESS equ 0
+ERROR_INVALID_PARAM equ 1
+ERROR_BUFFER_OVERFLOW equ 2
+ERROR_DIVISION_BY_ZERO equ 3
+
+; Common macros
+PRINT_STRING MACRO string
+    mov dx, offset string
+    mov ah, 09h
+    int 21h
+ENDM
+
+PRINT_CHAR MACRO char
+    mov dl, char
+    mov ah, 02h
+    int 21h
+ENDM
+
+SAVE_REGS MACRO
+    push ax
+    push bx
+    push cx
+    push dx
+ENDM
+
+RESTORE_REGS MACRO
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+ENDM
+
+; Debug macro
+DEBUG_PRINT MACRO msg
+    IFDEF DEBUG_MODE
+        push ax
+        push dx
+        mov dx, offset msg
+        mov ah, 09h
+        int 21h
+        pop dx
+        pop ax
+    ENDIF
+ENDM
+                \end{lstlisting}
+
+            \subsubsection{Library routines dan dependencies}
+                Pustaka prosedur memungkinkan penggunaan kembali kode:
+
+                \begin{lstlisting}[language={[x86masm]Assembler}, caption=File: string\_lib.asm (String Library), label={lst:string-library}]
+; ========================================
+; FILE: string_lib.asm (String Library)
+; ========================================
+.MODEL SMALL
+
+; Public procedures
+PUBLIC str_length
+PUBLIC str_copy
+PUBLIC str_compare
+PUBLIC str_concat
+
+.CODE
+; Calculate string length
+; Parameters: SI = string address
+; Returns: AX = string length
+str_length PROC
+    push si
+    push cx
+    
+    mov cx, 0
+length_loop:
+    cmp byte ptr [si], 0
+    je length_done
+    inc si
+    inc cx
+    jmp length_loop
+    
+length_done:
+    mov ax, cx
+    pop cx
+    pop si
+    ret
+str_length ENDP
+
+; Copy string
+; Parameters: SI = source, DI = destination
+; Returns: None
+str_copy PROC
+    push ax
+    push si
+    push di
+    
+copy_loop:
+    mov al, [si]
+    mov [di], al
+    cmp al, 0
+    je copy_done
+    inc si
+    inc di
+    jmp copy_loop
+    
+copy_done:
+    pop di
+    pop si
+    pop ax
+    ret
+str_copy ENDP
+
+; Compare strings
+; Parameters: SI = string1, DI = string2
+; Returns: AX = 0 (equal), 1 (string1 > string2), -1 (string1 < string2)
+str_compare PROC
+    push bx
+    push si
+    push di
+    
+compare_loop:
+    mov al, [si]
+    mov bl, [di]
+    cmp al, bl
+    jg string1_greater
+    jl string1_less
+    cmp al, 0
+    je strings_equal
+    inc si
+    inc di
+    jmp compare_loop
+    
+string1_greater:
+    mov ax, 1
+    jmp compare_done
+    
+string1_less:
+    mov ax, -1
+    jmp compare_done
+    
+strings_equal:
+    mov ax, 0
+    
+compare_done:
+    pop di
+    pop si
+    pop bx
+    ret
+str_compare ENDP
+
+; Concatenate strings
+; Parameters: SI = string1, DI = string2, BX = result buffer
+; Returns: None
+str_concat PROC
+    push ax
+    push si
+    push di
+    push bx
+    
+    ; Copy first string
+    mov di, bx
+    call str_copy
+    
+    ; Find end of first string
+    mov di, bx
+find_end:
+    cmp byte ptr [di], 0
+    je end_found
+    inc di
+    jmp find_end
+    
+end_found:
+    ; Copy second string
+    mov si, [sp+2]  ; Get string2 from stack
+    call str_copy
+    
+    pop bx
+    pop di
+    pop si
+    pop ax
+    ret
+str_concat ENDP
+
+END
+                \end{lstlisting}
+
+    \section{Contoh Program Lengkap}
+        \subsection{Program Modular Komprehensif}
+            Berikut adalah contoh program lengkap yang menggunakan semua konsep modular:
+
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Modular Lengkap, label={lst:complete-modular-program}]
+; ========================================
+; MODULAR PROGRAMMING EXAMPLE
+; ========================================
+.MODEL SMALL
+.STACK 100h
+
+; Include common definitions
+INCLUDE common.inc
+
+; External procedure declarations
+EXTRN str_length:NEAR
+EXTRN str_copy:NEAR
+EXTRN str_compare:NEAR
+
+.DATA
+    ; Messages
+    welcome_msg db 'Modular Programming Example', NEWLINE, '$'
+    prompt_msg db 'Enter a string: $'
+    result_msg db 'String length: $'
+    newline_msg db NEWLINE, '$'
+    
+    ; Buffers
+    input_buffer db MAX_STRING_LENGTH dup(0)
+    output_buffer db MAX_STRING_LENGTH dup(0)
+    
+    ; Variables
+    string_length dw 0
+
+.CODE
+; Main program
+main PROC
+    mov ax, @data
+    mov ds, ax
+    
+    ; Display welcome message
+    PRINT_STRING welcome_msg
+    
+    ; Get input from user
+    call get_user_input
+    
+    ; Process input
+    call process_input
+    
+    ; Display results
+    call display_results
+    
+    ; Exit program
+    mov ax, 4C00h
+    int 21h
+main ENDP
+
+; Get input from user
+get_user_input PROC
+    push ax
+    push dx
+    
+    PRINT_STRING prompt_msg
+    
+    ; Read string from keyboard
+    mov dx, offset input_buffer
+    mov ah, 0Ah
+    int 21h
+    
+    ; Add null terminator
+    mov bx, offset input_buffer + 1
+    mov cl, [bx]
+    mov ch, 0
+    add bx, cx
+    inc bx
+    mov byte ptr [bx], 0
+    
+    PRINT_STRING newline_msg
+    
+    pop dx
+    pop ax
+    ret
+get_user_input ENDP
+
+; Process input string
+process_input PROC
+    push ax
+    push si
+    
+    ; Calculate string length
+    mov si, offset input_buffer + 2
+    call str_length
+    mov string_length, ax
+    
+    ; Copy string to output buffer
+    mov si, offset input_buffer + 2
+    mov di, offset output_buffer
+    call str_copy
+    
+    pop si
+    pop ax
+    ret
+process_input ENDP
+
+; Display results
+display_results PROC
+    push ax
+    push dx
+    
+    PRINT_STRING result_msg
+    
+    ; Display string length
+    mov ax, string_length
+    call print_number
+    
+    PRINT_STRING newline_msg
+    
+    pop dx
+    pop ax
+    ret
+display_results ENDP
+
+; Print number (utility procedure)
+print_number PROC
+    push ax
+    push bx
+    push cx
+    push dx
+    
+    mov bx, 10
+    mov cx, 0
+    
+print_loop:
+    mov dx, 0
+    div bx
+    push dx
+    inc cx
+    cmp ax, 0
+    jne print_loop
+    
+print_digits:
+    pop dx
+    add dl, '0'
+    mov ah, 02h
+    int 21h
+    loop print_digits
+    
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+print_number ENDP
+
+END main
+            \end{lstlisting}
+
+        \subsection{Analisis Program}
+            Program di atas menunjukkan penggunaan lengkap konsep pemrograman modular:
+
+            \begin{itemize}
+                \item \textbf{Modular Structure}: Program dibagi menjadi modul-modul yang terpisah
+                \item \textbf{Procedure Usage}: Penggunaan prosedur untuk fungsi-fungsi spesifik
+                \item \textbf{Macro Usage}: Penggunaan makro untuk operasi yang sering dilakukan
+                \item \textbf{External Libraries}: Penggunaan pustaka eksternal untuk fungsi string
+                \item \textbf{Error Handling}: Penanganan error yang baik
+                \item \textbf{Documentation}: Dokumentasi yang jelas untuk setiap prosedur
+            \end{itemize}
+
+    \section{Kesimpulan}
+        Pemrograman modular dalam assembly Intel 8086 memberikan banyak keuntungan:
+
+        \begin{itemize}
+            \item \textbf{Code Reusability}: Kode dapat digunakan kembali dalam proyek lain
+            \item \textbf{Maintainability}: Program lebih mudah dipelihara dan diperbaiki
+            \item \textbf{Testability}: Setiap modul dapat diuji secara independen
+            \item \textbf{Scalability}: Program dapat dikembangkan dengan mudah
+            \item \textbf{Team Development}: Tim dapat bekerja pada modul yang berbeda
+            \item \textbf{Performance}: Optimasi dapat dilakukan pada level modul
+        \end{itemize}
+
+        Penting untuk selalu mengikuti prinsip-prinsip modularitas yang baik dan mendokumentasikan API dengan jelas untuk memastikan keberhasilan pengembangan perangkat lunak yang modular.
+
+
+
+
 
 
 \end{document}

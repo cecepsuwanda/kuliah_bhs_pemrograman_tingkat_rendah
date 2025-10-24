@@ -1,0 +1,72 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+\chapter{Pemrosesan File Lanjutan}
+
+    \section{Tujuan Pembelajaran}
+        Mahasiswa mampu:
+        \begin{itemize}
+            \item Menggunakan \texttt{INT 21h, AH=42h} (LSEEK) untuk memosisikan \textit{file pointer} relatif terhadap awal, posisi kini, atau akhir.
+            \item Menerapkan akses acak (random access) pada berkas dengan struktur rekaman (record) tetap/variabel.
+            \item Merancang penyimpanan data terformat (record-based) lengkap dengan validasi dan pembaruan in-place.
+            \item Menyusun aplikasi berkas yang modular (address book/inventory) dengan operasi CRUD.
+        \end{itemize}
+
+    \section{Pendahuluan}
+        Operasi berkas lanjutan meliputi pemindahan \textit{file pointer} untuk membaca/menulis pada posisi tertentu. Dengan \texttt{LSEEK} (\texttt{AH=42h}), program dapat mengakses bagian mana pun dari berkas secara efisien tanpa membaca dari awal. Pengorganisasian data ke dalam rekaman tetap (\textit{fixed-length}) atau variabel (\textit{variable-length}) memudahkan pengelolaan dan mempercepat pencarian serta pembaruan. Materi ini ditempatkan setelah pemrosesan file dasar agar konsep dapat dipahami dengan baik.
+
+    \section{Manipulasi File Pointer}
+        \subsection{Konsep pointer dan posisi}
+            \textit{File pointer} adalah offset dari awal berkas yang menentukan lokasi baca/tulis berikutnya. Semua operasi baca/tulis memulai dari pointer ini dan memajukannya sesuai jumlah byte yang dioperasikan.
+
+        \subsubsection{Fungsi 42h: LSEEK}
+            \begin{itemize}
+                \item \textbf{Masukan}: \texttt{AH=42h}, \texttt{AL=origin} \\
+                (0=awal, 1=kini, 2=akhir), \texttt{BX=handle}, \\
+                \texttt{CX:DX=offset 32-bit}.
+                \item \textbf{Keluaran}: \texttt{DX:AX} berisi posisi baru; \\
+                CF=1 saat error.
+            \end{itemize}
+            Gunakan nilai 32-bit untuk berkas besar. Hati-hati terhadap tanda (gunakan offset tak bertanda untuk maju; untuk mundur, gunakan representasi dua komplemen).
+
+        \subsubsection{Random access}
+            Dengan menghitung offset rekaman ke-\(i\) (mis., \(i \cdot \text{record\_size}\)) dan memanggil \texttt{LSEEK}, kita dapat langsung membaca/menulis rekaman tersebut tanpa memproses rekaman sebelumnya.
+
+        \subsection{Data Terformat}
+            \subsubsection{Konsep dan pilihan desain}
+                \begin{itemize}
+                    \item \textbf{Fixed-length}: setiap rekaman memiliki ukuran konstan; akses mudah via aritmetika offset.
+                    \item \textbf{Variable-length}: hemat ruang untuk data bervariasi; memerlukan indeks atau delimiter.
+                    \item \textbf{Serialization}: representasi \textit{in-memory} menjadi urutan byte yang konsisten, memperhatikan endianness dan \textit{alignment}.
+                \end{itemize}
+
+            \subsubsection{Record-based data}
+                Contoh rekaman: nama (15 byte, \textit{padded space}), umur (1 byte), gaji (2 byte, little-endian). Tentukan \texttt{record\_size} dan \texttt{schema} secara eksplisit.
+
+        \subsection{Database Sederhana}
+            \subsubsection{Struktur record dan indeks}
+                Sediakan berkas data dan opsional berkas indeks (kunci -> nomor rekaman). Operasi CRUD: buat (append), baca (seek + read), ubah (seek + write), hapus (mark as deleted atau kompaksi).
+
+            \subsubsection{File locking dan validasi}
+                Pada DOS single-tasking, penguncian sering tidak diperlukan, namun tetap validasikan input (panjang nama, rentang umur/gaji) dan tangani kondisi balapan pada akses bersamaan (jika ada).
+
+        \subsection{Optimasi Akses Berkas}
+            \subsubsection{Buffering dan caching}
+                Baca/tulis dalam blok yang lebih besar untuk mengurangi \textit{overhead} panggilan sistem. Cache rekaman sering diakses untuk mempercepat operasi berulang. Materi ini ditempatkan setelah pemrosesan file dasar agar konsep dapat dipahami dengan baik.
+
+            \subsubsection{Batch operations dan pemulihan error}
+                Kelompokkan pembaruan; pada error, lakukan \textit{rollback} sederhana atau catat log status untuk pemulihan manual. Materi ini ditempatkan setelah pemrosesan file dasar agar konsep dapat dipahami dengan baik.
+
+            \subsubsection{Layout Record dan Alignment}
+                Tentukan \texttt{record\_size} eksak dan pertimbangkan perataan (alignment) jika diperlukan untuk akses cepat. Gunakan padding tetap untuk memudahkan seek ke \(i\cdot \text{record\_size}\). 
+            \subsubsection{Indeks Sederhana}
+                Untuk akses cepat berdasarkan kunci pendek (mis. NIM), bangun berkas indeks berisi pasangan (kunci, nomor rekaman). Muat sebagian indeks ke memori untuk mempercepat pencarian linear/binary. Sinkronkan pembaruan antara berkas data dan indeks. 
+            \subsubsection{Update In-place vs Append-only}
+                \textit{In-place} memperbarui pada offset yang sama, efisien namun berisiko korupsi pada kegagalan di tengah. Pola \textit{append-only} menulis versi baru di akhir dan menandai lama sebagai usang; memerlukan kompaksi berkala. Pilih sesuai kebutuhan keandalan/kinerja. 
+            \subsubsection{Endianness dan Portabilitas}
+                Simpan angka multi-byte dalam little-endian (konsisten dengan 8086). Jika berkas akan dipakai lintas arsitektur, dokumentasikan endianness dan lakukan konversi saat diperlukan. 
+
+
+
+
+
+\end{document}

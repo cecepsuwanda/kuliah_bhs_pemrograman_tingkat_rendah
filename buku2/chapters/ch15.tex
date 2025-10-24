@@ -1,170 +1,87 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Program Residen (TSR)}
+\chapter{Pemrosesan File Dasar}
 
-\section{Tujuan Pembelajaran}
-Mahasiswa mampu:
-\begin{itemize}
-    \item Menjelaskan konsep \textit{Terminate-and-Stay-Resident} (TSR), arsitektur, dan pola penggunaannya di DOS.
-    \item Mengimplementasikan TSR sederhana: inisialisasi, pemasangan handler interupsi, dan terminasi-residen.
-    \item Menggunakan \texttt{INT 21h} fungsi \texttt{31h} (TSR), \texttt{25h}/\texttt{35h} (set/get interrupt vector) untuk komunikasi dan pemasangan.
-    \item Mendesain mekanisme komunikasi (hotkey/custom interrupt) dan strategi manajemen memori TSR.
-\end{itemize}
+    \section{Tujuan Pembelajaran}
+        Mahasiswa mampu:
+        \begin{itemize}
+            \item Menjelaskan konsep berkas (file), sistem berkas, dan \textit{handle}-based I/O pada DOS.
+            \item Menggunakan \texttt{INT 21h} untuk membuat, membuka, menutup, membaca, menulis, dan menghapus berkas.
+            \item Menerapkan pola \textit{buffered I/O} sederhana dan menangani kesalahan berdasarkan kode error.
+            \item Menyusun program utilitas file dasar seperti penyalinan dan pembacaan konten.
+        \end{itemize}
 
-\section{Pendahuluan}
-Program TSR adalah program DOS yang, setelah selesai inisialisasi, tidak sepenuhnya keluar: sebagian memorinya dibiarkan \textit{resident} untuk memberikan layanan latar belakang (mis. hotkey, jam layar, makro). TSR lazim sebelum hadirnya sistem multitugas umum. Kunci teknis TSR adalah pemasangan handler interupsi/\textit{hook} dan pemilihan ukuran memori yang disisakan agar cukup namun tidak boros.
+    \section{Pendahuluan}
+        Pada DOS, layanan \texttt{INT 21h} menyediakan antarmuka sistem berkas berbasiskan \textit{file handle}. Operasi utama meliputi pembuatan/ pembukaan berkas, pembacaan/penulisan data, dan penutupan. Keberhasilan/kegagalan operasi diindikasikan oleh \textit{carry flag} (CF) dan kode error di \texttt{AX} saat CF diset. Materi ini ditempatkan setelah percabangan dan perulangan agar contoh dapat menggunakan kontrol alur yang tepat.
 
-\section{Konsep Program TSR}
-\subsection{Definisi dan perbedaan}
-Berbeda dengan program biasa yang mengembalikan seluruh memorinya saat \texttt{INT 21h, 4Ch}, TSR mengeksekusi \texttt{INT 21h, 31h} untuk mengakhiri eksekusi namun menyisakan bagian memori dan vektor interupsi yang terpasang.
+    \section{Konsep File Handling}
+        \subsection{Definisi file dan file system}
+            File adalah sekumpulan byte pada media penyimpanan, diorganisasikan oleh sistem berkas (FAT pada DOS). Identifikasi via nama (8.3) dan atribut (read-only, hidden, system, archive).
 
-\subsubsection{Keuntungan dan kelemahan}
-\textbf{Keuntungan}: menyediakan layanan latar belakang, akses cepat (hotkey). \textbf{Kelemahan}: konflik vektor interupsi, fragmentasi memori, kompatibilitas antar TSR.
+        \subsubsection{File handle dan mode akses}
+            Setelah berkas dibuka/dibuat, DOS mengembalikan \textit{handle} (bilangan kecil) untuk digunakan pada operasi lanjutan. Mode akses: baca (\texttt{AL=0}), tulis (\texttt{AL=1}), baca/tulis (\texttt{AL=2}); lampiran (append) dapat disimulasikan dengan memindah \textit{file pointer} ke akhir.
 
-\subsubsection{Aplikasi TSR}
-Jam layar, pengganti \textit{keyboard handler}, \textit{clipboard} sederhana, peluncur cepat, atau \textit{logging}.
+        \subsubsection{Atribut dan perizinan}
+            Atribut ditentukan pada pembuatan atau dapat diubah menggunakan fungsi lain (di luar cakupan dasar). Gunakan atribut normal (\texttt{CX=0}) untuk kebanyakan kasus.
 
-\subsubsection{Manajemen memori}
-Minimalkan memori resident dengan memindahkan data temporer ke tumpukan non-resident, lepaskan segmen yang tak diperlukan sebelum \texttt{INT 21h,31h}, dan hitung ukuran paragraf (16-byte) yang tepat.
+        \subsubsection{Error handling}
+            CF=1 menunjukkan kesalahan; \texttt{AX} memuat kode (mis. file tidak ditemukan, akses ditolak). Tanggapi dengan pesan dan \textit{cleanup} sumber daya.
 
-\subsection{Arsitektur Program TSR}
-\subsubsection{Inisialisasi}
-Deteksi apakah TSR sudah terpasang (misalnya melalui vector marker/custom call). Simpan vektor lama, pasang vektor baru, siapkan state minimal.
+        \subsection{Interupsi INT 21h untuk File}
+            \begin{itemize}
+                \item \textbf{3Ch Create File}: \texttt{AH=3Ch}, \texttt{CX=atribut}, \texttt{DX=\&nama}; keluar: \texttt{AX=handle}.
+                \item \textbf{3Dh Open File}: \texttt{AH=3Dh}, \texttt{AL=mode}, \texttt{DX=\&nama}; keluar: \texttt{AX=handle}.
+                \item \textbf{3Eh Close File}: \texttt{AH=3Eh}, \texttt{BX=handle}.
+                \item \textbf{3Fh Read File}: \texttt{AH=3Fh}, \texttt{BX=handle}, \\
+                \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluaran: \texttt{AX=byte terbaca}.
+                \item \textbf{40h Write File}: \texttt{AH=40h}, \texttt{BX=handle}, \\
+                \texttt{CX=jumlah}, \texttt{DX=\&buffer}; keluaran: \texttt{AX=byte tertulis}.
+                \item \textbf{41h Delete File}: \texttt{AH=41h}, \texttt{DX=\&nama}.
+            \end{itemize}
+            Perhatikan selalu pemeriksaan CF dan konsistensi \texttt{AX/CF}.
 
-\subsubsection{Resident routine dan interrupt handler}
-Rutinitas resident dijalankan oleh interupsi yang di-hook (mis. keyboard \texttt{INT 09h}, layanan \texttt{INT 21h}, timer \texttt{INT 1Ch}). Pastikan handler cepat, \textit{reentrant-safe} (seperlunya), dan memanggil handler lama bila tidak memproses sendiri.
+        \subsection{Operasi File Dasar}
+            \subsubsection{Membuat dan membuka}
+                Gunakan \texttt{3Ch} untuk membuat (menimpa jika ada tergantung sistem); gunakan \texttt{3Dh} untuk membuka yang sudah ada dengan mode sesuai kebutuhan.
 
-\subsubsection{Terminasi-residen}
-Panggil \texttt{INT 21h, AH=31h} dengan \texttt{DX} berisi ukuran memori yang dibiarkan resident (dalam paragraf). \texttt{AL} dapat mengembalikan kode keluar.
+            \subsubsection{Menutup}
+                Selalu tutup \texttt{handle} dengan \texttt{3Eh} untuk mencegah kebocoran; DOS membatasi jumlah handle terbuka.
 
-\subsection{Interupsi untuk TSR}
-\subsubsection{Set/Get Interrupt Vector}
-\texttt{INT 21h, AH=35h} mendapatkan vektor (ke \texttt{ES:BX}); \texttt{AH=25h} memasang vektor baru dari \texttt{DS:DX}. Simpan vektor lama untuk pemulihan atau pemanggilan berantai (\textit{chain}).
+            \subsubsection{Membaca dan menulis}
+                Gunakan buffer di segmen data. Jumlah byte aktual terbaca/tertulis dikembalikan di \texttt{AX}; periksa ketidaksamaan dengan \texttt{CX} (mis. akhir berkas pada baca).
 
-\subsubsection{Custom interrupt}
-TSR dapat mengekspos layanan melalui nomor interupsi khusus (jarang) atau \texttt{AH} khusus pada \texttt{INT 21h}. Penanda sederhana: jika \texttt{AH=FFh}, handler mengembalikan tanda di \texttt{AL}.
+            \subsubsection{Menghapus}
+                \texttt{41h} menghapus berkas; pastikan ditutup sebelumnya dan atribut memungkinkan penghapusan. Materi ini ditempatkan setelah percabangan dan perulangan agar contoh dapat menggunakan kontrol alur yang tepat.
 
-\subsubsection{Reentransi dan Keamanan Handler}
-Handler TSR sering dipicu saat DOS/BIOS mungkin tidak reentrant. Hindari memanggil layanan DOS yang tidak aman dari interupsi di dalam handler; jika perlu, setel penanda dan lakukan pekerjaan berat di titik aman (mis. hook timer dan proses di luar handler sensitif). 
-\subsubsection{Perhitungan Ukuran Resident}
-Hitung total segmen yang perlu ditinggalkan resident (kode + data minimal). Ukur dalam paragraf (16 byte); tambahkan margin untuk variabel runtime. Lepaskan segmen yang tidak dibutuhkan (mis. tumpukan sementara) sebelum \texttt{INT 21h,31h}. 
-\subsubsection{Rantai Handler (Chaining)}
-Saat mengganti vektor, simpan vektor lama dan panggil jika event tidak ditangani agar kompatibel dengan TSR lain. Periksa kondisi untuk mencegah loop. Pastikan menyimpan/memulihkan register dengan benar. 
-\subsubsection{Deteksi Instalasi Ganda}
-Sediakan mekanisme \textit{self-detection} (mis. panggilan khusus yang mengembalikan tanda). Jika sudah terpasang, tawarkan keluar normal atau uninstall (bila aman). 
-\section{Implementasi TSR}
-\subsection{Struktur dan langkah}
-\begin{enumerate}
-  \item Cek instalasi: panggil layanan khusus; jika sudah, tawarkan uninstall atau keluar.
-  \item Simpan vektor lama; pasang handler baru (\texttt{25h}).
-  \item Siapkan data resident (variabel global minimal) dan lepaskan yang tidak diperlukan.
-  \item Panggil \texttt{31h} dengan estimasi ukuran memori resident.
-\end{enumerate}
+        \subsection{File Handle dan Error Handling}
+            \subsubsection{Manajemen handle}
+                Simpan \texttt{AX} hasil \texttt{3Ch/3Dh} ke variabel. Hindari penggunaan handle setelah ditutup. Gunakan nilai sentinel (mis. \texttt{FFFFh}) untuk menandai tidak-valid.
 
-\subsection{Contoh Handler}
-\begin{verbatim}
-; Handler INT 21h kustom: AH=FFh -> tanda aktif
-NEW_INT21 PROC FAR
-    CMP AH, 0FFh
-    JNE CALL_OLD
-    MOV AL, 0AAh
-    IRET
-CALL_OLD:
-    JMP DWORD PTR old_int21
-NEW_INT21 ENDP
-\end{verbatim}
+            \subsubsection{Kode error dan validasi}
+                Tangkap kasus umum: file tidak ditemukan (\texttt{2}), akses ditolak (\texttt{5}), disk penuh, dan lain-lain. Berikan pesan informatif.
 
-\subsection{Uninstall (opsional)}
-Uninstall yang bersih memerlukan restorasi vektor lama dan pembebasan memori (yang tidak mudah pada DOS standar). Banyak TSR tidak mendukung uninstall kecuali didesain khusus.
+            \subsubsection{Resource cleanup}
+                Pada error di tengah rangkaian operasi, lakukan penutupan handle yang sudah terbuka sebelum keluar.
 
-\section{Praktikum}
-\begin{enumerate}
-  \item TSR sederhana: pasang handler \texttt{INT 21h} yang merespon \texttt{AH=FFh} dengan tanda aktif.
-  \item TSR hotkey: hook \texttt{INT 09h} (keyboard) untuk menangkap kombinasi tombol lalu memanggil layanan tertentu.
-  \item TSR timer: hook \texttt{INT 1Ch} untuk tugas periodik (mis. memperbarui jam di sudut layar mode teks).
-  \item Komunikasi: sediakan fungsi \texttt{AH=khas} untuk membaca status internal TSR.
-  \item Eksperimen uninstall: kembalikan vektor ke lama (jika aman) dan uji konflik.
-\end{enumerate}
+            \subsubsection{Kode Error Umum INT 21h}
+                Contoh: \texttt{AX=02h} (file tidak ditemukan), \texttt{03h} (path tidak ditemukan), \texttt{05h} (akses ditolak), \texttt{0Dh} (data invalid). Periksa \texttt{CF} dan \texttt{AX} setelah setiap panggilan file I/O untuk menangani kegagalan dengan baik. 
+            \subsubsection{EOF dan Jumlah Byte Terbaca}
+                Pada operasi baca (\texttt{AH=3Fh}), nilai kembali \texttt{AX} bisa lebih kecil dari \texttt{CX} menandakan akhir berkas atau buffer tidak penuh. Jangan mengasumsikan buffer terisi penuh. 
+            \subsubsection{Buffered I/O Sederhana}
+                Gunakan buffer menengah untuk menyalin berkas dalam blok (mis. 128/256/512 byte). Hindari alokasi dinamis yang sulit pada DOS; gunakan buffer statik di segmen data. 
+            \subsubsection{Format Teks vs Biner}
+                Untuk teks, perhatikan terminator baris (\texttt{CR LF} = \texttt{0Dh 0Ah}). Untuk biner, pertahankan ukuran yang tepat dan hindari transformasi karakter. 
 
-\section{Contoh Kode}
-\begin{verbatim}
-; Program TSR sederhana (ringkas)
-TITLE Program TSR
-.MODEL SMALL
-.STACK 100h
+        \subsection{Buffer dan Transfer Data}
+            \subsubsection{Buffer dan block transfer}
+                Baca/tulis dalam blok untuk efisiensi. Untuk berkas teks, pertimbangkan terminator atau pemrosesan baris.
 
-.DATA
-    pesan_install   DB 'TSR berhasil diinstall!$'
-    old_int21       DD ?
+            \subsubsection{Akses sekuensial}
+                Baca berulang dari awal ke akhir. Untuk akses acak, gunakan \texttt{INT 21h, 42h} (dibahas pada bab berikutnya).
 
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
 
-    ; Cek instalasi
-    MOV AH, 0FFh
-    INT 21h
-    CMP AL, 0AAh
-    JE  already
 
-    ; Simpan vektor lama INT 21h
-    MOV AH, 35h
-    MOV AL, 21h
-    INT 21h
-    MOV WORD PTR old_int21, BX
-    MOV WORD PTR old_int21[2], ES
 
-    ; Pasang vektor baru INT 21h
-    MOV AH, 25h
-    MOV AL, 21h
-    MOV DX, OFFSET NEW_INT21
-    INT 21h
-
-    ; Tampilkan pesan
-    MOV AH, 09h
-    MOV DX, OFFSET pesan_install
-    INT 21h
-
-    ; Terminate and Stay Resident (sisa ~4KB contoh)
-    MOV AH, 31h
-    MOV AL, 0
-    MOV DX, 0100h   ; 256 paragraf (4096 byte) contoh, sesuaikan
-    INT 21h
-
-already:
-    ; Sudah terpasang: cukup keluar normal
-    MOV AH, 4Ch
-    INT 21h
-
-; Handler baru INT 21h
-NEW_INT21 PROC FAR
-    CMP AH, 0FFh
-    JNE CALL_OLD
-    MOV AL, 0AAh
-    IRET
-CALL_OLD:
-    JMP DWORD PTR old_int21
-NEW_INT21 ENDP
-
-END START
-\end{verbatim}
-
-\section{Latihan}
-\begin{enumerate}
-  \item Buat TSR yang menampilkan waktu di pojok layar setiap detik (hook \texttt{INT 1Ch}).
-  \item Buat TSR yang menangani \textit{hotkey} (mis. Alt+H) untuk menampilkan bantuan singkat.
-  \item Buat TSR pemantau keyboard yang mencatat tombol ke buffer sirkular (hindari menulis berkas langsung dari handler).
-  \item Buat TSR yang merespon \texttt{AH=FEh} dengan mengembalikan penghitung internal (mis. jumlah \textit{ticks}).
-\end{enumerate}
-
-\section{Tugas}
-\begin{itemize}
-  \item \textbf{System monitor}: TSR yang menampilkan penggunaan memori DOS (perkiraan), jam, dan indikator Caps/Num/Scroll.
-  \item \textbf{Keyboard macro}: TSR yang merekam dan memutar ulang urutan tombol pada hotkey tertentu.
-  \item \textbf{File watcher}: TSR yang mengawasi pemanggilan fungsi file \texttt{INT 21h} umum dan menampilkan indikator aktivitas.
-  \item \textbf{Dokumentasi}: Uraikan strategi memori TSR Anda, ukuran resident, dan cara menghindari konflik vektor.
-\end{itemize}
 
 
 \end{document}

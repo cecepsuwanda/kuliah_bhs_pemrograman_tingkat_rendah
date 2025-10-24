@@ -1,214 +1,717 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-\chapter{Instruksi Logika dan Output Teks}
+\chapter{Instruksi Dasar: Perpindahan Data dan Aritmatika}
 
-\section{Tujuan Pembelajaran}
-Mahasiswa mampu:
+    \section{Tujuan Pembelajaran}
+        Setelah pertemuan ini, mahasiswa mampu:
+        \begin{itemize}
+            \item Menggunakan instruksi perpindahan data \texttt{MOV} dengan benar pada variasi operand register dan memori.
+            \item Melakukan operasi aritmatika dasar (\texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV}) pada data 8/16-bit.
+            \item Menggunakan instruksi aritmatika tambahan (\texttt{ADC}, \texttt{SBB}, \texttt{INC}, \texttt{DEC}, \texttt{NEG}, \texttt{CMP}).
+            \item Menjelaskan pengaruh instruksi aritmatika terhadap \textit{flag} prosesor (\texttt{CF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}, \texttt{PF}, \texttt{AF}).
+            \item Menulis program aritmatika sederhana yang aman dan memperhatikan kasus tepi (overflow, pembagian nol).
+            \item Memahami dan menggunakan instruksi perpindahan data lainnya (\texttt{XCHG}, \texttt{PUSH}, \texttt{POP}).
+        \end{itemize}
+
+    \section{Pendahuluan}
+        Instruksi perpindahan dan aritmatika merupakan fondasi pemrograman assembly \cite{8086_instruction_set_reference}. Pemahaman mendalam mengenai operand, mode pengalamatan, dan efek \textit{flag} akan menentukan ketepatan logika program \cite{tutorials_point_assembly}. Pada 8086, variasi operand dan pembatasan ukuran data harus dipatuhi agar instruksi valid.
+
+        Bab ini akan membahas secara detail:
+        \begin{itemize}
+            \item Instruksi perpindahan data (\texttt{MOV}, \texttt{XCHG}, \texttt{PUSH}, \texttt{POP})
+            \item Instruksi aritmatika dasar (\texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV})
+            \item Instruksi aritmatika tambahan (\texttt{ADC}, \texttt{SBB}, \texttt{INC}, \texttt{DEC}, \texttt{NEG}, \texttt{CMP})
+            \item Flag register dan pengaruhnya terhadap operasi aritmatika
+            \item Contoh program lengkap untuk setiap instruksi
+        \end{itemize}
+
+    \section{Instruksi Perpindahan Data}
+
+        \subsection{Instruksi MOV (Move)}
+            \subsubsection{Sintaks dan aturan penggunaan}
+Bentuk umum: \texttt{MOV destination, source}. Aturan pokok:
 \begin{itemize}
-    \item Menerapkan instruksi logika \texttt{AND}, \texttt{OR}, \texttt{XOR}, \texttt{NOT} pada data 8/16-bit.
-    \item Memahami operasi bitwise, masking, set/clear bit, dan kasus penggunaan praktis.
-    \item Menggunakan layanan BIOS video \texttt{INT 10h} (fungsi \texttt{02h}, \texttt{09h}, \texttt{0Ah}, \texttt{0Eh}) untuk output teks dan kontrol kursor.
-    \item Menampilkan teks di layar dengan kontrol posisi dan atribut warna.
+    \item Ukuran operand harus sama (8-bit dengan 8-bit, 16-bit dengan 16-bit)
+    \item Perpindahan memori-ke-memori langsung tidak diperbolehkan (harus melalui register)
+    \item Register khusus (\texttt{CS}) tidak dapat ditulis langsung dengan \texttt{MOV} biasa
+    \item Tidak dapat memindahkan immediate ke segment register
 \end{itemize}
 
-\section{Pendahuluan}
-Instruksi logika menyediakan manipulasi bit tingkat rendah yang fundamental untuk kontrol perangkat keras, pengolahan bendera (flag), dan optimasi. Pada sisi output, layanan BIOS \texttt{INT 10h} memungkinkan interaksi langsung dengan tampilan dalam mode teks/TTY, relevan untuk program DOS dan lingkungan \textit{bare-metal}-like.
-
-\section{Instruksi Logika}
-\subsection{Operasi Logika Dasar}
-\subsubsection{AND}
-Operasi konjungsi bitwise: bit hasil 1 jika dan hanya jika kedua operand 1. Umum untuk \textit{masking} menghapus bit tertentu.
-\begin{verbatim}
-mov ax, 0A5Fh
-and ax, 00FFh    ; simpan hanya 8 bit rendah -> AX = 005Fh
-\end{verbatim}
-\textbf{Flags}: memperbarui \texttt{ZF}, \texttt{SF}, \texttt{PF}; \texttt{CF} dan \texttt{OF} direset ke 0.
-
-\subsubsection{OR}
-Disjungsi bitwise: bit hasil 1 jika salah satu operand 1. Berguna untuk menyetel bit spesifik.
-\begin{verbatim}
-mov al, 00110000b
-or  al, 00000101b  ; set bit 0 dan 2 -> 00110101b
-\end{verbatim}
-\textbf{Flags}: \texttt{ZF}, \texttt{SF}, \texttt{PF} diperbarui; \texttt{CF}, \texttt{OF} = 0.
-
-\subsubsection{XOR}
-Eksklusif-or: 1 jika operand berbeda; \textit{involutif} (\texttt{x xor k xor k = x}). Biasa untuk enkripsi sederhana dan pembersihan register cepat.
-\begin{verbatim}
-xor ax, ax   ; cepat set AX=0, tanpa memuat immediate
-\end{verbatim}
-\textbf{Flags}: mirip \texttt{AND}/\texttt{OR}; \texttt{CF}, \texttt{OF} = 0.
-
-\subsubsection{NOT}
-Komplemen bitwise (unary). Sering dipakai untuk inversi \textit{mask}.
-\begin{verbatim}
-mov bl, 11110000b
-not bl                 ; BL = 00001111b
-\end{verbatim}
-\textbf{Flags}: tidak terpengaruh (kecuali implementasi spesifik; pada 8086, flags tidak terdefinisi diubah untuk NOT—anggap tidak relevan).
-
-\subsubsection{Instruksi SHIFT dan ROTATE}
-Operasi geser dan rotasi penting untuk manipulasi bit tingkat rendah, multiplikasi/divisi basis 2, serta ekstraksi bit-field. \begin{itemize}
-  \item \textbf{SHL/SAL}: geser ke kiri; mengalikan tak bertanda dengan 2 per langkah; bit keluar ke \texttt{CF}.
-  \item \textbf{SHR}: geser ke kanan tak bertanda; membagi dengan 2 per langkah; bit keluar ke \texttt{CF}.
-  \item \textbf{SAR}: geser kanan bertanda; mempertahankan bit tanda; membagi bertanda dengan pembulatan ke bawah.
-  \item \textbf{ROL/ROR}: rotasi tanpa melalui carry; \textbf{RCL/RCR}: rotasi melalui carry (memakai \texttt{CF} sebagai bit tambahan).
-\end{itemize}
-Contoh:
-\begin{verbatim}
-mov ax, 0001h
-shl ax, 1     ; AX = 0002h, CF=0
-ror ax, 1     ; rotasi kanan; bit0 masuk ke bit15
-\end{verbatim}
-
-\subsubsection{Ekstraksi dan Packing Bit-field}
-Untuk mengekstrak bidang 3-bit mulai dari posisi \(p\): geser kanan \(p\) lalu mask \texttt{AND} dengan \texttt{0b111}. Untuk mengemas, geser nilai ke posisi yang diinginkan lalu gabungkan dengan \texttt{OR}. 
-\subsubsection{Operasi bitwise dan aplikasinya}
-\begin{itemize}
-  \item \textbf{Masking}: \texttt{AND} untuk \textit{clear}, \texttt{OR} untuk \textit{set}, \texttt{XOR} untuk \textit{toggle}.
-  \item \textbf{Packing/unpacking} field bit dalam satu byte/word.
-  \item \textbf{Uji bit}: kombinasikan \texttt{TEST} (seperti \texttt{AND} tanpa menyimpan hasil) dan percabangan pada \texttt{ZF}.
-\end{itemize}
-\begin{verbatim}
-; uji bit 3 (hitung dari 0)
-mov al, value
-mov ah, al
-and ah, 00001000b
-jz  bit3_clear
-; bit3_set ...
-\end{verbatim}
-
-\subsection{Aplikasi Instruksi Logika}
-\subsubsection{Manipulasi bit dan masking}
-\begin{verbatim}
-; clear 2 bit terendah
-and al, 11111100b
-; set bit 7
-or  al, 10000000b
-; toggle bit 4
-xor al, 00010000b
-\end{verbatim}
-
-\subsubsection{Enkripsi sederhana (XOR)}
-\begin{verbatim}
-; enkripsi/dekripsi XOR dengan kunci tunggal
-mov al, [si]
-xor al, key
-mov [di], al
-\end{verbatim}
-\textit{Catatan}: XOR cipher lemah dan hanya untuk demonstrasi.
-
-\subsubsection{Operasi set dan clear bit, perbandingan bit}
-Gunakan \texttt{BT}/\texttt{BTS}/\texttt{BTR} pada prosesor lebih baru; pada 8086, gunakan \texttt{AND}/\texttt{OR}/\texttt{XOR} manual. Perbandingan bit dilakukan dengan \texttt{TEST}.
-
-\subsection{Interupsi BIOS INT 10h}
-\subsubsection{Fungsi 02h: Set Cursor Position}
-\begin{itemize}
-  \item \texttt{AH=02h}, \texttt{BH=page}, \texttt{DH=row}, \texttt{DL=column}; \texttt{INT 10h}.
-  \item Koordinat 0-berbasis; pastikan dalam batas mode teks (mis. 25x80).
-\end{itemize}
-\subsubsection{Fungsi 09h: Write Character and Attribute}
-\begin{itemize}
-  \item \texttt{AH=09h}, \texttt{AL=char}, \texttt{BH=page}, \texttt{BL=attribute}, \texttt{CX=count}; \texttt{INT 10h}.
-  \item Menulis dengan atribut warna; tidak memajukan kursor secara \textit{TTY-like} untuk semua mode.
-\end{itemize}
-\subsubsection{Fungsi 0Ah: Write Character Only}
-\begin{itemize}
-  \item \texttt{AH=0Ah}, parameter mirip, menggunakan atribut saat ini.
-\end{itemize}
-\subsubsection{Fungsi 0Eh: Write Character in TTY Mode}
-\begin{itemize}
-  \item \texttt{AH=0Eh}, \texttt{AL=char}, \texttt{BH=page}, \texttt{BL=color}; menulis seperti \texttt{teletype}, memajukan kursor dan menggulir bila perlu.
-\end{itemize}
-
-\subsection{Output Teks ke Layar}
-\subsubsection{Kontrol posisi kursor}
-Pindahkan kursor ke (baris, kolom) dengan \texttt{AH=02h}. Tulis teks karakter-per-karakter (\texttt{0Eh}) atau \texttt{09h} untuk pengulangan.
-
-\subsubsection{Atribut karakter (warna)}
-Atribut 8-bit: 4 bit latar depan + 3 bit latar belakang + 1 bit berkedip. Contoh: \texttt{1Eh} (kuning di biru).
-
-\subsubsection{Mode teks dan grafik}
-Materi ini berfokus pada mode teks; mode grafik memerlukan fungsi \texttt{INT 10h} lain (dibahas pada pertemuan grafik).
-
-\subsubsection{Penanganan karakter khusus}
-Untuk baris baru, gunakan pasangan \texttt{$\backslash$r} dan \texttt{$\backslash$n} atau \texttt{TTY 0Eh}. Simbol \texttt{'\$'} digunakan oleh \texttt{INT 21h, AH=09h}, bukan \texttt{INT 10h}.
-
-\section{Contoh Soal dan Pembahasan}
-\begin{enumerate}
-  \item \textbf{Masking 8 bit terakhir}.\\ Gunakan \texttt{AND AX, 00FFh} untuk mengekstrak byte rendah dari word.
-  \item \textbf{Enkripsi XOR}.\\ Tunjukkan bahwa \texttt{x xor k xor k = x} untuk pembuktian dekripsi.
-  \item \textbf{Menampilkan teks di posisi tertentu}.\\ Pindahkan kursor (\texttt{AH=02h}) lalu panggil \texttt{AH=09h} atau \texttt{0Eh}.
-  \item \textbf{Teks berwarna}.\\ Tentukan atribut warna pada \texttt{BL} untuk \texttt{AH=09h}.
-\end{enumerate}
-
-\section{Praktikum}
-\begin{enumerate}
-  \item Implementasi \textit{bit playground}: \texttt{AND}/\texttt{OR}/\texttt{XOR}/\texttt{NOT} terhadap nilai contoh, tampilkan hasil dalam heksadesimal.
-  \item Implementasi masking dan uji bit spesifik menggunakan \texttt{TEST} + cabang.
-  \item Implementasi enkripsi XOR pada buffer kecil di memori (hard-coded); verifikasi dekripsi.
-  \item Implementasi output teks: atur kursor ke beberapa posisi dan cetak karakter/teks dengan atribut berbeda.
-\end{enumerate}
-
-\section{Contoh Kode}
-\begin{verbatim}
-; Program operasi logika dan output teks
-TITLE Operasi Logika dan Output
+            \subsubsection{MOV antar register}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=MOV antar Register, label={lst:mov-register}]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;   PROGRAM : MOV_REG.ASM        ;
+;   FUNGSI  : DEMO MOV ANTAR     ;
+;             REGISTER           ;
+;===========================S?to=;
 .MODEL SMALL
-.STACK 100h
-
 .DATA
-    pesan DB 'Hello Assembly!$'
-    nilai1 DW 0F0F0h
-    nilai2 DW 0FF00h
-
+    ; Data segment kosong untuk contoh sederhana
 .CODE
-START:
-    MOV AX, @DATA
+ORG 100h
+Proses:
+    ; Inisialisasi data segment
+    MOV AX, @data
     MOV DS, AX
     
-    ; Operasi logika
-    MOV AX, nilai1
-    AND AX, nilai2    ; Masking
-    OR AX, 000Fh      ; Set bit terakhir
-    XOR AX, 0FFFFh    ; Inversi
-    NOT AX            ; Komplemen
+    ; Contoh MOV antar register 16-bit
+    MOV AX, BX      ; AX = BX (salin BX ke AX)
+    MOV CX, DX      ; CX = DX (salin DX ke CX)
+    MOV SI, DI      ; SI = DI (salin DI ke SI)
     
-    ; Output teks ke layar
-    MOV AH, 02h       ; Set cursor position
-    MOV BH, 00h       ; Page 0
-    MOV DH, 10        ; Row 10
-    MOV DL, 20        ; Column 20
-    INT 10h
+    ; Contoh MOV antar register 8-bit
+    MOV AL, AH      ; AL = AH (salin AH ke AL)
+    MOV BL, CL      ; BL = CL (salin CL ke BL)
+    MOV DH, DL      ; DH = DL (salin DL ke DH)
     
-    ; Tampilkan karakter
-    MOV AH, 09h       ; Write character
-    MOV AL, 'A'       ; Character 'A'
-    MOV BH, 00h       ; Page 0
-    MOV BL, 1Eh       ; Yellow on blue
-    MOV CX, 1         ; Count
-    INT 10h
-    
-    MOV AH, 4Ch
-    INT 21h
-END START
-\end{verbatim}
+    MOV AH, 4CH         ; Keluar dari program dengan kode 0
+    MOV AL, 0
+    INT 21H            ; Memanggil interrupt untuk mengakhiri program
 
-\section{Latihan}
-\begin{enumerate}
-  \item Buat program yang melakukan masking pada 8 bit terakhir untuk sejumlah data dalam array; simpan hasil ke array tujuan.
-  \item Buat program enkripsi/dekripsi XOR untuk string dengan kunci 1 byte; tampilkan hasil terenkripsi dalam heksadesimal.
-  \item Buat program yang menampilkan teks pada empat sudut layar (0,0), (0,79), (24,0), (24,79).
-  \item Buat program yang menampilkan teks dengan semua kombinasi warna latar depan standar pada latar belakang biru.
-\end{enumerate}
+END Proses
+\end{lstlisting}
 
-\section{Tugas}
+            \subsubsection{MOV dari/ke memori}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=MOV dengan Memori, label={lst:mov-memory}]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;   PROGRAM : MOV_MEM.ASM        ;
+;   FUNGSI  : DEMO MOV DENGAN    ;
+;             MEMORI             ;
+;===========================S?to=;
+.MODEL SMALL
+.DATA
+    data_word  dw 1234h
+    data_byte  db 56h
+.CODE
+ORG 100h
+Proses:
+    ; Inisialisasi data segment
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Contoh MOV dari memori ke register
+    MOV AX, [SI]        ; AX = word dari DS:SI
+    MOV AL, [BX+4]      ; AL = byte dari DS:[BX+4]
+    MOV DX, [BP+8]      ; DX = word dari SS:[BP+8]
+    
+    ; Contoh MOV dari register ke memori
+    MOV [DI], AX        ; Simpan AX ke DS:DI
+    MOV [BX+2], CL      ; Simpan CL ke DS:[BX+2]
+    MOV [BP-4], DX      ; Simpan DX ke SS:[BP-4]
+    
+    ; Contoh MOV dengan segment override
+    MOV AX, ES:[SI]     ; AX = word dari ES:SI
+    MOV AL, CS:[BX]     ; AL = byte dari CS:BX
+    
+    MOV AH, 4CH         ; Keluar dari program dengan kode 0
+    MOV AL, 0
+    INT 21H            ; Memanggil interrupt untuk mengakhiri program
+
+END Proses
+\end{lstlisting}
+
+            \subsubsection{MOV dengan konstanta (Immediate)}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=MOV dengan Konstanta, label={lst:mov-immediate}]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;   PROGRAM : MOV_IMM.ASM        ;
+;   FUNGSI  : DEMO MOV DENGAN   ;
+;             KONSTANTA         ;
+;===========================S?to=;
+.MODEL SMALL
+.DATA
+    ; Data segment kosong untuk contoh sederhana
+.CODE
+ORG 100h
+Proses:
+    ; Inisialisasi data segment
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Contoh MOV dengan konstanta 16-bit
+    MOV AX, 1234h       ; AX = 1234h
+    MOV BX, 100         ; BX = 100 (desimal)
+    MOV CX, 0FFFFh      ; CX = FFFFh
+    
+    ; Contoh MOV dengan konstanta 8-bit
+    MOV AL, 0FFh        ; AL = FFh
+    MOV BL, 65          ; BL = 65 (ASCII 'A')
+    MOV CL, 0           ; CL = 0
+    
+    ; Contoh MOV dengan konstanta ke memori
+    MOV BYTE PTR [SI], 0    ; Simpan 0 ke byte di DS:SI
+    MOV WORD PTR [DI], 1000 ; Simpan 1000 ke word di DS:DI
+    
+    MOV AH, 4CH         ; Keluar dari program dengan kode 0
+    MOV AL, 0
+    INT 21H            ; Memanggil interrupt untuk mengakhiri program
+
+END Proses
+\end{lstlisting}
+
+            \subsubsection{Contoh program lengkap dengan MOV}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Lengkap dengan MOV, label={lst:mov-complete}]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;
+;   PROGRAM : MOV_COMPLETE.ASM   ;
+;   FUNGSI  : PROGRAM LENGKAP    ;
+;             DENGAN MOV         ;
+;===========================S?to=;
+.MODEL SMALL
+.DATA
+    nilai1 dw 5678h
+    hasil  dw ?
+.CODE
+ORG 100h
+Proses:
+    ; Inisialisasi data segment
+    MOV AX, @data
+    MOV DS, AX
+    
+    ; Contoh MOV antar register
+    MOV AX, 1234h       ; AX = 1234h
+    MOV BX, AX          ; BX = AX = 1234h
+    MOV CX, BX          ; CX = BX = 1234h
+    
+    ; Contoh MOV dengan memori
+    MOV SI, OFFSET nilai1    ; SI = alamat nilai1
+    MOV AX, [SI]            ; AX = nilai1
+    MOV DI, OFFSET hasil    ; DI = alamat hasil
+    MOV [DI], AX            ; Simpan AX ke hasil
+    
+    ; Contoh MOV dengan konstanta
+    MOV AL, 'H'             ; AL = 'H'
+    MOV BL, 'i'             ; BL = 'i'
+    
+    MOV AH, 4CH         ; Keluar dari program dengan kode 0
+    MOV AL, 0
+    INT 21H            ; Memanggil interrupt untuk mengakhiri program
+
+END Proses
+\end{lstlisting}
+
+        \subsection{Instruksi XCHG (Exchange)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{XCHG operand1, operand2}. Fungsi: menukar isi antara dua operand.
+
+            \subsubsection{Contoh XCHG}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi XCHG, label={lst:xchg-examples}]
+; Contoh XCHG antar register
+mov ax, 1234h       ; AX = 1234h
+mov bx, 5678h       ; BX = 5678h
+xchg ax, bx         ; Sekarang AX = 5678h, BX = 1234h
+
+; Contoh XCHG register dengan memori
+mov ax, 1000h       ; AX = 1000h
+mov word ptr [si], 2000h  ; [SI] = 2000h
+xchg ax, [si]       ; AX = 2000h, [SI] = 1000h
+
+; Contoh XCHG 8-bit
+mov al, 'A'         ; AL = 'A'
+mov bl, 'B'         ; BL = 'B'
+xchg al, bl         ; AL = 'B', BL = 'A'
+\end{lstlisting}
+
+        \subsection{Instruksi PUSH dan POP}
+            \subsubsection{Sintaks dan fungsi}
 \begin{itemize}
-  \item \textbf{Manipulasi data}: Implementasikan rutin \texttt{set\_bit}, \texttt{clear\_bit}, \texttt{toggle\_bit} untuk sebuah byte di memori; sertakan pengujian.
-  \item \textbf{Menu teks}: Buat menu sederhana dengan kontrol posisi kursor, garis pemisah menggunakan karakter ASCII, dan pilihan bernomor; sorot pilihan aktif dengan atribut warna.
-  \item \textbf{XOR cipher}: Implementasikan enkripsi/dekripsi string berbasis XOR (1 byte kunci), dokumentasikan kelemahannya dan skenario edukatifnya.
-  \item \textbf{Dokumentasi INT 10h}: Buat ringkasan parameter untuk fungsi 02h, 09h, 0Ah, 0Eh dan contoh singkat masing-masing.
+    \item \texttt{PUSH operand}: Mendorong operand ke stack (SP = SP - 2, lalu simpan operand)
+    \item \texttt{POP operand}: Mengambil operand dari stack (ambil operand, lalu SP = SP + 2)
 \end{itemize}
 
+            \subsubsection{Contoh PUSH dan POP}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi PUSH dan POP, label={lst:push-pop-examples}]
+; Contoh PUSH dan POP register
+mov ax, 1234h       ; AX = 1234h
+mov bx, 5678h       ; BX = 5678h
 
-\end{document}
+push ax             ; Simpan AX ke stack
+push bx             ; Simpan BX ke stack
+
+; Sekarang AX dan BX bisa digunakan untuk operasi lain
+mov ax, 0           ; AX = 0
+mov bx, 0           ; BX = 0
+
+pop bx              ; BX = nilai yang disimpan terakhir (5678h)
+pop ax              ; AX = nilai yang disimpan pertama (1234h)
+
+; Contoh PUSH dan POP flags
+pushf               ; Simpan semua flags ke stack
+; ... operasi yang mengubah flags ...
+popf                ; Restore flags dari stack
+
+; Contoh PUSH dan POP memori
+push word ptr [si]  ; Push word dari DS:SI
+pop word ptr [di]   ; Pop ke word di DS:DI
+\end{lstlisting}
+
+    \section{Instruksi Aritmatika}
+
+        \subsection{Instruksi ADD (Addition)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{ADD destination, source}. Fungsi: menambahkan nilai source ke destination dan menyimpan hasil di destination.
+
+            \subsubsection{Contoh ADD}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi ADD, label={lst:add-examples}]
+; Contoh ADD register dengan register
+mov ax, 5           ; AX = 5
+mov bx, 3           ; BX = 3
+add ax, bx          ; AX = AX + BX = 5 + 3 = 8
+
+; Contoh ADD register dengan konstanta
+mov ax, 100         ; AX = 100
+add ax, 50          ; AX = AX + 50 = 150
+
+; Contoh ADD register dengan memori
+mov ax, 10          ; AX = 10
+mov word ptr [si], 20   ; [SI] = 20
+add ax, [si]        ; AX = AX + [SI] = 10 + 20 = 30
+
+; Contoh ADD memori dengan register
+mov ax, 15          ; AX = 15
+mov [di], ax        ; [DI] = 15
+mov bx, 25          ; BX = 25
+add [di], bx        ; [DI] = [DI] + BX = 15 + 25 = 40
+\end{lstlisting}
+
+        \subsection{Instruksi SUB (Subtraction)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{SUB destination, source}. Fungsi: mengurangkan nilai source dari destination dan menyimpan hasil di destination.
+
+            \subsubsection{Contoh SUB}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi SUB, label={lst:sub-examples}]
+; Contoh SUB register dengan register
+mov ax, 10          ; AX = 10
+mov bx, 3           ; BX = 3
+sub ax, bx          ; AX = AX - BX = 10 - 3 = 7
+
+; Contoh SUB register dengan konstanta
+mov ax, 100         ; AX = 100
+sub ax, 25          ; AX = AX - 25 = 75
+
+; Contoh SUB register dengan memori
+mov ax, 50          ; AX = 50
+mov word ptr [si], 15   ; [SI] = 15
+sub ax, [si]        ; AX = AX - [SI] = 50 - 15 = 35
+
+; Contoh SUB memori dengan register
+mov ax, 30          ; AX = 30
+mov [di], ax        ; [DI] = 30
+mov bx, 10          ; BX = 10
+sub [di], bx        ; [DI] = [DI] - BX = 30 - 10 = 20
+\end{lstlisting}
+
+        \subsection{Instruksi MUL (Multiply)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{MUL source}. Fungsi: mengalikan register dengan source.
+\begin{itemize}
+    \item \textbf{8-bit}: \texttt{MUL r/m8} → \texttt{AX = AL * r/m8}
+    \item \textbf{16-bit}: \texttt{MUL r/m16} → \texttt{DX:AX = AX * r/m16}
+\end{itemize}
+
+            \subsubsection{Contoh MUL}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi MUL, label={lst:mul-examples}]
+; Contoh MUL 8-bit
+mov al, 10h         ; AL = 10h (16 desimal)
+mov bl, 02h         ; BL = 02h (2 desimal)
+mul bl              ; AX = AL * BL = 16 * 2 = 32 = 0020h
+
+; Contoh MUL 16-bit
+mov ax, 1000h       ; AX = 1000h (4096 desimal)
+mov bx, 0002h       ; BX = 0002h (2 desimal)
+mul bx              ; DX:AX = AX * BX = 4096 * 2 = 8192 = 2000h
+
+; Contoh MUL dengan memori
+mov al, 5           ; AL = 5
+mov byte ptr [si], 4    ; [SI] = 4
+mul byte ptr [si]   ; AX = AL * [SI] = 5 * 4 = 20 = 0014h
+\end{lstlisting}
+
+        \subsection{Instruksi DIV (Divide)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{DIV source}. Fungsi: membagi register dengan source.
+\begin{itemize}
+    \item \textbf{8-bit}: \texttt{DIV r/m8} → \texttt{AL = AX / r/m8}, \texttt{AH = AX mod r/m8}
+    \item \textbf{16-bit}: \texttt{DIV r/m16} → \texttt{AX = DX:AX / r/m16}, \texttt{DX = DX:AX mod r/m16}
+\end{itemize}
+
+            \subsubsection{Contoh DIV}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi DIV, label={lst:div-examples}]
+; Contoh DIV 8-bit
+mov ax, 0020h       ; AX = 0020h (32 desimal)
+mov bl, 04h         ; BL = 04h (4 desimal)
+div bl              ; AL = AX / BL = 32 / 4 = 8, AH = 32 mod 4 = 0
+
+; Contoh DIV 16-bit
+mov dx, 0           ; DX = 0 (bagian tinggi)
+mov ax, 2000h       ; AX = 2000h (8192 desimal)
+mov bx, 0002h       ; BX = 0002h (2 desimal)
+div bx              ; AX = DX:AX / BX = 8192 / 2 = 4096, DX = 0
+
+; Contoh DIV dengan sisa
+mov ax, 0015h       ; AX = 0015h (21 desimal)
+mov bl, 04h         ; BL = 04h (4 desimal)
+div bl              ; AL = 21 / 4 = 5, AH = 21 mod 4 = 1
+\end{lstlisting}
+
+        \subsection{Instruksi ADC (Add with Carry)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{ADC destination, source}. Fungsi: menambahkan source ke destination ditambah carry flag (CF).
+
+            \subsubsection{Contoh ADC}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi ADC, label={lst:adc-examples}]
+; Contoh ADC untuk aritmatika multi-precision
+mov ax, 0FFFFh      ; AX = FFFFh
+mov bx, 0001h       ; BX = 0001h
+add ax, bx          ; AX = FFFFh + 0001h = 0000h, CF = 1
+
+mov dx, 0000h       ; DX = 0000h
+mov cx, 0000h       ; CX = 0000h
+adc dx, cx          ; DX = DX + CX + CF = 0000h + 0000h + 1 = 0001h
+
+; Sekarang DX:AX = 0001:0000h = 65536 (hasil penjumlahan 32-bit)
+\end{lstlisting}
+
+        \subsection{Instruksi SBB (Subtract with Borrow)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{SBB destination, source}. Fungsi: mengurangkan source dari destination dikurangi borrow flag (CF).
+
+            \subsubsection{Contoh SBB}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi SBB, label={lst:sbb-examples}]
+; Contoh SBB untuk aritmatika multi-precision
+mov ax, 0000h       ; AX = 0000h
+mov bx, 0001h       ; BX = 0001h
+sub ax, bx          ; AX = 0000h - 0001h = FFFFh, CF = 1
+
+mov dx, 0001h       ; DX = 0001h
+mov cx, 0000h       ; CX = 0000h
+sbb dx, cx          ; DX = DX - CX - CF = 0001h - 0000h - 1 = 0000h
+
+; Sekarang DX:AX = 0000:FFFFh = 65535 (hasil pengurangan 32-bit)
+\end{lstlisting}
+
+        \subsection{Instruksi INC (Increment)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{INC operand}. Fungsi: menambahkan 1 ke operand. \textbf{Penting}: Tidak memengaruhi CF flag.
+
+            \subsubsection{Contoh INC}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi INC, label={lst:inc-examples}]
+; Contoh INC register
+mov ax, 5           ; AX = 5
+inc ax              ; AX = AX + 1 = 6
+
+; Contoh INC memori
+mov word ptr [si], 10   ; [SI] = 10
+inc word ptr [si]   ; [SI] = [SI] + 1 = 11
+
+; Contoh INC dalam loop
+mov cx, 5           ; CX = 5 (counter)
+loop_start:
+    ; ... operasi ...
+    inc cx           ; CX = CX + 1
+    cmp cx, 10       ; Bandingkan dengan 10
+    jl loop_start    ; Jika CX < 10, ulangi loop
+\end{lstlisting}
+
+        \subsection{Instruksi DEC (Decrement)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{DEC operand}. Fungsi: mengurangkan 1 dari operand. \textbf{Penting}: Tidak memengaruhi CF flag.
+
+            \subsubsection{Contoh DEC}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi DEC, label={lst:dec-examples}]
+; Contoh DEC register
+mov ax, 10          ; AX = 10
+dec ax              ; AX = AX - 1 = 9
+
+; Contoh DEC memori
+mov word ptr [si], 5    ; [SI] = 5
+dec word ptr [si]   ; [SI] = [SI] - 1 = 4
+
+; Contoh DEC dalam loop
+mov cx, 10          ; CX = 10 (counter)
+loop_start:
+    ; ... operasi ...
+    dec cx           ; CX = CX - 1
+    jnz loop_start   ; Jika CX != 0, ulangi loop
+\end{lstlisting}
+
+        \subsection{Instruksi NEG (Negate)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{NEG operand}. Fungsi: mengubah operand menjadi negatifnya (two's complement).
+
+            \subsubsection{Contoh NEG}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi NEG, label={lst:neg-examples}]
+; Contoh NEG register
+mov ax, 5           ; AX = 5
+neg ax              ; AX = -5 (FFFBh dalam two's complement)
+
+; Contoh NEG memori
+mov word ptr [si], 10   ; [SI] = 10
+neg word ptr [si]   ; [SI] = -10 (FFF6h dalam two's complement)
+
+; Contoh NEG dengan hasil nol
+mov ax, 0           ; AX = 0
+neg ax              ; AX = -0 = 0, ZF = 1
+\end{lstlisting}
+
+        \subsection{Instruksi CMP (Compare)}
+            \subsubsection{Sintaks dan fungsi}
+Bentuk umum: \texttt{CMP operand1, operand2}. Fungsi: membandingkan operand1 dengan operand2 tanpa menyimpan hasil (seperti SUB tanpa menyimpan).
+
+            \subsubsection{Contoh CMP}
+\begin{lstlisting}[language={[x86masm]Assembler}, caption=Instruksi CMP, label={lst:cmp-examples}]
+; Contoh CMP untuk conditional jump
+mov ax, 10          ; AX = 10
+mov bx, 5           ; BX = 5
+cmp ax, bx          ; Bandingkan AX dengan BX
+jg greater          ; Jika AX > BX, lompat ke 'greater'
+jl less             ; Jika AX < BX, lompat ke 'less'
+je equal            ; Jika AX = BX, lompat ke 'equal'
+
+greater:
+    ; AX > BX
+    jmp end_compare
+
+less:
+    ; AX < BX
+    jmp end_compare
+
+equal:
+    ; AX = BX
+    jmp end_compare
+
+end_compare:
+    ; Lanjutkan program
+\end{lstlisting}
+
+    \section{Flag Register dan Operasi Aritmatika}
+
+        \subsection{Pengenalan Flag Register}
+            Flag register pada Intel 8086 adalah register 16-bit yang menyimpan status hasil operasi aritmatika dan logika. Setiap bit memiliki fungsi khusus yang penting untuk pemrograman assembly.
+
+        \subsection{Detail Flag Register}
+            \begin{itemize}
+\item \textbf{CF (Carry Flag)}: Menandakan carry keluar pada penjumlahan atau borrow pada pengurangan (aritmatika tak bertanda).
+\item \textbf{ZF (Zero Flag)}: Hasil operasi bernilai nol.
+\item \textbf{SF (Sign Flag)}: Bit tertinggi hasil (menunjukkan tanda pada interpretasi bertanda).
+\item \textbf{OF (Overflow Flag)}: Luapan pada aritmatika bertanda (hasil tidak muat dalam rentang bertanda).
+\item \textbf{PF (Parity Flag)}: Paritas bit rendah dari hasil (jumlah bit 1 genap).
+\item \textbf{AF (Auxiliary Carry Flag)}: Carry dari bit 3 ke bit 4 (relevan untuk BCD).
+            \end{itemize}
+
+        \subsection{Contoh Penggunaan Flag}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Penggunaan Flag untuk Conditional Jump, label={lst:flag-usage}]
+; Contoh pemeriksaan flag setelah operasi aritmatika
+mov ax, 0FFFFh      ; AX = FFFFh
+mov bx, 0001h       ; BX = 0001h
+add ax, bx          ; AX = 0000h, CF = 1, ZF = 1
+
+; Pemeriksaan flag
+jc carry_occurred   ; Jika carry (CF = 1), lompat ke 'carry_occurred'
+jz zero_result      ; Jika hasil nol (ZF = 1), lompat ke 'zero_result'
+jo overflow_occurred ; Jika overflow (OF = 1), lompat ke 'overflow_occurred'
+
+carry_occurred:
+    ; Handle carry
+    jmp end_check
+
+zero_result:
+    ; Handle zero result
+    jmp end_check
+
+overflow_occurred:
+    ; Handle overflow
+    jmp end_check
+
+end_check:
+    ; Lanjutkan program
+            \end{lstlisting}
+
+    \section{Contoh Program Lengkap}
+
+        \subsection{Program Kalkulator Sederhana}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Kalkulator Sederhana, label={lst:calculator-program}]
+org 100h
+
+start:
+    ; Inisialisasi data segment
+    mov ax, data
+    mov ds, ax
+    
+    ; Program kalkulator sederhana
+    ; Operasi: (10 + 5) * 2 - 3 = 27
+    
+    ; Langkah 1: Penjumlahan (10 + 5)
+    mov ax, 10          ; AX = 10
+    mov bx, 5           ; BX = 5
+    add ax, bx          ; AX = AX + BX = 10 + 5 = 15
+    
+    ; Simpan hasil sementara
+    mov hasil1, ax      ; hasil1 = 15
+    
+    ; Langkah 2: Perkalian (15 * 2)
+    mov ax, hasil1      ; AX = 15
+    mov bx, 2           ; BX = 2
+    mul bx              ; DX:AX = AX * BX = 15 * 2 = 30
+    
+    ; Simpan hasil perkalian
+    mov hasil2, ax      ; hasil2 = 30
+    
+    ; Langkah 3: Pengurangan (30 - 3)
+    mov ax, hasil2      ; AX = 30
+    mov bx, 3           ; BX = 3
+    sub ax, bx          ; AX = AX - BX = 30 - 3 = 27
+    
+    ; Simpan hasil akhir
+    mov hasil_final, ax ; hasil_final = 27
+    
+    ; Keluar dari program
+    mov ah, 4Ch
+    int 21h
+
+data segment
+    hasil1     dw ?
+    hasil2     dw ?
+    hasil_final dw ?
+data ends
+
+end start
+            \end{lstlisting}
+
+        \subsection{Program Aritmatika Multi-Precision}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program Aritmatika Multi-Precision, label={lst:multiprecision-program}]
+org 100h
+
+start:
+    ; Inisialisasi data segment
+    mov ax, data
+    mov ds, ax
+    
+    ; Program aritmatika 32-bit
+    ; Menjumlahkan dua bilangan 32-bit: 0x12345678 + 0x87654321
+    
+    ; Bilangan pertama: 0x12345678
+    mov ax, 5678h       ; AX = bagian rendah
+    mov dx, 1234h       ; DX = bagian tinggi
+    
+    ; Bilangan kedua: 0x87654321
+    mov bx, 4321h       ; BX = bagian rendah
+    mov cx, 8765h       ; CX = bagian tinggi
+    
+    ; Penjumlahan bagian rendah
+    add ax, bx          ; AX = AX + BX = 5678h + 4321h = 9999h
+    
+    ; Penjumlahan bagian tinggi dengan carry
+    adc dx, cx          ; DX = DX + CX + CF = 1234h + 8765h + CF
+    
+    ; Simpan hasil
+    mov hasil_low, ax   ; hasil_low = 9999h
+    mov hasil_high, dx  ; hasil_high = 9999h + CF
+    
+    ; Hasil akhir: DX:AX = 0x99999999
+    
+    ; Keluar dari program
+    mov ah, 4Ch
+    int 21h
+
+data segment
+    hasil_low  dw ?
+    hasil_high dw ?
+data ends
+
+end start
+            \end{lstlisting}
+
+        \subsection{Program dengan Instruksi CMP dan Conditional Jump}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Program dengan CMP dan Conditional Jump, label={lst:cmp-program}]
+org 100h
+
+start:
+    ; Inisialisasi data segment
+    mov ax, data
+    mov ds, ax
+    
+    ; Program untuk menentukan bilangan terbesar dari dua bilangan
+    ; Bilangan A = 25, Bilangan B = 30
+    
+    mov ax, bilangan_a  ; AX = 25
+    mov bx, bilangan_b  ; BX = 30
+    
+    ; Bandingkan AX dengan BX
+    cmp ax, bx          ; Bandingkan 25 dengan 30
+    
+    ; Conditional jump berdasarkan hasil perbandingan
+    jg a_greater        ; Jika AX > BX, lompat ke 'a_greater'
+    jl b_greater        ; Jika AX < BX, lompat ke 'b_greater'
+    je equal            ; Jika AX = BX, lompat ke 'equal'
+    
+a_greater:
+    ; AX > BX, simpan AX sebagai terbesar
+    mov terbesar, ax
+    jmp end_program
+    
+b_greater:
+    ; BX > AX, simpan BX sebagai terbesar
+    mov terbesar, bx
+    jmp end_program
+    
+equal:
+    ; AX = BX, keduanya sama
+    mov terbesar, ax
+    jmp end_program
+    
+end_program:
+    ; Keluar dari program
+    mov ah, 4Ch
+    int 21h
+
+data segment
+    bilangan_a dw 25
+    bilangan_b dw 30
+    terbesar   dw ?
+data ends
+
+end start
+            \end{lstlisting}
+
+    \section{Kasus Tepi dan Penanganan Error}
+
+        \subsection{Overflow dan Underflow}
+            \begin{itemize}
+\item \textbf{Overflow bertanda}: Contoh \texttt{0x7FFF + 0x0001} menghasilkan \texttt{OF=1}, \texttt{CF=0}.
+\item \textbf{Borrow tak bertanda}: \texttt{SUB AX, BX} dengan \texttt{AX<BX} akan menyetel \texttt{CF=1}.
+\item \textbf{INC/DEC}: Tidak mengubah \texttt{CF}; hati-hati untuk algoritma yang mengandalkan carry chain.
+            \end{itemize}
+
+        \subsection{Pembagian dengan Nol}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption=Penanganan Pembagian dengan Nol, label={lst:div-zero-handling}]
+; Contoh penanganan pembagian dengan nol
+mov ax, 100         ; AX = 100
+mov bx, 0           ; BX = 0
+
+; Cek apakah pembagi nol
+cmp bx, 0           ; Bandingkan BX dengan 0
+je division_by_zero ; Jika BX = 0, lompat ke handler
+
+; Jika tidak nol, lakukan pembagian
+div bx              ; AX = AX / BX
+jmp continue        ; Lanjutkan program
+
+division_by_zero:
+    ; Handle pembagian dengan nol
+    mov ax, 0FFFFh  ; Set hasil ke nilai error
+    jmp continue
+
+continue:
+    ; Lanjutkan program
+            \end{lstlisting}
+
+    \section{Kesimpulan}
+        Bab ini telah membahas secara detail instruksi perpindahan data dan aritmatika pada Intel 8086. Pemahaman yang baik tentang:
+        \begin{itemize}
+            \item Instruksi perpindahan data (\texttt{MOV}, \texttt{XCHG}, \texttt{PUSH}, \texttt{POP})
+            \item Instruksi aritmatika dasar (\texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV})
+            \item Instruksi aritmatika tambahan (\texttt{ADC}, \texttt{SBB}, \texttt{INC}, \texttt{DEC}, \texttt{NEG}, \texttt{CMP})
+            \item Flag register dan penggunaannya
+            \item Penanganan kasus tepi dan error
+        \end{itemize}
+
+akan menjadi fondasi yang kuat untuk pemrograman assembly yang lebih kompleks pada bab-bab berikutnya.

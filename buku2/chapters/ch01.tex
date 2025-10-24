@@ -16,837 +16,619 @@ Setelah mengikuti pertemuan ini, mahasiswa diharapkan mampu:
 
 \section{Pendahuluan}\label{sec:pengenalan-pendahuluan}
 
-\subsection{Latar Belakang dan Konteks Historis}
-Bahasa rakitan (assembly language) merupakan salah satu bahasa pemrograman tertua yang masih digunakan hingga saat ini \cite{wiki_assembly_language}. Konsep assembly language pertama kali dikembangkan pada tahun 1940-an sebagai respons terhadap kompleksitas pemrograman dalam bahasa mesin murni. Sebelum adanya assembly language, programmer harus menulis program menggunakan kode biner (0 dan 1) yang sangat sulit dibaca dan rentan terhadap kesalahan.
+    \subsection{Latar Belakang dan Konteks Historis}
+        Bahasa rakitan (assembly language) merupakan salah satu bahasa pemrograman tertua yang masih digunakan hingga saat ini \cite{wiki_assembly_language}. Konsep assembly language pertama kali dikembangkan pada tahun 1940-an sebagai respons terhadap kompleksitas pemrograman dalam bahasa mesin murni. Sebelum adanya assembly language, programmer harus menulis program menggunakan kode biner (0 dan 1) yang sangat sulit dibaca dan rentan terhadap kesalahan.
 
-Perkembangan assembly language dimulai dengan munculnya komputer-komputer pertama seperti ENIAC dan UNIVAC \cite{wiki_8086}. Pada masa itu, programmer menggunakan machine code yang terdiri dari angka-angka biner yang mewakili instruksi dasar komputer. Proses ini sangat memakan waktu dan rawan kesalahan. Assembly language kemudian dikembangkan sebagai solusi dengan menyediakan mnemonik (singkatan yang mudah diingat) untuk menggantikan kode biner tersebut \cite{hyde2010art}.
+        Perkembangan assembly language dimulai dengan munculnya komputer-komputer pertama seperti ENIAC dan UNIVAC \cite{wiki_8086}. Pada masa itu, programmer menggunakan machine code yang terdiri dari angka-angka biner yang mewakili instruksi dasar komputer. Proses ini sangat memakan waktu dan rawan kesalahan. Assembly language kemudian dikembangkan sebagai solusi dengan menyediakan mnemonik (singkatan yang mudah diingat) untuk menggantikan kode biner tersebut \cite{hyde2010art}.
 
-\subsection{Mengapa Mempelajari Assembly Language?}
-Meskipun assembly language dianggap sulit dan memakan waktu dalam pengembangan, ada beberapa alasan penting mengapa mempelajarinya tetap relevan:
+    \subsection{Mengapa Mempelajari Assembly Language?}
+        Meskipun assembly language dianggap sulit dan memakan waktu dalam pengembangan, ada beberapa alasan penting mengapa mempelajarinya tetap relevan:
 
-\begin{enumerate}
-\item \textbf{Pemahaman Fundamental Komputer}\\
-Assembly language memberikan pemahaman mendalam tentang bagaimana komputer benar-benar bekerja. Mahasiswa akan memahami:
-\begin{itemize}
-    \item Cara CPU mengeksekusi instruksi
-    \item Penggunaan register dan memori
-    \item Mekanisme interupsi dan I/O
-    \item Representasi data dalam komputer
-\end{itemize}
+        \begin{enumerate}
+            \item \textbf{Pemahaman Fundamental Komputer}\\
+                Assembly language memberikan pemahaman mendalam tentang bagaimana komputer benar-benar bekerja. Mahasiswa akan memahami:
+                \begin{itemize}
+                    \item Cara CPU mengeksekusi instruksi
+                    \item Penggunaan register dan memori
+                    \item Mekanisme interupsi dan I/O
+                    \item Representasi data dalam komputer
+                \end{itemize}
 
-\item \textbf{Optimasi Kinerja}\\
-Dalam aplikasi yang memerlukan kinerja maksimal, seperti:
-\begin{itemize}
-    \item Sistem operasi dan kernel
-    \item Driver perangkat keras
-    \item Game engine dan aplikasi real-time
-    \item Sistem embedded dan firmware
-\end{itemize}
+            \item \textbf{Optimasi Kinerja}\\
+                Dalam aplikasi yang memerlukan kinerja maksimal, seperti:
+                \begin{itemize}
+                    \item Sistem operasi dan kernel
+                    \item Driver perangkat keras
+                    \item Game engine dan aplikasi real-time
+                    \item Sistem embedded dan firmware
+                \end{itemize}
 
-\item \textbf{Debugging dan Analisis}\\
-Pemahaman assembly language sangat membantu dalam:
-\begin{itemize}
-    \item Debugging program yang sudah dikompilasi
-    \item Reverse engineering
-    \item Analisis malware dan keamanan
-    \item Optimasi compiler
-\end{itemize}
+            \item \textbf{Debugging dan Analisis}\\
+                Pemahaman assembly language sangat membantu dalam:
+                \begin{itemize}
+                    \item Debugging program yang sudah dikompilasi
+                    \item Reverse engineering
+                    \item Analisis malware dan keamanan
+                    \item Optimasi compiler
+                \end{itemize}
 
-\item \textbf{Bidang Khusus}\\
-Assembly language masih digunakan dalam bidang-bidang khusus seperti:
-\begin{itemize}
-    \item Pengembangan sistem operasi
-    \item Pemrograman embedded systems
-    \item Keamanan siber dan forensik digital
-    \item Pengembangan compiler dan interpreter
-\end{itemize}
-\end{enumerate}
+            \item \textbf{Bidang Khusus}\\
+                Assembly language masih digunakan dalam bidang-bidang khusus seperti:
+                \begin{itemize}
+                    \item Pengembangan sistem operasi
+                    \item Pemrograman embedded systems
+                    \item Keamanan siber dan forensik digital
+                    \item Pengembangan compiler dan interpreter
+                \end{itemize}
+        \end{enumerate}
 
-\section{Pengenalan Bahasa Rakitan dan\\Bahasa Tingkat Rendah}\label{sec:pengenalan-bahasa}
+\section{Pengenalan Bahasa Rakitan dan Bahasa Tingkat Rendah}\label{sec:pengenalan-bahasa}
 
-\subsection{Definisi dan Karakteristik Bahasa Rakitan}\label{subsec:pengenalan-definisi}
+    \subsection{Definisi dan Karakteristik Bahasa Rakitan}\label{subsec:pengenalan-definisi}
 
-\subsubsection{Definisi bahasa rakitan (assembly language)}
-Assembly language adalah bahasa pemrograman berlevel rendah yang menyediakan antarmuka langsung terhadap instruksi mesin (machine instructions) dari sebuah \textit{Instruction Set Architecture} (ISA) \cite{computer_organization_design}. Assembly language merupakan representasi mnemonik dari instruksi mesin. Setiap mnemonik (misal, \texttt{MOV}, \texttt{ADD}, \texttt{JMP}) biasanya berkorelasi dekat dengan \textit{opcode} biner yang dieksekusi CPU. Kode assembly dirakit (\textit{assembled}) oleh \textit{assembler} (misal: TASM, MASM, NASM) menjadi \textit{object code} atau berkas executable \cite{tutorials_point_assembly}.
+        \subsubsection{Definisi bahasa rakitan (assembly language)}
+            Assembly language adalah bahasa pemrograman berlevel rendah yang menyediakan antarmuka langsung terhadap instruksi mesin (machine instructions) dari sebuah \textit{Instruction Set Architecture} (ISA) \cite{computer_organization_design}. Assembly language merupakan representasi mnemonik dari instruksi mesin. Setiap mnemonik (misal, \texttt{MOV}, \texttt{ADD}, \texttt{JMP}) biasanya berkorelasi dekat dengan \textit{opcode} biner yang dieksekusi CPU. Kode assembly dirakit (\textit{assembled}) oleh \textit{assembler} (misal: TASM, MASM, NASM) menjadi \textit{object code} atau berkas executable \cite{tutorials_point_assembly}.
 
-Dalam konteks pembelajaran ini, kita akan fokus pada keluarga x86, khususnya Intel 8086 dan penerusnya, yang merupakan arsitektur yang paling banyak digunakan dalam komputer personal \cite{intel2019manual32}. Setiap instruksi assembly language memiliki korespondensi hampir satu-ke-satu dengan instruksi mesin. Misalnya, instruksi assembly \texttt{MOV AX, 5} akan diterjemahkan oleh assembler menjadi kode biner yang dapat dieksekusi langsung oleh CPU.
+            Dalam konteks pembelajaran ini, kita akan fokus pada keluarga x86, khususnya Intel 8086 dan penerusnya, yang merupakan arsitektur yang paling banyak digunakan dalam komputer personal \cite{intel2019manual32}. Setiap instruksi assembly language memiliki korespondensi hampir satu-ke-satu dengan instruksi mesin. Misalnya, instruksi assembly \texttt{MOV AX, 5} akan diterjemahkan oleh assembler menjadi kode biner yang dapat dieksekusi langsung oleh CPU.
 
-\subsubsection{Posisi Assembly dalam Hierarki Bahasa Pemrograman}
-Dalam hierarki bahasa pemrograman, assembly language menempati posisi yang unik. Berikut adalah perbandingan dengan bahasa pemrograman lainnya:
+        \subsubsection{Posisi Assembly dalam Hierarki Bahasa Pemrograman}
+            Dalam hierarki bahasa pemrograman, assembly language menempati posisi yang unik. Berikut adalah perbandingan dengan bahasa pemrograman lainnya:
 
-\begin{center}
-\begin{tabular}{p{0.28\textwidth} p{0.31\textwidth} p{0.31\textwidth}}
-\hline
-\textbf{Aspek} & \textbf{Assembly} & \textbf{Bahasa Tingkat Tinggi} \\
-\hline
-Abstraksi & Rendah; dekat hardware & Tinggi; jauh dari hardware \\
-Portabilitas & Rendah (spesifik ISA) & Lebih tinggi (kompiler/VM) \\
-Produktivitas & Rendah & Tinggi \\
-Kinerja puncak & Sangat tinggi (jika dioptimasi) & Umumnya baik dengan optimasi otomatis \\
-Pemeliharaan & Sulit & Lebih mudah \\
-Manajemen Memori & Manual & Otomatis \\
-Pustaka & Minim & Kaya \\
-\hline
-\end{tabular}
-\end{center}
+            \begin{table}[H]
+                \centering
+                \caption{Perbandingan Assembly dan Bahasa Tingkat Tinggi}
+                \begin{tabular}{p{0.28\textwidth} p{0.31\textwidth} p{0.31\textwidth}}
+                    \hline
+                    \textbf{Aspek} & \textbf{Assembly} & \textbf{Bahasa Tingkat Tinggi} \\
+                    \hline
+                    Abstraksi & Rendah; dekat hardware & Tinggi; jauh dari hardware \\
+                    Portabilitas & Rendah (spesifik ISA) & Lebih tinggi (kompiler/VM) \\
+                    Produktivitas & Rendah & Tinggi \\
+                    Kinerja puncak & Sangat tinggi (jika dioptimasi) & Umumnya baik dengan optimasi otomatis \\
+                    Pemeliharaan & Sulit & Lebih mudah \\
+                    Manajemen Memori & Manual & Otomatis \\
+                    Pustaka & Minim & Kaya \\
+                    \hline
+                \end{tabular}
+                \label{tab:assembly-vs-high-level}
+            \end{table}
 
-\textbf{Bahasa Tingkat Tinggi} (seperti Python, Java, C++):
-\begin{itemize}
-    \item Menyediakan abstraksi tinggi dengan tipe data kompleks
-    \item Memiliki manajemen memori otomatis
-    \item Kaya akan pustaka standar dan framework
-    \item Mudah dibaca dan dipelihara
-    \item Memerlukan compiler atau interpreter
-\end{itemize}
+            \textbf{Bahasa Tingkat Tinggi} (seperti Python, Java, C++):
+            \begin{itemize}
+                \item Menyediakan abstraksi tinggi dengan tipe data kompleks
+                \item Memiliki manajemen memori otomatis
+                \item Kaya akan pustaka standar dan framework
+                \item Mudah dibaca dan dipelihara
+                \item Memerlukan compiler atau interpreter
+            \end{itemize}
 
-\textbf{Bahasa Tingkat Menengah} (seperti C):
-\begin{itemize}
-    \item Menyediakan abstraksi sedang
-    \item Memberikan kontrol manual terhadap memori
-    \item Memiliki akses langsung ke hardware melalui pointer
-    \item Di-compile ke assembly atau machine code
-\end{itemize}
+            \textbf{Bahasa Tingkat Menengah} (seperti C):
+            \begin{itemize}
+                \item Menyediakan abstraksi sedang
+                \item Memberikan kontrol manual terhadap memori
+                \item Memiliki akses langsung ke hardware melalui pointer
+                \item Di-compile ke assembly atau machine code
+            \end{itemize}
 
-\textbf{Assembly Language}:
-\begin{itemize}
-    \item Memberikan kontrol granular atas register CPU, flags, dan layout memori
-    \item Spesifik arsitektur (kode untuk x86 tidak portabel ke ARM)
-    \item Memetakan langsung ke instruksi mesin
-    \item Memerlukan pemahaman mendalam tentang arsitektur hardware
-\end{itemize}
+            \textbf{Assembly Language}:
+            \begin{itemize}
+                \item Memberikan kontrol granular atas register CPU, flags, dan layout memori
+                \item Spesifik arsitektur (kode untuk x86 tidak portabel ke ARM)
+                \item Memetakan langsung ke instruksi mesin
+                \item Memerlukan pemahaman mendalam tentang arsitektur hardware
+            \end{itemize}
 
-\subsubsection{Keunggulan dan Kelemahan Bahasa Rakitan}
-\begin{itemize}
-    \item \textbf{Keunggulan}:
-    \begin{itemize}
-        \item Kontrol penuh terhadap perangkat keras
-        \item Optimasi mikroskopik untuk kinerja/ukuran
-        \item Pemahaman mendalam atas \textit{runtime} dan \textit{calling convention}
-        \item Kontrol granular atas register CPU, \textit{flags}, dan layout memori
-        \item Kinerja dan jejak memori optimal untuk aplikasi \textit{embedded} atau komponen \textit{runtime-critical}
-    \end{itemize}
-    \item \textbf{Kelemahan}:
-    \begin{itemize}
-        \item Pengembangan lambat dan rentan kesalahan
-        \item Sulit dipelihara dan kurang portabel (spesifik arsitektur)
-        \item Minim dukungan pustaka
-        \item Kurangnya abstraksi tingkat tinggi: Tidak tersedia struktur kontrol tingkat tinggi, \textit{garbage collector}, atau tipe kompleks secara bawaan
-    \end{itemize}
-\end{itemize}
+        \subsubsection{Keunggulan dan Kelemahan Bahasa Rakitan}
+            \begin{itemize}
+                \item \textbf{Keunggulan}:
+                \begin{itemize}
+                    \item Kontrol penuh terhadap perangkat keras
+                    \item Optimasi mikroskopik untuk kinerja/ukuran
+                    \item Pemahaman mendalam atas \textit{runtime} dan \textit{calling convention}
+                    \item Kontrol granular atas register CPU, \textit{flags}, dan layout memori
+                    \item Kinerja dan jejak memori optimal untuk aplikasi \textit{embedded} atau komponen \textit{runtime-critical}
+                \end{itemize}
+                \item \textbf{Kelemahan}:
+                \begin{itemize}
+                    \item Pengembangan lambat dan rentan kesalahan
+                    \item Sulit dipelihara dan kurang portabel (spesifik arsitektur)
+                    \item Minim dukungan pustaka
+                    \item Kurangnya abstraksi tingkat tinggi: Tidak tersedia struktur kontrol tingkat tinggi, \textit{garbage collector}, atau tipe kompleks secara bawaan
+                \end{itemize}
+            \end{itemize}
 
-\subsection{Aplikasi Bahasa Rakitan}\label{subsec:pengenalan-aplikasi}
+    \subsection{Aplikasi Bahasa Rakitan}\label{subsec:pengenalan-aplikasi}
 
-\subsubsection{Aplikasi bahasa rakitan dalam pemrograman}
-Assembly language masih digunakan dalam berbagai bidang khusus, terutama dalam aplikasi yang memerlukan kinerja maksimal, kontrol hardware langsung, atau ukuran kode yang minimal:
+        \subsubsection{Aplikasi bahasa rakitan dalam pemrograman}
+            Assembly language masih digunakan dalam berbagai bidang khusus, terutama dalam aplikasi yang memerlukan kinerja maksimal, kontrol hardware langsung, atau ukuran kode yang minimal:
 
-\begin{itemize}
-    \item \textbf{Perangkat tertanam (embedded)}: \textit{firmware} mikrokontroler, \textit{device driver}, \textit{interrupt service routine}
-    \item \textbf{Sistem tingkat rendah }: \textit{bootloader}, BIOS/UEFI, bagian \textit{kernel} yang sensitif kinerja
-    \item \textbf{Optimasi hotspot}: Bagian kecil dari aplikasi yang memerlukan latensi minimal
-    \item \textbf{Rekayasa balik dan keamanan}: Analisis \textit{malware}, \textit{exploit development}, \textit{debugging} pada level instruksi
-    \item \textbf{Sistem operasi dan kernel}: Komponen inti yang memerlukan kontrol langsung terhadap hardware
-    \item \textbf{Game engine dan aplikasi real-time}: Bagian kritis yang memerlukan kinerja optimal
-    \item \textbf{Keamanan siber dan digital forensik}: Analisis dan reverse engineering
-    \item \textbf{Pengembangan compiler dan interpreter}: Komponen runtime yang sensitif terhadap kinerja
-\end{itemize}
+            \begin{itemize}
+                \item \textbf{Perangkat tertanam (embedded)}: \textit{firmware} mikrokontroler, \textit{device driver}, \textit{interrupt service routine}
+                \item \textbf{Sistem tingkat rendah }: \textit{bootloader}, BIOS/UEFI, bagian \textit{kernel} yang sensitif kinerja
+                \item \textbf{Optimasi hotspot}: Bagian kecil dari aplikasi yang memerlukan latensi minimal
+                \item \textbf{Rekayasa balik dan keamanan}: Analisis \textit{malware}, \textit{exploit development}, \textit{debugging} pada level instruksi
+                \item \textbf{Sistem operasi dan kernel}: Komponen inti yang memerlukan kontrol langsung terhadap hardware
+                \item \textbf{Game engine dan aplikasi real-time}: Bagian kritis yang memerlukan kinerja optimal
+                \item \textbf{Keamanan siber dan digital forensik}: Analisis dan reverse engineering
+                \item \textbf{Pengembangan compiler dan interpreter}: Komponen runtime yang sensitif terhadap kinerja
+            \end{itemize}
 
-\subsubsection{Contoh Kode Assembly 8086}
-Berikut adalah contoh sederhana program assembly 8086 untuk demonstrasi \cite{susanto1995belajar}:
+        \subsubsection{Contoh Kode Assembly 8086}
+            Berikut adalah contoh sederhana program assembly 8086 untuk demonstrasi 
+            \cite{susanto1995belajar}:
 
-\begin{lstlisting}[language={[x86masm]Assembler}, caption={Cuplikan 8086 (ilustratif)}, label={lst:assembly_example}]
-; Tambah dua nilai 8-bit, hasil di AL
-org 100h          ; format .COM
-mov al, 25h       ; AL = 0x25 (37 desimal)
-add al, 13h       ; AL = AL + 0x13 (19 desimal) -> 0x38 (56)
-; ... hasil dapat disimpan ke memori atau dipakai lanjut
-int 20h           ; kembali ke DOS
-\end{lstlisting}
+            \begin{lstlisting}[language={[x86masm]Assembler}, caption={Program Assembly Sederhana - Output Karakter}, label={lst:assembly_example}]
+;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~; 
+;   PROGRAM : A0.ASM            ; 
+;   FUNGSI  : MENCETAK KARATER  ; 
+;             'A' DENGAN INT 21 ; 
+;==========================S?to=; 
+         .MODEL SMALL 
+         .CODE 
+         ORG 100h 
+Proses :  
+         MOV  AH,02h   ; Nilai servis untuk mencetak karakter 
+         MOV  DL,'A'   ; DL = Karakter ASCII yang akan dicetak 
+         INT  21h      ; Cetak karakter !! 
+         
+END      Proses
+            \end{lstlisting}
 
-Program ini menunjukkan:
-\begin{itemize}
-    \item Penggunaan direktif \texttt{org} untuk menentukan starting address
-    \item Instruksi \texttt{mov} untuk memindahkan data
-    \item Instruksi \texttt{add} untuk operasi aritmatika
-    \item Interrupt \texttt{int 20h} untuk keluar dari program
-\end{itemize}
+            Program ini menunjukkan:
+            \begin{itemize}
+                \item Penggunaan direktif \texttt{.MODEL SMALL} untuk model memori kecil
+                \item Penggunaan direktif \texttt{ORG 100h} untuk menentukan starting address
+                \item Instruksi \texttt{MOV} untuk memindahkan data ke register
+                \item Penggunaan interrupt \texttt{INT 21h} dengan servis \texttt{AH=02h} untuk output karakter
+                \item Struktur program assembly yang sederhana dan mudah dipahami
+            \end{itemize}
 
 \section{Sistem Bilangan dan Representasi Data}\label{sec:pengenalan-sistem-bilangan}
 
-\subsection{Mengapa Sistem Bilangan Penting dalam Assembly?}
-Dalam pemrograman assembly, pemahaman sistem bilangan sangat krusial karena:
-\begin{itemize}
-    \item Komputer bekerja dengan sistem biner (0 dan 1)
-    \item Alamat memori dan register dinyatakan dalam heksadesimal
-    \item Debugging dan analisis kode memerlukan konversi antar sistem bilangan
-    \item Optimasi memerlukan pemahaman representasi data di level bit
-\end{itemize}
-
-\subsection{Sistem Bilangan Dasar}\label{subsec:pengenalan-dasar-bilangan}
-
-\subsubsection{Sistem bilangan biner (basis 2)}
-Biner menggunakan dua digit (0 dan 1). Nilai tempatnya adalah pangkat 2: \(\ldots, 2^3, 2^2, 2^1, 2^0\). Contoh: \(101010_2 = 1\cdot 2^5 + 0\cdot 2^4 + 1\cdot 2^3 + 0\cdot 2^2 + 1\cdot 2^1 + 0\cdot 2^0 = 42_{10}\).
-
-Catatan: Sistem posisi (positional) untuk bilangan menjelaskan bahwa nilai digit ditentukan oleh pangkat basis di posisinya; ini berlaku untuk biner, heksadesimal, dan basis lain \cite{wiki_binary_number,wiki_positional_numeral_system}.
-
-\subsubsection{Sistem bilangan heksadesimal (basis 16)}
-Heksadesimal menggunakan digit 0--9 dan A--F (A=10, B=11, \ldots, F=15). Setiap digit heksadesimal memetakan tepat ke 4 bit (\textit{nibble}). Contoh: \(\mathrm{D6}_{16} = 13\cdot 16^1 + 6\cdot 16^0 = 214_{10}\) dan dalam biner menjadi \(\mathrm{D} = 1101\), \(6 = 0110\) sehingga \(\mathrm{D6}_{16} = 1101\,0110_2\).
-
-\begin{center}
-\begin{tabular}{|c|c|c|}
-\hline
-\textbf{Decimal} & \textbf{Biner} & \textbf{Hexadecimal} \\
-\hline
-0 & 0000 & 0 \\
-1 & 0001 & 1 \\
-2 & 0010 & 2 \\
-3 & 0011 & 3 \\
-4 & 0100 & 4 \\
-5 & 0101 & 5 \\
-6 & 0110 & 6 \\
-7 & 0111 & 7 \\
-8 & 1000 & 8 \\
-9 & 1001 & 9 \\
-10 & 1010 & A \\
-11 & 1011 & B \\
-12 & 1100 & C \\
-13 & 1101 & D \\
-14 & 1110 & E \\
-15 & 1111 & F \\
-\hline
-\end{tabular}
-\end{center}
-
-Dalam praktik pemrograman, notasi yang sering dipakai: awalan \texttt{0x} untuk heksadesimal dan \texttt{0b} untuk biner (di banyak bahasa pemrograman), sedangkan dalam beberapa assembler gaya Intel angka heksadesimal dapat ditulis dengan sufiks \texttt{h}. Hubungan digit heksadesimal dan \textit{nibble} memudahkan konversi antar biner dan heksadesimal \cite{wiki_hexadecimal}.
-
-\subsubsection{Konversi antar sistem bilangan}
-
-Berikut adalah metode konversi yang sistematis dan contoh detail untuk setiap jenis konversi:
-
-\begin{enumerate}
-\item{Konversi Desimal ke Biner}
-
-Gunakan metode pembagian berulang oleh 2 dan catat sisa pembagiannya. Urutan sisa dari bawah ke atas membentuk bilangan biner.
-
-\textbf{Contoh detail: Konversi \(214_{10}\) ke biner}
+    \subsection{Mengapa Sistem Bilangan Penting dalam Assembly?}
+        Dalam pemrograman assembly, pemahaman sistem bilangan sangat krusial karena:
+        \begin{itemize}
+            \item Komputer bekerja dengan sistem biner (0 dan 1)
+            \item Alamat memori dan register dinyatakan dalam heksadesimal
+            \item Debugging dan analisis kode memerlukan konversi antar sistem bilangan
+            \item Optimasi memerlukan pemahaman representasi data di level bit
+        \end{itemize}
+
+    \subsection{Sistem Bilangan Dasar}\label{subsec:pengenalan-dasar-bilangan}
+
+        \subsubsection{Sistem bilangan biner (basis 2)}
+            Biner menggunakan dua digit (0 dan 1). Nilai tempatnya adalah pangkat 2: \(2^3, 2^2, 2^1, 2^0, \ldots\) 
+
+            Contoh: \(101010_2 = 1\cdot 2^5 + 0\cdot 2^4 + 1\cdot 2^3 + 0\cdot 2^2 + 1\cdot 2^1 + 0\cdot 2^0 = 42_{10}\).
+
+            Catatan: Sistem posisi (positional) untuk bilangan menjelaskan bahwa nilai digit ditentukan oleh pangkat basis di posisinya; ini berlaku untuk biner, heksadesimal, dan basis lain \cite{wiki_binary_number,wiki_positional_numeral_system}.
+
+        \subsubsection{Sistem bilangan heksadesimal (basis 16)}
+            Heksadesimal menggunakan digit 0--9 dan A--F (A=10, B=11, \ldots, F=15). Setiap digit heksadesimal memetakan tepat ke 4 bit (\textit{nibble}). Contoh: \(\mathrm{D6}_{16} = 13\cdot 16^1 + 6\cdot 16^0 = 214_{10}\) dan dalam biner menjadi \(\mathrm{D} = 1101\), \(6 = 0110\) sehingga \(\mathrm{D6}_{16} = 1101\,0110_2\).
+
+                \begin{table}[H]
+                    \centering
+                    \caption{Tabel Konversi Sistem Bilangan}
+                    \begin{tabular}{|c|c|c|}
+                        \hline
+                        \textbf{Decimal} & \textbf{Biner} & \textbf{Hexadecimal} \\
+                        \hline
+                        0 & 0000 & 0 \\
+                        1 & 0001 & 1 \\
+                        2 & 0010 & 2 \\
+                        3 & 0011 & 3 \\
+                        4 & 0100 & 4 \\
+                        5 & 0101 & 5 \\
+                        6 & 0110 & 6 \\
+                        7 & 0111 & 7 \\
+                        8 & 1000 & 8 \\
+                        9 & 1001 & 9 \\
+                        10 & 1010 & A \\
+                        11 & 1011 & B \\
+                        12 & 1100 & C \\
+                        13 & 1101 & D \\
+                        14 & 1110 & E \\
+                        15 & 1111 & F \\
+                        \hline
+                    \end{tabular}
+                    \label{tab:number-conversion}
+                \end{table}
+
+            Dalam praktik pemrograman, notasi yang sering dipakai: awalan \texttt{0x} untuk heksadesimal dan \texttt{0b} untuk biner (di banyak bahasa pemrograman), sedangkan dalam beberapa assembler gaya Intel angka heksadesimal dapat ditulis dengan sufiks \texttt{h}. Hubungan digit heksadesimal dan \textit{nibble} memudahkan konversi antar biner dan heksadesimal \cite{wiki_hexadecimal}.
+
+        \subsubsection{Konversi antar sistem bilangan}
+
+            Berikut adalah metode konversi yang sistematis dan contoh detail untuk setiap jenis konversi:
+
+            \begin{enumerate}
+                \item{Konversi Desimal ke Biner}
+
+                    Gunakan metode pembagian berulang oleh 2 dan catat sisa pembagiannya. Urutan sisa dari bawah ke atas membentuk bilangan biner.
+
+                    \textbf{Contoh detail: Konversi \(214_{10}\) ke biner}
+
+                    \begin{table}[H]
+                        \centering
+                        \caption{Konversi Desimal ke Biner}
+                        \begin{tabular}{|c|c|c|c|}
+                            \hline
+                            \textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} \\
+                            \hline
+                            1 & 214 $\div$ 2 & 107 & 0 \\
+                            2 & 107 $\div$ 2 & 53 & 1 \\
+                            3 & 53 $\div$ 2 & 26 & 1 \\
+                            4 & 26 $\div$ 2 & 13 & 0 \\
+                            5 & 13 $\div$ 2 & 6 & 1 \\
+                            6 & 6 $\div$ 2 & 3 & 0 \\
+                            7 & 3 $\div$ 2 & 1 & 1 \\
+                            8 & 1 $\div$ 2 & 0 & 1 \\
+                            \hline
+                        \end{tabular}
+                        \label{tab:decimal-to-binary}
+                    \end{table}
+
+                    Membaca sisa dari bawah ke atas: \(11010110_2\)
+
+                    Jadi, \(214_{10} = 11010110_2\)
+
+                \item{Konversi Biner ke Desimal}
+
+                    Kalikan setiap digit biner dengan 2 pangkat posisi digit tersebut, dimulai dari 0 di posisi paling kanan, lalu jumlahkan hasilnya.
+
+                    \textbf{Contoh detail: Konversi \(11010110_2\) ke desimal}
+
+                    \begin{align*}
+                    11010110_2 &= (1 \times 2^7) + (1 \times 2^6) + (0 \times 2^5) + (1 \times 2^4) \\
+                    &\quad + (0 \times 2^3) + (1 \times 2^2) + (1 \times 2^1) + (0 \times 2^0) \\
+                    &= (1 \times 128) + (1 \times 64) + (0 \times 32) + (1 \times 16) \\
+                    &\quad + (0 \times 8) + (1 \times 4) + (1 \times 2) + (0 \times 1) \\
+                    &= 128 + 64 + 0 + 16 + 0 + 4 + 2 + 0 \\
+                    &= 214_{10}
+                    \end{align*}
+
+                \item{Konversi Desimal ke Heksadesimal}
 
-\begin{center}
-\begin{tabular}{|c|c|c|c|}
-\hline
-\textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} \\
-\hline
-1 & 214 $\div$ 2 & 107 & 0 \\
-2 & 107 $\div$ 2 & 53 & 1 \\
-3 & 53 $\div$ 2 & 26 & 1 \\
-4 & 26 $\div$ 2 & 13 & 0 \\
-5 & 13 $\div$ 2 & 6 & 1 \\
-6 & 6 $\div$ 2 & 3 & 0 \\
-7 & 3 $\div$ 2 & 1 & 1 \\
-8 & 1 $\div$ 2 & 0 & 1 \\
-\hline
-\end{tabular}
-\end{center}
-
-Membaca sisa dari bawah ke atas: \(11010110_2\)
+                    Gunakan metode pembagian berulang oleh 16 dan catat sisa pembagiannya. Jika sisa lebih dari 9, gunakan huruf A-F untuk mewakili nilai 10-15.
 
-Jadi, \(214_{10} = 11010110_2\)
+                    \textbf{Contoh detail: Konversi \(255_{10}\) ke heksadesimal}
 
-\item{Konversi Biner ke Desimal}
+                    \begin{table}[H]
+                        \centering
+                        \caption{Konversi Desimal ke Heksadesimal}
+                        \begin{tabular}{|c|c|c|c|c|}
+                            \hline
+                            \textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} & \textbf{Representasi} \\
+                            \hline
+                            1 & 255 $\div$ 16 & 15 & 15 & F \\
+                            2 & 15 $\div$ 16 & 0 & 15 & F \\
+                            \hline
+                        \end{tabular}
+                        \label{tab:decimal-to-hex}
+                    \end{table}
 
-Kalikan setiap digit biner dengan 2 pangkat posisi digit tersebut, dimulai dari 0 di posisi paling kanan, lalu jumlahkan hasilnya.
-
-\textbf{Contoh detail: Konversi \(11010110_2\) ke desimal}
-
-\begin{align*}
-11010110_2 &= (1 \times 2^7) + (1 \times 2^6) + (0 \times 2^5) + (1 \times 2^4) + (0 \times 2^3) + (1 \times 2^2) + (1 \times 2^1) + (0 \times 2^0) \\
-&= (1 \times 128) + (1 \times 64) + (0 \times 32) + (1 \times 16) + (0 \times 8) + (1 \times 4) + (1 \times 2) + (0 \times 1) \\
-&= 128 + 64 + 0 + 16 + 0 + 4 + 2 + 0 \\
-&= 214_{10}
-\end{align*}
-
-\item{Konversi Desimal ke Heksadesimal}
-
-Gunakan metode pembagian berulang oleh 16 dan catat sisa pembagiannya. Jika sisa lebih dari 9, gunakan huruf A-F untuk mewakili nilai 10-15.
-
-\textbf{Contoh detail: Konversi \(255_{10}\) ke heksadesimal}
-
-\begin{center}
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-\textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} & \textbf{Representasi} \\
-\hline
-1 & 255 $\div$ 16 & 15 & 15 & F \\
-2 & 15 $\div$ 16 & 0 & 15 & F \\
-\hline
-\end{tabular}
-\end{center}
+                    Membaca sisa dari bawah ke atas: \(\mathrm{FF}_{16}\)
+
+                    Jadi, \(255_{10} = \mathrm{FF}_{16}\)
+
+                \item{Konversi Heksadesimal ke Desimal}
+
+                    Kalikan setiap digit heksadesimal dengan 16 pangkat posisi digit tersebut, dimulai dari 0 di posisi paling kanan, lalu jumlahkan hasilnya.
+
+                    \textbf{Contoh detail: Konversi \(\mathrm{A5F}_{16}\) ke desimal}
+
+                    \begin{align*}
+                    \mathrm{A5F}_{16} &= (\mathrm{A} \times 16^2) + (5 \times 16^1) + (\mathrm{F} \times 16^0) \\
+                    &= (10 \times 256) + (5 \times 16) + (15 \times 1) \\
+                    &= 2560 + 80 + 15 \\
+                    &= 2655_{10}
+                    \end{align*}
+
+                \item{Konversi Heksadesimal ke Biner}
+
+                    Konversi setiap digit heksadesimal ke representasi biner 4-bit yang setara.
+
+                    \textbf{Contoh detail: Konversi \(\mathrm{A5F}_{16}\) ke biner}
+
+                    \begin{table}[H]
+                        \centering
+                        \caption{Konversi Heksadesimal ke Biner}
+                        \begin{tabular}{|c|c|c|}
+                            \hline
+                            \textbf{Digit Heksadesimal} & \textbf{Decimal} & \textbf{Representasi Biner} \\
+                            \hline
+                            A & 10 & 1010 \\
+                            5 & 5 & 0101 \\
+                            F & 15 & 1111 \\
+                            \hline
+                        \end{tabular}
+                        \label{tab:hex-to-binary}
+                    \end{table}
+
+                    Menggabungkan representasi biner: \(1010\,0101\,1111_2\)
+
+                    Jadi, \(\mathrm{A5F}_{16} = 1010\,0101\,1111_2\)
+
+                \item{Konversi Biner ke Heksadesimal}
+
+                    Kelompokkan digit biner menjadi blok 4-bit dari kanan ke kiri, lalu petakan tiap blok ke satu digit heksadesimal.
+
+                    \textbf{Contoh detail: Konversi \(11010110_2\) ke heksadesimal}
+
+                    Kelompokkan biner: \(1101\,0110\)
+
+                    \begin{table}[H]
+                        \centering
+                        \caption{Konversi Biner ke Heksadesimal}
+                        \begin{tabular}{|c|c|c|}
+                            \hline
+                            \textbf{Grup Biner} & \textbf{Decimal} & \textbf{Digit Heksadesimal} \\
+                            \hline
+                            1101 & 13 & D \\
+                            0110 & 6 & 6 \\
+                            \hline
+                        \end{tabular}
+                        \label{tab:binary-to-hex}
+                    \end{table}
+
+                    Menggabungkan hasil: \(\mathrm{D6}_{16}\)
+
+                    Jadi, \(11010110_2 = \mathrm{D6}_{16}\)
+
+            \end{enumerate}
+
+        \subsubsection{Operasi aritmatika dalam biner}
+
+            \begin{enumerate}
+                \item \textbf{Penjumlahan Biner}
+
+                    Penjumlahan biner mengikuti aturan dasar:
+                    \begin{itemize}
+                        \item \(0 + 0 = 0\)
+                        \item \(0 + 1 = 1\)
+                        \item \(1 + 0 = 1\)
+                        \item \(1 + 1 = 10_2\) (tulis 0, simpan carry 1)
+                    \end{itemize}
+
+                    \textbf{Contoh detail: Penjumlahan \(1011_2 + 1101_2\)}
+
+                    \begin{table}[H]
+                        \centering
+                        \caption{Penjumlahan Biner}
+                        \begin{tabular}{cccccc}
+                            &   & 1 & 0 & 1 & 1 \\
+                            + &   & 1 & 1 & 0 & 1 \\
+                            \hline
+                            & 1 & 1 & 0 & 0 & 0 \\
+                        \end{tabular}
+                        \label{tab:binary-addition}
+                    \end{table}
+
+                    \textbf{Langkah-langkah:}
+                    \begin{enumerate}
+                        \item Bit paling kanan: \(1 + 1 = 10_2\) → tulis 0, carry 1
+                        \item Bit kedua: \(1 + 0 + 1 = 10_2\) → tulis 0, carry 1
+                        \item Bit ketiga: \(0 + 1 + 1 = 10_2\) → tulis 0, carry 1
+                        \item Bit keempat: \(1 + 1 + 1 = 11_2\) → tulis 1, carry 1
+                        \item Carry terakhir: 1
+                    \end{enumerate}
+
+                    Hasil: \(1011_2 + 1101_2 = 11000_2\) (\(11 + 13 = 24\))
+
+                \item \textbf{Pengurangan Biner}
+
+                    Pengurangan biner menggunakan konsep peminjaman (\textit{borrow}). Aturan dasar:
+                    \begin{itemize}
+                        \item \(0 - 0 = 0\)
+                        \item \(1 - 0 = 1\)
+                        \item \(1 - 1 = 0\)
+                        \item \(0 - 1 = 1\) (dengan borrow dari posisi kiri)
+                    \end{itemize}
+
+                    \textbf{Contoh detail: Pengurangan \(10010_2 - 01101_2\)}
+
+                    \begin{table}[H]
+                        \centering
+                        \caption{Pengurangan Biner}
+                        \begin{tabular}{ccccccc}
+                            & 1 & 0 & 0 & 1 & 0 & \\
+                            - &   & 0 & 1 & 1 & 0 & 1 \\
+                            \hline
+                            &   & 0 & 0 & 1 & 0 & 1 \\
+                        \end{tabular}
+                        \label{tab:binary-subtraction}
+                    \end{table}
+
+                    \textbf{Langkah-langkah:}
+                    \begin{enumerate}
+                        \item Bit paling kanan: \(0 - 1\) → borrow dari kiri, \(10 - 1 = 1\)
+                        \item Bit kedua: \(0 - 0 = 0\) (setelah borrow)
+                        \item Bit ketiga: \(0 - 1\) → borrow dari kiri, \(10 - 1 = 1\)
+                        \item Bit keempat: \(0 - 1\) → borrow dari kiri, \(10 - 1 = 1\)
+                        \item Bit kelima: \(0 - 0 = 0\) (setelah borrow)
+                    \end{enumerate}
+
+                    Hasil: \(10010_2 - 01101_2 = 00101_2\) (\(18 - 13 = 5\))
+
+                \item \textbf{Implikasi pada Arsitektur x86}
+
+                    Pada arsitektur x86, operasi aritmatika memengaruhi bendera (flags) penting:
+                    \begin{itemize}
+                        \item \textbf{Carry Flag (CF):} Set jika terjadi carry out atau borrow
+                        \item \textbf{Overflow Flag (OF):} Set jika hasil operasi signed overflow
+                        \item \textbf{Zero Flag (ZF):} Set jika hasil operasi adalah nol
+                        \item \textbf{Sign Flag (SF):} Set jika hasil operasi negatif (bit MSB = 1)
+                    \end{itemize}
+
+                    Bendera-bendera ini sangat penting untuk operasi percabangan dan perbandingan dalam assembly language.
+            \end{enumerate}
+
+    \subsection{Representasi Data dalam Komputer}\label{subsec:pengenalan-representasi-data}
+
+        \subsubsection{Satuan data dasar}
+            \begin{itemize}
+                \item \textbf{Bit}: Unit terkecil data, bernilai 0 atau 1
+                \item \textbf{Byte}: 8 bit; satuan standar untuk karakter dan data kecil
+                \item \textbf{Word}: Pada 8086, word = 16 bit (2 byte)
+                \item \textbf{Double Word}: 32 bit (4 byte)
+            \end{itemize}
+
+        \subsubsection{Representasi bilangan bertanda (Two's Complement)}
+
+            Dalam komputer, kita perlu merepresentasikan bilangan positif dan negatif menggunakan hanya bit 0 dan 1. Ada beberapa metode untuk ini, tetapi yang paling umum digunakan adalah \textbf{Two's Complement}.
+
+            \paragraph{Mengapa Two's Complement?}
+                Sebelum memahami Two's Complement, mari kita lihat metode lain yang lebih sederhana namun memiliki kelemahan:
+
+                \textbf{Metode Sign-Magnitude:}
+                \begin{itemize}
+                    \item Bit paling kiri (MSB) digunakan sebagai tanda: 0 = positif, 1 = negatif
+                    \item Bit sisanya menunjukkan nilai absolut
+                    \item Contoh: \(+5 = 00000101\), \(-5 = 10000101\)
+                    \item \textbf{Kelemahan:} Ada dua cara menulis nol (\(00000000\) dan \(10000000\))
+                \end{itemize}
+
+                \textbf{Metode 1's Complement:}
+                \begin{itemize}
+                    \item Bilangan negatif = flip semua bit dari bilangan positif
+                    \item Contoh: \(+5 = 00000101\), \(-5 = 11111010\)
+                    \item \textbf{Kelemahan:} Masih ada dua cara menulis nol (\(00000000\) dan \(11111111\))
+                \end{itemize}
+
+            \paragraph{Cara Kerja Two's Complement}
+                Two's Complement mengatasi kelemahan metode sebelumnya dengan langkah sederhana:
+
+                \textbf{Langkah-langkah membuat bilangan negatif:}
+                \begin{enumerate}
+                    \item Tulis bilangan positif dalam biner
+                    \item Flip semua bit (0 jadi 1, 1 jadi 0) - ini disebut "1's complement"
+                    \item Tambahkan 1 ke hasilnya
+                \end{enumerate}
+
+                \textbf{Contoh sederhana: Membuat \(-5\) dalam 8-bit}
+                \begin{enumerate}
+                    \item \(+5\) dalam biner: \(00000101\)
+                    \item Flip semua bit: \(11111010\)
+                    \item Tambah 1: \(11111010 + 1 = 11111011\)
+                    \item Jadi \(-5 = 11111011\)
+                \end{enumerate}
+
+                \textbf{Contoh lain: Membuat \(-27\) dalam 8-bit}
+                \begin{enumerate}
+                    \item \(+27\) dalam biner: \(00011011\)
+                    \item Flip semua bit: \(11100100\)
+                    \item Tambah 1: \(11100100 + 1 = 11100101\)
+                    \item Jadi \(-27 = 11100101\)
+                \end{enumerate}
+
+            \paragraph{Keunggulan Two's Complement}
+                \begin{itemize}
+                    \item \textbf{Hanya satu cara menulis nol:} \(00000000\) (tidak ada \(+0\) dan \(-0\))
+                    \item \textbf{Operasi aritmatika mudah:} Penjumlahan dan pengurangan bisa dilakukan dengan cara yang sama
+                    \item \textbf{Range simetris:} Untuk 8-bit: \(-128\) sampai \(+127\)
+                    \item \textbf{Verifikasi mudah:} Bilangan positif + bilangan negatif = 0
+                \end{itemize}
+
+                \textbf{Contoh verifikasi:} \(-5 + 5 = 0\)
+                \begin{align}
+                11111011_2 + 00000101_2 &= 1\,00000000_2 \\
+                &= 0 \text{ (buang carry yang keluar)}
+                \end{align}
+
+        \subsubsection{Endianness (Little-Endian pada 8086)}
+
+            Endianness adalah cara komputer menyimpan dan mengatur urutan byte dalam memori untuk data yang lebih besar dari satu byte (seperti 16-bit, 32-bit, atau 64-bit). Bayangkan kita memiliki bilangan yang terdiri dari beberapa byte - komputer harus memutuskan byte mana yang disimpan di alamat memori mana.
+
+            \paragraph{Apa itu Endianness?}
+                Ada dua cara utama menyimpan data multi-byte:
+
+                \textbf{Big-Endian (Big-Endian):}
+                \begin{itemize}
+                    \item Menyimpan byte paling penting (Most Significant Byte/MSB) di alamat memori terkecil
+                    \item Seperti menulis tanggal: "2025-10-04" (tahun-bulan-hari)
+                    \item Data dibaca dari kiri ke kanan sesuai urutan aslinya
+                \end{itemize}
+
+                \textbf{Little-Endian (Little-Endian):}
+                \begin{itemize}
+                    \item Menyimpan byte paling tidak penting (Least Significant Byte/LSB) di alamat memori terkecil
+                    \item Seperti menulis tanggal: "04-10-2025" (hari-bulan-tahun)
+                    \item Data dibaca terbalik dari urutan aslinya
+                \end{itemize}
+
+            \paragraph{Contoh Praktis}
+                Mari kita lihat bagaimana bilangan 32-bit \(0x12345678\) disimpan dalam memori:
+
+                \textbf{Big-Endian:}
+                \begin{center}
+                    \begin{tabular}{|c|c|c|}
+                        \hline
+                        \textbf{Alamat Memori} & \textbf{Byte} & \textbf{Keterangan} \\
+                        \hline
+                        1000 & 0x12 & Byte paling penting \\
+                        1001 & 0x34 & \\
+                        1002 & 0x56 & \\
+                        1003 & 0x78 & Byte paling tidak penting \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+
+                \textbf{Little-Endian (yang digunakan 8086):}
+                \begin{center}
+                    \begin{tabular}{|c|c|c|}
+                        \hline
+                        \textbf{Alamat Memori} & \textbf{Byte} & \textbf{Keterangan} \\
+                        \hline
+                        1000 & 0x78 & Byte paling tidak penting \\
+                        1001 & 0x56 & \\
+                        1002 & 0x34 & \\
+                        1003 & 0x12 & Byte paling penting \\
+                        \hline
+                    \end{tabular}
+                \end{center}
+
+            \paragraph{Mengapa Penting dalam Assembly?}
+                \begin{itemize}
+                    \item \textbf{Debugging:} Saat melihat memori, kita perlu tahu urutan byte yang benar
+                    \item \textbf{Data Transfer:} Saat membaca/menulis data multi-byte dari memori
+                    \item \textbf{Network Communication:} Protokol jaringan biasanya menggunakan big-endian
+                    \item \textbf{File Format:} Format file tertentu mungkin menggunakan endianness berbeda
+                \end{itemize}
+
+            \paragraph{Contoh pada 8086}
+                Pada prosesor 8086, word 16-bit \(0x1234\) disimpan sebagai:
+                \begin{itemize}
+                    \item Alamat 1000: 0x34 (byte rendah)
+                    \item Alamat 1001: 0x12 (byte tinggi)
+                \end{itemize}
+
+                Ini berarti saat kita membaca word dari memori, kita harus "membalik" urutan byte untuk mendapatkan nilai yang benar.
+
+        \subsubsection{Rentang nilai untuk \texorpdfstring{$n$}{n}-bit}
+            Untuk bilangan \textit{unsigned} $n$-bit, rentang nilainya adalah $0$ hingga $2^n-1$. Untuk two's complement (bertanda), rentangnya adalah $-2^{n-1}$ hingga $2^{n-1}-1$ \cite{wiki_binary_number,wiki_two_complement}. Contoh ringkas:
+            \begin{table}[H]
+                \centering
+                \caption{Rentang nilai integer umum}
+                \begin{tabular}{lll}
+                    \toprule
+                    \textbf{$n$-bit} & \textbf{Unsigned} & \textbf{Signed (two's complement)} \\
+                    \midrule
+                    8  & $0..255$       & $-128..127$ \\
+                    16 & $0..65535$     & $-32768..32767$ \\
+                    \bottomrule
+                \end{tabular}
+                \label{tab:range-nbit}
+            \end{table}
+
+            \textbf{Implikasi untuk Assembly:}
+            \begin{itemize}
+                \item Penting saat mengakses data multi-byte
+                \item Memengaruhi cara data dibaca dari/tulis ke memori
+                \item Relevan untuk debugging dan analisis memori
+            \end{itemize}
 
-Membaca sisa dari bawah ke atas: \(\mathrm{FF}_{16}\)
 
-Jadi, \(255_{10} = \mathrm{FF}_{16}\)
 
-\item{Konversi Heksadesimal ke Desimal}
 
-Kalikan setiap digit heksadesimal dengan 16 pangkat posisi digit tersebut, dimulai dari 0 di posisi paling kanan, lalu jumlahkan hasilnya.
-
-\textbf{Contoh detail: Konversi \(\mathrm{A5F}_{16}\) ke desimal}
-
-\begin{align*}
-\mathrm{A5F}_{16} &= (\mathrm{A} \times 16^2) + (5 \times 16^1) + (\mathrm{F} \times 16^0) \\
-&= (10 \times 256) + (5 \times 16) + (15 \times 1) \\
-&= 2560 + 80 + 15 \\
-&= 2655_{10}
-\end{align*}
-
-\item{Konversi Heksadesimal ke Biner}
-
-Konversi setiap digit heksadesimal ke representasi biner 4-bit yang setara.
-
-\textbf{Contoh detail: Konversi \(\mathrm{A5F}_{16}\) ke biner}
-
-\begin{center}
-\begin{tabular}{|c|c|c|}
-\hline
-\textbf{Digit Heksadesimal} & \textbf{Decimal} & \textbf{Representasi Biner} \\
-\hline
-A & 10 & 1010 \\
-5 & 5 & 0101 \\
-F & 15 & 1111 \\
-\hline
-\end{tabular}
-\end{center}
-
-Menggabungkan representasi biner: \(1010\,0101\,1111_2\)
-
-Jadi, \(\mathrm{A5F}_{16} = 1010\,0101\,1111_2\)
-
-\item{Konversi Biner ke Heksadesimal}
-
-Kelompokkan digit biner menjadi blok 4-bit dari kanan ke kiri, lalu petakan tiap blok ke satu digit heksadesimal.
-
-\textbf{Contoh detail: Konversi \(11010110_2\) ke heksadesimal}
-
-Kelompokkan biner: \(1101\,0110\)
-
-\begin{center}
-\begin{tabular}{|c|c|c|}
-\hline
-\textbf{Grup Biner} & \textbf{Decimal} & \textbf{Digit Heksadesimal} \\
-\hline
-1101 & 13 & D \\
-0110 & 6 & 6 \\
-\hline
-\end{tabular}
-\end{center}
-
-Menggabungkan hasil: \(\mathrm{D6}_{16}\)
-
-Jadi, \(11010110_2 = \mathrm{D6}_{16}\)
-
-\end{enumerate}
-
-\subsubsection{Operasi aritmatika dalam biner}
-
-\begin{enumerate}
-\item \textbf{Penjumlahan Biner}
-
-Penjumlahan biner mengikuti aturan dasar:
-\begin{itemize}
-    \item \(0 + 0 = 0\)
-    \item \(0 + 1 = 1\)
-    \item \(1 + 0 = 1\)
-    \item \(1 + 1 = 10_2\) (tulis 0, simpan carry 1)
-\end{itemize}
-
-\textbf{Contoh detail: Penjumlahan \(1011_2 + 1101_2\)}
-
-\begin{center}
-\begin{tabular}{cccccc}
-  &   & 1 & 0 & 1 & 1 \\
-+ &   & 1 & 1 & 0 & 1 \\
-\hline
-  & 1 & 1 & 0 & 0 & 0 \\
-\end{tabular}
-\end{center}
-
-\textbf{Langkah-langkah:}
-\begin{enumerate}
-    \item Bit paling kanan: \(1 + 1 = 10_2\) → tulis 0, carry 1
-    \item Bit kedua: \(1 + 0 + 1 = 10_2\) → tulis 0, carry 1
-    \item Bit ketiga: \(0 + 1 + 1 = 10_2\) → tulis 0, carry 1
-    \item Bit keempat: \(1 + 1 + 1 = 11_2\) → tulis 1, carry 1
-    \item Carry terakhir: 1
-\end{enumerate}
-
-Hasil: \(1011_2 + 1101_2 = 11000_2\) (\(11 + 13 = 24\))
-
-\item \textbf{Pengurangan Biner}
-
-Pengurangan biner menggunakan konsep peminjaman (\textit{borrow}). Aturan dasar:
-\begin{itemize}
-    \item \(0 - 0 = 0\)
-    \item \(1 - 0 = 1\)
-    \item \(1 - 1 = 0\)
-    \item \(0 - 1 = 1\) (dengan borrow dari posisi kiri)
-\end{itemize}
-
-\textbf{Contoh detail: Pengurangan \(10010_2 - 01101_2\)}
-
-\begin{center}
-\begin{tabular}{ccccccc}
-  & 1 & 0 & 0 & 1 & 0 & \\
-- &   & 0 & 1 & 1 & 0 & 1 \\
-\hline
-  &   & 0 & 0 & 1 & 0 & 1 \\
-\end{tabular}
-\end{center}
-
-\textbf{Langkah-langkah:}
-\begin{enumerate}
-    \item Bit paling kanan: \(0 - 1\) → borrow dari kiri, \(10 - 1 = 1\)
-    \item Bit kedua: \(0 - 0 = 0\) (setelah borrow)
-    \item Bit ketiga: \(0 - 1\) → borrow dari kiri, \(10 - 1 = 1\)
-    \item Bit keempat: \(0 - 1\) → borrow dari kiri, \(10 - 1 = 1\)
-    \item Bit kelima: \(0 - 0 = 0\) (setelah borrow)
-\end{enumerate}
-
-Hasil: \(10010_2 - 01101_2 = 00101_2\) (\(18 - 13 = 5\))
-
-\item \textbf{Implikasi pada Arsitektur x86}
-
-Pada arsitektur x86, operasi aritmatika memengaruhi bendera (flags) penting:
-\begin{itemize}
-    \item \textbf{Carry Flag (CF):} Set jika terjadi carry out atau borrow
-    \item \textbf{Overflow Flag (OF):} Set jika hasil operasi signed overflow
-    \item \textbf{Zero Flag (ZF):} Set jika hasil operasi adalah nol
-    \item \textbf{Sign Flag (SF):} Set jika hasil operasi negatif (bit MSB = 1)
-\end{itemize}
-
-Bendera-bendera ini sangat penting untuk operasi percabangan dan perbandingan dalam assembly language.
-\end{enumerate}
-
-\subsection{Representasi Data dalam Komputer}\label{subsec:pengenalan-representasi-data}
-
-\subsubsection{Satuan data dasar}
-\begin{itemize}
-    \item \textbf{Bit}: Unit terkecil data, bernilai 0 atau 1
-    \item \textbf{Byte}: 8 bit; satuan standar untuk karakter dan data kecil
-    \item \textbf{Word}: Pada 8086, word = 16 bit (2 byte)
-    \item \textbf{Double Word}: 32 bit (4 byte)
-\end{itemize}
-
-\subsubsection{Representasi bilangan bertanda (Two's Complement)}
-
-Dalam komputer, kita perlu merepresentasikan bilangan positif dan negatif menggunakan hanya bit 0 dan 1. Ada beberapa metode untuk ini, tetapi yang paling umum digunakan adalah \textbf{Two's Complement}.
-
-\paragraph{Mengapa Two's Complement?}
-Sebelum memahami Two's Complement, mari kita lihat metode lain yang lebih sederhana namun memiliki kelemahan:
-
-\textbf{Metode Sign-Magnitude:}
-\begin{itemize}
-    \item Bit paling kiri (MSB) digunakan sebagai tanda: 0 = positif, 1 = negatif
-    \item Bit sisanya menunjukkan nilai absolut
-    \item Contoh: \(+5 = 00000101\), \(-5 = 10000101\)
-    \item \textbf{Kelemahan:} Ada dua cara menulis nol (\(00000000\) dan \(10000000\))
-\end{itemize}
-
-\textbf{Metode 1's Complement:}
-\begin{itemize}
-    \item Bilangan negatif = flip semua bit dari bilangan positif
-    \item Contoh: \(+5 = 00000101\), \(-5 = 11111010\)
-    \item \textbf{Kelemahan:} Masih ada dua cara menulis nol (\(00000000\) dan \(11111111\))
-\end{itemize}
-
-\paragraph{Cara Kerja Two's Complement}
-Two's Complement mengatasi kelemahan metode sebelumnya dengan langkah sederhana:
-
-\textbf{Langkah-langkah membuat bilangan negatif:}
-\begin{enumerate}
-    \item Tulis bilangan positif dalam biner
-    \item Flip semua bit (0 jadi 1, 1 jadi 0) - ini disebut "1's complement"
-    \item Tambahkan 1 ke hasilnya
-\end{enumerate}
-
-\textbf{Contoh sederhana: Membuat \(-5\) dalam 8-bit}
-\begin{enumerate}
-    \item \(+5\) dalam biner: \(00000101\)
-    \item Flip semua bit: \(11111010\)
-    \item Tambah 1: \(11111010 + 1 = 11111011\)
-    \item Jadi \(-5 = 11111011\)
-\end{enumerate}
-
-\textbf{Contoh lain: Membuat \(-27\) dalam 8-bit}
-\begin{enumerate}
-    \item \(+27\) dalam biner: \(00011011\)
-    \item Flip semua bit: \(11100100\)
-    \item Tambah 1: \(11100100 + 1 = 11100101\)
-    \item Jadi \(-27 = 11100101\)
-\end{enumerate}
-
-\paragraph{Keunggulan Two's Complement}
-\begin{itemize}
-    \item \textbf{Hanya satu cara menulis nol:} \(00000000\) (tidak ada \(+0\) dan \(-0\))
-    \item \textbf{Operasi aritmatika mudah:} Penjumlahan dan pengurangan bisa dilakukan dengan cara yang sama
-    \item \textbf{Range simetris:} Untuk 8-bit: \(-128\) sampai \(+127\)
-    \item \textbf{Verifikasi mudah:} Bilangan positif + bilangan negatif = 0
-\end{itemize}
-
-\textbf{Contoh verifikasi:} \(-5 + 5 = 0\)
-\begin{align}
-11111011_2 + 00000101_2 &= 1\,00000000_2 \\
-&= 0 \text{ (buang carry yang keluar)}
-\end{align}
-
-\subsubsection{Endianness (Little-Endian pada 8086)}
-
-Endianness adalah cara komputer menyimpan dan mengatur urutan byte dalam memori untuk data yang lebih besar dari satu byte (seperti 16-bit, 32-bit, atau 64-bit). Bayangkan kita memiliki bilangan yang terdiri dari beberapa byte - komputer harus memutuskan byte mana yang disimpan di alamat memori mana.
-
-\paragraph{Apa itu Endianness?}
-Ada dua cara utama menyimpan data multi-byte:
-
-\textbf{Big-Endian (Big-Endian):}
-\begin{itemize}
-    \item Menyimpan byte paling penting (Most Significant Byte/MSB) di alamat memori terkecil
-    \item Seperti menulis tanggal: "2025-10-04" (tahun-bulan-hari)
-    \item Data dibaca dari kiri ke kanan sesuai urutan aslinya
-\end{itemize}
-
-\textbf{Little-Endian (Little-Endian):}
-\begin{itemize}
-    \item Menyimpan byte paling tidak penting (Least Significant Byte/LSB) di alamat memori terkecil
-    \item Seperti menulis tanggal: "04-10-2025" (hari-bulan-tahun)
-    \item Data dibaca terbalik dari urutan aslinya
-\end{itemize}
-
-\paragraph{Contoh Praktis}
-Mari kita lihat bagaimana bilangan 32-bit \(0x12345678\) disimpan dalam memori:
-
-\textbf{Big-Endian:}
-\begin{center}
-\begin{tabular}{|c|c|c|}
-\hline
-\textbf{Alamat Memori} & \textbf{Byte} & \textbf{Keterangan} \\
-\hline
-1000 & 0x12 & Byte paling penting \\
-1001 & 0x34 & \\
-1002 & 0x56 & \\
-1003 & 0x78 & Byte paling tidak penting \\
-\hline
-\end{tabular}
-\end{center}
-
-\textbf{Little-Endian (yang digunakan 8086):}
-\begin{center}
-\begin{tabular}{|c|c|c|}
-\hline
-\textbf{Alamat Memori} & \textbf{Byte} & \textbf{Keterangan} \\
-\hline
-1000 & 0x78 & Byte paling tidak penting \\
-1001 & 0x56 & \\
-1002 & 0x34 & \\
-1003 & 0x12 & Byte paling penting \\
-\hline
-\end{tabular}
-\end{center}
-
-\paragraph{Mengapa Penting dalam Assembly?}
-\begin{itemize}
-    \item \textbf{Debugging:} Saat melihat memori, kita perlu tahu urutan byte yang benar
-    \item \textbf{Data Transfer:} Saat membaca/menulis data multi-byte dari memori
-    \item \textbf{Network Communication:} Protokol jaringan biasanya menggunakan big-endian
-    \item \textbf{File Format:} Format file tertentu mungkin menggunakan endianness berbeda
-\end{itemize}
-
-\paragraph{Contoh pada 8086}
-Pada prosesor 8086, word 16-bit \(0x1234\) disimpan sebagai:
-\begin{itemize}
-    \item Alamat 1000: 0x34 (byte rendah)
-    \item Alamat 1001: 0x12 (byte tinggi)
-\end{itemize}
-
-Ini berarti saat kita membaca word dari memori, kita harus "membalik" urutan byte untuk mendapatkan nilai yang benar.
-
-\subsubsection{Rentang nilai untuk $n$-bit}
-Untuk bilangan \textit{unsigned} $n$-bit, rentang nilainya adalah $0$ hingga $2^n-1$. Untuk two's complement (bertanda), rentangnya adalah $-2^{n-1}$ hingga $2^{n-1}-1$ \cite{wiki_binary_number,wiki_two_complement}. Contoh ringkas:
-\begin{table}[h]
-\centering
-\caption{Rentang nilai integer umum}
-\begin{tabular}{lll}
-\toprule
-\textbf{$n$-bit} & \textbf{Unsigned} & \textbf{Signed (two's complement)} \\
-\midrule
-8  & $0..255$       & $-128..127$ \\
-16 & $0..65535$     & $-32768..32767$ \\
-\bottomrule
-\end{tabular}
-\label{tab:range-nbit}
-\end{table}
-
-\textbf{Implikasi untuk Assembly:}
-\begin{itemize}
-    \item Penting saat mengakses data multi-byte
-    \item Memengaruhi cara data dibaca dari/tulis ke memori
-    \item Relevan untuk debugging dan analisis memori
-\end{itemize}
-
-\section{Contoh Soal dan Pembahasan}\label{sec:pengenalan-contoh}
-
-Berikut adalah contoh soal dengan pembahasan lengkap untuk setiap jenis konversi:
-
-\begin{enumerate}
-    \item \textbf{Konversikan bilangan desimal 255 ke biner dan heksadesimal.}
-    
-    \textbf{Pembahasan:}
-    
-    \textit{Konversi ke biner:}
-    \begin{center}
-    \begin{tabular}{|c|c|c|c|}
-    \hline
-    \textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} \\
-    \hline
-    1 & 255 $\div$ 2 & 127 & 1 \\
-    2 & 127 $\div$ 2 & 63 & 1 \\
-    3 & 63 $\div$ 2 & 31 & 1 \\
-    4 & 31 $\div$ 2 & 15 & 1 \\
-    5 & 15 $\div$ 2 & 7 & 1 \\
-    6 & 7 $\div$ 2 & 3 & 1 \\
-    7 & 3 $\div$ 2 & 1 & 1 \\
-    8 & 1 $\div$ 2 & 0 & 1 \\
-    \hline
-    \end{tabular}
-    \end{center}
-    
-    Membaca sisa dari bawah ke atas: \(11111111_2\)
-    
-    \textit{Konversi ke heksadesimal:}
-    \begin{center}
-    \begin{tabular}{|c|c|c|c|c|}
-    \hline
-    \textbf{Langkah} & \textbf{Operasi} & \textbf{Hasil Bagi} & \textbf{Sisa} & \textbf{Representasi} \\
-    \hline
-    1 & 255 $\div$ 16 & 15 & 15 & F \\
-    2 & 15 $\div$ 16 & 0 & 15 & F \\
-    \hline
-    \end{tabular}
-    \end{center}
-    
-    Membaca sisa dari bawah ke atas: \(\mathrm{FF}_{16}\)
-    
-    \textbf{Jawaban:} \(255_{10} = 11111111_2 = \mathrm{FF}_{16}\)
-
-    \item \textbf{Konversikan bilangan biner \(11010110_2\) ke desimal dan heksadesimal.}
-    
-    \textbf{Pembahasan:}
-    
-    \textit{Konversi ke desimal:}
-    \begin{align*}
-    11010110_2 &= (1 \times 2^7) + (1 \times 2^6) + (0 \times 2^5) + (1 \times 2^4) + (0 \times 2^3) + (1 \times 2^2) + (1 \times 2^1) + (0 \times 2^0) \\
-    &= 128 + 64 + 0 + 16 + 0 + 4 + 2 + 0 \\
-    &= 214_{10}
-    \end{align*}
-    
-    \textit{Konversi ke heksadesimal:}
-    Kelompokkan biner: \(1101\,0110\)
-    \begin{center}
-    \begin{tabular}{|c|c|}
-    \hline
-    \textbf{Grup Biner} & \textbf{Digit Heksadesimal} \\
-    \hline
-    1101 & D \\
-    0110 & 6 \\
-    \hline
-    \end{tabular}
-    \end{center}
-    
-    \textbf{Jawaban:} \(11010110_2 = 214_{10} = \mathrm{D6}_{16}\)
-
-    \item \textbf{Konversikan bilangan heksadesimal \(\mathrm{A5F}_{16}\) ke desimal dan biner.}
-    
-    \textbf{Pembahasan:}
-    
-    \textit{Konversi ke desimal:}
-    \begin{align*}
-    \mathrm{A5F}_{16} &= (\mathrm{A} \times 16^2) + (5 \times 16^1) + (\mathrm{F} \times 16^0) \\
-    &= (10 \times 256) + (5 \times 16) + (15 \times 1) \\
-    &= 2560 + 80 + 15 \\
-    &= 2655_{10}
-    \end{align*}
-    
-    \textit{Konversi ke biner:}
-    \begin{center}
-    \begin{tabular}{|c|c|}
-    \hline
-    \textbf{Digit Heksadesimal} & \textbf{Representasi Biner} \\
-    \hline
-    A & 1010 \\
-    5 & 0101 \\
-    F & 1111 \\
-    \hline
-    \end{tabular}
-    \end{center}
-    
-    Menggabungkan: \(1010\,0101\,1111_2\)
-    
-    \textbf{Jawaban:} \(\mathrm{A5F}_{16} = 2655_{10} = 1010\,0101\,1111_2\)
-
-    \item \textbf{Lakukan operasi penjumlahan biner: \(1011_2 + 1101_2\).}
-    
-    \textbf{Pembahasan:}
-    
-    \begin{center}
-    \begin{tabular}{cccccc}
-      &   & 1 & 0 & 1 & 1 \\
-    + &   & 1 & 1 & 0 & 1 \\
-    \hline
-      & 1 & 1 & 0 & 0 & 0 \\
-    \end{tabular}
-    \end{center}
-    
-    \textbf{Langkah-langkah:}
-    \begin{enumerate}
-        \item Bit paling kanan: \(1 + 1 = 10_2\) → tulis 0, carry 1
-        \item Bit kedua: \(1 + 0 + 1 = 10_2\) → tulis 0, carry 1
-        \item Bit ketiga: \(0 + 1 + 1 = 10_2\) → tulis 0, carry 1
-        \item Bit keempat: \(1 + 1 + 1 = 11_2\) → tulis 1, carry 1
-        \item Carry terakhir: 1
-    \end{enumerate}
-    
-    \textbf{Jawaban:} \(1011_2 + 1101_2 = 11000_2\) (\(11 + 13 = 24\))
-
-    \item \textbf{Representasikan bilangan \(-27\) menggunakan 8-bit two's complement.}
-    
-    \textbf{Pembahasan:}
-    
-    \textit{Langkah 1:} Tulis \(+27\) dalam biner 8-bit
-    \begin{align*}
-    27_{10} &= 00011011_2
-    \end{align*}
-    
-    \textit{Langkah 2:} Komplemen satu (flip semua bit)
-    \begin{align*}
-    00011011_2 \rightarrow 11100100_2
-    \end{align*}
-    
-    \textit{Langkah 3:} Tambah satu
-    \begin{align*}
-    11100100_2 + 1_2 = 11100101_2
-    \end{align*}
-    
-    \textit{Verifikasi:} \(11100101_2 + 00011011_2 = 1\,00000000_2\) (buang carry tertinggi) = \(0\) modulo 256
-    
-    \textbf{Jawaban:} \(-27_{10} = 11100101_2\) dalam 8-bit two's complement
-\end{enumerate}
-
-\section{Latihan}
-
-Kerjakan soal-soal berikut tanpa menggunakan kalkulator. Tuliskan langkah-langkah konversi dan operasi aritmatika secara jelas dan sistematis.
-
-\subsection{Konversi Sistem Bilangan}
-
-\begin{enumerate}
-    \item \textbf{Konversi Desimal ke Biner dan Heksadesimal}\\
-    Ubah bilangan berikut ke biner dan heksadesimal:
-    \begin{itemize}
-        \item \(37_{10}\)
-        \item \(1023_{10}\)
-        \item \(4095_{10}\)
-        \item \(1000_{10}\)
-    \end{itemize}
-
-    \item \textbf{Konversi Biner ke Desimal dan Heksadesimal}\\
-    Ubah bilangan biner berikut ke desimal dan heksadesimal:
-    \begin{itemize}
-        \item \(10010101_2\)
-        \item \(11110000_2\)
-        \item \(101011110101_2\)
-        \item \(110011001100_2\)
-    \end{itemize}
-
-    \item \textbf{Konversi Heksadesimal ke Desimal dan Biner}\\
-    Ubah bilangan heksadesimal berikut ke desimal dan biner:
-    \begin{itemize}
-        \item \(\mathrm{7B}_{16}\)
-        \item \(\mathrm{1C3}_{16}\)
-        \item \(\mathrm{FE}_{16}\)
-        \item \(\mathrm{ABC}_{16}\)
-    \end{itemize}
-
-    \item \textbf{Konversi Oktal}\\
-    Lakukan konversi berikut:
-    \begin{itemize}
-        \item \(377_8\) ke desimal dan biner
-        \item \(1000_{10}\) ke oktal
-        \item \(10101010_2\) ke oktal
-    \end{itemize}
-\end{enumerate}
-
-\subsection{Operasi Aritmatika Biner}
-
-\begin{enumerate}
-    \item \textbf{Penjumlahan Biner}\\
-    Hitung penjumlahan berikut dan tunjukkan proses carry:
-    \begin{itemize}
-        \item \(11101_2 + 10111_2\)
-        \item \(101010_2 + 1111_2\)
-        \item \(110011_2 + 101101_2\)
-        \item \(11111111_2 + 1_2\)
-    \end{itemize}
-
-    \item \textbf{Pengurangan Biner}\\
-    Hitung pengurangan berikut dan tunjukkan proses borrow:
-    \begin{itemize}
-        \item \(10010_2 - 01101_2\)
-        \item \(101010_2 - 1111_2\)
-        \item \(1000000_2 - 1_2\)
-    \end{itemize}
-\end{enumerate}
-
-\subsection{Two's Complement}
-
-\begin{enumerate}
-    \item \textbf{Representasi Bilangan Negatif}\\
-    Untuk 8-bit two's complement, representasikan bilangan berikut:
-    \begin{itemize}
-        \item \(-5_{10}\)
-        \item \(-27_{10}\)
-        \item \(-128_{10}\)
-        \item \(-1_{10}\)
-    \end{itemize}
-    
-    Verifikasi setiap jawaban dengan menambahkan bilangan positifnya dan memastikan hasilnya adalah nol (modulo 256).
-
-    \item \textbf{Konversi Two's Complement}\\
-    Konversikan bilangan two's complement berikut ke desimal:
-    \begin{itemize}
-        \item \(11111011_2\) (8-bit)
-        \item \(10000000_2\) (8-bit)
-        \item \(1111111111111111_2\) (16-bit)
-    \end{itemize}
-\end{enumerate}
-
-\subsection{Analisis dan Aplikasi}
-
-\begin{enumerate}
-    \item \textbf{Endianness}\\
-    Jika word \(0x1234\) disimpan di alamat memori \(0x1000\) dalam little-endian, bagaimana byte-byte tersebut tersusun di memori? Tunjukkan alamat dan nilai byte untuk setiap lokasi.
-
-    \item \textbf{Rentang Nilai}\\
-    Tentukan rentang nilai yang dapat direpresentasikan untuk:
-    \begin{itemize}
-        \item 12-bit unsigned integer
-        \item 12-bit signed integer (two's complement)
-        \item 24-bit unsigned integer
-        \item 24-bit signed integer (two's complement)
-    \end{itemize}
-
-    \item \textbf{Aplikasi dalam Assembly}\\
-    Jelaskan mengapa pemahaman sistem bilangan penting dalam:
-    \begin{itemize}
-        \item Debugging program assembly
-        \item Optimasi kode
-        \item Manipulasi data di level bit
-        \item Pemrograman embedded systems
-    \end{itemize}
-\end{enumerate}
 
 
 
