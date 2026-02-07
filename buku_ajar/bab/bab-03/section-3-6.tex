@@ -1,0 +1,130 @@
+\section{Contoh Program Lanjutan}
+
+Program assembly yang lebih kompleks untuk mendemonstrasikan konsep lanjutan.
+
+\subsection{Program Array Processing}
+
+\begin{verbatim}
+; Array Processing Program
+; =======================
+DATA SEGMENT
+    array DW 10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+    size DW 10
+    sum DW 0
+    average DW 0
+    max DW 0
+    min DW 0
+    msg_sum DB 'Sum: ', '$'
+    msg_avg DB 'Average: ', '$'
+    msg_max DB 'Max: ', '$'
+    msg_min DB 'Min: ', '$'
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    ; Initialize DS
+    MOV AX, DATA
+    MOV DS, AX
+    
+    ; Calculate sum and find min/max
+    MOV CX, [size]
+    MOV SI, 0
+    MOV BX, [array]      ; BX = first element (initial max)
+    MOV DX, [array]      ; DX = first element (initial min)
+    MOV AX, 0            ; AX = sum accumulator
+    
+sum_loop:
+    ADD AX, [array+SI]   ; Add to sum
+    CMP [array+SI], BX    ; Compare with current max
+    JLE not_max          ; Jump if less or equal
+    MOV BX, [array+SI]   ; Update max
+    
+not_max:
+    CMP [array+SI], DX    ; Compare with current min
+    JGE not_min          ; Jump if greater or equal
+    MOV DX, [array+SI]   ; Update min
+    
+not_min:
+    ADD SI, 2            ; Move to next element
+    LOOP sum_loop
+    
+    ; Store results
+    MOV [sum], AX
+    MOV [max], BX
+    MOV [min], DX
+    
+    ; Calculate average (sum / size)
+    XOR DX, DX           ; Clear DX for division
+    MOV CX, [size]
+    DIV CX               ; AX = AX / CX
+    MOV [average], AX
+    
+    ; Exit program
+    MOV AH, 4Ch
+    INT 21h
+
+CODE ENDS
+END start
+\end{verbatim}
+
+\subsection{Program String Operations}
+
+\begin{verbatim}
+; String Operations Program
+; =========================
+DATA SEGMENT
+    source_str DB 'Hello World', 0
+    dest_str DB 50 DUP(0)
+    length DW 0
+    msg_copy DB 'String copied: ', '$'
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    ; Initialize DS
+    MOV AX, DATA
+    MOV DS, AX
+    
+    ; Calculate string length
+    MOV SI, OFFSET source_str
+    MOV CX, 0
+    
+length_loop:
+    MOV AL, [SI]
+    CMP AL, 0            ; Check for null terminator
+    JE length_done
+    INC CX
+    INC SI
+    JMP length_loop
+    
+length_done:
+    MOV [length], CX
+    
+    ; Copy string
+    MOV SI, OFFSET source_str
+    MOV DI, OFFSET dest_str
+    MOV CX, [length]
+    INC CX               ; Include null terminator
+    
+copy_loop:
+    MOV AL, [SI]
+    MOV [DI], AL
+    INC SI
+    INC DI
+    LOOP copy_loop
+    
+    ; Exit program
+    MOV AH, 4Ch
+    INT 21h
+
+CODE ENDS
+END start
+\end{verbatim}
+
+\subsection{Ringkasan Operasi String}
+
+Program di atas mendemonstrasikan penggunaan instruksi LOOP, MOV dengan indeks SI/DI, dan operasi pada string null-terminated. Instruksi \texttt{MOVSB} dan \texttt{MOVSW} dapat digunakan untuk mengoptimasi operasi copy dengan prefix \texttt{REP}.

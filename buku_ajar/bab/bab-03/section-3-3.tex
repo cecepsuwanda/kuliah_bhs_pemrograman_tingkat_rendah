@@ -1,0 +1,71 @@
+\section{Instruksi Dasar}
+
+Instruksi dasar adalah fundamental untuk pemrograman assembly Intel 8086.
+
+\subsection{Data Transfer Instructions}
+
+\begin{verbatim}
+; MOV - Move data
+MOV AX, BX        ; AX = BX
+MOV CX, 1234h     ; CX = 4660
+MOV [mem_var], AX ; memory[mem_var] = AX
+MOV DX, [SI]      ; DX = memory[SI]
+
+; XCHG - Exchange data
+XCHG AX, BX       ; Swap AX dan BX
+XCHG CX, DX       ; Swap CX dan DX
+\end{verbatim}
+
+\subsection{Arithmetic Instructions}
+
+\begin{verbatim}
+; ADD - Addition
+ADD AX, BX        ; AX = AX + BX
+ADD CX, 5         ; CX = CX + 5
+ADD [mem], 10     ; memory[mem] = memory[mem] + 10
+
+; SUB - Subtraction
+SUB AX, BX        ; AX = AX - BX
+SUB CX, 5         ; CX = CX - 5
+
+; INC/DEC - Increment/Decrement
+INC AX            ; AX = AX + 1
+DEC BX            ; BX = BX - 1
+
+; MUL/DIV - Multiply/Divide
+MUL BX            ; AX = AL * BX (8-bit)
+DIV BX            ; AX / BX -> AL=quotient, AH=remainder
+\end{verbatim}
+
+\subsection{Logic Instructions}
+
+\begin{verbatim}
+; AND - Logical AND
+AND AX, 0Fh       ; AX = AX AND 15
+
+; OR - Logical OR
+OR AX, 80h        ; AX = AX OR 128
+
+; XOR - Logical XOR
+XOR AX, AX        ; AX = 0 (clear register)
+
+; NOT - Logical NOT
+NOT AX            ; AX = NOT AX
+
+; SHL/SHR - Shift operations
+SHL AX, 1         ; AX = AX << 1
+SHR AX, 1         ; AX = AX >> 1
+\end{verbatim}
+
+\subsection{Control Flow Instructions}
+
+\begin{verbatim}
+; JMP - Unconditional jump
+JMP label_name    ; Jump ke label_name
+
+; Conditional jumps
+JZ  zero_flag     ; Jump if zero
+JNZ not_zero      ; Jump if not zero
+JC  carry_flag    ; Jump if carry
+JNC no_carry      ; Jump if no carry
+\end{verbatim}

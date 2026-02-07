@@ -1,0 +1,255 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Operasi Aritmatika}
+
+\subsection{Penjumlahan dan Pengurangan}
+Instruksi ADD dan SUB adalah operasi aritmatika dasar dalam assembly 8086.
+
+\begin{verbatim}
+; Addition examples
+ADD AX, BX      ; AX = AX + BX, flags terpengaruh
+ADD CX, 10       ; CX = CX + 10 (immediate)
+ADD [SI], AL     ; memori[SI] = memori[SI] + AL
+
+; Subtraction examples  
+SUB DX, CX      ; DX = DX - CX, flags terpengaruh
+SUB AX, 5       ; AX = AX - 5 (immediate)
+SUB [DI], BL     ; memori[DI] = memori[DI] - BL
+\end{verbatim}
+
+\textbf{Flags yang terpengaruh:}
+\begin{itemize}
+  \item \textbf{ZF (Zero Flag)}: Set jika hasil = 0
+  \item \textbf{SF (Sign Flag)}: Set jika hasil negatif (MSB = 1)
+  \item \textbf{CF (Carry Flag)}: Set jika ada borrow (SUB) atau carry (ADD)
+  \item \textbf{OF (Overflow Flag)}: Set jika overflow signed
+  \item \textbf{AF (Auxiliary Flag)}: Set jika carry dari bit 3 ke bit 4
+\end{itemize}
+
+\subsection{Perkalian dan Pembagian}
+Instruksi MUL dan DIV untuk operasi perkalian dan pembagian.
+
+\begin{verbatim}
+; Unsigned multiplication
+MUL BL          ; AX = AL * BL (8-bit x 8-bit = 16-bit)
+MUL CX          ; DX:AX = AX * CX (16-bit x 16-bit = 32-bit)
+
+; Signed multiplication  
+IMUL BX         ; DX:AX = AX * BX (signed)
+
+; Unsigned division
+DIV BL          ; AL = AX / BL, AH = AX % BL
+DIV CX          ; AX = DX:AX / CX, DX = DX:AX % CX
+
+; Signed division
+IDIV BX         ; AX = DX:AX / BX (signed), DX = DX:AX % BX (signed)
+\end{verbatim}
+
+\textbf{Catatan penting:}
+\begin{itemize}
+  \item MUL selalu menggunakan A register (AL/AX) sebagai operand implisit
+  \item Hasil 8-bit: AL, 16-bit: AX, 32-bit: DX:AX
+  \item DIV error (divide by zero) trigger interrupt 0
+  \item Overflow pada MUL/DIV set CF dan OF
+\end{itemize}
+
+\subsection{Increment dan Decrement}
+Instruksi INC dan DEC untuk operasi +1 dan -1.
+
+\begin{verbatim}
+; Increment
+INC AX          ; AX = AX + 1
+INC [SI]        ; memori[SI] = memori[SI] + 1
+INC BL          ; BL = BL + 1
+
+; Decrement  
+DEC CX          ; CX = CX - 1
+DEC [DI]        ; memori[DI] = memori[DI] - 1
+DEC BH          ; BH = BH - 1
+\end{verbatim}
+
+\textbf{Pengaruh flags:}
+\begin{itemize}
+  \item INC/DEC mempengaruhi OF, SF, ZF, AF
+  \item Tidak mempengaruhi CF (kecuali DEC word menjadi 0)
+\end{itemize}
+
+\subsection{Negasi dan Komplemen}
+Instruksi NEG dan NOT untuk operasi negasi.
+
+\begin{verbatim}
+; Two's complement (negasi)
+NEG AX          ; AX = -AX (two's complement)
+NEG BL          ; BL = -BL
+
+; One's complement (komplemen bitwise)
+NOT AX          ; AX = ~AX (bitwise NOT)
+NOT BL          ; BL = ~BL
+\end{verbatim}
+
+\textbf{Perbedaan NEG vs NOT:}
+\begin{itemize}
+  \item NEG: arithmetic negation (-n)
+  \item NOT: bitwise complement (~n)
+  \item NEG = NOT + 1
+\end{itemize}
+
+\section{Operasi Logika}
+
+\subsection{AND Operation}
+Bitwise AND untuk masking dan testing bits.
+
+\begin{verbatim}
+; Basic AND
+AND AX, BX      ; AX = AX & BX
+AND AL, 0Fh     ; Mask lower nibble (keep 4 LSB)
+AND BL, 01h     ; Test bit 0 (result 0 atau 1)
+
+; Memory operations
+AND [SI], 80h    ; memori[SI] = memori[SI] & 80h
+AND WORD PTR [DI], 0FF00h ; Mask upper byte
+\end{verbatim}
+
+\textbf{Aplikasi AND:}
+\begin{itemize}
+  \item Clear bits: AND dengan 0
+  \item Test bits: AND dengan mask, cek ZF
+  \item Extract bits: AND dengan mask spesifik
+\end{itemize}
+
+\subsection{OR Operation}
+Bitwise OR untuk setting bits.
+
+\begin{verbatim}
+; Basic OR
+OR AX, BX       ; AX = AX | BX
+OR AL, 80h      ; Set bit 7
+OR BL, 01h      ; Set bit 0
+
+; Memory operations
+OR [SI], 0Fh    ; Set lower nibble
+OR WORD PTR [DI], 8000h ; Set bit 15
+\end{verbatim}
+
+\textbf{Aplikasi OR:}
+\begin{itemize}
+  \item Set bits ke 1
+  \item Combine flag bits
+  \item Create bit patterns
+\end{itemize}
+
+\subsection{XOR Operation}
+Bitwise XOR untuk toggling dan enkripsi sederhana.
+
+\begin{verbatim}
+; Basic XOR
+XOR AX, BX      ; AX = AX ^ BX
+XOR AL, 01h     ; Toggle bit 0
+XOR BL, 0FFh    ; Toggle semua bits
+
+; Clear register (XOR dengan diri sendiri)
+XOR AX, AX       ; AX = 0
+XOR CX, CX       ; CX = 0
+
+; Memory operations
+XOR [SI], 80h    ; Toggle bit 7 di memori
+\end{verbatim}
+
+\textbf{Aplikasi XOR:}
+\begin{itemize}
+  \item Toggle bits
+  \item Simple encryption/decryption
+  \item Clear registers
+  \item Parity checking
+\end{itemize}
+
+\subsection{TEST Instruction}
+TEST seperti AND tetapi tidak mengubah hasil, hanya mengubah flags.
+
+\begin{verbatim}
+; Test individual bits
+TEST AL, 01h     ; Test bit 0, set ZF jika bit 0
+TEST AH, 80h     ; Test bit 7
+
+; Test multiple bits
+TEST AX, 0F0Fh   ; Test lower byte, set ZF jika 0
+TEST BX, 8000h   ; Test bit 15
+
+; Test untuk jump condition
+TEST CX, CX       ; Test apakah CX = 0, set ZF
+JZ zero           ; Jump jika CX = 0
+\end{verbatim}
+
+\textbf{Keuntungan TEST:}
+\begin{itemize}
+  \item Tidak mengubah data asli
+  \item Efisien untuk conditional testing
+  \item Sering digunakan sebelum conditional jump
+\end{itemize}
+
+\section{Operasi Shift dan Rotate}
+
+\subsection{Logical Shift}
+SHL dan SHR untuk pergeseran bit dengan mempertahankan sign.
+
+\begin{verbatim}
+; Shift Left (SHL)
+SHL AX, 1       ; AX = AX << 1, CF = bit yang keluar
+SHL BX, CL       ; BX = BX << CL, CF = bit yang keluar
+
+; Shift Right (SHR) 
+SHR AX, 1       ; AX = AX >> 1 (unsigned), CF = bit yang keluar
+SHR BX, CL       ; BX = BX >> CL (unsigned)
+\end{verbatim}
+
+\textbf{Pengaruh flags:}
+\begin{itemize}
+  \item CF berisi bit yang digeser keluar
+  \item OF tergantung pada shift left (SHL)
+  \item ZF set jika hasil = 0
+\end{itemize}
+
+\subsection{Arithmetic Shift}
+SAL dan SAR untuk pergeseran dengan mempertahankan sign.
+
+\begin{verbatim}
+; Shift Arithmetic Left (SAL) - sama dengan SHL
+SAL AX, 1       ; AX = AX << 1 (signed)
+
+; Shift Arithmetic Right (SAR)
+SAR AX, 1       ; AX = AX >> 1 (signed), sign bit preserved
+SAR BX, CL       ; BX = BX >> CL (signed)
+\end{verbatim}
+
+\textbf{Perbedaan SHR vs SAR:}
+\begin{itemize}
+  \item SHR: mengisi MSB dengan 0 (unsigned shift)
+  \item SAR: mempertahankan sign bit (signed shift)
+  \item SAR mempertahankan tanda bilangan negatif
+\end{itemize}
+
+\subsection{Rotate Operations}
+RCL, RCR, ROL, ROR untuk rotasi bit.
+
+\begin{verbatim}
+; Rotate Left (ROL)
+ROL AL, 1       ; Rotate left 1 bit, CF = bit yang keluar
+ROL AX, CL       ; Rotate left CL bits
+
+; Rotate Right (ROR)  
+ROR AL, 1       ; Rotate right 1 bit
+ROR AX, CL       ; Rotate right CL bits
+
+; Rotate through Carry (RCL/RCR)
+RCL AL, 1       ; Rotate left through carry
+RCR AL, 1       ; Rotate right through carry
+\end{verbatim}
+
+\textbf{Aplikasi Rotate:}
+\begin{itemize}
+  \item Circular buffer
+  \item Cryptography
+  \item Bit manipulation
+  \item Graphics operations
+\end{itemize}

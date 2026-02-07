@@ -1,0 +1,145 @@
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Video Programming}: Buat program yang menggunakan INT 10h untuk membuat animasi sederhana.
+  
+  \item \textbf{File Operations}: Implementasikan text editor dengan file I/O menggunakan INT 21h.
+  
+  \item \textbf{Keyboard Handler}: Buat program yang menangani keyboard input dengan INT 16h.
+  
+  \item \textbf{System Information}: Buat program yang menampilkan informasi sistem (memori, waktu, tanggal).
+  
+  \item \textbf{Interrupt Analysis}: Gunakan TASM debugger untuk trace interrupt execution.
+  
+  \item \textbf{Custom Interrupt}: Implementasikan user-defined interrupt handler.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Buat program untuk menampilkan jam digital di pojok kanan atas layar.
+  
+  \item Implementasikan program untuk membaca dan menulis file teks dengan INT 21h.
+  
+  \item Buat program calculator dengan input keyboard dan output video.
+  
+  \item Implementasikan program untuk menampilkan informasi sistem (memori, tanggal, waktu).
+  
+  \item Buat program text-based game dengan keyboard input dan video output.
+  
+  \item Implementasikan program untuk copy file dengan progress bar.
+  
+  \item Buat program untuk mengubah atribut file dan direktori.
+  
+  \item \textbf{Refleksi}: Interrupt mana yang paling sulit dipahami? Bagaimana Anda mengatasi kesulitan tersebut?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 4.2, 2.1}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Interrupt untuk video services adalah:
+  \begin{enumerate}
+    \item INT 10h
+    \item INT 13h
+    \item INT 16h
+    \item INT 21h
+  \end{enumerate}
+  
+  \item Fungsi untuk menampilkan karakter dengan INT 21h adalah:
+  \begin{enumerate}
+    \item AH = 01h
+    \item AH = 02h
+    \item AH = 09h
+    \item AH = 0Ah
+  \end{enumerate}
+  
+  \item Register yang berisi scan code dari INT 16h adalah:
+  \begin{enumerate}
+    \item AL
+    \item AH
+    \item AX
+    \item DX
+  \end{enumerate}
+  
+  \item Interrupt untuk disk services adalah:
+  \begin{enumerate}
+    \item INT 10h
+    \item INT 12h
+    \item INT 13h
+    \item INT 15h
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan perbedaan antara BIOS interrupts dan DOS interrupts! Berikan contoh penggunaan masing-masing.
+  
+  \item Mengapa interrupt vector table penting dalam sistem operasi?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Buat program file manager:
+  \begin{itemize}
+    \item Display directory listing dengan INT 21h
+    \item File operations (create, read, write, delete)
+    \item Directory operations (create, remove, change)
+    \item File attribute management
+    \item Search functionality
+    \item User interface dengan menu system
+    \item Error handling dan validation
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat menggunakan INT 10h untuk video operations
+  \item Saya dapat menggunakan INT 13h untuk disk operations
+  \item Saya dapat menggunakan INT 16h untuk keyboard input
+  \item Saya dapat menggunakan INT 21h untuk DOS services
+  \item Saya dapat melakukan file I/O operations
+  \item Saya dapat mengelola memory dengan interrupts
+  \item Saya dapat mengakses time dan date services
+  \item Saya dapat menganalisis interrupt execution dengan debugger
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas interupsi sistem dalam assembly 8086, termasuk BIOS interrupts, DOS services, dan system programming.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Interupsi memungkinkan komunikasi dengan hardware dan sistem operasi
+  \item BIOS interrupts (INT 10h, 13h, 16h) untuk hardware-level operations
+  \item DOS interrupts (INT 21h) untuk sistem operasi services
+  \item File I/O, video, keyboard, dan disk operations melalui interrupts
+  \item Interrupt vector table mengelola handler addresses
+  \item System programming memerlukan pemahaman interrupt mechanisms
+  \item Error handling penting untuk interrupt operations
+  \item Debugging interrupts membantu troubleshooting system calls
+\end{itemize}
+
+\textbf{Kata Kunci}: \asm{Interupsi}, \asm{BIOS}, \asm{DOS}, \asm{INT 10h}, \asm{INT 13h}, \asm{INT 16h}, \asm{INT 21h}, \asm{File I/O}, \asm{Video}, \asm{Keyboard}, \asm{TASM}, \asm{System Programming}
+\end{rangkuman}

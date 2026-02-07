@@ -1,0 +1,170 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{4}}{}
+\begin{document}
+
+\chapter{Operasi Aritmatika dan Logika}
+
+\begin{subcpmk}
+  \item Sub-CPMK 3.1: Mengimplementasikan operasi aritmatika (ADD, SUB, MUL, DIV)
+  \item Sub-CPMK 3.2: Menerapkan operasi logika (AND, OR, XOR, NOT, SHIFT)
+  \item Sub-CPMK 2.1: Menulis program assembly sederhana dengan TASM syntax
+\end{subcpmk}
+
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\input{bab-05/section-5-1}
+\input{bab-05/section-5-2}
+
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Arithmetic Calculator}: Buat kalkulator yang implementasikan semua operasi aritmatika dengan input dari user.
+  
+  \item \textbf{Flag Analysis}: Gunakan TASM debugger untuk mengamati perubahan flag setiap operasi aritmatika dan logika.
+  
+  \item \textbf{Bit Manipulation}: Implementasikan program untuk menghitung jumlah bit set (population count).
+  
+  \item \textbf{Shift Operations}: Buat program untuk konversi bilangan desimal ke biner menggunakan shift operations.
+  
+  \item \textbf{Logical Expression}: Implementasikan ekspresi logika kompleks dengan kombinasi AND, OR, XOR.
+  
+  \item \textbf{Performance Comparison}: Bandingkan kecepatan MUL vs shift untuk operasi perkalian dengan pangkat 2.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Jelaskan perbedaan antara MUL dan IMU! Kapan sebaiknya menggunakan masing-masing?
+  
+  \item Analisis flag yang berubah setelah operasi ADD AX, 7FFFh dengan AX = 0001h. Jelaskan mengapa overflow terjadi.
+  
+  \item Buat program yang:
+  \begin{itemize}
+    \item Menghitung kuadrat bilangan menggunakan MUL
+    \item Menguji hasil positif/negatif dengan flag register
+    \item Menampilkan hasil yang sesuai
+  \end{itemize}
+  
+  \item Implementasikan fungsi untuk menghitung absolute value menggunakan operasi logika.
+  
+  \item Buat program untuk menghitung gcd dua bilangan menggunakan DIV dan SUB.
+  
+  \item Gunakan operasi shift untuk implementasi perkalian dan pembagian dengan pangkat 2.
+  
+  \item \textbf{Refleksi}: Operasi mana yang paling sulit dipahami (aritmatika vs logika)? Bagaimana Anda mengatasi kesulitan tersebut?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 3.1, 3.2, 2.1}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Setelah operasi MUL dengan operand 8-bit, hasil disimpan di:
+  \begin{enumerate}
+    \item AX
+    \item AL
+    \item DX:AX
+    \item AH
+  \end{enumerate}
+  
+  \item Instruksi yang tidak mempengaruhi carry flag adalah:
+  \begin{enumerate}
+    \item ADD
+    \item SUB
+    \item AND
+    \item INC
+  \end{enumerate}
+  
+  \item Untuk membagi DX:AX dengan operand 16-bit, gunakan:
+  \begin{enumerate}
+    \item DIV
+    \item IDIV
+    \item MUL
+    \item IMUL
+  \end{enumerate}
+  
+  \item Shift yang preserve sign bit adalah:
+  \begin{enumerate}
+    \item SHL
+    \item SHR
+    \item SAL
+    \item SAR
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan perbedaan antara logical shift dan arithmetic shift! Berikan contoh kasus penggunaan.
+  
+  \item Mengapa instruksi TEST digunakan instead of AND untuk testing bit?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Buat program scientific calculator:
+  \begin{itemize}
+    \item Implementasikan semua operasi aritmatika dasar
+    \item Tambahkan operasi logika bitwise
+    \item Implementasikan fungsi power of 2 dengan shift
+    \item Validasi input dan handle overflow
+    \item Tampilkan hasil dalam format desimal dan heksadesimal
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat mengimplementasikan operasi aritmatika (ADD, SUB, MUL, DIV)
+  \item Saya dapat menganalisis flag register setelah operasi aritmatika
+  \item Saya dapat menerapkan operasi logika (AND, OR, XOR, NOT)
+  \item Saya dapat menggunakan operasi shift dan rotate
+  \item Saya dapat menangani overflow dan underflow
+  \item Saya dapat mengoptimasi operasi dengan shift operations
+  \item Saya dapat menulis program assembly dengan operasi kombinasi
+  \item Saya dapat menggunakan TASM debugger untuk analisis operasi
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas operasi aritmatika dan logika dalam assembly language, termasuk implementasi, flag handling, dan optimasi.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Operasi aritmatika meliputi ADD, SUB, MUL, DIV dengan aturan register spesifik
+  \item Flag register penting untuk deteksi overflow, carry, zero, dan sign
+  \item Operasi logika bitwise essential untuk bit manipulation
+  \item Shift operations lebih efisien untuk perkalian/pembagian pangkat 2
+  \item Pemahaman operand size dan register usage kunci untuk operasi yang benar
+  \item TASM debugger membantu analisis operasi langkah per langkah
+  \item Optimasi operasi meningkatkan kinerja program assembly
+\end{itemize}
+
+\textbf{Kata Kunci}: \textbf{\texttt{Aritmatika}}, \textbf{\texttt{Logika}}, \textbf{\texttt{ADD}}, \textbf{\texttt{SUB}}, \textbf{\texttt{MUL}}, \textbf{\texttt{DIV}}, \textbf{\texttt{AND}}, \textbf{\texttt{OR}}, \textbf{\texttt{XOR}}, \textbf{\texttt{SHIFT}}, \textbf{\texttt{Flag Register}}, \textbf{\texttt{TASM}}
+\end{rangkuman}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

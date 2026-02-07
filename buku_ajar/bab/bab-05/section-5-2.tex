@@ -1,0 +1,143 @@
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Arithmetic Calculator}: Implementasikan kalkulator dengan operasi ADD, SUB, MUL, DIV.
+  
+  \item \textbf{Logic Gates}: Simulasi logic gates (AND, OR, XOR, NOT) menggunakan instruksi assembly.
+  
+  \item \textbf{Bit Manipulation}: Buat program untuk mengekstrak, mengatur, dan menguji bit individual.
+  
+  \item \textbf{Shift Operations}: Implementasikan program enkripsi sederhana dengan shift dan rotate.
+  
+  \item \textbf{Flag Analysis}: Gunakan TASM debugger untuk mengamati perubahan flag register.
+  
+  \item \textbf{Performance Testing}: Bandingkan kecepatan berbagai operasi aritmatika dan logika.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Buat program untuk menghitung faktorial menggunakan MUL dan loop.
+  
+  \item Implementasikan program untuk mengkonversi bilangan desimal ke biner dengan shift operations.
+  
+  \item Buat program yang mengecek apakah suatu bilangan adalah pangkat dari 2 menggunakan TEST instruksi.
+  
+  \item Implementasikan program enkripsi Caesar cipher dengan XOR operations.
+  
+  \item Buat program untuk menghitung jumlah bit yang set (population count) dalam sebuah register.
+  
+  \item Implementasikan swap dua variabel tanpa menggunakan temporary variable (hanya XOR).
+  
+  \item Buat program untuk membagi bilangan besar dengan DIV dan handle overflow.
+  
+  \item \textbf{Refleksi}: Operasi logika mana yang paling sulit dipahami? Bagaimana Anda mengatasi kesulitan tersebut?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 3.1, 3.2}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Instruksi untuk perkalian unsigned 8-bit adalah:
+  \begin{enumerate}
+    \item MUL
+    \item IMUL
+    \item DIV
+    \item IDIV
+  \end{enumerate}
+  
+  \item Flag yang tidak terpengaruh oleh instruksi AND adalah:
+  \begin{enumerate}
+    \item CF (Carry Flag)
+    \item OF (Overflow Flag)
+    \item ZF (Zero Flag)
+    \item SF (Sign Flag)
+  \end{enumerate}
+  
+  \item Instruksi untuk shift right yang mempertahankan sign bit adalah:
+  \begin{enumerate}
+    \item SHR
+    \item SHL
+    \item SAR
+    \item SAL
+  \end{enumerate}
+  
+  \item Hasil dari XOR AX, AX adalah:
+  \begin{enumerate}
+    \item AX
+    \item 0
+    \item 0FFFFh
+    \item Tidak terdefinisi
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan perbedaan antara instruksi TEST dan CMP! Kapan sebaiknya menggunakan masing-masing?
+  
+  \item Mengapa instruksi MUL memiliki format yang berbeda dengan instruksi ADD dalam hal operand?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Buat program kalkulator scientific:
+  \begin{itemize}
+    \item Support operasi dasar (+, -, *, /)
+    \item Implementasikan fungsi trigonometri dengan lookup table
+    \item Gunakan operasi logika untuk validasi input
+    \item Handle overflow dan underflow
+    \item Tampilkan hasil dengan format yang baik
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat mengimplementasikan operasi aritmatika (ADD, SUB, MUL, DIV)
+  \item Saya dapat menerapkan operasi logika (AND, OR, XOR, NOT, TEST)
+  \item Saya dapat menggunakan shift dan rotate operations
+  \item Saya memahami pengaruh operasi terhadap flag register
+  \item Saya dapat menangani overflow dan underflow
+  \item Saya dapat mengoptimasi operasi bit manipulation
+  \item Saya dapat menggunakan TASM debugger untuk tracing operasi
+  \item Saya dapat menerapkan konsep two's complement
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas operasi aritmatika dan logika dalam assembly 8086, termasuk instruksi dasar, flag manipulation, dan teknik bit manipulation.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Operasi aritmatika meliputi ADD, SUB, MUL, DIV, INC, DEC, NEG
+  \item Operasi logika meliputi AND, OR, XOR, NOT, TEST
+  \item Shift operations: SHL, SHR, SAL, SAR untuk pergeseran bit
+  \item Rotate operations: ROL, ROR, RCL, RCR untuk rotasi bit
+  \item Flag register penting untuk conditional operations dan error detection
+  \item Bit manipulation essential untuk encryption, compression, dan graphics
+  \item Overflow handling critical untuk numerical computations
+  \item TASM debugger membantu analisis operasi langkah demi langkah
+\end{itemize}
+
+\textbf{Kata Kunci}: \asm{Aritmatika}, \asm{Logika}, \asm{ADD}, \asm{SUB}, \asm{MUL}, \asm{DIV}, \asm{AND}, \asm{OR}, \asm{XOR}, \asm{NOT}, \asm{TEST}, \asm{SHL}, \asm{SHR}, \asm{SAL}, \asm{SAR}, \asm{ROL}, \asm{ROR}, \asm{Flag}, \asm{TASM}
+\end{rangkuman}

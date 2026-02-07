@@ -1,0 +1,256 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Prosedur dan Fungsi}
+
+\subsection{Konsep Prosedur}
+Prosedur adalah blok kode yang dapat dipanggil berulang kali untuk modular programming.
+
+\begin{verbatim}
+; Prosedur definition
+procedure_name PROC
+    ; ... body of procedure
+    RET
+procedure_name ENDP
+
+; Memanggil prosedur
+CALL procedure_name
+\end{verbatim}
+
+\textbf{Keuntungan prosedur:}
+\begin{itemize}
+  \item Code reuse - menghindari duplikasi kode
+  \item Modular design - memecah program menjadi bagian-bagian kecil
+  \item Maintainability - lebih mudah diperbaiki dan diperbarui
+  \item Readability - struktur program lebih jelas
+\end{itemize}
+
+\subsection{CALL dan RET Instructions}
+Instruksi fundamental untuk prosedur management.
+
+\begin{verbatim}
+; CALL instruction
+CALL procedure_name    ; Push return address, jump ke procedure
+
+; RET instruction  
+RET                 ; Pop return address, jump back
+RET n               ; Pop return address, add n to SP (cleanup)
+\end{verbatim}
+
+\textbf{CALL operation:}
+\begin{enumerate}
+  \item Push return address (IP) ke stack
+  \item Jump ke alamat prosedur
+  \item Eksekusi prosedur
+  \item RET pop return address dari stack
+  \item Jump kembali ke caller
+\end{enumerate}
+
+\subsection{Parameter Passing}
+Berbagai cara untuk passing parameter ke prosedur.
+
+\subsubsection{Passing via Registers}
+\begin{verbatim}
+; Caller
+MOV AX, param1
+MOV BX, param2
+CALL calculate
+; Result di AX
+
+; Procedure
+calculate PROC
+    ; AX dan BX berisi parameter
+    ADD AX, BX      ; AX = AX + BX
+    RET
+calculate ENDP
+\end{verbatim}
+
+\subsubsection{Passing via Stack}
+\begin{verbatim}
+; Caller
+PUSH param1       ; Push parameter ke stack
+PUSH param2
+CALL calculate
+ADD SP, 4         ; Cleanup stack (2 parameters)
+
+; Procedure
+calculate PROC
+    PUSH BP        ; Save BP
+    MOV BP, SP     ; Setup stack frame
+    MOV AX, [BP+4] ; Get parameter 1
+    MOV BX, [BP+6] ; Get parameter 2
+    ADD AX, BX     ; Calculate
+    POP BP         ; Restore BP
+    RET
+calculate ENDP
+\end{verbatim}
+
+\section{Stack Management}
+
+\subsection{Stack Frame Structure}
+Organisasi stack untuk prosedur dengan parameter dan local variables.
+
+\begin{verbatim}
+; Standard stack frame setup
+PUSH BP              ; Save old BP
+MOV BP, SP           ; Setup new frame pointer
+SUB SP, local_size   ; Reserve space for locals
+
+; Standard stack frame cleanup
+MOV SP, BP           ; Remove locals
+POP BP               ; Restore old BP
+RET                  ; Return to caller
+\end{verbatim}
+
+\textbf{Stack layout (high to low address):}
+\begin{itemize}
+  \item \textbf{Parameters}: [BP+4], [BP+6], [BP+8], ...
+  \item \textbf{Return Address}: [BP+2]
+  \item \textbf{Old BP}: [BP]
+  \item \textbf{Local Variables}: [BP-2], [BP-4], [BP-6], ...
+\end{itemize}
+
+\subsection{Local Variables}
+Variabel lokal dalam prosedur menggunakan stack space.
+
+\begin{verbatim}
+; Procedure dengan local variables
+process_data PROC
+    PUSH BP              ; Save BP
+    MOV BP, SP           ; Setup frame
+    SUB SP, 6            ; Reserve 3 words (6 bytes)
+    
+    ; Local variables
+    MOV [BP-2], AX       ; local_var1 = AX
+    MOV [BP-4], BX       ; local_var2 = BX
+    MOV [BP-6], CX       ; local_var3 = CX
+    
+    ; ... proses dengan local variables
+    MOV AX, [BP-2]       ; Gunakan local_var1
+    ADD AX, [BP-4]       ; AX = local_var1 + local_var2
+    
+    MOV SP, BP           ; Cleanup locals
+    POP BP               ; Restore BP
+    RET
+process_data ENDP
+\end{verbatim}
+
+\subsection{Calling Conventions}
+Standard untuk parameter passing dan stack management.
+
+\subsubsection{C Calling Convention}
+\begin{itemize}
+  \item Parameters pushed right-to-left
+  \item Caller responsible for stack cleanup
+  \item Return value di AX/DX
+  \item Registers AX, CX, DX dapat diubah
+\end{itemize}
+
+\subsubsection{Pascal Calling Convention}
+\begin{itemize}
+  \item Parameters pushed left-to-right
+  \item Procedure responsible for stack cleanup
+  \item Return value di AX/DX
+  \item Semua register kecuali BP harus dipreserve
+\end{itemize}
+
+\section{Rekursi}
+
+\subsection{Konsep Rekursi}
+Prosedur yang memanggil dirinya sendiri.
+
+\begin{verbatim}
+; Faktorial rekursif
+factorial PROC
+    PUSH BP
+    MOV BP, SP
+    
+    MOV AX, [BP+4]       ; Get parameter n
+    CMP AX, 1
+    JLE base_case        ; if n <= 1
+    
+    DEC AX               ; n-1
+    PUSH AX              ; Push n-1
+    CALL factorial       ; factorial(n-1)
+    ADD SP, 2            ; Cleanup
+    
+    MOV BX, [BP+4]       ; Get original n
+    MUL BX               ; AX = AX * n
+    JMP end_recursion
+    
+base_case:
+    MOV AX, 1            ; factorial(1) = 1
+    
+end_recursion:
+    POP BP
+    RET
+factorial ENDP
+\end{verbatim}
+
+\subsection{Stack Overflow}
+Penting untuk menghindari stack overflow dalam rekursi.
+
+\textbf{Penyebab stack overflow:}
+\begin{itemize}
+  \item Terlalu banyak nested calls
+  \item Local variables terlalu besar
+  \item Rekursi tanpa base case
+  \item Infinite recursion
+\end{itemize}
+
+\textbf{Prevention:}
+\begin{itemize}
+  \item Limit recursion depth
+  \item Use iteration when possible
+  \item Minimize local variables
+  \item Always have proper base case
+\end{itemize}
+
+\section{Advanced Stack Operations}
+
+\subsection{Stack Alignment}
+Mengoptimasi stack untuk performa lebih baik.
+
+\begin{verbatim}
+; Stack alignment untuk word boundaries
+PUSH AX              ; AX di stack
+AND SP, 0FFFEh       ; Align ke word boundary
+; ... operasi yang memerlukan alignment
+\end{verbatim}
+
+\subsection{Stack Checking}
+Validasi stack untuk debugging.
+
+\begin{verbatim}
+; Stack overflow check
+check_stack PROC
+    CMP SP, stack_limit
+    JB stack_overflow     ; Jump if SP < limit
+    RET                    ; Stack OK
+    
+stack_overflow:
+    ; Handle overflow error
+    INT 3                  ; Breakpoint for debugging
+    RET
+check_stack ENDP
+\end{verbatim}
+
+\subsection{Variable Number of Arguments}
+Prosedur dengan jumlah parameter variabel.
+
+\begin{verbatim}
+; Printf-style procedure
+printf PROC
+    PUSH BP
+    MOV BP, SP
+    
+    ; Get format string
+    MOV SI, [BP+4]        ; Format string address
+    
+    ; Process format string and arguments
+    ; ... implementation
+    
+    POP BP
+    RET
+printf ENDP
+\end{verbatim}

@@ -1,0 +1,24 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{3}}{}
+\begin{document}
+
+\chapter{Set Instruksi dan Mode Addressing}
+
+\begin{subcpmk}
+  \item Sub-CPMK 1.2: Mengidentifikasi mode addressing (immediate, direct, indirect, indexed)
+  \item Sub-CPMK 2.1: Menulis program assembly sederhana dengan TASM syntax
+  \item Sub-CPMK 2.2: Menggunakan direktif assembler (DB, DW, DD, EQU, ORG)
+\end{subcpmk}
+
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\input{bab-04/section-4-1}
+\input{bab-04/section-4-2}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

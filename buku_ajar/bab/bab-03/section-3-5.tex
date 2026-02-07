@@ -1,0 +1,65 @@
+\section{Dasar Debugging}
+
+Debugging adalah proses menemukan dan memperbaiki error dalam program assembly.
+
+\subsection{Common Assembly Errors}
+
+\textbf{Syntax Errors:}
+\begin{itemize}
+  \item \textbf{Invalid Mnemonic}: Instruksi tidak dikenal
+  \item \textbf{Invalid Operand}: Format operand salah
+  \item \textbf{Undefined Symbol}: Label atau variabel tidak didefinisikan
+  \item \textbf{Duplicate Definition}: Label didefinisikan dua kali
+\end{itemize}
+
+\textbf{Logic Errors:}
+\begin{itemize}
+  \item \textbf{Register Corruption}: Register tidak dipreserve
+  \item \textbf{Stack Overflow}: Rekursi terlalu dalam
+  \item \textbf{Off-by-One}: Loop count salah
+  \item \textbf{Memory Access}: Akses memori tidak valid
+\end{itemize}
+
+\subsection{Debugging Techniques}
+
+\begin{verbatim}
+; Debugging with comments
+; ===================
+; Add comments to explain logic
+MOV AX, BX        ; Copy BX to AX
+ADD AX, 5         ; Add 5 to AX
+CMP AX, 0         ; Compare with zero
+JZ  zero_found    ; Jump if zero
+
+; Use registers for debugging
+MOV DX, 1         ; Debug flag = 1
+; ... code ...
+CMP DX, 1         ; Check debug flag
+JNE  skip_debug   ; Skip if not debugging
+\end{verbatim}
+
+\subsection{TASM Debugger Commands}
+
+\begin{verbatim}
+; Common debugger commands
+; =====================
+; BP address      - Set breakpoint
+; BC number       - Clear breakpoint
+; BL              - List breakpoints
+; G               - Run program
+; T               - Trace single instruction
+; P               - Procedure step
+; R register      - Show register value
+; ?               - Show help
+\end{verbatim}
+
+\subsection{Debugging Strategy}
+
+\begin{enumerate}
+  \item \textbf{Compile with Debug Info}: Gunakan /zi switch
+  \item \textbf{Set Breakpoints}: Set di lokasi strategis
+  \item \textbf{Step Through}: Eksekusi per instruksi
+  \item \textbf{Watch Registers}: Monitor register values
+  \item \textbf{Check Memory}: Inspect memory content
+  \item \textbf{Verify Logic}: Pastikan algoritma benar
+\end{enumerate}

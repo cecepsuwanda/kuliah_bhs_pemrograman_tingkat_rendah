@@ -1,0 +1,171 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{5}}{}
+\begin{document}
+
+\chapter{Struktur Kontrol dan Perulangan}
+
+\begin{subcpmk}
+  \item Mendukung CPMK-3 (operasi kontrol): Mengimplementasikan struktur kontrol (IF-THEN-ELSE, CASE) dan perulangan (FOR, WHILE, DO-WHILE) — Materi Minggu 9-10
+  \item Sub-CPMK 2.1: Menulis program assembly sederhana dengan TASM syntax
+\end{subcpmk}
+
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\input{bab-06/section-6-1}
+\input{bab-06/section-6-2}
+
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Conditional Logic}: Buat program yang mengimplementasikan grade calculation (A, B, C, D, E) dengan IF-THEN-ELSE.
+  
+  \item \textbf{Menu System}: Implementasikan menu-driven program dengan struktur CASE menggunakan jump table.
+  
+  \item \textbf{Loop Patterns}: Buat program yang mendemonstrasikan 4 jenis loop (FOR, WHILE, DO-WHILE, nested).
+  
+  \item \textbf{Flag Analysis}: Gunakan TASM debugger untuk mengamati flag register sebelum dan sesudah instruksi CMP.
+  
+  \item \textbf{Performance Comparison}: Bandingkan kecepatan LOOP vs DEC/JNZ untuk implementasi loop.
+  
+  \item \textbf{Complex Logic}: Implementasikan program sorting dengan nested loop dan conditional statements.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Jelaskan perbedaan antara instruksi JG dan JA! Kapan sebaiknya menggunakan masing-masing?
+  
+  \item Buat program untuk menentukan bilangan terbesar dari 3 bilangan menggunakan nested IF.
+  
+  \item Implementasikan program yang:
+  \begin{itemize}
+    \item Menerima input angka 1-7 dari user
+    \item Menampilkan nama hari yang sesuai
+    \item Menggunakan struktur CASE dengan jump table
+    \item Handle input invalid
+  \end{itemize}
+  
+  \item Buat program untuk menghitung faktorial menggunakan FOR loop.
+  
+  \item Implementasikan program untuk mencari bilangan prima dengan nested loop.
+  
+  \item Bandingkan implementasi WHILE vs DO-WHILE untuk kasus yang sama.
+  
+  \item \textbf{Refleksi}: Struktur kontrol mana yang paling sulit diimplementasikan dalam assembly? Bagaimana Anda mengatasi kesulitan tersebut?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 4.1, 4.2, 2.1}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Instruksi yang digunakan untuk lompat jika carry flag set adalah:
+  \begin{enumerate}
+    \item JC
+    \item JNC
+    \item JZ
+    \item JNZ
+  \end{enumerate}
+  
+  \item Untuk implementasi FOR loop dengan counter, register yang paling cocok adalah:
+  \begin{enumerate}
+    \item AX
+    \item BX
+    \item CX
+    \item DX
+  \end{enumerate}
+  
+  \item Instruksi yang secara otomatis mendekrement counter dan melakukan jump adalah:
+  \begin{enumerate}
+    \item JMP
+    \item DEC
+    \item LOOP
+    \item JNZ
+  \end{enumerate}
+  
+  \item Jump yang cocok untuk unsigned comparison adalah:
+  \begin{enumerate}
+    \item JG
+    \item JL
+    \item JA
+    \item JGE
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan perbedaan antara implementasi WHILE dan DO-WHILE dalam assembly language!
+  
+  \item Mengapa jump table lebih efisien untuk implementasi CASE dibandingkan dengan nested IF?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Buat program student grade system:
+  \begin{itemize}
+    \item Input nilai 0-100
+    \item Konversi ke grade (A: 85-100, B: 70-84, C: 55-69, D: 40-54, E: 0-39)
+    \item Tampilkan grade dan keterangan
+    \item Handle input validation
+    \item Gunakan struktur kontrol yang efisien
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat mengimplementasikan struktur IF-THEN-ELSE
+  \item Saya dapat menggunakan jump instructions berdasarkan flag register
+  \item Saya dapat mengimplementasikan struktur CASE dengan jump table
+  \item Saya dapat membuat berbagai jenis loop (FOR, WHILE, DO-WHILE)
+  \item Saya dapat menggunakan instruksi LOOP khusus
+  \item Saya dapat mengimplementasikan nested loop
+  \item Saya dapat memilih instruksi jump yang tepat untuk kasus tertentu
+  \item Saya dapat menganalisis flag register untuk conditional logic
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas struktur kontrol dan perulangan dalam assembly language, termasuk implementasi conditional statements dan berbagai jenis loop.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Instruksi jump memungkinkan kontrol alur program berdasarkan kondisi
+  \item Flag register (ZF, CF, SF, OF) menentukan kondisi jump
+  \item IF-THEN-ELSE diimplementasikan dengan CMP dan conditional jump
+  \item Struktur CASE lebih efisien dengan jump table
+  \item Berbagai jenis loop dapat diimplementasikan dengan counter dan jump
+  \item Instruksi LOOP khusus untuk implementasi loop yang efisien
+  \item Nested loop memerlukan manajemen counter yang hati-hati
+  \item Pemilihan instruksi jump mempengaruhi kinerja dan ukuran kode
+\end{itemize}
+
+\textbf{Kata Kunci}: \textbf{\texttt{Jump}}, \textbf{\texttt{Conditional}}, \textbf{\texttt{IF-THEN-ELSE}}, \textbf{\texttt{CASE}}, \textbf{\texttt{LOOP}}, \textbf{\texttt{Flag Register}}, \textbf{\texttt{CMP}}, \textbf{\texttt{TASM}}, \textbf{\texttt{Control Flow}}
+\end{rangkuman}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

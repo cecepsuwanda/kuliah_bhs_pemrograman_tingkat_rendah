@@ -1,0 +1,67 @@
+\section{Tipe Data dan Direktif}
+
+\subsection{Tipe Data Dasar}
+
+Intel 8086 mendukung berbagai tipe data untuk operasi yang berbeda:
+
+\textbf{Integer Types:}
+\begin{itemize}
+  \item \textbf{Byte}: 8-bit unsigned (0-255)
+  \item \textbf{Word}: 16-bit unsigned (0-65535)
+  \item \textbf{Double Word}: 32-bit (0-4294967295)
+\end{itemize}
+
+\textbf{String Types:}
+\begin{itemize}
+  \item \textbf{ASCII String}: Array of bytes terminated dengan null (0)
+  \item \textbf{Pascal String}: String dengan length prefix
+\end{itemize}
+
+\subsection{Data Definition Directives}
+
+\begin{verbatim}
+; Integer data definition
+byte_var   DB  10h      ; 8-bit value
+word_var   DW  1234h     ; 16-bit value
+dword_var  DD  12345678h ; 32-bit value
+
+; String definition
+str_hello  DB 'Hello World', 0
+str_name   DB 'John Doe', 0
+str_age   DB 25, 0
+
+; Array definition
+numbers   DW 10, 20, 30, 40, 50
+matrix    DW 1, 2, 3, 4
+buffer    DB 256 DUP(0)  ; 256 bytes buffer
+\end{verbatim}
+
+\subsection{Constant Definition}
+
+\begin{verbatim}
+; Constant definitions
+MAX_SIZE EQU 100
+PI       EQU 3.14159
+NEW_LINE  EQU 0Dh, 0Ah
+TRUE     EQU 1
+FALSE    EQU 0
+\end{verbatim}
+
+\subsection{Memory Layout}
+
+\begin{verbatim}
+; Memory organization example
+DATA SEGMENT
+    ; Constants
+    MAX_SIZE EQU 100
+    
+    ; Variables
+    array1 DW 10 DUP(0)
+    array2 DW MAX_SIZE DUP(0)
+    string1 DB 'Hello', 0
+    string2 DB 'World', 0
+    
+    ; Aligned data
+    aligned_var DW 0
+DATA ENDS
+\end{verbatim}

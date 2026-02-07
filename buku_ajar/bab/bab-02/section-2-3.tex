@@ -1,0 +1,65 @@
+\section{Instruction Set Dasar}
+
+Intel 8086 memiliki instruction set yang kaya dan komprehensif untuk berbagai operasi pemrograman.
+
+\subsection{Kategori Instruksi}
+
+\textbf{Data Transfer Instructions:}
+\begin{itemize}
+  \item \textbf{MOV}: Transfer data antar register/memory
+  \item \textbf{PUSH/POP}: Stack operations
+  \item \textbf{XCHG}: Exchange data antar register
+  \item \textbf{LEA}: Load effective address
+  \item \textbf{LDS/LES}: Load pointer dari memory
+\end{itemize}
+
+\textbf{Arithmetic Instructions:}
+\begin{itemize}
+  \item \textbf{ADD/SUB}: Penjumlahan dan pengurangan
+  \item \textbf{MUL/DIV}: Perkalian dan pembagian
+  \item \textbf{INC/DEC}: Increment dan decrement
+  \item \textbf{NEG}: Negasi (two's complement)
+  \item \textbf{CMP}: Comparison (set flags)
+\end{itemize}
+
+\textbf{Logic Instructions:}
+\begin{itemize}
+  \item \textbf{AND/OR/XOR}: Operasi logika bitwise
+  \item \textbf{NOT}: Negasi bitwise
+  \item \textbf{TEST}: Test bits (set flags)
+  \item \textbf{SHL/SHR}: Bit shift operations
+  \item \textbf{ROR/ROL}: Bit rotate operations
+\end{itemize}
+
+\subsection{Syntax Instruksi}
+
+\begin{verbatim}
+; Format dasar instruksi assembly
+[label:] mnemonic [operand1[, operand2[, operand3]]
+
+; Contoh penggunaan
+MOV AX, BX        ; AX = BX
+ADD AX, 5         ; AX = AX + 5
+SUB CX, COUNT      ; CX = CX - COUNT
+JMP label_name     ; Jump ke label_name
+\end{verbatim}
+
+\textbf{Operands:}
+\begin{itemize}
+  \item \textbf{Register}: AX, BX, CX, DX, SI, DI, BP, SP
+  \item \textbf{Immediate}: Konstanta numerik (5, 0FFh, 'A')
+  \item \textbf{Memory}: [address], [BX+offset], [SI]
+  \item \textbf{Implicit}: Tidak ada operand (CLD, STI, NOP)
+\end{itemize}
+
+\subsection{Flag Register}
+
+Flag register menyimpan status hasil operasi:
+\begin{itemize}
+  \item \textbf{CF (Carry Flag)}: Set jika ada carry/borrow
+  \item \textbf{ZF (Zero Flag)}: Set jika hasil = 0
+  \item \textbf{SF (Sign Flag)}: Set jika hasil negatif
+  \item \textbf{OF (Overflow Flag)}: Set jika signed overflow
+  \item \textbf{PF (Parity Flag)}: Set jika parity even
+  \item \textbf{AF (Auxiliary Flag)}: Set untuk BCD adjust
+\end{itemize}

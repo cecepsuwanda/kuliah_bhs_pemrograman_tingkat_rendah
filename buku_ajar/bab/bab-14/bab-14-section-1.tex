@@ -1,0 +1,249 @@
+\section{Asesmen Akhir Komprehensif}
+
+\subsection{Petunjuk Umum}
+
+Asesmen ini dirancang untuk mengukur pencapaian semua Sub-CPMK dalam assembly programming secara menyeluruh. Kerjakan dengan jujur dan mandiri.
+
+\textbf{Alokasi Waktu}:
+\begin{itemize}
+  \item Bagian A (Pilihan Ganda): 30 menit
+  \item Bagian B (Essay): 45 menit
+  \item Bagian C (Analisis Kode): 45 menit
+  \item Bagian D (Coding Challenge): 90 menit
+\end{itemize}
+
+\subsection{Bagian A: Pilihan Ganda (Sub-CPMK 1.1-1.3)}
+
+\textbf{Petunjuk}: Pilih satu jawaban yang paling tepat.
+
+\begin{enumerate}
+  \item Register yang digunakan sebagai base pointer dalam stack frame adalah:
+  \begin{enumerate}
+    \item SP
+    \item BP
+    \item SI
+    \item DI
+  \end{enumerate}
+  
+  \item Instruksi untuk operasi aritmatika penjumlahan adalah:
+  \begin{enumerate}
+    \item ADD
+    \item SUB
+    \item MUL
+    \item DIV
+  \end{enumerate}
+  
+  \item Mode addressing yang menggunakan nilai konstan adalah:
+  \begin{enumerate}
+    \item Immediate
+    \item Direct
+    \item Register
+    \item Indirect
+  \end{enumerate}
+  
+  \item Instruksi yang digunakan untuk unconditional jump adalah:
+  \begin{enumerate}
+    \item JMP
+    \item JZ
+    \item JC
+    \item JNZ
+  \end{enumerate}
+  
+  \item Untuk implementasi loop dengan counter, register yang paling cocok adalah:
+  \begin{enumerate}
+    \item AX
+    \item BX
+    \item CX
+    \item DX
+  \end{enumerate}
+  
+  \item Interrupt untuk video services adalah:
+  \begin{enumerate}
+    \item INT 10h
+    \item INT 13h
+    \item INT 16h
+    \item INT 21h
+  \end{enumerate}
+  
+  \item Fungsi dari instruksi CALL adalah:
+  \begin{enumerate}
+    \item Melakukan unconditional jump
+    \item Memanggil prosedur dan menyimpan return address
+    \item Mengalokasikan memori
+    \item Membandingkan nilai
+  \end{enumerate}
+  
+  \item Teknik optimasi yang mengganti MUL dengan SHIFT adalah:
+  \begin{enumerate}
+    \item Loop unrolling
+    \item Strength reduction
+    \item Register optimization
+    \item Code alignment
+  \end{enumerate}
+  
+  \item Dalam TASM debugger, perintah untuk set breakpoint adalah:
+  \begin{enumerate}
+    \item BP
+    \item BC
+    \item BL
+    \item G
+  \end{enumerate}
+  
+  \item Directive untuk mendefinisikan word (16-bit) data adalah:
+  \begin{enumerate}
+    \item DB
+    \item DW
+    \item DD
+    \item EQU
+  \end{enumerate}
+\end{enumerate}
+
+\subsection{Bagian B: Essay (Sub-CPMK 2.1-2.2, 4.1-4.2)}
+
+\textbf{Petunjuk}: Jawab dengan jelas dan lengkap.
+
+\begin{enumerate}
+  \item Jelaskan perbedaan antara CALL dan RET instruksi dalam assembly programming! Berikan contoh penggunaan masing-masing.
+  
+  \item Jelaskan konsep stack frame dan manajemen register dalam prosedur assembly! Mengapa penting untuk preserve register?
+  
+  \item Jelaskan perbedaan antara formative dan summative assessment dalam pembelajaran assembly programming!
+  
+  \item Jelaskan keuntungan modular programming dalam pengembangan aplikasi assembly!
+  
+  \item Jelaskan pentingnya optimasi dalam assembly programming dan berikan contoh teknik optimasi yang umum digunakan!
+\end{enumerate}
+
+\subsection{Bagian C: Analisis Kode (Sub-CPMK 3.1-3.2, 4.1)}
+
+\textbf{Petunjuk}: Analisis kode assembly berikut dan jawab pertanyaan.
+
+\begin{verbatim}
+; Kode untuk dianalisis
+; ===================
+DATA SEGMENT
+    array DW 10, 20, 30, 40, 50
+    size DW 5
+    result DW 0
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    MOV AX, DATA
+    MOV DS, AX
+    
+    MOV CX, [size]
+    MOV SI, 0
+    MOV BX, 0
+    
+sum_loop:
+    ADD BX, [array+SI]
+    ADD SI, 2
+    LOOP sum_loop
+    
+    MOV [result], BX
+    
+    MOV AH, 4Ch
+    INT 21h
+CODE ENDS
+END start
+\end{verbatim}
+
+\textbf{Pertanyaan:}
+\begin{enumerate}
+  \item Apa fungsi dari kode assembly di atas?
+  
+  \item Identifikasi potensi bug atau optimasi opportunities dalam kode tersebut!
+  
+  \item Bagaimana cara mengoptimasi kode tersebut untuk performa yang lebih baik?
+  
+  \item Jelaskan peran register CX, SI, dan BX dalam program tersebut!
+\end{enumerate}
+
+\subsection{Bagian D: Proyek Akhir / Coding Challenge (Sub-CPMK 4.1, 4.2, CPMK-2, CPMK-3, CPMK-4)}
+
+\textbf{Petunjuk}: Pilih salah satu proyek berikut sesuai RPS (silabus) dan implementasikan program assembly lengkap.
+
+\textbf{Pilihan Proyek Akhir (sesuai silabus):}
+
+\textbf{Pilihan 1: Sistem Manajemen Memori Sederhana}
+\begin{itemize}
+  \item Implementasikan alokasi dan dealokasi blok memori sederhana
+  \item Gunakan struktur data linked list atau bitmap untuk tracking memori
+  \item Gunakan prosedur modular (CALL/RET) dan manajemen stack
+  \item Gunakan interupsi DOS/BIOS untuk output status
+\end{itemize}
+
+\textbf{Pilihan 2: Program Editor Teks dengan Fitur Find/Replace}
+\begin{itemize}
+  \item Implementasikan input teks, penyimpanan buffer, dan tampilan
+  \item Fitur find: mencari substring dalam buffer
+  \item Fitur replace: mengganti substring dengan string lain
+  \item Gunakan prosedur untuk operasi string (manipulasi, perbandingan)
+  \item Gunakan INT 21h untuk input/output
+\end{itemize}
+
+\textbf{Pilihan 3: Game Sederhana dengan Grafik dan Input Keyboard}
+\begin{itemize}
+  \item Implementasikan tampilan grafik menggunakan interupsi BIOS (INT 10h)
+  \item Gunakan INT 16h untuk input keyboard (arah gerak, aksi)
+  \item Game dapat berupa: snake, pong, atau maze sederhana
+  \item Gunakan prosedur modular untuk logika game dan rendering
+\end{itemize}
+
+\textbf{Pilihan 4: Utility Sistem untuk Monitoring Hardware}
+\begin{itemize}
+  \item Implementasikan utility yang menampilkan informasi sistem (waktu, tanggal, memori)
+  \item Gunakan interupsi BIOS/DOS untuk akses hardware (INT 21h fungsi 2Ch/2Ah, INT 12h, dll.)
+  \item Tampilkan hasil dalam format teks yang terbaca
+  \item Gunakan prosedur modular untuk tiap fungsi monitoring
+\end{itemize}
+
+\textbf{Requirements Umum (semua pilihan):}
+\begin{enumerate}
+  \item Gunakan sintaks TASM dengan benar
+  \item Gunakan prosedur modular dengan parameter passing
+  \item Gunakan interupsi untuk input/output
+  \item Implementasikan error handling dasar
+  \item Dokumentasikan kode dengan komentar yang jelas
+\end{enumerate}
+
+\textbf{Evaluasi Criteria:}
+\begin{itemize}
+  \item Correctness (40\%): Program berfungsi sesuai spesifikasi
+  \item Efficiency (20\%): Optimasi dan performa kode
+  \item Modularity (20\%): Struktur prosedur yang baik
+  \item Documentation (20\%): Komentar dan dokumentasi
+\end{itemize}
+
+\textbf{Template Structure (umum):}
+\begin{verbatim}
+; Template untuk proyek assembly
+; =============================
+DATA SEGMENT
+    ; Data definitions here
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    MOV AX, DATA
+    MOV DS, AX
+    ; Main program logic here
+    ; Call procedures
+    MOV AH, 4Ch
+    INT 21h
+
+; Procedures
+; ==========
+your_proc PROC
+    ; Implementation here
+    RET
+your_proc ENDP
+
+CODE ENDS
+END start
+\end{verbatim}

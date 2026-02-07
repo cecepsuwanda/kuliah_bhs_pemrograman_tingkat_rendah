@@ -1,0 +1,235 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Instruksi Data Transfer}
+Instruksi untuk memindahkan data antar register dan memori:
+\begin{itemize}
+  \item \textbf{MOV}: Transfer data antar register, register-memori, memori-register
+  \item \textbf{PUSH/POP}: Operasi stack
+  \item \textbf{LEA}: Load effective address
+  \item \textbf{LDS/LES}: Load pointer dan segment register
+\end{itemize}
+
+\subsection{MOV Instruction}
+Instruksi MOV (Move) adalah instruksi transfer data yang paling fundamental dalam assembly 8086.
+
+\begin{verbatim}
+; Format: MOV destination, source
+MOV AX, BX      ; Copy BX ke AX
+MOV [SI], CX    ; Copy CX ke memori yang ditunjuk SI
+MOV DX, 1234h   ; Load immediate value ke DX
+\end{verbatim}
+
+\textbf{Variasi MOV:}
+\begin{itemize}
+  \item \textbf{Register to Register}: MOV AX, BX
+  \item \textbf{Immediate to Register}: MOV AX, 1234h
+  \item \textbf{Memory to Register}: MOV AX, [SI]
+  \item \textbf{Register to Memory}: MOV [DI], AX
+  \item \textbf{Immediate to Memory}: MOV [1234h], 56h
+\end{itemize}
+
+\subsection{Stack Operations}
+Stack adalah struktur data LIFO (Last In, First Out) yang penting untuk prosedur dan parameter passing.
+
+\begin{verbatim}
+; Stack operations
+PUSH AX          ; Simpan AX ke stack
+PUSH BX          ; Simpan BX ke stack
+POP CX           ; Ambil dari stack ke CX
+POP DX           ; Ambil dari stack ke DX
+\end{verbatim}
+
+\textbf{Stack Pointer (SP):}
+\begin{itemize}
+  \item SP menunjuk ke top of stack
+  \item PUSH: SP = SP - 2, simpan data
+  \item POP: ambil data, SP = SP + 2
+  \item Stack grows downward dalam memori
+\end{itemize}
+
+\section{Instruksi Aritmatika}
+Operasi perhitungan matematis:
+
+\subsection{Penjumlahan dan Pengurangan}
+\begin{verbatim}
+; Addition examples
+ADD AX, BX      ; AX = AX + BX
+ADD CX, 10       ; CX = CX + 10
+ADD [SI], AL     ; memori[SI] = memori[SI] + AL
+
+; Subtraction examples
+SUB DX, CX      ; DX = DX - CX
+SUB AX, 5       ; AX = AX - 5
+SUB [DI], BL     ; memori[DI] = memori[DI] - BL
+\end{verbatim}
+
+\textbf{Flags yang terpengaruh:}
+\begin{itemize}
+  \item \textbf{ZF (Zero Flag)}: Set jika hasil = 0
+  \item \textbf{SF (Sign Flag)}: Set jika hasil negatif
+  \item \textbf{CF (Carry Flag)}: Set jika ada borrow/carry
+  \item \textbf{OF (Overflow Flag)}: Set jika overflow signed
+\end{itemize}
+
+\subsection{Perkalian dan Pembagian}
+\begin{verbatim}
+; Multiplication
+MUL BX          ; AX = AL * BL (8-bit)
+MUL CX          ; DX:AX = AX * CX (16-bit)
+
+; Division
+DIV BL          ; AL = AX / BL, AH = AX % BL
+DIV CX          ; AX = DX:AX / CX, DX = DX:AX % CX
+\end{verbatim}
+
+\textbf{Catatan MUL/DIV:}
+\begin{itemize}
+  \item MUL selalu menggunakan A register sebagai operand implisit
+  \item Hasil 8-bit: AL, 16-bit: AX, 32-bit: DX:AX
+  \item DIV menggunakan register yang sama untuk operand
+  \item Error division (divide by zero) trigger interrupt 0
+\end{itemize}
+
+\section{Instruksi Logika}
+Operasi logika bitwise:
+
+\subsection{AND Operation}
+Bitwise AND untuk masking dan testing bits:
+\begin{verbatim}
+AND AX, 0F0Fh   ; Mask lower nibble
+AND BL, 01h      ; Test bit 0
+AND [SI], 80h    ; Set bit 7 di memori
+\end{verbatim}
+
+\subsection{OR Operation}
+Bitwise OR untuk setting bits:
+\begin{verbatim}
+OR AX, 8000h     ; Set bit 15
+OR BL, 01h       ; Set bit 0
+OR [DI], 0Fh     ; Set lower nibble
+\end{verbatim}
+
+\subsection{XOR Operation}
+Bitwise XOR untuk toggling bits:
+\begin{verbatim}
+XOR AX, AX        ; Clear AX (XOR dengan diri sendiri)
+XOR BL, 01h      ; Toggle bit 0
+XOR [SI], 0FFh   ; Toggle semua bits
+\end{verbatim}
+
+\subsection{NOT dan TEST}
+\begin{verbatim}
+; NOT - Bitwise complement
+NOT AX            ; AX = ~AX
+NOT BL            ; BL = ~BL
+
+; TEST - AND tanpa mengubah hasil
+TEST AX, 8000h    ; Test bit 15
+TEST BL, 01h       ; Test bit 0
+\end{verbatim}
+
+\section{Mode Addressing}
+Cara instruksi mengakses operand:
+
+\subsection{Immediate Addressing}
+Nilai data langsung dalam instruksi:
+\begin{verbatim}
+MOV AX, 1234h    ; AX = 1234h
+ADD BX, 10       ; BX = BX + 10
+SUB CX, 5        ; CX = CX - 5
+\end{verbatim}
+
+\textbf{Keuntungan:}
+\begin{itemize}
+  \item Paling cepat (no memory access)
+  \item Data embedded dalam instruksi
+  \item Sederhana dan mudah dipahami
+\end{itemize}
+
+\subsection{Register Addressing}
+Data berada di register:
+\begin{verbatim}
+MOV AX, BX      ; AX = BX
+ADD CX, DX      ; CX = CX + DX
+SUB SI, DI      ; SI = SI - DI
+\end{verbatim}
+
+\textbf{Keuntungan:}
+\begin{itemize}
+  \item Sangat cepat (register access)
+  \item Tidak memerlukan memori access
+  \item Efisien untuk temporary variables
+\end{itemize}
+
+\subsection{Direct Addressing}
+Alamat memori langsung:
+\begin{verbatim}
+MOV AX, [1234h] ; AX = isi memori 1234h
+MOV [SI], AL    ; memori[SI] = AL
+ADD [BX], 5      ; memori[BX] = memori[BX] + 5
+\end{verbatim}
+
+\textbf{Keuntungan:}
+\begin{itemize}
+  \item Akses langsung ke lokasi memori spesifik
+  \item Jelas dan mudah dipahami
+  \item Cocok untuk global variables
+\end{itemize}
+
+\subsection{Register Indirect Addressing}
+Register berisi alamat memori:
+\begin{verbatim}
+MOV AX, [BX]    ; AX = isi memori yang ditunjuk BX
+MOV [SI], DX    ; memori[SI] = DX
+ADD [DI], 10    ; memori[DI] = memori[DI] + 10
+\end{verbatim}
+
+\textbf{Keuntungan:}
+\begin{itemize}
+  \item Fleksibel (pointer dapat diubah)
+  \item Cocok untuk array dan data structures
+  \item Efisien untuk sequential access
+\end{itemize}
+
+\subsection{Based Addressing}
+BP sebagai base address:
+\begin{verbatim}
+MOV AX, [BP+4]  ; AX = isi stack frame offset 4
+ADD [BP+8], CX  ; stack_frame[8] = stack_frame[8] + CX
+\end{verbatim}
+
+\textbf{Keuntungan:}
+\begin{itemize}
+  \item Ideal untuk stack frame access
+  \item Support local variables
+  \item Standard untuk procedure parameters
+\end{itemize}
+
+\subsection{Indexed Addressing}
+SI atau DI sebagai index:
+\begin{verbatim}
+MOV AX, [SI+2]  ; AX = isi memori SI+2
+MOV BX, [DI+4]  ; BX = isi memori DI+4
+\end{verbatim}
+
+\textbf{Keuntungan:}
+\begin{itemize}
+  \item Cocok untuk array access
+  \item Index dapat diubah dalam loop
+  \item Efisien untuk sequential data
+\end{itemize}
+
+\subsection{Based Indexed Addressing}
+Kombinasi base dan index:
+\begin{verbatim}
+MOV AX, [BX+SI] ; AX = isi memori BX+SI
+MOV CX, [BP+DI+4] ; CX = isi stack frame offset 4
+\end{verbatim}
+
+\textbf{Keuntungan:}
+\begin{itemize}
+  \item Paling fleksibel
+  \item Cocok untuk 2D array
+  \item Support complex data structures
+\end{itemize}

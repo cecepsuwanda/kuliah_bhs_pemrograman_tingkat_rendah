@@ -1,0 +1,318 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{6}}{}
+\begin{document}
+
+\chapter{Prosedur dan Manajemen Stack}
+
+\begin{subcpmk}
+  \item Sub-CPMK 4.1: Mengembangkan prosedur dengan parameter passing dan manajemen stack (PUSH, POP, CALL, RET)
+  \item Sub-CPMK 2.1: Menulis program assembly sederhana dengan TASM syntax
+\end{subcpmk}
+
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\input{bab-07/section-7-1}
+\input{bab-07/section-7-2}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}
+\begin{verbatim}
+CALL procedure_name    ; Panggil prosedur
+; kode setelah call
+RET                  ; Kembali dari prosedur
+\end{verbatim}
+
+\section{Stack dan Operasinya}
+
+\subsection{Stack Operations}
+\begin{verbatim}
+PUSH reg/mem         ; Simpan ke stack, SP--
+POP reg/mem          ; Ambil dari stack, SP++
+PUSHF               ; Simpan flag register ke stack
+POPF                ; Ambil flag register dari stack
+\end{verbatim}
+
+\subsection{Stack Frame Layout}
+\begin{verbatim}
+High Address
++------------------+
+|   Parameter      |
++------------------+
+|   Return Address  |
++------------------+
+|   Saved BP       | <-- BP
++------------------+
+|   Local Variables|
++------------------+
+Low Address
+\end{verbatim}
+
+\section{Parameter Passing}
+
+\subsection{Passing by Register}
+\begin{verbatim}
+; Caller
+MOV AX, param1
+MOV BX, param2
+CALL calculate_sum
+
+; Procedure
+calculate_sum PROC
+ADD AX, BX      ; AX = AX + BX
+RET
+calculate_sum ENDP
+\end{verbatim}
+
+\subsection{Passing by Stack}
+\begin{verbatim}
+; Caller
+PUSH param1
+PUSH param2
+CALL calculate_sum
+ADD SP, 4       ; Clean up stack
+
+; Procedure
+calculate_sum PROC
+PUSH BP         ; Save old BP
+MOV BP, SP      ; Set new stack frame
+MOV AX, [BP+4]  ; Get param1
+ADD AX, [BP+6]  ; Add param2
+POP BP          ; Restore BP
+RET
+calculate_sum ENDP
+\end{verbatim}
+
+\section{Local Variables}
+
+\subsection{Local Variables di Stack}
+\begin{verbatim}
+procedure PROC
+PUSH BP         ; Save BP
+MOV BP, SP      ; Set stack frame
+SUB SP, 4       ; Allocate 2 local variables
+
+; Access local variables
+MOV [BP-2], AX  ; local_var1 = AX
+MOV [BP-4], BX  ; local_var2 = BX
+
+; Clean up
+MOV SP, BP      ; Deallocate locals
+POP BP          ; Restore BP
+RET
+procedure ENDP
+\end{verbatim}
+
+\section{Recursive Procedures}
+
+\subsection{Faktorial dengan Rekursi}
+\begin{verbatim}
+factorial PROC
+PUSH BP
+MOV BP, SP
+
+MOV AX, [BP+4]  ; Get parameter n
+CMP AX, 1
+JLE base_case
+
+; Recursive case
+DEC AX
+PUSH AX
+CALL factorial
+ADD SP, 2
+
+; Multiply result by n
+MOV BX, [BP+4]
+MUL BX
+JMP end_fact
+
+base_case:
+MOV AX, 1
+
+end_fact:
+POP BP
+RET
+factorial ENDP
+\end{verbatim}
+
+\section{Standard Calling Conventions}
+
+\subsection{C Calling Convention}
+\begin{itemize}
+  \item Parameter passed right-to-left via stack
+  \item Caller cleans up stack
+  \item Return value in AX
+  \item Caller-saved registers: AX, CX, DX
+  \item Callee-saved registers: BX, SI, DI, BP, DS, ES
+\end{itemize}
+
+\subsection{Pascal Calling Convention}
+\begin{itemize}
+  \item Parameter passed left-to-right via stack
+  \item Callee cleans up stack
+  \item Return value in AX
+\end{itemize}
+
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Procedure Creation}: Buat 5 prosedur matematika (tambah, kurang, kali, bagi, pangkat) dengan parameter passing berbeda.
+  
+  \item \textbf{Stack Analysis}: Gunakan TASM debugger untuk mengamati perubahan stack saat prosedur dipanggil.
+  
+  \item \textbf{Recursive Functions}: Implementasikan fibonacci dan faktorial dengan rekursi.
+  
+  \item \textbf{Calling Convention}: Bandingkan C vs Pascal calling convention dengan implementasi yang sama.
+  
+  \item \textbf{Local Variables}: Buat prosedur dengan local variables dan nested procedure calls.
+  
+  \item \textbf{Stack Frame Visualization}: Gambar stack frame untuk berbagai skenario parameter passing.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Jelaskan perbedaan antara passing parameter by register vs by stack! Kapan sebaiknya menggunakan masing-masing?
+  
+  \item Buat prosedur untuk menukar dua bilangan menggunakan:
+  \begin{itemize}
+    \item Register passing
+    \item Stack passing
+    \item Bandingkan efisiensi masing-masing
+  \end{itemize}
+  
+  \item Implementasikan prosedur yang:
+  \begin{itemize}
+    \item Menerima array dan ukuran sebagai parameter
+    \item Menghitung rata-rata elemen array
+    \item Mengembalikan hasil di AX
+    \item Menggunakan local variables untuk temporary storage
+  \end{itemize}
+  
+  \item Buat program kalkulator scientific dengan prosedur untuk setiap operasi.
+  
+  \item Implementasikan binary search dengan prosedur rekursif.
+  
+  \item Analisis stack frame untuk nested procedure calls dengan 3 level kedalaman.
+  
+  \item \textbf{Refleksi}: Konsep mana yang paling sulit dalam manajemen prosedur dan stack? Bagaimana Anda mengatasi kesulitan tersebut?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 5.1, 5.2, 2.1}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Instruksi untuk memanggil prosedur adalah:
+  \begin{enumerate}
+    \item JMP
+    \item CALL
+    \item RET
+    \item INT
+  \end{enumerate}
+  
+  \item Register yang digunakan untuk stack pointer adalah:
+  \begin{enumerate}
+    \item BP
+    \item SP
+    \item SI
+    \item DI
+  \end{enumerate}
+  
+  \item Untuk mengembalikan nilai dari prosedur, register yang umum digunakan adalah:
+  \begin{enumerate}
+    \item AX
+    \item BX
+    \item CX
+    \item DX
+  \end{enumerate}
+  
+  \item Dalam C calling convention, yang bertanggung jawab membersihkan stack adalah:
+  \begin{enumerate}
+    \item Caller
+    \item Callee
+    \item OS
+    \item Compiler
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan langkah-langkah yang terjadi saat CALL instruction dieksekusi!
+  
+  \item Mengapa BP digunakan sebagai base pointer untuk stack frame?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Buat program mathematical library:
+  \begin{itemize}
+    \item Prosedur untuk operasi dasar (+, -, *, /)
+    \item Prosedur untuk operasi lanjutan (pow, sqrt, factorial)
+    \item Prosedur sorting array
+    \item Menggunakan berbagai parameter passing methods
+    \item Dokumentasi stack frame untuk setiap prosedur
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat menulis prosedur dengan parameter
+  \item Saya dapat menggunakan CALL dan RET untuk prosedur calls
+  \item Saya dapat mengimplementasikan stack operations (PUSH, POP)
+  \item Saya dapat memahami stack frame layout
+  \item Saya dapat menggunakan berbagai parameter passing methods
+  \item Saya dapat mengimplementasikan local variables
+  \item Saya dapat membuat prosedur rekursif
+  \item Saya dapat menganalisis calling conventions
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas prosedur dan manajemen stack dalam assembly language, termasuk parameter passing, local variables, dan rekursi.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Prosedur memungkinkan modularisasi dan reusability kode
+  \item Stack digunakan untuk menyimpan return address, parameter, dan local variables
+  \item CALL menyimpan return address ke stack, RET mengambilnya kembali
+  \item Parameter dapat dilewatkan melalui register atau stack
+  \item Stack frame diorganisasi dengan BP sebagai base pointer
+  \item Local variables dialokasikan di dalam stack frame
+  \item Rekursi memerlukan manajemen stack yang hati-hati
+  \item Calling conventions menentukan standar parameter passing
+\end{itemize}
+
+\textbf{Kata Kunci}: \textbf{\texttt{Prosedur}}, \textbf{\texttt{Stack}}, \textbf{\texttt{CALL}}, \textbf{\texttt{RET}}, \textbf{\texttt{PUSH}}, \textbf{\texttt{POP}}, \textbf{\texttt{Parameter}}, \textbf{\texttt{Local Variable}}, \textbf{\texttt{Rekursi}}, \textbf{\texttt{Stack Frame}}, \textbf{\texttt{TASM}}
+\end{rangkuman}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

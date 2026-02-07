@@ -1,0 +1,118 @@
+\section{Contoh Program Sederhana}
+
+Program assembly sederhana untuk memahami konsep dasar pemrograman Intel 8086.
+
+\subsection{Program Hello World}
+
+\begin{verbatim}
+; Hello World Program
+; =================
+DATA SEGMENT
+    message DB 'Hello, World!', 0Dh, 0Ah, '$'
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    ; Initialize DS
+    MOV AX, DATA
+    MOV DS, AX
+    
+    ; Display message
+    MOV AH, 09h        ; DOS print string function
+    MOV DX, OFFSET message
+    INT 21h
+    
+    ; Exit program
+    MOV AH, 4Ch        ; DOS exit function
+    INT 21h
+
+CODE ENDS
+END start
+\end{verbatim}
+
+\subsection{Program Kalkulator Sederhana}
+
+\begin{verbatim}
+; Simple Calculator
+; ================
+DATA SEGMENT
+    num1 DW 10
+    num2 DW 20
+    result DW 0
+    msg_result DB 'Result: ', '$'
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    ; Initialize DS
+    MOV AX, DATA
+    MOV DS, AX
+    
+    ; Load numbers
+    MOV AX, num1
+    ADD AX, num2        ; AX = num1 + num2
+    MOV result, AX
+    
+    ; Display result message
+    MOV AH, 09h
+    MOV DX, OFFSET msg_result
+    INT 21h
+    
+    ; Display result (simplified)
+    MOV AX, result
+    ; Add code to display AX value
+    
+    ; Exit program
+    MOV AH, 4Ch
+    INT 21h
+
+CODE ENDS
+END start
+\end{verbatim}
+
+\subsection{Program Loop Counter}
+
+\begin{verbatim}
+; Loop Counter Program
+; ===================
+DATA SEGMENT
+    counter DW 0
+    max_count DW 10
+    msg_count DB 'Count: ', '$'
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    ; Initialize DS
+    MOV AX, DATA
+    MOV DS, AX
+    
+    ; Initialize counter
+    MOV CX, max_count
+    MOV counter, 0
+
+count_loop:
+    ; Increment counter
+    INC counter
+    
+    ; Display count (simplified)
+    MOV AH, 09h
+    MOV DX, OFFSET msg_count
+    INT 21h
+    
+    ; Loop until CX = 0
+    LOOP count_loop
+    
+    ; Exit program
+    MOV AH, 4Ch
+    INT 21h
+
+CODE ENDS
+END start
+\end{verbatim}

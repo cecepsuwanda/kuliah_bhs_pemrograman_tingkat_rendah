@@ -1,0 +1,281 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Optimasi Kode Assembly}
+
+\subsection{Konsep Optimasi}
+Optimasi adalah proses meningkatkan performa kode assembly tanpa mengubah fungsionalitas.
+
+\textbf{Tujuan optimasi:}
+\begin{itemize}
+  \item Mengurangi ukuran kode
+  \item Meningkatkan kecepatan eksekusi
+  \item Mengurangi penggunaan memori
+  \item Meningkatkan efisiensi register usage
+\end{itemize}
+
+\subsection{Strength Reduction}
+Mengganti operasi mahal dengan operasi yang lebih murah.
+
+\begin{verbatim}
+; Before: expensive multiplication
+MOV AX, 10
+MUL BX          ; AX = AX * BX
+
+; After: strength reduction with shifts
+MOV AX, BX
+SHL AX, 1       ; AX = BX * 2
+SHL AX, 2       ; AX = BX * 8
+ADD AX, BX      ; AX = BX * 10
+\end{verbatim}
+
+\textbf{Contoh strength reduction:}
+\begin{itemize}
+  \item MUL n $\rightarrow$ SHIFT + ADD (untuk n = $2^k \pm 1$)
+  \item DIV n $\rightarrow$ SHIFT (untuk n = $2^k$)
+  \item MUL 2 → SHL 1
+  \item DIV 2 → SHR 1
+\end{itemize}
+
+\subsection{Loop Unrolling}
+Mengurangi overhead loop dengan menggabungkan beberapa iterasi.
+
+\begin{verbatim}
+; Before: normal loop
+MOV CX, 100
+loop_start:
+    MOV [SI], AL
+    INC SI
+    LOOP loop_start
+
+; After: loop unrolling (4x)
+MOV CX, 25
+loop_start:
+    MOV [SI], AL
+    MOV [SI+1], AL
+    MOV [SI+2], AL
+    MOV [SI+3], AL
+    ADD SI, 4
+    LOOP loop_start
+\end{verbatim}
+
+\textbf{Keuntungan loop unrolling:}
+\begin{itemize}
+  \item Mengurangi overhead LOOP instruction
+  \item Meningkatkan instruction-level parallelism
+  \item Mengurangi branch misprediction
+\end{itemize}
+
+\subsection{Register Optimization}
+Mengoptimalkan penggunaan register untuk akses memori minimal.
+
+\begin{verbatim}
+; Before: frequent memory access
+MOV AX, [array+0]
+ADD AX, [array+2]
+ADD AX, [array+4]
+ADD AX, [array+6]
+
+; After: register optimization
+MOV SI, array
+MOV AX, [SI]
+ADD AX, [SI+2]
+ADD AX, [SI+4]
+ADD AX, [SI+6]
+\end{verbatim}
+
+\textbf{Strategi register optimization:}
+\begin{itemize}
+  \item Gunakan register untuk frequently accessed variables
+  \item Minimalkan register spills ke memori
+  \item Pertimbangkan register allocation
+  \item Gunakan register addressing modes
+\end{itemize}
+
+\section{Debugging Techniques}
+
+\subsection{TASM Debugger Overview}
+TASM menyediakan debugger untuk analisis program assembly.
+
+\begin{verbatim}
+; Compile dengan debug information
+TASM /zi program.asm
+TLINK /v program.obj
+
+; Run debugger
+TD program.exe
+\end{verbatim}
+
+\textbf{Fitur TASM debugger:}
+\begin{itemize}
+  \item Breakpoint setting
+  \item Step-by-step execution
+  \item Register dan memory inspection
+  \item Call stack tracing
+  \item Variable watching
+\end{itemize}
+
+\subsection{Breakpoint Debugging}
+Menghentikan eksekusi pada titik tertentu untuk analisis.
+
+\begin{verbatim}
+; Set breakpoint di TASM debugger
+BP address        ; Set breakpoint
+BC number         ; Clear breakpoint
+BL                ; List breakpoints
+G [address]       ; Go/run to breakpoint
+\end{verbatim}
+
+\textbf{Strategi breakpoint:}
+\begin{itemize}
+  \item Set breakpoint pada suspicious code
+  \item Gunakan conditional breakpoints
+  \item Monitor register changes
+  \item Trace program flow
+\end{itemize}
+
+\subsection{Common Assembly Bugs}
+
+\subsubsection{Register Corruption}
+\begin{verbatim}
+; Bug: register tidak dipreserve
+procedure PROC
+    MOV AX, data    ; Mengubah AX tanpa menyimpan
+    ; ... proses
+    RET             ; AX berubah tanpa sepengetahuan caller
+procedure ENDP
+
+; Fix: preserve register
+procedure PROC
+    PUSH AX         ; Simpan AX
+    MOV AX, data    ; Gunakan AX
+    ; ... proses
+    POP AX          ; Restore AX
+    RET
+procedure ENDP
+\end{verbatim}
+
+\subsubsection{Stack Overflow}
+\begin{verbatim}
+; Bug: rekursi tanpa base case
+factorial PROC
+    PUSH BP
+    MOV BP, SP
+    MOV AX, [BP+4]
+    ; Tidak ada base case!
+    DEC AX
+    PUSH AX
+    CALL factorial
+    ADD SP, 2
+    ; ... stack overflow!
+factorial ENDP
+
+; Fix: tambah base case
+factorial PROC
+    PUSH BP
+    MOV BP, SP
+    MOV AX, [BP+4]
+    CMP AX, 1
+    JLE base_case
+    DEC AX
+    PUSH AX
+    CALL factorial
+    ADD SP, 2
+    JMP end_fact
+base_case:
+    MOV AX, 1
+end_fact:
+    POP BP
+    RET
+factorial ENDP
+\end{verbatim}
+
+\subsubsection{Off-by-One Errors}
+\begin{verbatim}
+; Bug: off-by-one dalam loop
+MOV CX, 10        ; Count = 10
+MOV SI, 0
+loop_start:
+    MOV [SI], AL   ; Akses array[0] sampai array[9]
+    INC SI
+    LOOP loop_start ; 10 iterasi, benar
+
+; Bug: salah count
+MOV CX, 11        ; Count = 11
+; ... akan akses array[10] (out of bounds)
+\end{verbatim}
+
+\section{Performance Analysis}
+
+\subsection{Instruction Timing}
+Menganalisis waktu eksekusi instruksi.
+
+\begin{verbatim}
+; Instruction cycles (8086)
+ADD reg, reg     : 2-3 cycles
+ADD mem, reg     : 16-24 cycles
+MUL reg         : 70-77 cycles
+DIV reg         : 80-90 cycles
+JMP label       : 15 cycles
+Jcondition label: 4-16 cycles
+LOOP label      : 17 cycles
+\end{verbatim}
+
+\textbf{Optimasi berdasarkan timing:}
+\begin{itemize}
+  \item Gunakan register operations daripada memory
+  \item Minimalkan jumps dalam tight loops
+  \item Gunakan instruksi yang lebih cepat
+  \item Pertimbangkan instruction pipelining
+\end{itemize}
+
+\subsection{Memory Access Patterns}
+Mengoptimasi pola akses memori untuk cache efficiency.
+
+\begin{verbatim}
+; Bad: random access
+MOV AX, [random_addr1]
+MOV BX, [random_addr2]
+MOV CX, [random_addr3]
+
+; Good: sequential access
+MOV SI, array_start
+MOV AX, [SI]
+MOV BX, [SI+2]
+MOV CX, [SI+4]
+\end{verbatim}
+
+\textbf{Prinsip cache-friendly access:}
+\begin{itemize}
+  \item Sequential access lebih baik daripada random
+  \item Localitas spasial (spatial locality)
+  \item Localitas temporal (temporal locality)
+  \item Minimalkan cache misses
+\end{itemize}
+
+\section{Advanced Optimization}
+
+\subsection{Code Alignment}
+Mengalign kode untuk optimal fetch.
+
+\begin{verbatim}
+; Align code ke word boundaries
+ALIGN 2          ; Align ke word boundary
+procedure PROC
+    ; ... kode prosedur
+procedure ENDP
+\end{verbatim}
+
+\subsection{Instruction Scheduling}
+Mengatur instruksi untuk optimal pipeline utilization.
+
+\begin{verbatim}
+; Before: dependent instructions
+MOV AX, [mem]
+ADD AX, BX       ; Tunggu AX dari memori
+
+; After: independent instructions
+MOV CX, [mem2]   ; Independent dari AX
+MOV AX, [mem]    ; Load AX
+ADD AX, BX       ; Gunakan AX
+\end{verbatim}

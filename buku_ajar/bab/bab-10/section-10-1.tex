@@ -1,0 +1,287 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Project Development Lifecycle}
+
+\subsection{Konsep Project Development}
+Project development dalam assembly programming memerlukan pendekatan sistematis untuk menghasilkan program yang efisien dan maintainable.
+
+\textbf{Tahapan project development:}
+\begin{itemize}
+  \item \textbf{Requirements Analysis}: Memahami kebutuhan dan constraints
+  \item \textbf{Design}: Merancang arsitektur dan algoritma
+  \item \textbf{Implementation}: Menulis kode assembly
+  \item \textbf{Testing}: Debugging dan validasi
+  \item \textbf{Optimization}: Meningkatkan performa
+  \item \textbf{Documentation}: Menulis dokumentasi
+\end{itemize}
+
+\subsection{Project Planning}
+Perencanaan yang baik adalah kunci keberhasilan project assembly.
+
+\begin{verbatim}
+; Project structure template
+; -----------------------
+; main.asm          - Entry point
+; constants.inc     - Constants dan definitions
+; procedures.inc    - Procedure declarations
+; data.inc          - Data definitions
+; utils.asm         - Utility procedures
+; io.asm            - Input/output procedures
+; math.asm          - Mathematical operations
+\end{verbatim}
+
+\textbf{Komponen project planning:}
+\begin{itemize}
+  \item Definisi scope dan requirements
+  \item Pemilihan algoritma yang tepat
+  \item Estimasi waktu dan resources
+  \item Risk assessment
+  \item Milestone definition
+\end{itemize}
+
+\section{Modular Programming}
+
+\subsection{Modular Design Principles}
+Membagi program menjadi modul-modul yang terpisah untuk maintainability.
+
+\begin{verbatim}
+; Module structure example
+; math.asm - Mathematical operations module
+
+PUBLIC add_numbers, subtract_numbers, multiply_numbers
+EXTERN print_result
+
+; Code segment
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+add_numbers PROC
+    ; Implementation
+    RET
+add_numbers ENDP
+
+subtract_numbers PROC
+    ; Implementation
+    RET
+subtract_numbers ENDP
+
+multiply_numbers PROC
+    ; Implementation
+    RET
+multiply_numbers ENDP
+
+CODE ENDS
+END
+\end{verbatim}
+
+\textbf{Keuntungan modular programming:}
+\begin{itemize}
+  \item Code reuse dan maintainability
+  \item Parallel development
+  \item Easier testing dan debugging
+  \item Better organization
+\end{itemize}
+
+\subsection{Interface Design}
+Mendefinisikan interface yang jelas antar modul.
+
+\begin{verbatim}
+; Interface definitions
+; io_interface.inc
+
+; Input procedures
+PUBLIC read_char, read_string, read_number
+read_char PROC NEAR
+    ; Returns character in AL
+    RET
+read_char ENDP
+
+read_string PROC NEAR
+    ; DS:DX = buffer address
+    RET
+read_string ENDP
+
+; Output procedures
+PUBLIC print_char, print_string, print_number
+print_char PROC NEAR
+    ; AL = character to print
+    RET
+print_char ENDP
+\end{verbatim}
+
+\section{Library Development}
+
+\subsection{Creating Reusable Libraries}
+Mengembangkan library untuk fungsi-fungsi yang sering digunakan.
+
+\begin{verbatim}
+; Standard library structure
+; stdlib.asm
+
+; String operations
+PUBLIC strlen, strcpy, strcmp, strcat
+strlen PROC NEAR
+    PUSH SI
+    MOV SI, DX        ; DX = string address
+    MOV CX, 0
+count_loop:
+    CMP BYTE PTR [SI], 0
+    JE end_count
+    INC CX
+    INC SI
+    JMP count_loop
+end_count:
+    MOV AX, CX        ; Return length in AX
+    POP SI
+    RET
+strlen ENDP
+
+strcpy PROC NEAR
+    ; DS:SI = source, ES:DI = destination
+    PUSH SI
+    PUSH DI
+copy_loop:
+    MOV AL, [SI]
+    MOV [DI], AL
+    CMP AL, 0
+    JE end_copy
+    INC SI
+    INC DI
+    JMP copy_loop
+end_copy:
+    POP DI
+    POP SI
+    RET
+strcpy ENDP
+\end{verbatim}
+
+\subsection{Library Organization}
+Mengorganisir library untuk kemudahan penggunaan.
+
+\textbf{Kategori library:}
+\begin{itemize}
+  \item \textbf{String Library}: strlen, strcpy, strcmp, strcat
+  \item \textbf{Math Library}: add, subtract, multiply, divide, power
+  \item \textbf{I/O Library}: \texttt{read\_char}, \texttt{print\_string}, file operations
+  \item \textbf{Utility Library}: memory operations, conversions
+  \item \textbf{Graphics Library}: pixel operations, line drawing
+\end{itemize}
+
+\section{Best Practices}
+
+\subsection{Code Organization}
+Praktik terbaik untuk organisasi kode assembly.
+
+\begin{verbatim}
+; Standard file organization
+; ------------------------
+; 1. Header comments
+; 2. Include files
+; 3. Constants and equates
+; 4. Data segment
+; 5. Code segment
+; 6. Procedures
+; 7. Entry point
+
+; Example structure
+; main.asm
+
+; ============================================================
+; PROGRAM: Calculator Application
+; AUTHOR: Your Name
+; DATE: Current Date
+; DESCRIPTION: Simple calculator with basic operations
+; ============================================================
+
+INCLUDE constants.inc
+INCLUDE procedures.inc
+
+; Data segment
+DATA SEGMENT
+    prompt_msg DB 'Enter expression: $'
+    result_msg DB 'Result: $'
+    buffer DB 80 DUP(?)
+DATA ENDS
+
+; Code segment
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    ; Initialize DS
+    MOV AX, DATA
+    MOV DS, AX
+    
+    ; Main program logic
+    CALL main_loop
+    
+    ; Exit program
+    MOV AH, 4Ch
+    INT 21h
+
+main_loop PROC
+    ; Implementation
+    RET
+main_loop ENDP
+
+CODE ENDS
+END start
+\end{verbatim}
+
+\subsection{Naming Conventions}
+Konvensi penamaan untuk konsistensi kode.
+
+\textbf{Recommended conventions:}
+\begin{itemize}
+  \item \textbf{Procedures}: camelCase (calculateSum, printResult)
+  \item \textbf{Variables}: snake\_case (user\_input, buffer\_ptr)
+  \item \textbf{Constants}: UPPER\_CASE (MAX\_SIZE, ERROR\_CODE)
+  \item \textbf{Labels}: descriptive\_name (loop\_start, error\_handler)
+\end{itemize}
+
+\subsection{Documentation Standards}
+Standar dokumentasi untuk kode assembly.
+
+\begin{verbatim}
+; Procedure documentation template
+; -------------------------------------------------
+; Procedure: calculateSum
+; Purpose: Calculate sum of two numbers
+; Input: AX = first number, BX = second number
+; Output: AX = sum
+; Modifies: AX, flags
+; Calls: None
+; -------------------------------------------------
+calculateSum PROC
+    ADD AX, BX       ; Calculate sum
+    RET
+calculateSum ENDP
+\end{verbatim}
+
+\section{Version Control}
+
+\subsection{Source Code Management}
+Mengelola versi kode assembly dengan version control.
+
+\textbf{Best practices:}
+\begin{itemize}
+  \item Gunakan meaningful commit messages
+  \item Commit frequently dengan logical units
+  \item Gunakan branching untuk features
+  \item Review code sebelum merge
+  \item Maintain changelog
+\end{itemize}
+
+\subsection{Backup and Recovery}
+Strategi backup dan recovery untuk project assembly.
+
+\begin{verbatim}
+; Backup strategy
+; -------------
+; 1. Daily automatic backup
+; 2. Weekly full backup
+; 3. Version control repository
+; 4. Offsite backup
+; 5. Documentation backup
+\end{verbatim}

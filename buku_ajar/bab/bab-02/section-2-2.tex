@@ -1,0 +1,98 @@
+\section{Register dan Organisasi Memori}
+
+\subsection{General Purpose Registers}
+
+Intel 8086 memiliki 8 general-purpose registers 16-bit yang dapat digunakan untuk berbagai operasi:
+
+\begin{verbatim}
+; Register breakdown (16-bit)
+AX = AH + AL    ; Accumulator (High + Low)
+BX = BH + BL    ; Base register
+CX = CH + CL    ; Count register
+DX = DH + DL    ; Data register
+\end{verbatim}
+
+\textbf{Fungsi Spesifik Register:}
+\begin{itemize}
+  \item \textbf{AX}: Akumulator untuk operasi aritmatika dan I/O
+  \item \textbf{BX}: Base register untuk addressing modes
+  \item \textbf{CX}: Count register untuk loop dan string operations
+  \item \textbf{DX}: Data register untuk aritmatika dan I/O
+\end{itemize}
+
+\subsection{Special Purpose Registers}
+
+\begin{verbatim}
+; Special purpose registers
+SP  - Stack Pointer (menunjuk ke top of stack)
+BP  - Base Pointer (menunjuk ke base of stack frame)
+SI  - Source Index (index register untuk string operations)
+DI  - Destination Index (index register untuk string operations)
+IP  - Instruction Pointer (menunjuk ke next instruction)
+\end{verbatim}
+
+\textbf{Penggunaan Special Registers:}
+\begin{itemize}
+  \item \textbf{SP}: Stack management dan procedure calls
+  \item \textbf{BP}: Access ke stack frame dan local variables
+  \item \textbf{SI/DI}: String operations dan array indexing
+  \item \textbf{IP}: Program counter (tidak dapat diakses langsung)
+\end{itemize}
+
+\subsection{Segment Registers}
+
+\begin{verbatim}
+; Segment registers untuk memory management
+CS  - Code Segment (instruction pointer)
+DS  - Data Segment (data access)
+SS  - Stack Segment (stack operations)
+ES  - Extra Segment (data transfer)
+\end{verbatim}
+
+\textbf{Segmentation Memory Model:}
+\begin{itemize}
+  \item \textbf{CS}: Berisi alamat segment untuk kode program
+  \item \textbf{DS}: Berisi alamat segment untuk data
+  \item \textbf{SS}: Berisi alamat segment untuk stack
+  \item \textbf{ES}: Berisi alamat segment untuk string operations
+\end{itemize}
+
+\subsection{Perhitungan Alamat Fisik}
+
+Intel 8086 menggunakan model memori segmentasi di mana alamat logis terdiri dari pasangan \textbf{segment:offset}. Alamat fisik dihitung dengan formula:
+
+\begin{center}
+\textbf{Alamat Fisik} = (Segment $\times$ 16) + Offset
+\end{center}
+
+\begin{contoh}
+\textbf{Contoh Perhitungan Alamat:}
+
+Untuk CS:IP = 2000h:1000h:
+\begin{itemize}
+  \item Alamat fisik = (2000h $\times$ 10h) + 1000h = 20000h + 1000h = 21000h
+\end{itemize}
+
+Untuk DS:SI = 3000h:0050h:
+\begin{itemize}
+  \item Alamat fisik = (3000h $\times$ 10h) + 0050h = 30000h + 50h = 30050h
+\end{itemize}
+\end{contoh}
+
+\subsection{Contoh Penggunaan Register dalam Instruksi}
+
+Berikut contoh instruksi assembly yang memanfaatkan register:
+
+\begin{verbatim}
+; Load immediate value ke AX
+MOV AX, 1234h
+
+; Copy dari AX ke BX (register addressing)
+MOV BX, AX
+
+; Store ke memory (direct addressing)
+MOV [0100h], AX
+
+; Access dengan segment:offset
+MOV AX, DS:[SI]
+\end{verbatim}

@@ -1,0 +1,145 @@
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Procedure Library}: Buat library prosedur untuk operasi matematika (add, subtract, multiply, divide).
+  
+  \item \textbf{Stack Analysis}: Gunakan TASM debugger untuk trace stack frame setup dan cleanup.
+  
+  \item \textbf{Recursive Functions}: Implementasikan Fibonacci dan faktorial dengan rekursi.
+  
+  \item \textbf{Parameter Passing}: Bandingkan register vs stack parameter passing untuk performa.
+  
+  \item \textbf{Calling Conventions}: Implementasikan prosedur dengan C dan Pascal calling conventions.
+  
+  \item \textbf{Stack Optimization}: Optimasi stack usage untuk prosedur kompleks.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Buat prosedur untuk sorting array dengan bubble sort menggunakan stack frame.
+  
+  \item Implementasikan string manipulation library (strlen, strcpy, strcmp) dengan prosedur.
+  
+  \item Buat program kalkulator scientific dengan prosedur untuk setiap fungsi.
+  
+  \item Implementasikan binary search tree dengan rekursif prosedur.
+  
+  \item Buat prosedur untuk konversi bilangan (decimal to binary, hex, octal).
+  
+  \item Implementasikan linked list operations dengan prosedur dan pointer management.
+  
+  \item Buat program untuk menghitung statistik (mean, median, mode) dengan modular prosedur.
+  
+  \item \textbf{Refleksi}: Aspek mana dari prosedur dan stack management yang paling sulit dipahami? Bagaimana Anda mengatasi kesulitan tersebut?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 4.1, 2.1}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Instruksi untuk memanggil prosedur adalah:
+  \begin{enumerate}
+    \item JUMP
+    \item CALL
+    \item RET
+    \item PUSH
+  \end{enumerate}
+  
+  \item Register yang digunakan sebagai base pointer untuk stack frame adalah:
+  \begin{enumerate}
+    \item SP
+    \item BP
+    \item SI
+    \item DI
+  \end{enumerate}
+  
+  \item Untuk menyimpan return address ke stack, instruksi yang digunakan adalah:
+  \begin{enumerate}
+    \item PUSH IP
+    \item CALL
+    \item JMP
+    \item RET
+  \end{enumerate}
+  
+  \item Dalam C calling convention, yang bertanggung jawab untuk stack cleanup adalah:
+  \begin{enumerate}
+    \item Caller
+    \item Procedure
+    \item OS
+    \item Compiler
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan perbedaan antara parameter passing via register vs via stack! Berikan kelebihan dan kekurangan masing-masing.
+  
+  \item Mengapa stack frame management penting dalam prosedur yang kompleks?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Buat program text editor dengan modular design:
+  \begin{itemize}
+    \item Prosedur untuk file operations (open, save, close)
+    \item Prosedur untuk text editing (insert, delete, replace)
+    \item Prosedur untuk search functionality
+    \item Prosedur untuk undo/redo operations
+    \item Implementasi dengan proper stack management
+    \item Error handling dan validation
+    \item User interface dengan menu system
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat membuat dan memanggil prosedur dengan CALL dan RET
+  \item Saya dapat mengimplementasikan stack frame dengan benar
+  \item Saya dapat melakukan parameter passing via register dan stack
+  \item Saya dapat mengelola local variables dalam prosedur
+  \item Saya dapat mengimplementasikan prosedur rekursif
+  \item Saya memahami calling conventions (C, Pascal)
+  \item Saya dapat mencegah dan menangani stack overflow
+  \item Saya dapat menganalisis stack dengan TASM debugger
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas prosedur dan stack management dalam assembly 8086, termasuk parameter passing, local variables, rekursi, dan calling conventions.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Prosedur memungkinkan modular programming dan code reuse
+  \item Stack frame management essential untuk parameter dan local variables
+  \item CALL dan RET instruksi fundamental untuk prosedur invocation
+  \item Parameter passing dapat dilakukan via register atau stack
+  \item Local variables menggunakan stack space dengan BP sebagai base pointer
+  \item Rekursi memerlukan stack overflow prevention
+  \item Calling conventions menentukan parameter passing dan cleanup responsibilities
+  \item Stack analysis dengan debugger penting untuk troubleshooting
+\end{itemize}
+
+\textbf{Kata Kunci}: \asm{Prosedur}, \asm{Stack}, \asm{CALL}, \asm{RET}, \asm{Parameter Passing}, \asm{Stack Frame}, \asm{Rekursi}, \asm{Calling Convention}, \asm{TASM}, \asm{BP}, \asm{SP}
+\end{rangkuman}

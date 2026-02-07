@@ -1,0 +1,195 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{2}}{}
+\begin{document}
+
+\chapter{Prosesor Intel 8086 dan Register}
+
+\begin{subcpmk}
+  \item Sub-CPMK 1.1: Menjelaskan fungsi register AX, BX, CX, DX, SI, DI, BP, SP dalam prosesor 8086
+  \item Sub-CPMK 1.3: Mendemonstrasikan organisasi memori segmentasi (CS, DS, ES, SS)
+  \item Sub-CPMK 2.1: Menulis program assembly sederhana dengan TASM syntax
+\end{subcpmk}
+
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\input{bab-03/section-3-1}
+\input{bab-03/section-3-2}
+\input{bab-03/section-3-3}
+\input{bab-03/section-3-4}
+\input{bab-03/section-3-5}
+\input{bab-03/section-3-6}
+\input{bab-03/section-3-7}
+\input{bab-03/section-3-8}
+
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Register Exploration}: Gunakan TASM debugger untuk mengamati perubahan nilai register AX, BX, CX, DX saat menjalankan instruksi MOV, ADD, SUB. Dokumentasikan setiap step.
+  
+  \item \textbf{Segment Register Analysis}: Buat program yang mendemonstrasikan penggunaan CS, DS, ES, SS. Amati bagaimana nilai berubah saat program dieksekusi.
+  
+  \item \textbf{Flag Register Investigation}: Implementasikan operasi aritmatika dan logika yang mempengaruhi flag register (Zero, Carry, Sign, Overflow). Analisis perubahan flag.
+  
+  \item \textbf{Stack Operations}: Buat program yang menggunakan PUSH dan POP untuk menyimpan dan mengambil data dari stack. Visualisasikan perubahan SP.
+  
+  \item \textbf{Index Register Practice}: Implementasikan program string manipulation yang menggunakan SI dan DI untuk source dan destination index.
+  
+  \item \textbf{Code Review}: Analisis kode assembly teman dan identifikasi penggunaan register yang efisien vs tidak efisien.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Jelaskan perbedaan antara register AX, BX, CX, DX! Berikan contoh instruksi yang paling cocok untuk masing-masing register.
+  
+  \item Apa fungsi dari register 8-bit (AH, AL, BH, BL, CH, CL, DH, DL)? Kapan sebaiknya menggunakan register 8-bit vs 16-bit?
+  
+  \item Jelaskan perbedaan antara register index (SI, DI) dan register pointer (BP, SP)! Berikan contoh penggunaan masing-masing.
+  
+  \item Buat program assembly yang:
+  \begin{itemize}
+    \item Menginisialisasi AX = 1234h, BX = 5678h
+    \item Menjumlahkan AX dan BX, simpan hasil di CX
+    \item Menggunakan register segment DS untuk mengakses data
+    \item Menampilkan hasil ke layar
+  \end{itemize}
+  
+  \item Jelaskan bagaimana flag register bekerja! Analisis flag yang berubah setelah operasi ADD, SUB, AND, OR.
+  
+  \item Implementasikan program stack yang:
+  \begin{itemize}
+    \item Menggunakan PUSH untuk menyimpan 3 nilai ke stack
+    \item Menggunakan POP untuk mengambil nilai dalam urutan terbalik
+    \item Menampilkan perubahan SP setiap operasi
+  \end{itemize}
+  
+  \item Buat program string copy yang menggunakan SI sebagai source index dan DI sebagai destination index.
+  
+  \item \textbf{Refleksi}: Manakah register yang paling sering Anda gunakan dan mengapa? Apa tantangan terbesar dalam memahami register 8086?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 1.1, 1.3, 2.1}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Register yang secara khusus digunakan untuk operasi perkalian dan pembagian adalah:
+  \begin{enumerate}
+    \item AX
+    \item BX
+    \item CX
+    \item DX
+  \end{enumerate}
+  
+  \item Register yang digunakan sebagai stack pointer adalah:
+  \begin{enumerate}
+    \item BP
+    \item SP
+    \item SI
+    \item DI
+  \end{enumerate}
+  
+  \item Untuk mengakses data string sebagai source, register yang digunakan adalah:
+  \begin{enumerate}
+    \item SI
+    \item DI
+    \item BP
+    \item SP
+  \end{enumerate}
+  
+  \item Register segment yang menunjuk ke area kode program adalah:
+  \begin{enumerate}
+    \item CS
+    \item DS
+    \item ES
+    \item SS
+  \end{enumerate}
+  
+  \item Instruksi yang digunakan untuk mendorong nilai ke stack adalah:
+  \begin{enumerate}
+    \item PUSH
+    \item POP
+    \item MOV
+    \item ADD
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan perbedaan fungsi antara register AX dan register CX! Berikan contoh program yang menggunakan kedua register tersebut.
+  
+  \item Mengapa register BP sering digunakan untuk mengakses parameter dalam prosedur? Jelaskan dengan contoh.
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Buat program assembly yang mengimplementasikan kalkulator sederhana:
+  \begin{itemize}
+    \item Input dua bilangan dari user (menggunakan interupsi DOS)
+    \item Simpan bilangan pertama di AX, kedua di BX
+    \item Lakukan operasi penjumlahan, simpan hasil di CX
+    \item Tampilkan hasil ke layar
+    \item Gunakan register DS untuk mengakses data program
+    \item Dokumentasikan penggunaan register dengan TASM debugger
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat menjelaskan fungsi register AX, BX, CX, DX
+  \item Saya dapat membedakan register 8-bit dan 16-bit
+  \item Saya dapat menggunakan register index (SI, DI) untuk operasi string
+  \item Saya dapat menggunakan register pointer (BP, SP) untuk stack dan parameter
+  \item Saya memahami fungsi register segment (CS, DS, ES, SS)
+  \item Saya dapat menganalisis flag register setelah operasi aritmatika
+  \item Saya dapat mengimplementasikan operasi stack (PUSH/POP)
+  \item Saya dapat menulis program assembly dengan TASM syntax
+  \item Saya dapat menggunakan register secara efisien dalam program
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas struktur prosesor Intel 8086 dan organisasi register, termasuk register general purpose, register index, register pointer, register segment, dan flag register.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Register general purpose (AX, BX, CX, DX) digunakan untuk operasi data umum
+  \item AX khusus untuk aritmatika, CX untuk counter, DX untuk I/O dan aritmatika
+  \item Register index (SI, DI) digunakan untuk operasi string dan array
+  \item Register pointer (BP, SP) mengelola stack frame dan parameter prosedur
+  \item Register segment (CS, DS, ES, SS) mengorganisasi memori segmentasi
+  \item Flag register menunjukkan status hasil operasi (Zero, Carry, Sign, Overflow)
+  \item TASM menyediakan tools untuk debugging register dan instruksi
+  \item Penggunaan register yang efisien kunci untuk optimasi program assembly
+\end{itemize}
+
+\textbf{Kata Kunci}: \textbf{\texttt{Register}}, \textbf{\texttt{AX}}, \textbf{\texttt{BX}}, \textbf{\texttt{CX}}, \textbf{\texttt{DX}}, \textbf{\texttt{SI}}, \textbf{\texttt{DI}}, \textbf{\texttt{BP}}, \textbf{\texttt{SP}}, \textbf{\texttt{Segment Register}}, \textbf{\texttt{Flag Register}}, \textbf{\texttt{TASM}}, \textbf{\texttt{Stack}}
+\end{rangkuman}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

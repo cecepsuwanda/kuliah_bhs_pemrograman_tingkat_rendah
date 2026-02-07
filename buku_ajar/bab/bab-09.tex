@@ -1,0 +1,382 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{8}}{}
+\begin{document}
+
+\chapter{Optimasi dan Debugging}
+
+\begin{subcpmk}
+  \item Mendukung CPMK-2 dan CPMK-4: Mengoptimasi kode assembly dan menggunakan TASM debugger untuk troubleshooting — Materi Minggu 15-16
+  \item Sub-CPMK 2.1: Menulis program assembly sederhana dengan TASM syntax
+\end{subcpmk}
+
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\input{bab-09/section-9-1}
+\input{bab-09/section-9-2}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}
+\begin{verbatim}
+; Slow version
+MOV AX, 1
+ADD AX, BX
+ADD AX, CX
+ADD AX, DX
+
+; Optimized version
+LEA AX, [BX+1]  ; If possible
+ADD AX, CX
+ADD AX, DX
+\end{verbatim}
+
+\subsection{Loop Optimization}
+\begin{verbatim}
+; Unoptimized loop
+MOV CX, 100
+loop_start:
+; 5 instructions
+DEC CX
+JNZ loop_start
+
+; Optimized loop
+MOV CX, 25
+loop_start:
+; 20 instructions (unrolled)
+DEC CX
+JNZ loop_start
+\end{verbatim}
+
+\subsection{Memory Access Optimization}
+\begin{verbatim}
+; Slow - multiple memory accesses
+MOV AX, [array]
+ADD AX, [array+2]
+ADD AX, [array+4]
+
+; Optimized - single access with pointer
+MOV SI, offset array
+MOV AX, [SI]
+ADD AX, [SI+2]
+ADD AX, [SI+4]
+\end{verbatim}
+
+\section{TASM Debugger}
+
+\subsection{Starting Debugger}
+\begin{verbatim}
+tasm program.asm
+tlink program.obj
+td program.exe
+\end{verbatim}
+
+\subsection{Debugger Commands}
+\begin{itemize}
+  \item \textbf{F7}: Trace into (step by step)
+  \item \textbf{F8}: Step over (skip procedures)
+  \item \textbf{F4}: Run to cursor
+  \item \textbf{F9}: Run program
+  \item \textbf{Alt+V}: View registers
+  \item \textbf{Alt+M}: View memory
+  \item \textbf{Alt+W}: Watch variables
+\end{itemize}
+
+\subsection{Breakpoints}
+\begin{verbatim}
+; Set breakpoint at label
+; Press F2 at code line
+; Or use Ctrl+B to set by address
+\end{verbatim}
+
+\section{Debugging Techniques}
+
+\subsection{Register Analysis}
+\begin{verbatim}
+; Check register values
+; Use Alt+V to view all registers
+; Look for unexpected values
+\end{verbatim}
+
+\subsection{Memory Inspection}
+\begin{verbatim}
+; View memory content
+; Use Alt+M to open memory window
+; Enter address to examine
+; Look for corruption
+\end{verbatim}
+
+\subsection{Step-by-Step Execution}
+\begin{verbatim}
+; Use F7 for detailed tracing
+; Watch register changes
+; Identify logic errors
+\end{verbatim}
+
+\section{Common Bugs and Solutions}
+
+\subsection{Off-by-One Errors}
+\begin{verbatim}
+; Bug
+MOV CX, array_size
+loop_start:
+MOV AL, [SI]    ; Access array[SI]
+INC SI
+DEC CX
+JNZ loop_start    ; One extra iteration
+
+; Fix
+MOV CX, array_size
+DEC CX           ; Adjust count
+loop_start:
+MOV AL, [SI]
+INC SI
+DEC CX
+JNZ loop_start
+\end{verbatim}
+
+\subsection{Stack Corruption}
+\begin{verbatim}
+; Bug - unbalanced stack
+PUSH AX
+PUSH BX
+; Missing POP for AX
+POP BX
+RET
+
+; Fix - balanced stack
+PUSH AX
+PUSH BX
+POP BX
+POP AX
+RET
+\end{verbatim}
+
+\subsection{Memory Alignment Issues}
+\begin{verbatim}
+; Bug - unaligned access
+MOV AX, [odd_address]  ; Slow on some systems
+
+; Fix - aligned access
+MOV AX, [aligned_address]
+\end{verbatim}
+
+\section{Performance Measurement}
+
+\subsection{Timing Analysis}
+\begin{verbatim}
+; Use BIOS timer for timing
+MOV AH, 00h     ; Get system timer
+INT 1Ah
+MOV start_time, DX
+
+; Code to measure
+; ...
+
+MOV AH, 00h
+INT 1Ah
+MOV end_time, DX
+
+; Calculate difference
+SUB end_time, start_time
+\end{verbatim}
+
+\subsection{Code Profiling}
+\begin{itemize}
+  \item Identifikasi hotspots
+  \item Ukur execution time
+  \item Prioritaskan optimasi
+\end{itemize}
+
+\section{Advanced Optimization}
+
+\subsection{Lookup Tables}
+\begin{verbatim}
+; Instead of calculation
+MOV AL, input
+SHL AL, 1        ; Multiply by 2
+MOV BX, offset table
+XLAT               ; AL = [BX+AL]
+
+table DB result0, result1, result2, ...
+\end{verbatim}
+
+\subsection{Bit Manipulation}
+\begin{verbatim}
+; Instead of division by 2
+SHR AX, 1
+
+; Instead of multiplication by 2
+SHL AX, 1
+
+; Instead of modulo power of 2
+AND AX, 3        ; Modulo 8
+\end{verbatim}
+
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Code Optimization}: Ambil program yang ada dan optimasi untuk kecepatan.
+  
+  \item \textbf{Debug Session}: Gunakan TASM debugger untuk menemukan bug dalam program yang disediakan.
+  
+  \item \textbf{Performance Analysis}: Ukur waktu eksekusi berbagai algoritma sorting.
+  
+  \item \textbf{Bug Hunt}: Cari dan perbaiki 5 common bugs dalam kode assembly.
+  
+  \item \textbf{Optimization Challenge}: Optimasi loop dengan berbagai teknik.
+  
+  \item \textbf{Memory Analysis}: Gunakan debugger untuk menganalisis penggunaan memori.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Jelaskan perbedaan antara trace into (F7) dan step over (F8)! Kapan sebaiknya menggunakan masing-masing?
+  
+  \item Optimasi program berikut:
+  \begin{verbatim}
+MOV CX, 1000
+loop_start:
+MOV AX, [array]
+ADD AX, [array+2]
+MOV [result], AX
+ADD SI, 4
+DEC CX
+JNZ loop_start
+  \end{verbatim}
+  
+  \item Debug program yang memiliki bug:
+  \begin{itemize}
+    \item Infinite loop
+    \item Stack overflow
+    \item Memory corruption
+    \item Wrong calculation result
+  \end{itemize}
+  
+  \item Implementasikan program untuk menghitung execution time fungsi.
+  
+  \item Buat lookup table untuk konversi ASCII ke EBCDIC.
+  
+  \item Optimasi bubble sort dengan berbagai teknik optimasi.
+  
+  \item \textbf{Refleksi}: Teknik debugging mana yang paling efektif untuk Anda? Bagaimana Anda mengembangkan debugging skills?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 7.1, 7.2, 2.1}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Shortcut key untuk trace into di TASM debugger adalah:
+  \begin{enumerate}
+    \item F5
+    \item F7
+    \item F8
+    \item F9
+  \end{enumerate}
+  
+  \item Untuk mengoptimasi perkalian dengan 2, gunakan:
+  \begin{enumerate}
+    \item MUL
+    \item ADD
+    \item SHL
+    \item SHR
+  \end{enumerate}
+  
+  \item Teknik untuk mengurangi loop overhead adalah:
+  \begin{enumerate}
+    \item Loop unrolling
+    \item Register caching
+    \item Memory alignment
+    \item Lookup table
+  \end{enumerate}
+  
+  \item Untuk melihat register values di debugger adalah:
+  \begin{enumerate}
+    \item Alt+V
+    \item Alt+M
+    \item Alt+W
+    \item Alt+B
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan strategi optimasi yang dapat diterapkan pada program assembly!
+  
+  \item Mengapa debugging lebih sulit di assembly dibandingkan high-level language?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Optimasi dan debug program sorting:
+  \begin{itemize}
+    \item Implementasikan 3 algoritma sorting (bubble, quick, merge)
+    \item Ukur performance masing-masing
+    \item Optimasi algoritma tercepat
+    \item Debug semua bugs
+    \item Dokumentasikan teknik optimasi yang digunakan
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat mengoptimasi kode assembly untuk performa
+  \item Saya dapat menggunakan TASM debugger secara efektif
+  \item Saya dapat mengidentifikasi dan memperbaiki common bugs
+  \item Saya dapat menggunakan breakpoints dan watch variables
+  \item Saya dapat menganalisis performance kode
+  \item Saya dapat menerapkan teknik optimasi lanjutan
+  \item Saya dapat melakukan step-by-step debugging
+  \item Saya dapat mengukur execution time program
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas teknik optimasi dan debugging untuk program assembly, termasuk penggunaan TASM debugger dan strategi performa.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Optimasi meliputi register usage, instruction selection, dan loop efficiency
+  \item TASM debugger menyediakan tools untuk debugging yang powerful
+  \item Step-by-step execution membantu identifikasi logic errors
+  \item Breakpoints memungkinkan analisis kode spesifik
+  \item Common bugs meliputi off-by-one, stack corruption, memory issues
+  \item Performance measurement penting untuk optimasi yang efektif
+  \item Advanced optimization menggunakan lookup tables dan bit manipulation
+  \item Debugging skills essential untuk assembly programming
+\end{itemize}
+
+\textbf{Kata Kunci}: \textbf{\texttt{Optimasi}}, \textbf{\texttt{Debugging}}, \textbf{\texttt{TASM Debugger}}, \textbf{\texttt{Performance}}, \textbf{\texttt{Breakpoint}}, \textbf{\texttt{Register Optimization}}, \textbf{\texttt{Loop Unrolling}}, \textbf{\texttt{Memory Alignment}}, \textbf{\texttt{Profiling}}
+\end{rangkuman}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

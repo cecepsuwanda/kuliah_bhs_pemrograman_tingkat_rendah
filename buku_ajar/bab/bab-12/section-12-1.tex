@@ -1,0 +1,227 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Integrasi Konsep Assembly}
+
+\subsection{Konsep Integrasi}
+Integrasi adalah proses menggabungkan semua konsep assembly programming yang telah dipelajari menjadi aplikasi yang komprehensif.
+
+\textbf{Komponen integrasi:}
+\begin{itemize}
+  \item \textbf{Processor Architecture}: Registers, addressing modes, segmentation
+  \item \textbf{Instruction Set}: Data transfer, arithmetic, logic, control flow
+  \item \textbf{Programming Constructs}: Procedures, loops, conditional statements
+  \item \textbf{System Programming}: Interrupts, BIOS/DOS services
+  \item \textbf{Optimization}: Performance tuning, debugging techniques
+  \item \textbf{Project Development}: Modular design, library development
+\end{itemize}
+
+\subsection{Integrated Application Example}
+Contoh aplikasi yang menggabungkan semua konsep assembly.
+
+\begin{verbatim}
+; Integrated Application: Student Management System
+; ==================================================
+; Features:
+; 1. Student data management (arrays, file I/O)
+; 2. Grade calculation (arithmetic operations)
+; 3. Report generation (string operations, file output)
+; 4. User interface (BIOS/DOS interrupts)
+; 5. Data validation (conditional logic)
+; 6. Performance optimization (register usage, loops)
+
+; Main program structure
+MAIN PROC
+    ; Initialize system
+    CALL initialize_system
+    
+    ; Load student data
+    CALL load_student_data
+    
+    ; Display menu
+    CALL display_menu
+    
+    ; Process user input
+    CALL process_menu_selection
+    
+    ; Generate reports
+    CALL generate_reports
+    
+    ; Cleanup and exit
+    CALL cleanup_and_exit
+MAIN ENDP
+
+; Supporting procedures
+initialize_system PROC
+    ; Set up video mode
+    MOV AH, 00h
+    MOV AL, 03h
+    INT 10h
+    
+    ; Initialize data structures
+    MOV SI, student_array
+    MOV CX, MAX_STUDENTS
+    CALL initialize_student_array
+    RET
+initialize_system ENDP
+
+load_student_data PROC
+    ; Open data file
+    MOV AH, 3Dh
+    MOV AL, 00h
+    MOV DX, student_data_file
+    INT 21h
+    JC file_error
+    
+    MOV file_handle, AX
+    
+    ; Read student records
+    MOV CX, MAX_STUDENTS
+    MOV SI, student_array
+read_loop:
+    CALL read_student_record
+    ADD SI, STUDENT_SIZE
+    LOOP read_loop
+    
+    ; Close file
+    MOV AH, 3Eh
+    MOV BX, file_handle
+    INT 21h
+    RET
+load_student_data ENDP
+\end{verbatim}
+
+\section{Refleksi Pembelajaran}
+
+\subsection{Perjalanan Pembelajaran Assembly}
+Refleksi tentang proses pembelajaran assembly programming dari dasar hingga advanced.
+
+\textbf{Tahapan pembelajaran:}
+\begin{enumerate}
+  \item \textbf{Foundation (Minggu 1-2)}: Konsep dasar processor dan assembly
+  \item \textbf{Core Skills (Minggu 3-6)}: Instruksi, addressing, operasi dasar
+  \item \textbf{Advanced Concepts (Minggu 7-10)}: Prosedur, interrupts, optimasi
+  \item \textbf{Application (Minggu 11-12)}: Project development, best practices
+  \item \textbf{Mastery (Minggu 13-14)}: Integration, assessment, reflection
+\end{enumerate}
+
+\subsection{Pencapaian Kompetensi}
+Evaluasi pencapaian Sub-CPMK selama pembelajaran.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|p{3cm}|p{2cm}|p{3cm}|p{3cm}|}
+\hline
+\textbf{Sub-CPMK} & \textbf{Target} & \textbf{Pencapaian} & \textbf{Action} \\
+\hline
+1.1: Processor Architecture & 85\% & 90\% & Maintain \\
+\hline
+1.2: Addressing Modes & 80\% & 85\% & Practice \\
+\hline
+2.1: TASM Syntax & 90\% & 95\% & Maintain \\
+\hline
+2.2: Assembler Directives & 75\% & 80\% & Review \\
+\hline
+3.1: Arithmetic Operations & 85\% & 90\% & Maintain \\
+\hline
+3.2: Logical Operations & 80\% & 85\% & Practice \\
+\hline
+4.1: Control Structures & 85\% & 90\% & Maintain \\
+\hline
+4.2: Procedures & 80\% & 85\% & Practice \\
+\hline
+\end{tabular}
+\caption{Pencapaian Sub-CPMK}
+\end{table}
+
+\section{Best Practices Summary}
+
+\subsection{Programming Best Practices}
+Ringkasan praktik terbaik dalam assembly programming.
+
+\textbf{Code Quality:}
+\begin{itemize}
+  \item Gunakan meaningful variable dan procedure names
+  \item Dokumentasikan kode dengan komentar yang jelas
+  \item Implementasikan error handling yang komprehensif
+  \item Gunakan modular design untuk maintainability
+  \item Optimasi kode untuk performa yang baik
+\end{itemize}
+
+\textbf{Development Process:}
+\begin{itemize}
+  \item Plan sebelum coding (requirements, design)
+  \item Test secara bertahap (unit, integration, system)
+  \item Debug secara sistematis dengan TASM debugger
+  \item Review kode untuk best practices
+  \item Document untuk maintainability
+\end{itemize}
+
+\subsection{Common Pitfalls dan Solutions}
+Masalah umum dan solusinya dalam assembly programming.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|p{4cm}|p{5cm}|p{4cm}|}
+\hline
+\textbf{Common Pitfall} & \textbf{Description} & \textbf{Solution} \\
+\hline
+Register Corruption & Mengubah register tanpa menyimpan nilai asli & Gunakan PUSH/POP untuk preservation \\
+\hline
+Stack Overflow & Rekursi tanpa base case atau terlalu dalam & Tambah base case, limit depth \\
+\hline
+Off-by-One Error & Loop count atau array index salah & Validasi boundary conditions \\
+\hline
+Memory Leaks & Tidak cleanup allocated resources & Implement proper cleanup \\
+\hline
+Poor Performance & Inefficient algorithms atau data structures & Use profiling, optimize \\
+\hline
+Hard to Debug & Kode tidak terorganisir dengan baik & Modular design, good documentation \\
+\hline
+\end{tabular}
+\caption{Common Pitfalls dan Solutions}
+\end{table}
+
+\section{Career Pathways}
+
+\subsection{Career Opportunities}
+Peluang karir untuk mahasiswa dengan keahlian assembly programming.
+
+\textbf{Technical Roles:}
+\begin{itemize}
+  \item \textbf{Systems Programmer}: Low-level system development
+  \item \textbf{Embedded Systems Engineer}: Device programming
+  \item \textbf{Firmware Developer}: Hardware-software interface
+  \item \textbf{Security Researcher}: Reverse engineering, vulnerability analysis
+  \item \textbf{Performance Engineer}: System optimization
+\end{itemize}
+
+\textbf{Industry Applications:}
+\begin{itemize}
+  \item \textbf{Automotive}: ECU programming, control systems
+  \item \textbf{Aerospace}: Flight control systems, avionics
+  \item \textbf{Medical Devices}: Equipment programming, diagnostics
+  \item \textbf{IoT}: Device firmware, sensor programming
+  \item \textbf{Gaming}: Engine development, optimization
+\end{itemize}
+
+\subsection{Continuous Learning}
+Strategi untuk pembelajaran berkelanjutan.
+
+\textbf{Advanced Topics:}
+\begin{itemize}
+  \item Modern processor architectures (x86-64, ARM)
+  \item Operating system internals
+  \item Compiler design and construction
+  \item Computer architecture and organization
+  \item Parallel and distributed computing
+\end{itemize}
+
+\textbf{Learning Resources:}
+\begin{itemize}
+  \item Intel Developer Manuals
+  \item AMD Processor Programming Guides
+  \item Open source assembly projects
+  \item Online communities and forums
+  \item Technical conferences and workshops
+\end{itemize}

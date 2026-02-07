@@ -1,0 +1,198 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Struktur Kontrol}
+
+\subsection{Conditional Jumps}
+Instruksi jump yang dieksekusi berdasarkan kondisi flag register.
+
+\begin{verbatim}
+; Unconditional jump
+JMP label        ; Selalu jump ke label
+
+; Conditional jumps - berdasarkan flag
+JZ  target       ; Jump if Zero (ZF = 1)
+JNZ target       ; Jump if Not Zero (ZF = 0)
+JC  target       ; Jump if Carry (CF = 1)
+JNC target       ; Jump if No Carry (CF = 0)
+JS  target       ; Jump if Sign (SF = 1)
+JNS target       ; Jump if Not Sign (SF = 0)
+JO  target       ; Jump if Overflow (OF = 1)
+JNO target       ; Jump if No Overflow (OF = 0)
+\end{verbatim}
+
+\textbf{Contoh penggunaan:}
+\begin{verbatim}
+CMP AX, BX      ; Bandingkan AX dengan BX, set flags
+JZ  equal        ; Jump jika AX = BX
+JG  greater       ; Jump jika AX > BX (signed)
+JAE above_equal   ; Jump jika AX >= BX (unsigned)
+\end{verbatim}
+
+\subsection{IF-THEN-ELSE Structure}
+Implementasi struktur kondisional dengan jumps.
+
+\begin{verbatim}
+; IF-THEN structure
+CMP AX, 0
+JNE not_zero
+    MOV CX, 1      ; Eksekusi jika AX != 0
+    JMP end_if
+not_zero:
+    MOV CX, 0      ; Eksekusi jika AX = 0
+end_if:
+; Lanjutkan program
+\end{verbatim}
+
+\subsection{CASE/SWITCH Structure}
+Implementasi struktur pemilihan dengan multiple jumps.
+
+\begin{verbatim}
+; CASE structure dengan jump table
+MOV AL, input_char    ; Load input
+SUB AL, 'A'        ; Bandingkan dengan 'A'
+JE  case_A          ; Jump jika sama
+SUB AL, 'B'        ; Bandingkan dengan 'B'
+JE  case_B          ; Jump jika sama
+SUB AL, 'C'        ; Bandingkan dengan 'C'
+JE  case_C          ; Jump jika sama
+JMP default_case     ; Default case
+\end{verbatim}
+
+\section{Perulangan (Loops)}
+
+\subsection{LOOP Instruction}
+Instruksi LOOP untuk perulangan dengan CX counter.
+
+\begin{verbatim}
+; Basic loop
+MOV CX, 10        ; Set counter = 10
+loop_start:
+; ... instruksi yang diulang
+LOOP loop_start    ; CX--, jump jika CX != 0
+\end{verbatim}
+
+\textbf{Variasi LOOP:}
+\begin{itemize}
+  \item \textbf{LOOP}: Loop tanpa kondisi
+  \item \textbf{LOOPE}: Loop jika ZF = 1
+  \item \textbf{LOOPNE}: Loop jika ZF = 0
+  \item \textbf{LOOPC}: Loop jika CF = 1
+  \item \textbf{LOOPNC}: Loop jika CF = 0
+\end{itemize}
+
+\subsection{WHILE Loop}
+Implementasi perulangan dengan kondisi awal.
+
+\begin{verbatim}
+; WHILE structure
+MOV CX, array_size
+MOV SI, 0
+while_loop:
+    CMP SI, CX
+    JAE end_while    ; Jump jika SI >= CX
+    
+    ; ... proses array[SI]
+    INC SI
+    JMP while_loop
+end_while:
+\end{verbatim}
+
+\subsection{FOR Loop}
+Implementasi perulangan dengan counter terkontrol.
+
+\begin{verbatim}
+; FOR loop (0 to n-1)
+MOV CX, n
+MOV SI, 0
+for_loop:
+    ; ... proses array[SI]
+    INC SI
+    LOOP for_loop    ; CX--, loop jika CX != 0
+\end{verbatim}
+
+\subsection{DO-WHILE Loop}
+Implementasi perulangan dengan test di akhir.
+
+\begin{verbatim}
+; DO-WHILE structure
+MOV CX, 0
+do_while_loop:
+    ; ... proses yang diulang
+    INC CX
+    CMP CX, limit
+    JL do_while_loop ; Loop jika CX < limit
+\end{verbatim}
+
+\subsection{Nested Loops}
+Perulangan bersarang untuk multidimensional array.
+
+\begin{verbatim}
+; Nested loop example
+MOV CX, rows       ; Outer loop counter
+outer_loop:
+    MOV DX, cols       ; Inner loop counter
+    inner_loop:
+        ; ... proses array[row][col]
+        INC DX
+        LOOP inner_loop
+    INC SI
+    LOOP outer_loop
+\end{verbatim}
+
+\textbf{Optimasi nested loops:}
+\begin{itemize}
+  \item Gunakan register berbeda untuk inner/outer loop
+  \item Minimalkan instruksi dalam inner loop
+  \item Pertimbangkan loop unrolling
+  \item Hindari akses memori berulang kali
+\end{itemize}
+
+\section{Prosedur Kontrol Lanjutan}
+
+\subsection{CALL dan RET}
+Instruksi untuk prosedur dan return value.
+
+\begin{verbatim}
+; Procedure call
+CALL procedure_name    ; Push IP, jump ke procedure
+; ... eksekusi prosedur
+RET                 ; Pop IP, return ke caller
+
+; Function dengan parameter
+MOV AX, param1
+MOV BX, param2
+CALL calculate
+; Result di AX
+\end{verbatim}
+
+\subsection{Stack Frame Management}
+Manajemen stack frame untuk prosedur kompleks.
+
+\begin{verbatim}
+; Standard procedure entry
+PUSH BP              ; Simpan BP lama
+MOV BP, SP           ; Setup stack frame
+SUB SP, local_size   ; Reserve space untuk local variables
+
+; Akses parameter
+MOV AX, [BP+4]      ; Parameter pertama
+MOV BX, [BP+6]      ; Parameter kedua
+
+; Akses local variables
+MOV CX, [BP-2]      ; Local variable pertama
+MOV DX, [BP-4]      ; Local variable kedua
+
+; Standard procedure exit
+MOV SP, BP           ; Cleanup stack frame
+POP BP               ; Restore BP lama
+RET                 ; Return
+\end{verbatim}
+
+\textbf{Stack Layout:}
+\begin{itemize}
+  \item \textbf{Parameter}: Diakses dengan positive offset dari BP
+  \item \textbf{Local Variables}: Diakses dengan negative offset dari BP
+  \item \textbf{Return Address}: Disimpan di stack sebelum CALL
+  \item \textbf{Saved BP}: BP lama disimpan di stack
+\end{itemize}

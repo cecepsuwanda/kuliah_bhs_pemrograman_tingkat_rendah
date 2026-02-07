@@ -1,0 +1,71 @@
+\section{Arsitektur Intel 8086}
+
+\subsection{Overview Processor Intel 8086}
+
+Intel 8086 adalah 16-bit processor yang menjadi standar industri untuk komputer personal. Processor ini diperkenalkan pada tahun 1978 dan menjadi fondasi untuk arsitektur x86 modern.
+
+\textbf{Fitur Utama Intel 8086:}
+\begin{itemize}
+  \item \textbf{16-bit Architecture}: 16-bit data bus dan 20-bit address bus
+  \item \textbf{Register Set}: 8 general-purpose registers 16-bit
+  \item \textbf{Instruction Set}: Komprehensif untuk operasi data dan kontrol
+  \item \textbf{Addressing Modes}: Fleksibel untuk akses memori
+  \item \textbf{Segmentation}: Memori management dengan segment registers
+\end{itemize}
+
+\subsection{Register Architecture}
+
+Intel 8086 memiliki 8 general-purpose registers:
+\begin{verbatim}
+General Purpose Registers (16-bit):
+AX  - Accumulator (arithmetic, I/O)
+BX  - Base Register (memory addressing)
+CX  - Count Register (loops, strings)
+DX  - Data Register (arithmetic, I/O)
+
+Special Purpose Registers:
+SP  - Stack Pointer
+BP  - Base Pointer
+SI  - Source Index
+DI  - Destination Index
+
+Segment Registers:
+CS  - Code Segment
+DS  - Data Segment
+SS  - Stack Segment
+ES  - Extra Segment
+\end{verbatim}
+
+\subsection{Memory Organization}
+
+Intel 8086 menggunakan segmented memory architecture:
+\begin{itemize}
+  \item \textbf{Physical Address}: 20-bit (1MB addressable memory)
+  \item \textbf{Logical Address}: Segment:Offset (16:16 bit)
+  \item \textbf{Segmentation}: 4 segment registers untuk 64KB segments
+  \item \textbf{Address Calculation}: Physical = Segment × 16 + Offset
+\end{itemize}
+
+\begin{verbatim}
+; Address calculation example
+MOV AX, 1234h    ; Load value into AX
+MOV DS, AX       ; Set DS = 1234h
+MOV SI, 56h      ; Set SI = 56h
+; Physical address = 1234h × 16 + 56h = 12340h + 56h = 12396h
+\end{verbatim}
+
+\subsection{Flag Register}
+
+Flag register menyimpan status operasi:
+\begin{verbatim}
+Flag Register (16-bit):
+CF - Carry Flag (carry/borrow)
+PF - Parity Flag (even parity)
+AF - Auxiliary Flag (BCD adjust)
+ZF - Zero Flag (result = 0)
+SF - Sign Flag (negative result)
+TF - Trap Flag (debug)
+IF - Interrupt Flag (interrupt enable)
+DF - Direction Flag (string direction)
+OF - Overflow Flag (signed overflow)
+\end{verbatim}

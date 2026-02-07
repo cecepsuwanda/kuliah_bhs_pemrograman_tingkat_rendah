@@ -1,0 +1,104 @@
+\section{Dasar Bahasa Assembly}
+
+Assembly language adalah bahasa pemrograman tingkat rendah yang paling dekat dengan bahasa mesin. Intel 8086 assembly menggunakan mnemonics yang mudah dibaca untuk mewakili instruksi biner.
+
+\subsection{Struktur Program Assembly}
+
+Program assembly terdiri dari beberapa segmen utama:
+
+\begin{verbatim}
+; Struktur dasar program assembly
+; ======================
+
+; Data segment - untuk variabel dan konstanta
+DATA SEGMENT
+    ; Variabel dan konstanta di sini
+DATA ENDS
+
+; Code segment - untuk instruksi program
+CODE SEGMENT
+    ; Instruksi program di sini
+CODE ENDS
+
+; Stack segment - untuk stack operations
+STACK SEGMENT
+    ; Stack buffer di sini
+STACK ENDS
+
+END
+\end{verbatim}
+
+\subsection{Assembler Directives}
+
+Directives adalah instruksi untuk assembler, bukan untuk processor:
+
+\begin{verbatim}
+; Data definition directives
+DB  'A'           ; Define byte (8-bit)
+DW  1234h         ; Define word (16-bit)
+DD  12345678h      ; Define double word (32-bit)
+EQU  MAX_SIZE 100   ; Define constant
+ORG  100h          ; Set origin address
+\end{verbatim}
+
+\textbf{Common Directives:}
+\begin{itemize}
+  \item \textbf{DB}: Define byte (8-bit)
+  \item \textbf{DW}: Define word (16-bit)
+  \item \textbf{DD}: Define double word (32-bit)
+  \item \textbf{EQU}: Equate constant
+  \item \textbf{ORG}: Set origin address
+  \item \textbf{SEGMENT}: Define segment
+  \item \textbf{END}: End of program
+\end{itemize}
+
+\subsection{Syntax Assembly}
+
+\textbf{Format Instruksi:}
+\begin{verbatim}
+[label:] mnemonic [operand1[, operand2[, operand3]]
+\end{verbatim}
+
+\textbf{Contoh Penggunaan:}
+\begin{verbatim}
+        MOV AX, BX     ; Transfer BX ke AX
+        ADD CX, 5      ; Tambah 5 ke CX
+        JMP loop_start  ; Jump ke loop_start
+        CMP AX, 0      ; Bandingkan AX dengan 0
+        JZ  zero_found  ; Jump jika zero
+\end{verbatim}
+
+\subsection{Label dan Organisasi Kode}
+
+Label digunakan untuk menandai lokasi dalam kode sehingga dapat direferensi oleh instruksi jump dan call:
+
+\begin{verbatim}
+; Contoh penggunaan label
+start:
+    MOV AX, 0
+    JMP loop_start
+
+loop_start:
+    INC AX
+    CMP AX, 10
+    JL loop_start
+    RET
+\end{verbatim}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|p{3cm}|p{5cm}|p{5cm}|}
+\hline
+\textbf{Aspek} & \textbf{Label} & \textbf{Address} \\
+\hline
+Definisi & Penanda lokasi dalam kode & Alamat memori fisik \\
+\hline
+Penggunaan & Target jump, call, referensi data & Diperoleh saat linking \\
+\hline
+Scope & Lokal atau global & Bergantung segment \\
+\hline
+Format & Nama diikuti titik dua (:) & Segment:Offset (hex) \\
+\hline
+\end{tabular}
+\caption{Hubungan Label dan Address}
+\end{table}

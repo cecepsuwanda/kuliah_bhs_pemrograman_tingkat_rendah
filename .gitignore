@@ -1,0 +1,71 @@
+# ============================================================
+# LaTeX build outputs and auxiliary files
+# ============================================================
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fls
+*.fdb_latexmk
+*.log
+*.lof
+*.lol
+*.lot
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
+*.idx
+*.ilg
+*.ind
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+*.xdy
+*.run.xml
+*.synctex
+*.synctex.gz
+*.pdfsync
+
+# Output directories (LaTeX build)
+output/
+buku2/output/
+
+# ============================================================
+# Operating system files
+# ============================================================
+desktop.ini
+.DS_Store
+Thumbs.db
+ehthumbs.db
+*.lnk
+
+# ============================================================
+# Editor and IDE
+# ============================================================
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ============================================================
+# Cursor / AI (optional - uncomment if desired)
+# ============================================================
+# .cursor/
+# .cursorignore
+
+# ============================================================
+# Temporary and backup
+# ============================================================
+*.backup
+*.orig
+*.rej

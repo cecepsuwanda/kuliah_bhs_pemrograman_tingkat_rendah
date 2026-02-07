@@ -1,0 +1,23 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{12}}{}
+\begin{document}
+
+\chapter{Materi Referensi dan Topik Lanjutan}
+
+\begin{subcpmk}
+  \item Sub-CPMK 11.1: Mengakses dan memanfaatkan dokumentasi resmi Intel dan TASM
+  \item Sub-CPMK 11.2: Mengeksplorasi topik advanced dalam assembly programming
+\end{subcpmk}
+
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\input{bab-13/section-13-1}
+\input{bab-13/section-13-2}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

@@ -1,0 +1,83 @@
+\section{Addressing Modes}
+
+Addressing modes menentukan bagaimana processor mengakses operan untuk instruksi.
+
+\subsection{Immediate Addressing}
+
+\begin{verbatim}
+; Immediate addressing - nilai konstan langsung
+MOV AX, 5        ; AX = 5 (immediate value)
+ADD CX, 100h      ; CX = CX + 256
+MOV BX, 'A'        ; BX = ASCII 'A'
+\end{verbatim}
+
+\textbf{Karakteristik:}
+\begin{itemize}
+  \item Nilai konstan langsung dalam instruksi
+  \item Tidak memerlukan akses memori
+  \item Paling cepat untuk operasi konstan
+\end{itemize}
+
+\subsection{Register Addressing}
+
+\begin{verbatim}
+; Register addressing - operan adalah register
+MOV AX, BX        ; AX = BX
+ADD CX, AX        ; CX = CX + AX
+SUB DX, SI        ; DX = DX - SI
+\end{verbatim}
+
+\textbf{Karakteristik:}
+\begin{itemize}
+  \item Operan adalah register general purpose
+  \item Tidak memerlukan akses memori
+  \item Sangat cepat dan efisien
+\end{itemize}
+
+\subsection{Direct Addressing}
+
+\begin{verbatim}
+; Direct addressing - alamat memori langsung
+MOV AX, [1234h]    ; AX = memory[1234h]
+ADD BX, [data_var]   ; BX = memory[data_var]
+MOV CX, [array+10]   ; CX = memory[array+10]
+\end{verbatim}
+
+\textbf{Karakteristik:}
+\begin{itemize}
+  \item Alamat memori langsung dalam instruksi
+  \item Akses ke memory yang spesifik
+  \item Lebih lambat dari register addressing
+\end{itemize}
+
+\subsection{Register Indirect Addressing}
+
+\begin{verbatim}
+; Register indirect - register berisi alamat
+MOV AX, [BX]        ; AX = memory[BX]
+MOV CX, [SI]        ; CX = memory[SI]
+ADD DX, [DI]        ; DX = memory[DI]
+\end{verbatim}
+
+\textbf{Karakteristik:}
+\begin{itemize}
+  \item Register berisi alamat memori
+  \item Fleksibel untuk pointer operations
+  \item Mendukung array dan struktur data dinamis
+\end{itemize}
+
+\subsection{Based Indexed Addressing}
+
+\begin{verbatim}
+; Based indexed addressing - base + index + displacement
+MOV AX, [BX+SI]     ; AX = memory[BX+SI]
+MOV CX, [BP+DI+4]   ; CX = memory[BP+DI+4]
+ADD DX, [BX+SI+10]  ; DX = memory[BX+SI+10]
+\end{verbatim}
+
+\textbf{Karakteristik:}
+\begin{itemize}
+  \item Kombinasi base register dan index register
+  \item Displacement opsional untuk offset
+  \item Sangat fleksibel untuk array dan struktur
+\end{itemize}

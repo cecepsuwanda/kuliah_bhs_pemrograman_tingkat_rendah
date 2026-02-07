@@ -1,0 +1,229 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Interupsi Sistem}
+
+\subsection{Konsep Interupsi}
+Interupsi adalah sinyal yang menghentikan eksekusi program normal untuk menangani event tertentu.
+
+\begin{verbatim}
+; Format interupsi
+INT interrupt_number    ; Trigger software interrupt
+\end{verbatim}
+
+\textbf{Jenis interupsi:}
+\begin{itemize}
+  \item \textbf{Hardware Interupsi}: Dari perangkat hardware (keyboard, timer, disk)
+  \item \textbf{Software Interupsi}: Dipanggil dari program (INT n)
+  \item \textbf{Exception}: Interupsi internal CPU (divide by zero, overflow)
+\end{itemize}
+
+\subsection{Interrupt Vector Table}
+Tabel alamat untuk handler interupsi di memori.
+
+\begin{itemize}
+  \item Lokasi: 0000h:0000h - 0000:03FFh (1024 bytes)
+  \item 256 entry (0-255), setiap entry 4 bytes (segment:offset)
+  \item Entry 0-1Fh: BIOS interrupts
+  \item Entry 20h-3Fh: DOS interrupts
+  \item Entry 40h-FFh: User-defined interrupts
+\end{itemize}
+
+\section{BIOS Interrupts}
+
+\subsection{INT 10h - Video Services}
+Layanan untuk operasi video dan display.
+
+\begin{verbatim}
+; Set video mode
+MOV AH, 00h       ; Function: set video mode
+MOV AL, 03h       ; Mode: 80x25 text
+INT 10h           ; Call BIOS
+
+; Set cursor position
+MOV AH, 02h       ; Function: set cursor
+MOV BH, 0         ; Page number
+MOV DH, 10        ; Row
+MOV DL, 20        ; Column
+INT 10h           ; Call BIOS
+
+; Write character
+MOV AH, 0Eh       ; Function: write character
+MOV AL, 'A'       ; Character
+MOV BH, 0         ; Page
+MOV BL, 07h       ; Color
+INT 10h           ; Call BIOS
+\end{verbatim}
+
+\textbf{Fungsi INT 10h utama:}
+\begin{itemize}
+  \item \textbf{AH=00h}: Set video mode
+  \item \textbf{AH=02h}: Set cursor position
+  \item \textbf{AH=09h}: Write character/attribute
+  \item \textbf{AH=0Eh}: Write character (teletype)
+  \item \textbf{AH=13h}: Write string
+\end{itemize}
+
+\subsection{INT 13h - Disk Services}
+Layanan untuk operasi disk dan floppy.
+
+\begin{verbatim}
+; Reset disk system
+MOV AH, 00h       ; Function: reset disk
+MOV DL, 00h       ; Drive: A:
+INT 13h           ; Call BIOS
+
+; Read disk sector
+MOV AH, 02h       ; Function: read sector
+MOV AL, 01h       ; Number of sectors
+MOV CH, 00h       ; Cylinder
+MOV CL, 01h       ; Sector
+MOV DH, 00h       ; Head
+MOV DL, 00h       ; Drive: A:
+MOV BX, buffer    ; Buffer address
+INT 13h           ; Call BIOS
+\end{verbatim}
+
+\subsection{INT 16h - Keyboard Services}
+Layanan untuk input keyboard.
+
+\begin{verbatim}
+; Get keystroke
+MOV AH, 00h       ; Function: get keystroke
+INT 16h           ; Call BIOS
+; AH = scan code, AL = ASCII code
+
+; Check key status
+MOV AH, 01h       ; Function: check key status
+INT 16h           ; Call BIOS
+; ZF = 0 if key pressed, ZF = 1 if no key
+\end{verbatim}
+
+\section{DOS Interrupts}
+
+\subsection{INT 21h - DOS Services}
+Layanan sistem operasi DOS untuk file I/O, program control, dan lainnya.
+
+\subsubsection{Character I/O}
+\begin{verbatim}
+; Display character
+MOV AH, 02h       ; Function: display character
+MOV DL, 'A'       ; Character
+INT 21h           ; Call DOS
+
+; Input character
+MOV AH, 01h       ; Function: input character
+INT 21h           ; Call DOS
+; AL = character input
+
+; Display string
+MOV AH, 09h       ; Function: display string
+MOV DX, string_addr ; String address (terminated by $)
+INT 21h           ; Call DOS
+
+; Input string
+MOV AH, 0Ah       ; Function: input string
+MOV DX, buffer    ; Buffer address
+INT 21h           ; Call DOS
+\end{verbatim}
+
+\subsubsection{File Operations}
+\begin{verbatim}
+; Create file
+MOV AH, 3Ch       ; Function: create file
+MOV CX, 00h       ; Attributes
+MOV DX, filename  ; Filename address
+INT 21h           ; Call DOS
+; AX = file handle
+
+; Open file
+MOV AH, 3Dh       ; Function: open file
+MOV AL, 00h       ; Access mode (read)
+MOV DX, filename  ; Filename address
+INT 21h           ; Call DOS
+; AX = file handle
+
+; Read file
+MOV AH, 3Fh       ; Function: read file
+MOV BX, handle    ; File handle
+MOV CX, bytes     ; Number of bytes
+MOV DX, buffer    ; Buffer address
+INT 21h           ; Call DOS
+; AX = bytes read
+
+; Close file
+MOV AH, 3Eh       ; Function: close file
+MOV BX, handle    ; File handle
+INT 21h           ; Call DOS
+\end{verbatim}
+
+\subsubsection{Program Control}
+\begin{verbatim}
+; Terminate program
+MOV AH, 4Ch       ; Function: terminate
+MOV AL, 00h       ; Return code
+INT 21h           ; Call DOS
+
+; Execute program
+MOV AH, 4Bh       ; Function: execute
+MOV AL, 00h       ; Load and execute
+MOV DX, progname  ; Program name
+MOV BX, paramblk  ; Parameter block
+INT 21h           ; Call DOS
+\end{verbatim}
+
+\section{Memory Management}
+
+\subsection{INT 12h - Memory Size}
+Mendapatkan ukuran memori sistem.
+
+\begin{verbatim}
+; Get memory size
+INT 12h           ; Call BIOS
+; AX = memory size in KB
+\end{verbatim}
+
+\subsection{INT 15h - Extended Memory}
+Layanan untuk extended memory dan system information.
+
+\begin{verbatim}
+; Get extended memory size
+MOV AH, 88h       ; Function: get extended memory
+INT 15h           ; Call BIOS
+; AX = extended memory size in KB
+\end{verbatim}
+
+\section{Time and Date}
+
+\subsection{INT 1Ah - Time Services}
+Layanan untuk operasi waktu dan timer.
+
+\begin{verbatim}
+; Read system time
+INT 1Ah           ; Call BIOS
+; CX:DX = timer ticks since midnight
+
+; Set system time
+MOV CX, hours     ; Hours
+MOV DX, minutes   ; Minutes
+MOV AH, 01h       ; Function: set time
+INT 1Ah           ; Call BIOS
+\end{verbatim}
+
+\subsection{INT 21h - Date Functions}
+Fungsi tanggal dalam DOS services.
+
+\begin{verbatim}
+; Get system date
+MOV AH, 2Ah       ; Function: get date
+INT 21h           ; Call DOS
+; CX = year, DH = month, DL = day, AL = day of week
+
+; Set system date
+MOV AH, 2Bh       ; Function: set date
+MOV CX, year      ; Year
+MOV DH, month     ; Month
+MOV DL, day       ; Day
+INT 21h           ; Call DOS
+; AL = 00h if success, FFh if invalid
+\end{verbatim}

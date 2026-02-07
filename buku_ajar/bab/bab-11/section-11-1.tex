@@ -1,0 +1,252 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Jenis-jenis Asesmen}
+
+\subsection{Konsep Asesmen dalam Assembly Programming}
+Asesmen adalah proses pengukuran pencapaian kompetensi mahasiswa dalam pemrograman assembly.
+
+\textbf{Tujuan asesmen:}
+\begin{itemize}
+  \item Mengukur pemahaman konsep assembly
+  \item Mengevaluasi kemampuan praktis programming
+  \item Memberikan feedback untuk improvement
+  \item Menentukan pencapaian Sub-CPMK
+\end{itemize}
+
+\subsection{Formative Assessment}
+Asesmen formatif untuk monitoring progress pembelajaran.
+
+\begin{verbatim}
+; Contoh formatif assessment - debugging exercise
+; Student harus menemukan dan memperbaiki bug
+
+; Bug code (diberikan ke mahasiswa)
+buggy_code PROC
+    MOV AX, [array]  ; Bug: tidak mengecek array bounds
+    ADD AX, [array+2]
+    ADD AX, [array+4]
+    ; ... potensial array overflow
+    RET
+buggy_code ENDP
+
+; Expected fix (mahasiswa harus menemukan)
+fixed_code PROC
+    MOV CX, array_size
+    MOV SI, 0
+    MOV AX, 0
+sum_loop:
+    CMP SI, CX
+    JGE end_sum
+    ADD AX, [array+SI]
+    ADD SI, 2
+    JMP sum_loop
+end_sum:
+    RET
+fixed_code ENDP
+\end{verbatim}
+
+\textbf{Formatif assessment types:}
+\begin{itemize}
+  \item \textbf{Code Review}: Review kode assembly untuk best practices
+  \item \textbf{Debugging Exercises}: Temukan dan perbaiki bug
+  \item \textbf{Pair Programming}: Kolaborasi debugging
+  \item \textbf{Quick Quiz}: Pengetahuan konseptual singkat
+\end{itemize}
+
+\subsection{Summative Assessment}
+Asesmen sumatif untuk evaluasi akhir kompetensi.
+
+\begin{verbatim}
+; Contoh summative assessment - comprehensive project
+; Mahasiswa harus implementasikan program lengkap
+
+; Project requirements:
+; 1. Text editor dengan fitur:
+;    - File operations (open, save, close)
+;    - Text editing (insert, delete, replace)
+;    - Search functionality
+;    - Menu system
+; 2. Modular design dengan library
+; 3. Documentation lengkap
+; 4. Error handling
+; 5. Performance optimization
+\end{verbatim}
+
+\textbf{Summative assessment components:}
+\begin{itemize}
+  \item \textbf{Practical Exam}: Implementasi program assembly
+  \item \textbf{Written Exam}: Konseptual understanding
+  \item \textbf{Project}: Development project lengkap
+  \item \textbf{Presentation}: Demo dan explanation
+\end{itemize}
+
+\section{Rubrik Penilaian}
+
+\subsection{Rubrik untuk Kode Assembly}
+Standar penilaian untuk kualitas kode assembly.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|p{2cm}|p{3cm}|p{3cm}|p{3cm}|p{2cm}|}
+\hline
+\textbf{Kriteria} & \textbf{Excellent (4)} & \textbf{Good (3)} & \textbf{Fair (2)} & \textbf{Poor (1)} \\
+\hline
+Correctness & No bugs, perfect functionality & Minor bugs, good functionality & Some bugs, basic functionality & Major bugs, poor functionality \\
+\hline
+Efficiency & Optimized, minimal cycles & Good optimization & Basic optimization & No optimization \\
+\hline
+Readability & Well documented, clear structure & Good documentation & Basic documentation & Poor/no documentation \\
+\hline
+Modularity & Excellent modular design & Good modular design & Basic modularization & No modularity \\
+\hline
+Error Handling & Comprehensive error handling & Good error handling & Basic error handling & No error handling \\
+\hline
+\end{tabular}
+\caption{Rubrik Penilaian Kode Assembly}
+\end{table}
+
+\subsection{Rubrik untuk Problem Solving}
+Standar penilaian untuk kemampuan problem solving.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|p{2cm}|p{3cm}|p{3cm}|p{3cm}|p{2cm}|}
+\hline
+\textbf{Kriteria} & \textbf{Excellent (4)} & \textbf{Good (3)} & \textbf{Fair (2)} & \textbf{Poor (1)} \\
+\hline
+Analysis & Deep understanding of problem & Good understanding & Basic understanding & Poor understanding \\
+\hline
+Algorithm Design & Optimal algorithm design & Good algorithm design & Basic algorithm design & Poor algorithm design \\
+\hline
+Implementation & Flawless implementation & Good implementation & Basic implementation & Poor implementation \\
+\hline
+Optimization & Excellent optimization & Good optimization & Basic optimization & No optimization \\
+\hline
+Testing & Comprehensive testing & Good testing & Basic testing & No testing \\
+\hline
+\end{tabular}
+\caption{Rubrik Penilaian Problem Solving}
+\end{table}
+
+\section{Instrumen Asesmen}
+
+\subsection{Practical Exam Template}
+Template untuk ujian praktik assembly programming.
+
+\begin{verbatim}
+; Practical Exam Template
+; ====================
+; Duration: 120 minutes
+; Total Points: 100
+
+; Problem 1: String Manipulation (25 points)
+; Implementasikan fungsi string reverse dengan optimasi
+
+; Problem 2: Array Processing (25 points)
+; Buat program untuk sorting array dengan bubble sort
+
+; Problem 3: File Operations (25 points)
+; Implementasikan file reader dengan error handling
+
+; Problem 4: System Programming (25 points)
+; Buat program yang menampilkan informasi sistem
+
+; Evaluation Criteria:
+; - Correctness: 40%
+; - Efficiency: 20%
+; - Documentation: 20%
+; - Error Handling: 20%
+\end{verbatim}
+
+\subsection{Written Exam Template}
+Template untuk ujian tertulis konseptual.
+
+\textbf{Sample Questions:}
+
+\begin{enumerate}
+  \item Jelaskan perbedaan antara CALL dan RET instruksi! (10 points)
+  
+  \item Implementasikan algoritma binary search dalam assembly! (20 points)
+  
+  \item Analisis kode berikut dan identifikasi optimasi opportunities: (15 points)
+  \begin{verbatim}
+  MOV CX, 100
+  MOV SI, 0
+  loop_start:
+      MOV AL, [array+SI]
+      CMP AL, 0
+      JE found
+      INC SI
+      LOOP loop_start
+  \end{verbatim}
+  
+  \item Jelaskan konsep stack frame dan manajemen register dalam prosedur! (15 points)
+  
+  \item Design modular architecture untuk calculator application! (20 points)
+  
+  \item Jelaskan optimasi techniques yang dapat diterapkan pada kode assembly! (20 points)
+\end{enumerate}
+
+\section{Self-Assessment Tools}
+
+\subsection{Checklist Kompetensi}
+Checklist untuk self-assessment mahasiswa.
+
+\textbf{Technical Skills Checklist:}
+\begin{itemize}
+  \item[$\square$] Saya dapat menulis program assembly dasar
+  \item[$\square$] Saya dapat menggunakan instruksi aritmatika dan logika
+  \item[$\square$] Saya dapat mengimplementasikan struktur kontrol
+  \item[$\square$] Saya dapat membuat prosedur dengan parameter
+  \item[$\square$] Saya dapat menggunakan interupsi BIOS/DOS
+  \item[$\square$] Saya dapat melakukan debugging dengan TASM
+  \item[$\square$] Saya dapat mengoptimasi kode assembly
+  \item[$\square$] Saya dapat mengembangkan modular program
+\end{itemize}
+
+\textbf{Problem Solving Checklist:}
+\begin{itemize}
+  \item[$\square$] Saya dapat menganalisis problem requirements
+  \item[$\square$] Saya dapat merancang algoritma yang efisien
+  \item[$\square$] Saya dapat mengidentifikasi dan memperbaiki bug
+  \item[$\square$] Saya dapat mengoptimasi performa kode
+  \item[$\square$] Saya dapat mendokumentasikan solusi
+  \item[$\square$] Saya dapat menguji dan validasi solusi
+\end{itemize}
+
+\subsection{Portfolio Assessment}
+Portfolio untuk dokumentasi pencapaian kompetensi.
+
+\textbf{Portfolio Components:}
+\begin{itemize}
+  \item \textbf{Code Samples}: 5 best assembly programs
+  \item \textbf{Projects}: 2-3 complete projects
+  \item \textbf{Debugging Logs}: Bug fixing examples
+  \item \textbf{Optimization Reports}: Before/after comparisons
+  \item \textbf{Documentation}: Complete documentation
+  \item \textbf{Reflection}: Learning journey reflection
+\end{itemize}
+
+\begin{verbatim}
+; Portfolio Entry Template
+; =====================
+; Project: Calculator Application
+; Date: [Current Date]
+; Skills Demonstrated:
+; - Modular programming
+; - File I/O operations
+; - User interface design
+; - Error handling
+; - Performance optimization
+; 
+; Lessons Learned:
+; - Importance of modular design
+; - Debugging techniques
+; - Optimization strategies
+; 
+; Future Improvements:
+; - Add advanced functions
+; - Improve user interface
+; - Add configuration options
+\end{verbatim}

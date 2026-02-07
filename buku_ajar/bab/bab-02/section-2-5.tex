@@ -1,0 +1,61 @@
+% ============================================================
+% TASM Development Environment
+% ============================================================
+
+% Define asm command for standalone compilation (providecommand avoids conflict when included in main)
+\providecommand{\asm}[1]{\textbf{\texttt{#1}}}
+
+\section{TASM Development Environment}
+
+Turbo Assembler (TASM) adalah development environment untuk pemrograman assembly Intel 8086.
+
+\subsection{Komponen TASM}
+
+\begin{itemize}
+  \item \textbf{TASM.EXE}: Assembler utama untuk mengompilasi kode assembly
+  \item \textbf{TLINK.EXE}: Linker untuk menghubungkan objek files
+  \item \textbf{TD.EXE}: Debugger untuk debugging program assembly
+  \item \textbf{MAKE.EXE}: Build automation tool
+\end{itemize}
+
+\subsection{Workflow Development}
+
+\begin{center}
+\textbf{PEMROGRAMAN ASSEMBLY INTEL 8086}\\
+$\downarrow$\\
+\textbf{DEVELOPMENT CYCLE}\\
+$\downarrow$\\
+\begin{tabular}{ccc}
+Write Code & Compile & Debug
+\end{tabular}\\
+$\downarrow$\\
+\textbf{PRODUKSI}\\
+$\downarrow$\\
+\begin{tabular}{ccc}
+Executable File & Testing & Deployment
+\end{tabular}\\
+\end{center}
+
+\subsection{TASM Commands}
+
+\begin{verbatim}
+; Compile assembly file
+TASM /zi program.asm
+TLINK /v program.obj
+
+; Run debugger
+TD program.exe
+
+; Build dengan makefile
+MAKE
+\end{verbatim}
+
+\textbf{Switch Options:}
+\begin{itemize}
+  \item \textbf{/zi}: Include debug information
+  \item \textbf{/v}: Include verbose output
+  \item \textbf{/c}: Case-sensitive symbols
+  \item \textbf{/n}: Generate listing file
+\end{itemize}
+
+\textbf{Kata Kunci}: \textbf{\texttt{Register}}, \textbf{\texttt{Addressing Mode}}, \textbf{\texttt{Segmentation}}, \textbf{\texttt{TASM}}, \textbf{\texttt{Debugger}}

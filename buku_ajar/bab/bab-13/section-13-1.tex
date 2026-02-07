@@ -1,0 +1,290 @@
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\section{Reference Materials}
+
+\subsection{Intel 8086 Documentation}
+Dokumentasi resmi dari Intel untuk processor 8086.
+
+\textbf{Intel 8086 Family User's Manual:}
+\begin{itemize}
+  \item Complete instruction set reference
+  \item Programming examples and guidelines
+  \item Electrical specifications
+  \item Timing information
+  \item Interrupt handling details
+\end{itemize}
+
+\textbf{Intel 8086/8088 Programmer's Reference Manual:}
+\begin{itemize}
+  \item Instruction set details
+  \item Opcode reference
+  \item Addressing modes
+  \item Flag register descriptions
+  \item Exception handling
+\end{itemize}
+
+\subsection{Turbo Assembler Documentation}
+Dokumentasi untuk TASM dan Turbo Debugger.
+
+\textbf{TASM Reference Guide:}
+\begin{itemize}
+  \item Command-line options and switches
+  \item Directive reference (DB, DW, DD, EQU, ORG)
+  \item Error messages and troubleshooting
+  \item Linker options and procedures
+  \item Debugger commands and usage
+\end{itemize}
+
+\textbf{Turbo Debugger Manual:}
+\begin{itemize}
+  \item Debugger interface overview
+  \item Breakpoint management
+  \item Register and memory inspection
+  \item Step-by-step execution
+  \item Call stack tracing
+  \item Variable watching
+\end{itemize}
+
+\section{Advanced Topics}
+
+\subsection{Memory Management}
+Teknik manajemen memori yang advanced dalam assembly programming.
+
+\begin{verbatim}
+; Memory allocation strategies
+; =========================
+
+; Static memory allocation
+DATA SEGMENT
+    buffer DB 1024 DUP(?)    ; 1KB buffer
+    array DW 256 DUP(0)     ; 256 word array
+    string DB 'Hello World', 0
+DATA ENDS
+
+; Dynamic memory allocation
+allocate_memory PROC
+    PUSH BP
+    MOV BP, SP
+    
+    ; Request memory from OS
+    MOV AH, 48h        ; DOS allocate memory
+    MOV BX, 1024        ; Request 1KB
+    INT 21h
+    JC allocation_error
+    
+    MOV [memory_ptr], AX  ; Store pointer
+    MOV AX, 0          ; Return success
+    JMP end_allocate
+    
+allocation_error:
+    MOV AX, 1          ; Return error
+    
+end_allocate:
+    POP BP
+    RET
+allocate_memory ENDP
+
+; Memory deallocation
+deallocate_memory PROC
+    PUSH BP
+    MOV BP, SP
+    
+    MOV AH, 49h        ; DOS free memory
+    MOV BX, [memory_ptr]  ; Get pointer
+    INT 21h
+    POP BP
+    RET
+deallocate_memory ENDP
+\end{verbatim}
+
+\subsection{Advanced Optimization}
+Teknik optimasi yang advanced untuk performa maksimal.
+
+\begin{verbatim}
+; Pipeline optimization
+; ==================
+; Independent instruction scheduling
+
+; Before: dependent instructions
+MOV AX, [mem1]      ; Load from memory
+ADD AX, BX          ; Wait for AX
+ADD CX, AX          ; Wait for AX
+
+; After: independent instructions
+MOV CX, [mem2]      ; Load from different location
+MOV AX, [mem1]      ; Load from memory
+ADD AX, BX          ; Use AX
+ADD CX, AX          ; Use AX
+\end{verbatim}
+
+\subsection{System Programming}
+Konsep system programming level dalam assembly.
+
+\begin{verbatim}
+; System call interface
+; ===================
+; Standard system call interface
+
+syscall PROC
+    ; AX = system call number
+    ; BX = parameter 1
+    ; CX = parameter 2
+    ; DX = parameter 3
+    ; SI = parameter 4
+    ; DI = parameter 5
+    
+    ; Save registers
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    PUSH SI
+    PUSH DI
+    PUSH BP
+    
+    ; Setup system call
+    MOV BP, SP
+    INT 80h            ; Linux system call
+    
+    ; Restore registers
+    POP BP
+    POP DI
+    POP SI
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    
+    ; Return value in AX
+    RET
+syscall ENDP
+\end{verbatim}
+
+\section{Online Resources}
+
+\subsection{Educational Websites}
+Situs web untuk pembelajaran assembly programming.
+
+\textbf{Intel Developer Zone:}
+\begin{itemize}
+  \item Official Intel documentation
+  \item Developer manuals and guides
+  \item Technical articles and tutorials
+  \item Sample code and examples
+\end{itemize}
+
+\textbf{Assembly Programming Tutorials:}
+\begin{itemize}
+  \item \url{https://yassinebridi.github.io/asm-docs/} - Comprehensive assembly tutorials
+  \item \url{https://www.cs.virginia.edu/~evans/cs216/guides/x86.html} - x86 assembly guide
+  \item \url{https://www.cs.cmu.edu/~fp/courses/15213-s98/} - Carnegie Mellon course materials
+\end{itemize}
+
+\textbf{Community Forums:}
+\begin{itemize}
+  \item Stack Overflow assembly programming tag
+  \item Reddit r/assembly
+  \item DevMaster assembly forums
+  \item GitHub assembly repositories
+\end{itemize}
+
+\subsection{Video Tutorials}
+Video tutorial resources untuk visual learning.
+
+\textbf{YouTube Channels:}
+\begin{itemize}
+  \item Assembly Programming Channel
+  \item Low Level Learning
+  \item Computerphile assembly tutorials
+  \item Programming From Scratch
+\end{itemize}
+
+\textbf{Online Courses:}
+\begin{itemize}
+  \item Coursera computer architecture courses
+  \item edX assembly programming courses
+  \item Udemy low-level programming courses
+  \item MIT OpenCourseWare materials
+\end{itemize}
+
+\section{Development Tools}
+
+\subsection{Modern Assemblers}
+Alternatif modern untuk TASM dengan fitur enhanced.
+
+\textbf{NASM (Netwide Assembler):}
+\begin{itemize}
+  \item Cross-platform support
+  \item Modern syntax and features
+  \item Extensive macro system
+  \item Good community support
+  \item Free and open source
+\end{itemize}
+
+\textbf{MASM (Microsoft Macro Assembler):}
+\begin{itemize}
+  \item Microsoft official support
+  \item Windows integration
+  \item Visual Studio integration
+  \item Advanced debugging features
+  \item Professional development tools
+\end{itemize}
+
+\textbf{FASM (Flat Assembler):}
+\begin{itemize}
+  \item Self-hosting assembler
+  \item Very small footprint
+  \item Fast compilation
+  \item Advanced macro capabilities
+  \item Active development
+\end{itemize}
+
+\subsection{Debugging Tools}
+Tools untuk debugging assembly programs.
+
+\begin{verbatim}
+; Modern debugging approaches
+; =======================
+
+; GDB with assembly support
+gdb ./program
+(gdb) break main
+(gdb) run
+(gdb) info registers
+(gdb) stepi
+(gdb) x/20i $esp
+
+; IDA Pro for reverse engineering
+; Interactive disassembler
+; Graphical interface
+; Scriptable with Python
+; Extensive plugin ecosystem
+
+; x64dbg for Windows debugging
+; Modern Windows debugger
+; Assembly support
+; Hardware breakpoints
+; Memory analysis
+\end{verbatim}
+
+\section{Research Papers}
+
+\subsection{Academic Resources}
+Papers penelitian untuk topik assembly programming.
+
+\textbf{Classic Papers:}
+\begin{itemize}
+  \item "The Design and Evolution of the Intel 8086" - Intel
+  \item "Optimizing Assembly Code" - Agner Fog
+  \item "The Art of Assembly Language Programming" - Randall Hyde
+  \item "Computer Systems: A Programmer's Perspective" - Bryant O'Hallaron
+\end{itemize}
+
+\textbf{Conference Proceedings:}
+\begin{itemize}
+  \item ACM SIGPLAN conferences
+  \item IEEE Computer Society publications
+  \item USENIX security conferences
+  \item DEF CON security conferences
+\end{itemize}

@@ -1,0 +1,124 @@
+\section{Teknik Manajemen Memori}
+
+Manajemen memori yang efektif sangat penting dalam pemrograman assembly.
+
+\subsection{Stack Management}
+
+Stack digunakan untuk temporary storage dan procedure calls.
+
+\begin{verbatim}
+; Stack Management Example
+; =======================
+DATA SEGMENT
+    buffer DW 100 DUP(0)
+    count DW 0
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    ; Initialize DS and SS
+    MOV AX, DATA
+    MOV DS, AX
+    MOV AX, DATA
+    MOV SS, AX
+    
+    ; Initialize stack pointer
+    MOV SP, OFFSET buffer + 200  ; Top of stack
+    
+    ; Push values onto stack
+    MOV AX, 10
+    PUSH AX
+    MOV BX, 20
+    PUSH BX
+    MOV CX, 30
+    PUSH CX
+    
+    ; Pop values from stack (LIFO order)
+    POP DX      ; DX = 30
+    POP DX      ; DX = 20
+    POP DX      ; DX = 10
+    
+    ; Exit program
+    MOV AH, 4Ch
+    INT 21h
+
+CODE ENDS
+END start
+\end{verbatim}
+
+\subsection{Dynamic Memory Allocation}
+
+\begin{verbatim}
+; Dynamic Memory Allocation
+; ========================
+DATA SEGMENT
+    heap_start DW 0
+    heap_size DW 1024
+    allocated DW 0
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    ; Initialize DS
+    MOV AX, DATA
+    MOV DS, AX
+    
+    ; Simulate memory allocation
+    MOV AX, [heap_size]
+    MOV [allocated], AX
+    
+    ; Use allocated memory
+    MOV SI, [heap_start]
+    MOV [SI], 1234h
+    
+    ; Exit program
+    MOV AH, 4Ch
+    INT 21h
+
+CODE ENDS
+END start
+\end{verbatim}
+
+\subsection{Memory Segmentation}
+
+\begin{verbatim}
+; Memory Segmentation Example
+; ===========================
+DATA SEGMENT
+    data_var1 DW 100
+    data_var2 DW 200
+DATA ENDS
+
+CODE SEGMENT
+    ASSUME CS:CODE, DS:DATA
+
+start:
+    ; Initialize DS
+    MOV AX, DATA
+    MOV DS, AX
+    
+    ; Access data using different addressing modes
+    MOV AX, data_var1        ; Direct addressing
+    MOV BX, OFFSET data_var2  ; Get address
+    MOV CX, [BX]             ; Indirect addressing
+    
+    ; Use ES for extra segment
+    MOV AX, DATA
+    MOV ES, AX
+    MOV DX, ES:data_var1    ; Access via ES
+    
+    ; Exit program
+    MOV AH, 4Ch
+    INT 21h
+
+CODE ENDS
+END start
+\end{verbatim}
+
+\begin{catatan}
+Program di atas mendemonstrasikan penggunaan segment register ES untuk mengakses data. Instruksi \texttt{MOV AX, ES:data\_var1} menunjukkan cara explicit segment override ketika mengakses memori melalui segment selain default DS.
+\end{catatan}

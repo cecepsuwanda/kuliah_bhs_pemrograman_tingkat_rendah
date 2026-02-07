@@ -1,0 +1,306 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[indonesian]{babel}
+\usepackage{geometry}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[hidelinks,breaklinks]{hyperref}
+\geometry{margin=2.5cm}
+
+\begin{document}
+
+\begin{center}
+\textbf{\Large RENCANA PEMBELAJARAN SEMESTER (RPS)}\\
+\textbf{Berbasis Outcome-Based Education (OBE)}\\[0.5cm]
+\textbf{PROGRAM STUDI TEKNIK INFORMATIKA}\\
+\textbf{FAKULTAS TEKNIK}\\
+\textbf{UNIVERSITAS LOREM IPSUM}\\
+\end{center}
+
+\vspace{1cm}
+
+% ============================================================
+% 1. IDENTITAS MATA KULIAH
+% ============================================================
+\section*{1. Identitas Mata Kuliah}
+\begin{tabular}{ll}
+Nama Program Studi & : Teknik Informatika \\
+Nama Mata Kuliah & : Pemrograman Bahasa Tingkat Rendah \\
+Kode Mata Kuliah & : TIF-201 \\
+Semester & : 2 (Dua) \\
+SKS / Bobot Kredit & : 3 SKS (1 Teori, 2 Praktikum) \\
+Dosen Pengampu & : Dr. [Nama Dosen], M.Kom. \\
+Tanggal Penyusunan & : 31 Januari 2026 \\
+\end{tabular}
+
+\vspace{0.5cm}
+
+% ============================================================
+% 2. CAPAIAN PEMBELAJARAN LULUSAN (CPL)
+% ============================================================
+\section*{2. Capaian Pembelajaran Lulusan (CPL)}
+
+CPL yang dibebankan pada mata kuliah ini mencakup kompetensi lulusan dalam aspek pengetahuan, keterampilan, dan sikap:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{CPL-1 (Pengetahuan):} Menguasai konsep arsitektur komputer, organisasi memori, dan bahasa assembly tingkat rendah serta mampu menganalisis operasi hardware pada level mesin.
+  
+  \item \textbf{CPL-2 (Keterampilan Umum):} Mampu menerapkan pemikiran logis, kritis, dan sistematis dalam mengembangkan program assembly serta memecahkan masalah pada level instruksi mesin.
+  
+  \item \textbf{CPL-3 (Keterampilan Khusus):} Mampu mengimplementasikan program bahasa assembly untuk Intel 8086, melakukan debugging, dan mengoptimasi kinerja program pada level hardware.
+  
+  \item \textbf{CPL-4 (Sikap):} Menunjukkan sikap teliti, sabar, dan bertanggung jawab dalam pengembangan program tingkat rendah serta mampu bekerja sama dalam tim.
+\end{itemize}
+
+\vspace{0.5cm}
+
+% ============================================================
+% 3. CAPAIAN PEMBELAJARAN MATA KULIAH (CPMK)
+% ============================================================
+\section*{3. Capaian Pembelajaran Mata Kuliah (CPMK)}
+
+Kemampuan atau kompetensi spesifik yang diharapkan mahasiswa kuasai setelah menyelesaikan mata kuliah:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{CPMK-1:} Mahasiswa mampu memahami dan menjelaskan arsitektur prosesor Intel 8086, register, dan organisasi memori.
+  
+  \item \textbf{CPMK-2:} Mahasiswa mampu menulis program assembly menggunakan sintaks Turbo Assembler (TASM) dengan benar.
+  
+  \item \textbf{CPMK-3:} Mahasiswa mampu mengimplementasikan operasi aritmatika, logika, dan kontrol dalam bahasa assembly.
+  
+  \item \textbf{CPMK-4:} Mahasiswa mampu mengembangkan prosedur, mengelola stack, dan menangani interupsi sistem.
+\end{itemize}
+
+\vspace{0.5cm}
+
+% ============================================================
+% 4. SUB-CPMK / INDIKATOR PENCAPAIAN
+% ============================================================
+\section*{4. Sub-CPMK / Indikator Pencapaian}
+
+Penjabaran CPMK menjadi indikator yang lebih terukur dan dapat diuji:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Sub-CPMK 1.1:} Menjelaskan fungsi register AX, BX, CX, DX, SI, DI, BP, SP dalam prosesor 8086
+  \item \textbf{Sub-CPMK 1.2:} Mengidentifikasi mode addressing (immediate, direct, indirect, indexed)
+  \item \textbf{Sub-CPMK 1.3:} Mendemonstrasikan organisasi memori segmentasi (CS, DS, ES, SS)
+  \item \textbf{Sub-CPMK 2.1:} Menulis program assembly sederhana dengan TASM syntax
+  \item \textbf{Sub-CPMK 2.2:} Menggunakan direktif assembler (DB, DW, DD, EQU, ORG)
+  \item \textbf{Sub-CPMK 3.1:} Mengimplementasikan operasi aritmatika (ADD, SUB, MUL, DIV)
+  \item \textbf{Sub-CPMK 3.2:} Menerapkan operasi logika (AND, OR, XOR, NOT, SHIFT)
+  \item \textbf{Sub-CPMK 4.1:} Mengembangkan prosedur dengan parameter passing
+  \item \textbf{Sub-CPMK 4.2:} Menangani interupsi BIOS dan DOS (INT 10h, INT 21h)
+\end{itemize}
+
+\vspace{0.5cm}
+
+% ============================================================
+% 5. MATERI PEMBELAJARAN (BAHAN KAJIAN)
+% ============================================================
+\section*{5. Materi Pembelajaran (Bahan Kajian)}
+
+Daftar topik materi yang relevan dengan Sub-CPMK dan CPMK:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Minggu 1-2:} Pengenalan Arsitektur Komputer dan Bahasa Assembly
+  \item \textbf{Minggu 3-4:} Struktur Prosesor Intel 8086 dan Register
+  \item \textbf{Minggu 5-6:} Set Instruksi dan Mode Addressing
+  \item \textbf{Minggu 7-8:} Operasi Aritmatika dan Logika
+  \item \textbf{Minggu 9-10:} Struktur Kontrol dan Perulangan
+  \item \textbf{Minggu 11-12:} Prosedur dan Manajemen Stack
+  \item \textbf{Minggu 13-14:} Interupsi Sistem dan Layanan BIOS/DOS
+  \item \textbf{Minggu 15-16:} Optimasi dan Debugging Program Assembly
+\end{enumerate}
+
+\textbf{Topik Spesifik per Minggu:}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Teori (30\%):} Konsep arsitektur, organisasi memori, set instruksi, mode addressing
+  \item \textbf{Praktik (70\%):} Penggunaan GUI Turbo Assembler, debugging, pengembangan program
+  \item \textbf{Aplikasi:} Program kalkulator, manipulasi string, grafik sederhana, kontrol hardware
+\end{itemize}
+
+\vspace{0.5cm}
+
+% ============================================================
+% 6. METODE PEMBELAJARAN
+% ============================================================
+\section*{6. Metode Pembelajaran}
+
+Strategi atau pendekatan pembelajaran yang dipilih sesuai OBE yang menekankan aktivitas mahasiswa:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Ceramah Interaktif:} Penjelasan konsep arsitektur dan instruksi dengan demonstrasi live coding
+  \item \textbf{Hands-on Lab:} Praktikum langsung menggunakan GUI Turbo Assembler (TASM) dengan bimbingan
+  \item \textbf{Problem-Based Learning:} Mahasiswa menyelesaikan kasus pemrograman tingkat rendah
+  \item \textbf{Pair Programming:} Kolaborasi berpasangan untuk debugging dan optimasi kode
+  \item \textbf{Project-Based Learning:} Pengembangan aplikasi assembly mini sebagai proyek akhir
+  \item \textbf{Flipped Classroom:} Mahasiswa mempelajari teori sebelum kelas, fokus praktik di kelas
+  \item \textbf{Code Review Session:} Sesi review dan optimasi kode assembly secara bersama
+\end{itemize}
+
+\textbf{Lingkungan Pembelajaran:}
+\begin{itemize}[leftmargin=*]
+  \item GUI Turbo Assembler (TASM) dengan integrated debugger
+  \item DOSBox untuk simulasi environment DOS
+  \item Emulator 8086 untuk visualisasi eksekusi instruksi
+  \item Documentation reference yang mudah diakses
+\end{itemize}
+
+\vspace{0.5cm}
+
+% ============================================================
+% 7. PENGALAMAN BELAJAR MAHASISWA
+% ============================================================
+\section*{7. Pengalaman Belajar Mahasiswa}
+
+Deskripsi tugas, aktivitas, atau pengalaman belajar yang mendukung pencapaian Sub-CPMK:
+
+\begin{itemize}[leftmargin=*]
+  \item Menginstal dan mengkonfigurasi GUI Turbo Assembler (TASM) pada komputer
+  \item Menulis program assembly sederhana untuk operasi aritmatika dasar
+  \item Mengimplementasikan program kalkulator menggunakan instruksi 8086
+  \item Mengembangkan program manipulasi string dengan prosedur dan parameter
+  \item Membuat program grafik sederhana menggunakan interupsi BIOS
+  \item Melakukan debugging program assembly dengan TASM debugger
+  \item Mengoptimasi kode assembly untuk meningkatkan kinerja
+  \item Berkolaborasi dalam tim untuk mengembangkan proyek aplikasi sistem
+  \item Menganalisis kode assembly hasil kompilasi dari bahasa tingkat tinggi
+  \item Membuat dokumentasi teknis untuk program assembly yang dikembangkan
+\end{itemize}
+
+\textbf{Proyek Akhir:}
+\begin{itemize}[leftmargin=*]
+  \item Pilihan 1: Sistem manajemen memori sederhana
+  \item Pilihan 2: Program editor teks dengan fitur find/replace
+  \item Pilihan 3: Game sederhana dengan grafik dan input keyboard
+  \item Pilihan 4: Utility sistem untuk monitoring hardware
+\end{itemize}
+
+\vspace{0.5cm}
+
+% ============================================================
+% 8. KRITERIA, INDIKATOR, DAN BOBOT PENILAIAN
+% ============================================================
+\section*{8. Kriteria, Indikator, dan Bobot Penilaian}
+
+Teknik/alat asesmen dipetakan ke Sub-CPMK/CPMK dengan bobot yang jelas:
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{4cm}|>{\raggedright\arraybackslash}p{5.5cm}|c|}
+\hline
+\textbf{Komponen} & \textbf{Teknik Asesmen} & \textbf{Indikator/CPMK} & \textbf{Bobot (\%)} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Komponen} & \textbf{Teknik Asesmen} & \textbf{Indikator/CPMK} & \textbf{Bobot (\%)} \\
+\hline
+\endhead
+\hline
+\endfoot
+
+Tugas Individu & Assembly Programming & Sub-CPMK 1.1, 1.2, 2.1, 2.2 & 20 \\
+\hline
+Praktikum & Lab Exercise with TASM & Sub-CPMK 2.1, 2.2, 3.1, 3.2 & 30 \\
+\hline
+Kuis & Theory \& Practice & Sub-CPMK 1.1, 1.2, 1.3 & 10 \\
+\hline
+UTS & Written \& Coding Exam & CPMK-1, CPMK-2 & 20 \\
+\hline
+Proyek Akhir & Final Application & CPMK-2, CPMK-3, CPMK-4 & 20 \\
+\hline
+\textbf{Total} & & & \textbf{100} \\
+\hline
+\end{longtable}
+
+\textbf{Kriteria Penilaian:}
+\begin{itemize}[leftmargin=*]
+  \item A (85-100): Menguasai semua CPMK dengan sangat baik, mampu mengembangkan program assembly kompleks
+  \item B (70-84): Menguasai sebagian besar CPMK dengan baik, mampu membuat program assembly moderat
+  \item C (60-69): Menguasai CPMK dasar dengan cukup, mampu membuat program assembly sederhana
+  \item D (50-59): Menguasai sebagian kecil CPMK, program assembly terbatas
+  \item E (<50): Belum menguasai CPMK yang ditetapkan
+\end{itemize}
+
+\textbf{Penekanan Penilaian:}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{70\% Praktik:} Kemampuan menulis dan debugging kode assembly
+  \item \textbf{30\% Teori:} Pemahaman konsep arsitektur dan instruksi
+\end{itemize}
+
+\vspace{0.5cm}
+
+% ============================================================
+% 9. EVALUASI DAN REFLEKSI PEMBELAJARAN (OPSIONAL)
+% ============================================================
+\section*{9. Evaluasi dan Refleksi Pembelajaran}
+
+Penilaian sumatif/formatif untuk memantau ketercapaian outcome secara menyeluruh:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Evaluasi Formatif:} Kuis mingguan, latihan coding TASM, debugging session untuk feedback berkelanjutan
+  \item \textbf{Evaluasi Sumatif:} UTS dan UAS untuk mengukur pencapaian CPMK secara komprehensif
+  \item \textbf{Refleksi Mahasiswa:} Jurnal praktikum mingguan untuk refleksi terhadap pemahaman instruksi assembly
+  \item \textbf{Code Review Session:} Sesi review kode assembly untuk identifikasi bug dan optimasi
+  \item \textbf{Evaluasi Dosen:} Survey keefektifan GUI TASM dan materi praktikum
+  \item \textbf{Continuous Improvement:} Analisis hasil proyek assembly untuk perbaikan kurikulum
+\end{itemize}
+
+\textbf{Monitoring Progress:}
+\begin{itemize}[leftmargin=*]
+  \item Weekly coding checkpoint dengan TASM
+  \item Progress tracking untuk proyek akhir
+  \item Peer assessment untuk praktikum
+  \item Performance benchmarking untuk optimasi kode
+\end{itemize}
+
+\vspace{0.5cm}
+
+% ============================================================
+% 10. DAFTAR REFERENSI
+% ============================================================
+\section*{10. Daftar Referensi}
+
+Sumber belajar utama yang digunakan dalam penyusunan materi dan asesmen:
+
+\begin{enumerate}[leftmargin=*]
+  \item Intel Corporation. (1990). \textit{Intel 8086 Family User's Manual}. Intel Corporation.
+  
+  \item Mazidi, M. A., \& Mazidi, J. (2018). \textit{The 80x86 Microprocessor and Assembly Language Programming} (2nd ed.). Pearson.
+  
+  \item Irvine, K. R. (2019). \textit{Assembly Language for x86 Processors} (8th ed.). Pearson.
+  
+  \item Abel, P. (2015). \textit{IBM PC Assembly Language and Programming} (5th ed.). Pearson.
+  
+  \item Borland International. (1992). \textit{Turbo Assembler User's Guide}. Borland International.
+  
+  \item Jones, W. (2020). \textit{GUI Turbo Assembler (TASM) Tutorial}. Retrieved from \url{https://github.com/ljnath/GUI-Turbo-Assembler}
+  
+  \item Brey, B. B. (2021). \textit{The Intel Microprocessors: Architecture, Programming, and Interfacing} (9th ed.). Pearson.
+  
+  \item Norton, P., \& Socha, J. (2018). \textit{Peter Norton's Assembly Language Book for the IBM PC}. Brady/Simon \& Schuster.
+  
+  \item ETSU. (2024). \textit{CSCI 2150 -- Turbo Assembler Laboratory}. Retrieved from \url{https://faculty.etsu.edu/TARNOFF/labs2150/tasm/tasm.htm}
+  
+  \item GitHub Repository. (2024). \textit{8086 Assembly Language Programs}. Retrieved from \url{https://github.com/Amey-Thakur/8086-ASSEMBLY-LANGUAGE-PROGRAMS}
+\end{enumerate}
+
+\textbf{Online Resources:}
+\begin{itemize}[leftmargin=*]
+  \item GUI Turbo Assembler Documentation: \url{https://sourceforge.net/projects/guitasm8086/}
+  \item 8086 Assembly Tutorial: \url{https://yassinebridi.github.io/asm-docs/}
+  \item DOSBox for TASM Environment: \url{https://www.dosbox.com/}
+\end{itemize}
+
+\vspace{1cm}
+
+\begin{flushright}
+\begin{tabular}{c}
+Disusun oleh,\\[2cm]
+\textbf{Dr. [Nama Dosen], M.Kom.}\\
+NIP. [NIP Dosen]
+\end{tabular}
+\end{flushright}
+
+\end{document}

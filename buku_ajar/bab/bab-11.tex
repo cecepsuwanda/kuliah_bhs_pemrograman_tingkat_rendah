@@ -1,0 +1,319 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{10}}{}
+\begin{document}
+
+\chapter{Asesmen Komprehensif dan Evaluasi}
+
+\begin{subcpmk}
+  \item Sub-CPMK 9.1: Mendemonstrasikan kemampuan programming assembly secara komprehensif
+  \item Sub-CPMK 9.2: Mengevaluasi performa dan kualitas kode assembly
+  \item Sub-CPMK 2.1: Menulis program assembly sederhana dengan TASM syntax
+\end{subcpmk}
+
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\input{bab-11/section-11-1}
+\input{bab-11/section-11-2}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}
+
+\subsection{Rubrik Penilaian}
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Kriteria} & \textbf{A (85-100)} & \textbf{B (70-84)} & \textbf{C (55-69)} & \textbf{D (0-54)} \\
+\hline
+\textbf{Koreksi Sintaks} & Tidak ada error & 1-2 error & 3-4 error & >4 error \\
+\hline
+\textbf{Logika Program} & Sempurna & Minor bug & Major bug & Tidak berjalan \\
+\hline
+\textbf{Struktur Kode} & Modular, rapi & Terstruktur & Kurang terstruktur & Berantakan \\
+\hline
+\textbf{Optimasi} & Sangat optimal & Optimal & Cukup optimal & Tidak optimal \\
+\hline
+\textbf{Dokumentasi} & Lengkap & Cukup & Minimal & Tidak ada \\
+\hline
+\textbf{Error Handling} & Komprehensif & Ada & Minimal & Tidak ada \\
+\hline
+\end{tabular}
+\caption{Rubrik Penilaian Program Assembly}
+\end{table}
+
+\section{Praktikum Guidelines}
+
+\subsection{Submission Requirements}
+\begin{itemize}
+  \item Source code (.asm) yang well-commented
+  \item Executable file (.exe) yang berjalan
+  \item Documentation file (.txt/.doc)
+  \item Screenshot hasil eksekusi
+  \item Test report dengan berbagai test case
+\end{itemize}
+
+\subsection{Evaluation Criteria}
+\begin{enumerate}
+  \item \textbf{Functionality (30\%)}: Program memenuhi semua spesifikasi
+  \item \textbf{Code Quality (25\%)}: Struktur, readability, maintainability
+  \item \textbf{Performance (20\%)}: Efisiensi dan optimasi
+  \item \textbf{Error Handling (15\%)}: Robustness dan recovery
+  \item \textbf{Documentation (10\%)}: Komentar dan manual
+\end{enumerate}
+
+\section{Project Guidelines}
+
+\subsection{Project Topics}
+\begin{itemize}
+  \item \textbf{System Utilities}: File manager, system monitor
+  \item \textbf{Games}: Puzzle, arcade, strategy games
+  \item \textbf{Applications}: Text editor, calculator, database
+  \item \textbf{Graphics}: Drawing programs, animations
+  \item \textbf{Network}: Simple communication protocols
+\end{itemize}
+
+\subsection{Project Milestones}
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|l|l|p{5cm}|}
+\hline
+\textbf{Minggu} & \textbf{Deliverable} & \textbf{Kriteria Sukses} \\
+\hline
+1-2 & Proposal & Topik disetujui, requirements jelas \\
+\hline
+3-4 & Design & Arsitektur modular, interface terdefinisi \\
+\hline
+5-8 & Implementation & Core functionality berjalan \\
+\hline
+9-10 & Testing & Unit dan integration test selesai \\
+\hline
+11-12 & Documentation & User manual dan technical docs lengkap \\
+\hline
+13-14 & Final Integration & Semua modul terintegrasi, demo siap \\
+\hline
+15-16 & Presentation & Demo dan laporan akhir \\
+\hline
+\end{tabular}
+\caption{Timeline Proyek Akhir}
+\end{table}
+
+\section{Exam Format}
+
+\subsection{Ujian Tengah Semester}
+\begin{itemize}
+  \item \textbf{Teori (40\%)}: Konsep arsitektur, instruksi, addressing
+  \item \textbf{Praktik (60\%)}: Debugging, kode completion, optimasi
+\end{itemize}
+
+\subsection{Ujian Akhir Semester}
+\begin{itemize}
+  \item \textbf{Written Exam (50\%)}:
+  \begin{itemize}
+    \item Essay questions (konsep dan teori)
+    \item Code analysis (membaca dan menjelaskan kode)
+    \item Problem solving (desain algoritma)
+  \end{itemize}
+  \item \textbf{Practical Exam (50\%)}:
+  \begin{itemize}
+    \item Coding on paper (menulis instruksi assembly)
+    \item Debugging session (menemukan error dalam kode)
+    \item Performance optimization
+  \end{itemize}
+\end{itemize}
+
+\section{Self-Assessment Tools}
+
+\subsection{Checklist Kompetensi}
+\begin{itemize}
+  \item \textbf{Basic Skills}: Register usage, instruksi dasar, addressing modes
+  \item \textbf{Intermediate Skills}: Prosedur, stack, interrupts, file I/O
+  \item \textbf{Advanced Skills}: Optimasi, debugging, modular design
+  \item \textbf{Expert Skills}: Project development, system integration
+\end{itemize}
+
+\subsection{Portfolio Development}
+\begin{itemize}
+  \item Kumpulkan semua praktikum dan proyek
+  \item Dokumentasikan learning progress
+  \item Sertakan reflection untuk setiap milestone
+  \item Buat showcase dari best works
+\end{itemize}
+
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Peer Review}: Review praktikum teman dengan rubrik yang diberikan.
+  
+  \item \textbf{Self Assessment}: Evaluasi kemampuan pribadi dengan competency checklist.
+  
+  \item \textbf{Project Planning}: Buat detailed plan untuk proyek akhir dengan milestones.
+  
+  \item \textbf{Mock Exam}: Simulasi ujian dengan soal-soal latihan.
+  
+  \item \textbf{Code Review Session}: Presentasi kode untuk feedback dari teman dan dosen.
+  
+  \item \textbf{Portfolio Building}: Organisasi dan dokumentasi semua karya terbaik.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Buat self-assessment berdasarkan rubrik penilaian untuk:
+  \begin{itemize}
+    \item Program kalkulator yang sudah dibuat
+    \item Proyek text editor
+    \item Library fungsi matematika
+  \end{itemize}
+  
+  \item Rancang study plan untuk ujian tengah semester dengan:
+  \begin{itemize}
+    \item Topik-topik yang perlu dikuasai
+    \item Waktu alokasi per topik
+    \item Practice exercises untuk setiap topik
+  \end{itemize}
+  
+  \item Buat project proposal untuk proyek akhir dengan:
+  \begin{itemize}
+    \item Problem statement
+    \item Technical requirements
+    \item Implementation plan
+    \item Success criteria
+  \end{itemize}
+  
+  \item Simulasi practical exam dengan:
+  \begin{itemize}
+    \item Debug 3 program dengan error berbeda
+    \item Optimasi 2 algoritma sorting
+    \item Implementasi 1 fungsi kompleks dalam waktu terbatas
+  \end{itemize}
+  
+  \item Buat portfolio showcase dengan:
+  \begin{itemize}
+    \item 3 best programs dari praktikum
+    \item 1 proyek terbaik
+    \item Documentation lengkap
+    \item Reflection untuk setiap karya
+  \end{itemize}
+  
+  \item \textbf{Refleksi}: Bagaimana Anda mengukur progress belajar assembly programming? Apa indikator sukses yang paling penting?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 9.1, 9.2, 2.1}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Komponen terbesar dalam penilaian praktikum adalah:
+  \begin{enumerate}
+    \item Functionality
+    \item Code quality
+    \item Performance
+    \item Documentation
+  \end{enumerate}
+  
+  \item Durasi proyek akhir adalah:
+  \begin{enumerate}
+    \item 4 minggu
+    \item 8 minggu
+    \item 12 minggu
+    \item 16 minggu
+  \end{enumerate}
+  
+  \item Bobot ujian akhir praktik adalah:
+  \begin{enumerate}
+    \item 25\%
+    \item 50\%
+    \item 75\%
+    \item 100\%
+  \end{enumerate}
+  
+  \item Tools untuk self-assessment meliputi:
+  \begin{enumerate}
+    \item Checklist kompetensi
+    \item Portfolio
+    \item Peer review
+    \item Semua benar
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan pentingnya asesmen komprehensif dalam pembelajaran assembly programming!
+  
+  \item Bagaimana rubrik penilaian membantu meningkatkan kualitas kode mahasiswa?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Buat assessment portfolio:
+  \begin{itemize}
+    \item Pilih 3 program terbaik dari semester ini
+    \item Evaluasi masing-masing dengan rubrik lengkap
+    \item Tulis improvement plan untuk setiap program
+    \item Buat reflection tentang learning journey
+    \item Present portfolio dengan demo dan explanation
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat memahami kriteria penilaian untuk assembly programming
+  \item Saya dapat melakukan self-assessment dengan objektif
+  \item Saya dapat memberikan konstruktif feedback pada kode teman
+  \item Saya dapat merencanakan proyek dengan milestones yang jelas
+  \item Saya dapat mempersiapkan diri untuk ujian teori dan praktik
+  \item Saya dapat membangun portfolio yang showcase kemampuan
+  \item Saya dapat mengidentifikasi area untuk improvement
+  \item Saya dapat mendemonstrasikan kompetensi assembly secara komprehensif
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas sistem asesmen komprehensif untuk mata kuliah assembly programming, termasuk praktikum, proyek, dan ujian.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Asesmen mencakup praktikum, proyek, dan ujian teori/praktik
+  \item Rubrik penilaian memberikan evaluasi yang objektif dan transparan
+  \item Praktikum fokus pada implementasi konsep mingguan
+  \item Proyek akhir menguji kemampuan integrasi dan design
+  \item Ujian mengukur pemahaman teori dan kemampuan praktik
+  \item Self-assessment tools membantu mahasiswa mengukur progress
+  \item Portfolio development untuk showcase kemampuan terbaik
+  \item Peer review dan feedback untuk continuous improvement
+\end{itemize}
+
+\textbf{Kata Kunci}: \textbf{\texttt{Asesmen}}, \textbf{\texttt{Evaluasi}}, \textbf{\texttt{Rubrik}}, \textbf{\texttt{Praktikum}}, \textbf{\texttt{Proyek}}, \textbf{\texttt{Ujian}}, \textbf{\texttt{Self-Assessment}}, \textbf{\texttt{Portfolio}}, \textbf{\texttt{Competency Checklist}}, \textbf{\texttt{TASM}}
+\end{rangkuman}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

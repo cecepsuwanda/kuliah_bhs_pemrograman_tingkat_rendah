@@ -1,0 +1,146 @@
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Instruction Analysis}: Pilih 10 instruksi assembly berbeda. Analisis format, operand, dan flag yang terpengaruh.
+  
+  \item \textbf{Addressing Mode Practice}: Buat program yang mendemonstrasikan 7 mode addressing berbeda dengan operasi yang sama.
+  
+  \item \textbf{Directif Assembler}: Gunakan DB, DW, DD untuk mendefinisikan data. Bandingkan ukuran dan penggunaan memori.
+  
+  \item \textbf{Instruction Timing}: Ukur waktu eksekusi berbagai instruksi menggunakan TASM profiler.
+  
+  \item \textbf{Code Optimization}: Tulis program yang sama dengan 3 pendekatan addressing berbeda. Bandingkan efisiensi.
+  
+  \item \textbf{Debug Session}: Gunakan TASM debugger untuk trace eksekusi instruksi per instruksi.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Jelaskan perbedaan antara mode addressing immediate dan direct! Berikan contoh penggunaan masing-masing.
+  
+  \item Kapan sebaiknya menggunakan register indirect vs based indexed addressing?
+  
+  \item Buat program yang:
+  \begin{itemize}
+    \item Mendefinisikan array bilangan dengan DW
+    \item Mengakses elemen array dengan berbagai mode addressing
+    \item Menghitung jumlah semua elemen
+    \item Menyimpan hasil di memori dengan DD
+  \end{itemize}
+  
+  \item Analisis instruksi MOV AX, [BX+SI+2]. Identifikasi mode addressing dan langkah akses memori.
+  
+  \item Buat tabel perbandingan semua mode addressing (sintaks, kecepatan, fleksibilitas, use case).
+  
+  \item Implementasikan program string search yang menggunakan berbagai addressing mode.
+  
+  \item \textbf{Refleksi}: Mode addressing mana yang paling sulit dipahami dan mengapa? Bagaimana Anda mengatasi kesulitan tersebut?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 1.2, 2.1, 2.2}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Mode addressing yang menggunakan nilai konstan dalam instruksi adalah:
+  \begin{enumerate}
+    \item Immediate
+    \item Direct
+    \item Register
+    \item Indirect
+  \end{enumerate}
+  
+  \item Instruksi untuk mendefinisikan word (16-bit) data adalah:
+  \begin{enumerate}
+    \item DB
+    \item DW
+    \item DD
+    \item EQU
+  \end{enumerate}
+  
+  \item Register yang tidak dapat digunakan sebagai base address adalah:
+  \begin{enumerate}
+    \item BX
+    \item BP
+    \item SI
+    \item DI
+  \end{enumerate}
+  
+  \item Instruksi yang tidak mempengaruhi flag register adalah:
+  \begin{enumerate}
+    \item ADD
+    \item SUB
+    \item MOV
+    \item AND
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan kelebihan dan kekurangan setiap mode addressing! Berikan contoh kasus penggunaan optimal.
+  
+  \item Mengapa instruksi LEA berbeda dengan MOV dalam hal pengalamatan?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Buat program array processing:
+  \begin{itemize}
+    \item Definisikan array 10 bilangan dengan DW
+    \item Hitung rata-rata, minimum, maksimum
+    \item Gunakan minimal 4 mode addressing berbeda
+    \item Tampilkan hasil dengan interupsi DOS
+    \item Dokumentasikan setiap addressing mode yang digunakan
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat mengidentifikasi 7 mode addressing berbeda
+  \item Saya dapat memilih mode addressing yang tepat untuk kasus tertentu
+  \item Saya dapat menggunakan direktif assembler (DB, DW, DD, EQU, ORG)
+  \item Saya dapat menganalisis instruksi assembly dan operand-nya
+  \item Saya dapat mengoptimasi kode dengan pemilihan addressing mode
+  \item Saya dapat menulis program assembly dengan sintaks TASM yang benar
+  \item Saya dapat menggunakan TASM debugger untuk trace instruksi
+  \item Saya memahami hubungan antara instruksi dan flag register
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas set instruksi Intel 8086 dan mode addressing, termasuk instruksi data transfer, aritmatika, logika, serta berbagai cara mengakses data dalam memori.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Set instruksi 8086 meliputi data transfer, aritmatika, logika, dan kontrol
+  \item Mode addressing menentukan cara instruksi mengakses operand
+  \item Immediate addressing paling cepat, based indexed paling fleksibel
+  \item Direktif assembler mendefinisikan data dan konstanta program
+  \item Pemilihan addressing mode mempengaruhi ukuran kode dan kecepatan
+  \item TASM menyediakan tools untuk analisis dan optimasi instruksi
+  \item Pemahaman instruksi dan addressing fundamental untuk pemrograman assembly
+\end{itemize}
+
+\textbf{Kata Kunci}: \textbf{\texttt{Instruksi}}, \textbf{\texttt{Addressing Mode}}, \textbf{\texttt{MOV}}, \textbf{\texttt{ADD}}, \textbf{\texttt{SUB}}, \textbf{\texttt{AND}}, \textbf{\texttt{OR}}, \textbf{\texttt{DB}}, \textbf{\texttt{DW}}, \textbf{\texttt{DD}}, \textbf{\texttt{TASM}}, \textbf{\texttt{Opcode}}
+\end{rangkuman}

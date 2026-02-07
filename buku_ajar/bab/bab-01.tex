@@ -1,0 +1,34 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{0}}{}
+\begin{document}
+
+\chapter{Pendahuluan Pemrograman Assembly Intel 8086}
+
+\input{bab-01/section-1-1}
+\input{bab-01/section-1-2}
+\input{bab-01/section-1-3}
+\input{bab-01/section-1-4}
+\input{bab-01/section-1-5}
+
+% ============================================================
+% Rangkuman Bab
+% ============================================================
+\begin{rangkuman}
+Bab ini memperkenalkan tujuan buku ajar, keterkaitan dengan RPS berbasis OBE, petunjuk penggunaan, dan konteks kurikulum OBE untuk mata kuliah Pemrograman Bahasa Tingkat Rendah. Pemahaman yang baik tentang struktur dan pendekatan buku ini akan membantu Anda memaksimalkan pembelajaran assembly language Intel 8086 dengan Turbo Assembler.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Buku ini dirancang dengan pendekatan OBE yang fokus pada pencapaian kompetensi terukur dalam pemrograman tingkat rendah
+  \item Setiap bab dipetakan ke Sub-CPMK yang berkontribusi pada CPL pemrograman sistem
+  \item Gunakan komponen OBE (Sub-CPMK, aktivitas, latihan, asesmen, checklist) secara optimal
+  \item Pembelajaran assembly tersusun sistematis dari arsitektur komputer hingga aplikasi praktik
+  \item Fokus praktik 70\% dengan GUI Turbo Assembler (TASM) untuk pengalaman hands-on
+\end{itemize}
+\end{rangkuman}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

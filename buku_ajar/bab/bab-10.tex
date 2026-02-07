@@ -1,0 +1,369 @@
+\documentclass[../main.tex]{subfiles}
+\ifSubfilesClassLoaded{\setcounter{chapter}{9}}{}
+\begin{document}
+
+\chapter{Pengembangan Proyek Assembly}
+
+\begin{subcpmk}
+  \item Sub-CPMK 8.1: Merancang proyek assembly yang kompleks
+  \item Sub-CPMK 8.2: Mengimplementasikan integrasi modul dan library
+  \item Sub-CPMK 2.1: Menulis program assembly sederhana dengan TASM syntax
+\end{subcpmk}
+
+% ============================================================
+% MATERI POKOK
+% ============================================================
+\input{bab-10/section-10-1}
+\input{bab-10/section-10-2}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}
+
+\subsection{Desain Arsitektur}
+\begin{itemize}
+  \item Breakdown menjadi modul-modul independen
+  \item Definisikan interface antar modul
+  \item Rancang struktur data yang efisien
+  \item Pertimbangkan optimasi awal
+\end{itemize}
+
+\section{Struktur Proyek}
+
+\subsection{Modular Programming}
+\begin{verbatim}
+; Main program structure
+.MODEL SMALL
+.STACK 100h
+.DATA
+; Global variables
+.CODE
+MAIN PROC
+    ; Initialize
+    CALL init_modules
+    
+    ; Main loop
+main_loop:
+    CALL process_input
+    CALL update_display
+    JMP main_loop
+    
+    ; Cleanup
+    CALL cleanup_modules
+    MOV AH, 4Ch
+    INT 21h
+MAIN ENDP
+
+; Module implementations
+include "input.asm"
+include "display.asm"
+include "utils.asm"
+END MAIN
+\end{verbatim}
+
+\subsection{Library Development}
+\begin{verbatim}
+; Library file: mathlib.asm
+PUBLIC add_numbers, multiply_numbers
+.MODEL SMALL
+.CODE
+
+add_numbers PROC
+    ; Add two numbers
+    ; Input: AX = num1, BX = num2
+    ; Output: AX = result
+    ADD AX, BX
+    RET
+add_numbers ENDP
+
+multiply_numbers PROC
+    ; Multiply two numbers
+    ; Input: AX = num1, BX = num2
+    ; Output: DX:AX = result
+    MUL BX
+    RET
+multiply_numbers ENDP
+END
+\end{verbatim}
+
+\section{Development Best Practices}
+
+\subsection{Code Organization}
+\begin{itemize}
+  \item Gunakan meaningful labels dan variable names
+  \item Tambahkan komentar untuk logika kompleks
+  \item Pisahkan data, code, dan stack segments
+  \item Gunakan consistent indentation
+\end{itemize}
+
+\subsection{Error Handling}
+\begin{verbatim}
+; Error handling framework
+ERROR_NO_MEMORY     EQU 1
+ERROR_FILE_NOT_FOUND EQU 2
+ERROR_INVALID_INPUT EQU 3
+
+handle_error PROC
+    ; Input: AX = error code
+    CMP AX, 0
+    JE no_error
+    
+    ; Display error message
+    MOV BX, AX
+    SHL BX, 1        ; Multiply by 2 for word table
+    MOV SI, offset error_table
+    ADD SI, BX
+    MOV DX, [SI]
+    MOV AH, 09h
+    INT 21h
+    
+    MOV AH, 4Ch
+    INT 21h
+    
+no_error:
+    RET
+handle_error ENDP
+
+error_table DW offset msg_no_memory
+              DW offset msg_file_not_found
+              DW offset msg_invalid_input
+\end{verbatim}
+
+\section{Testing Strategies}
+
+\subsection{Unit Testing}
+\begin{verbatim}
+; Test framework for math functions
+test_add PROC
+    ; Test case 1: 5 + 3 = 8
+    MOV AX, 5
+    MOV BX, 3
+    CALL add_numbers
+    CMP AX, 8
+    JNE test_failed
+    
+    ; Test case 2: 0 + 0 = 0
+    MOV AX, 0
+    MOV BX, 0
+    CALL add_numbers
+    CMP AX, 0
+    JNE test_failed
+    
+    MOV AH, 09h
+    MOV DX, offset test_passed_msg
+    INT 21h
+    RET
+    
+test_failed:
+    MOV AH, 09h
+    MOV DX, offset test_failed_msg
+    INT 21h
+    RET
+test_add ENDP
+\end{verbatim}
+
+\subsection{Integration Testing}
+\begin{itemize}
+  \item Test interface antar modul
+  \item Verifikasi data flow
+  \item Test error propagation
+  \item Validasi resource management
+\end{itemize}
+
+\section{Documentation}
+
+\subsection{Code Documentation}
+\begin{itemize}
+  \item Fungsi description dan parameters
+  \item Register usage conventions
+  \item Memory layout documentation
+  \item Algorithm explanation
+\end{itemize}
+
+\subsection{User Manual}
+\begin{itemize}
+  \item Installation instructions
+  \item Usage examples
+  \item Troubleshooting guide
+  \item Technical specifications
+\end{itemize}
+
+% ============================================================
+% AKTIVITAS PEMBELAJARAN
+% ============================================================
+
+\begin{aktivitas}
+  \item \textbf{Project Planning}: Rancang proyek kalkulator scientific dengan modul-modul terpisah.
+  
+  \item \textbf{Library Development}: Buat library untuk operasi string dan matematika.
+  
+  \item \textbf{Integration Exercise}: Gabungkan beberapa modul menjadi aplikasi lengkap.
+  
+  \item \textbf{Code Review}: Review dan refactor proyek teman dengan best practices.
+  
+  \item \textbf{Testing Implementation}: Implementasikan unit test untuk fungsi-fungsi kompleks.
+  
+  \item \textbf{Documentation Practice}: Tulis dokumentasi lengkap untuk proyek assembly.
+\end{aktivitas}
+
+% ============================================================
+% LATIHAN DAN REFLEKSI
+% ============================================================
+
+\begin{latihan}
+  \item Rancang arsitektur untuk proyek text editor dengan fitur:
+  \begin{itemize}
+    \item File operations (open, save, close)
+    \item Text editing (insert, delete, replace)
+    \item Search functionality
+    \item Menu interface
+  \end{itemize}
+  
+  \item Implementasikan library untuk:
+  \begin{itemize}
+    \item String manipulation (length, copy, compare, concatenate)
+    \item Array operations (sort, search, min/max)
+    \item Input validation
+  \end{itemize}
+  
+  \item Buat proyek database sederhana dengan:
+  \begin{itemize}
+    \item Record management
+    \item Search functionality
+    \item Data persistence
+    \item Error handling
+  \end{itemize}
+  
+  \item Develop game sederhana (snake atau puzzle) dengan:
+  \begin{itemize}
+    \item Graphics display
+    \item Keyboard input
+    \item Game logic
+    \item Score tracking
+  \end{itemize}
+  
+  \item Implementasikan system monitor dengan:
+  \begin{itemize}
+    \item Memory usage display
+    \item Process information
+    \item System statistics
+    \item Real-time updates
+  \end{itemize}
+  
+  \item \textbf{Refleksi}: Tantangan terbesar dalam mengembangkan proyek assembly? Bagaimana Anda mengatasi kompleksitas?
+\end{latihan}
+
+% ============================================================
+% ASESMEN
+% ============================================================
+
+\begin{asesmen}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 8.1, 8.2, 2.1}
+
+\textbf{A. Pilihan Ganda}
+
+\begin{enumerate}
+  \item Direktif untuk membuat library yang dapat digunakan oleh program lain adalah:
+  \begin{enumerate}
+    \item PUBLIC
+    \item EXTRN
+    \item GLOBAL
+    \item EXTERNAL
+  \end{enumerate}
+  
+  \item Untuk mengorganisasi proyek besar, pendekatan terbaik adalah:
+  \begin{enumerate}
+    \item Monolithic programming
+    \item Modular programming
+    \item Sequential programming
+    \item Linear programming
+  \end{enumerate}
+  
+  \item Error handling yang baik harus:
+  \begin{enumerate}
+    \item Mengabaikan semua error
+    \item Exit program immediately
+    \item Log dan recover gracefully
+    \item Display technical details
+  \end{enumerate}
+  
+  \item Testing untuk memvalidasi interface antar modul disebut:
+  \begin{enumerate}
+    \item Unit testing
+    \item Integration testing
+    \item System testing
+    \item Acceptance testing
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{B. Essay}
+
+\begin{enumerate}
+  \item Jelaskan pentingnya modular programming dalam pengembangan proyek assembly!
+  
+  \item Mengapa documentation penting dalam assembly programming?
+\end{enumerate}
+
+\textbf{C. Practical Challenge}
+
+\begin{enumerate}
+  \item Kembangkan proyek lengkap:
+  \begin{itemize}
+    \item Pilih salah satu: text editor, game, atau database system
+    \item Implementasikan dengan modular approach
+    \item Gunakan library untuk fungsi reusable
+    \item Include comprehensive error handling
+    \item Tulis dokumentasi lengkap
+    \item Present dengan demo dan technical explanation
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Rubrik Penilaian}: Lihat Lampiran A
+\end{asesmen}
+
+% ============================================================
+% CHECKLIST KOMPETENSI
+% ============================================================
+
+\begin{checklist}
+  \item Saya dapat merancang arsitektur proyek assembly yang kompleks
+  \item Saya dapat mengimplementasikan modular programming
+  \item Saya dapat mengembangkan library yang reusable
+  \item Saya dapat mengimplementasikan error handling yang robust
+  \item Saya dapat melakukan unit dan integration testing
+  \item Saya dapat menulis dokumentasi teknis yang lengkap
+  \item Saya dapat mengelola dependensi antar modul
+  \item Saya dapat mengoptimasi proyek untuk performa
+\end{checklist}
+
+% ============================================================
+% RANGKUMAN
+% ============================================================
+
+\begin{rangkuman}
+Bab ini membahas pengembangan proyek assembly yang kompleks, termasuk perencanaan, modular design, testing, dan documentation.
+
+\textbf{Poin Kunci:}
+\begin{itemize}
+  \item Perencanaan proyek essential untuk keberhasilan implementasi
+  \item Modular programming memungkinkan pengembangan yang terstruktur
+  \item Library development meningkatkan code reusability
+  \item Error handling critical untuk robust applications
+  \item Testing memastikan kualitas dan reliability
+  \item Documentation penting untuk maintainability
+  \item Best practices meningkatkan code quality
+  \item Integration testing validasi kesesuaian antar modul
+\end{itemize}
+
+\textbf{Kata Kunci}: \textbf{\texttt{Project Development}}, \textbf{\texttt{Modular Programming}}, \textbf{\texttt{Library}}, \textbf{\texttt{Error Handling}}, \textbf{\texttt{Testing}}, \textbf{\texttt{Documentation}}, \textbf{\texttt{Integration}}, \textbf{\texttt{TASM}}, \textbf{\texttt{Best Practices}}
+\end{rangkuman}
+
+\ifSubfilesClassLoaded{
+  \renewcommand{\bibname}{Daftar Pustaka}
+  \bibliographystyle{plain}
+  \bibliography{../references}
+}{}
+\end{document}

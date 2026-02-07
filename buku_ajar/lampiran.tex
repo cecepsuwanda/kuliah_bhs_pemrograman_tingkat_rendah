@@ -1,0 +1,67 @@
+\chapter*{Lampiran}
+\addcontentsline{toc}{chapter}{Lampiran}
+
+% ============================================================
+% Lampiran A: Rubrik Penilaian
+% ============================================================
+\section*{Lampiran A: Rubrik Penilaian Tugas Praktik}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{3.5cm}|>{\raggedright\arraybackslash}p{3.5cm}|>{\raggedright\arraybackslash}p{3.5cm}|}
+\hline
+\textbf{Kriteria} & \textbf{Sangat Baik} & \textbf{Baik} & \textbf{Perlu Perbaikan} \\
+\hline
+Correctness & Program berfungsi sempurna sesuai spesifikasi & Berfungsi dengan minor bug & Banyak bug atau tidak berjalan \\
+\hline
+Modularity & Prosedur terstruktur, code reuse optimal & Struktur prosedur cukup baik & Struktur kurang modular \\
+\hline
+Documentation & Komentar lengkap, struktur jelas & Dokumentasi adequate & Minimal atau tidak ada dokumentasi \\
+\hline
+Optimization & Penggunaan register efisien, strength reduction & Optimasi diterapkan & Tanpa optimasi \\
+\hline
+Testing & Pengujian lengkap dengan TASM debugger & Pengujian sebagian & Tidak ada pengujian \\
+\hline
+\end{tabular}
+\caption{Rubrik Penilaian Tugas Praktik}
+\end{table}
+
+% ============================================================
+% Lampiran B: Contoh Template Laporan
+% ============================================================
+\section*{Lampiran B: Contoh Template Laporan Tugas}
+\begin{enumerate}
+  \item Judul dan Identitas Mahasiswa
+  \item Deskripsi Masalah
+  \item Struktur Program dan Flowchart/Algoritma
+  \item Implementasi (cuplikan kode assembly penting)
+  \item Hasil Pengujian dengan TASM
+  \item Refleksi dan Kesimpulan
+\end{enumerate}
+
+% ============================================================
+% Lampiran C: Glosarium
+% ============================================================
+\section*{Lampiran C: Glosarium Istilah Assembly}
+\begin{itemize}
+  \item \textbf{Register}: Penyimpan sementara dalam CPU untuk operasi data
+  \item \textbf{Segment}: Blok memori 64KB dalam model segmentasi Intel 8086
+  \item \textbf{Mnemonic}: Kode instruksi yang mudah dibaca (mis. MOV, ADD)
+  \item \textbf{Directive}: Instruksi untuk assembler (mis. DB, DW, SEGMENT)
+  \item \textbf{Stack Frame}: Area stack yang digunakan prosedur untuk parameter dan variabel lokal
+  \item \textbf{Interrupt}: Sinyal yang menghentikan eksekusi untuk layanan sistem
+  \item \textbf{Addressing Mode}: Cara menentukan operan dalam instruksi
+  \item \textbf{Label}: Penanda alamat dalam kode untuk jump dan referensi
+\end{itemize}
+
+% ============================================================
+% Lampiran D: Referensi Tambahan
+% ============================================================
+\section*{Lampiran D: Referensi Tambahan}
+\begin{itemize}
+  \item Intel 8086 Family User's Manual: \url{https://edge.edx.org/c4x/BITSPilani/EEE231/asset/8086_family_Users_Manual_1_.pdf}
+  \item TASM (Turbo Assembler) Documentation
+  \item Assembly Language Tutorial: \url{https://yassinebridi.github.io/asm-docs/}
+  \item x86 Assembly Guide: \url{https://www.cs.virginia.edu/~evans/cs216/guides/x86.html}
+\end{itemize}
