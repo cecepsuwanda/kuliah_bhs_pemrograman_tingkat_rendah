@@ -96,6 +96,38 @@ Asesmen ini dirancang untuk mengukur pencapaian semua Sub-CPMK dalam assembly pr
     \item DD
     \item EQU
   \end{enumerate}
+  
+  \item Hasil konversi \(214_{10}\) ke biner adalah:
+  \begin{enumerate}
+    \item \(11010110_2\)
+    \item \(10101010_2\)
+    \item \(11001100_2\)
+    \item \(10110010_2\)
+  \end{enumerate}
+  
+  \item Perbedaan EQU dan variabel (\asm{DW}) yang benar adalah:
+  \begin{enumerate}
+    \item EQU tidak mengalokasi memori; variabel mengalokasi memori
+    \item EQU dan variabel sama saja
+    \item Variabel tidak mengalokasi memori
+    \item EQU hanya untuk string
+  \end{enumerate}
+  
+  \item Komponen yang diintegrasikan dalam GUI Turbo Assembler (GTASM) meliputi:
+  \begin{enumerate}
+    \item TASM, TLINK, Turbo Debugger, DOSBox
+    \item Hanya TASM
+    \item Visual Studio
+    \item GCC dan GDB
+  \end{enumerate}
+  
+  \item Format buffer INT 21h AH=0Ah: byte 0 menyimpan:
+  \begin{enumerate}
+    \item Max length
+    \item Actual length (diisi DOS)
+    \item Karakter pertama
+    \item Terminator CR
+  \end{enumerate}
 \end{enumerate}
 
 \subsection{Bagian B: Essay (Sub-CPMK 2.1-2.2, 4.1-4.2)}
@@ -112,6 +144,10 @@ Asesmen ini dirancang untuk mengukur pencapaian semua Sub-CPMK dalam assembly pr
   \item Jelaskan keuntungan modular programming dalam pengembangan aplikasi assembly!
   
   \item Jelaskan pentingnya optimasi dalam assembly programming dan berikan contoh teknik optimasi yang umum digunakan!
+  
+  \item Jelaskan tahapan project development lifecycle untuk assembly programming! Apa yang dianalisis di tahap Requirements dan Design?
+  
+  \item Jelaskan format buffer untuk INT 21h AH=0Ah (input string)! Apa fungsi byte 0, byte 1, dan byte 2+?
 \end{enumerate}
 
 \subsection{Bagian C: Analisis Kode (Sub-CPMK 3.1-3.2, 4.1)}
@@ -208,6 +244,7 @@ END start
   \item Gunakan interupsi untuk input/output
   \item Implementasikan error handling dasar
   \item Dokumentasikan kode dengan komentar yang jelas
+  \item Jelaskan singkat penerapan tahapan project development (Requirements, Design, Implementation, Testing, Optimization, Documentation) pada proyek yang dikerjakan
 \end{enumerate}
 
 \textbf{Evaluasi Criteria:}

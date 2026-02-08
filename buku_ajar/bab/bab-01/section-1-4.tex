@@ -1,71 +1,93 @@
-\section{Arsitektur Intel 8086}
+\section{Pengenalan Bahasa Rakitan dan Bahasa Tingkat Rendah}
 
-\subsection{Overview Processor Intel 8086}
+\subsection{Latar Belakang dan Konteks Historis}
 
-Intel 8086 adalah 16-bit processor yang menjadi standar industri untuk komputer personal. Processor ini diperkenalkan pada tahun 1978 dan menjadi fondasi untuk arsitektur x86 modern.
+Bahasa rakitan (assembly language) merupakan salah satu bahasa pemrograman tertua yang masih digunakan hingga saat ini \cite{wiki_assembly_language}. Konsep assembly language pertama kali dikembangkan pada tahun 1940-an sebagai respons terhadap kompleksitas pemrograman dalam bahasa mesin murni. Sebelum adanya assembly language, programmer harus menulis program menggunakan kode biner (0 dan 1) yang sangat sulit dibaca dan rentan terhadap kesalahan.
 
-\textbf{Fitur Utama Intel 8086:}
+Perkembangan assembly language dimulai dengan munculnya komputer-komputer pertama seperti ENIAC dan UNIVAC \cite{wiki_8086}. Pada masa itu, programmer menggunakan machine code yang terdiri dari angka-angka biner yang mewakili instruksi dasar komputer. Assembly language kemudian dikembangkan sebagai solusi dengan menyediakan mnemonik (singkatan yang mudah diingat) untuk menggantikan kode biner tersebut \cite{hyde2010art}.
+
+\subsection{Definisi dan Karakteristik Bahasa Rakitan}
+
+Assembly language adalah bahasa pemrograman berlevel rendah yang menyediakan antarmuka langsung terhadap instruksi mesin (machine instructions) dari sebuah \textit{Instruction Set Architecture} (ISA) \cite{computer_organization_design}. Assembly language merupakan representasi mnemonik dari instruksi mesin. Setiap mnemonik (misal, \texttt{MOV}, \texttt{ADD}, \texttt{JMP}) biasanya berkorelasi dekat dengan \textit{opcode} biner yang dieksekusi CPU. Kode assembly dirakit (\textit{assembled}) oleh \textit{assembler} (misal: TASM, MASM, NASM) menjadi \textit{object code} atau berkas executable \cite{tutorials_point_assembly}.
+
+Dalam konteks pembelajaran ini, kita akan fokus pada keluarga x86, khususnya Intel 8086 dan penerusnya \cite{intel2019manual32}.
+
+\subsection{Perbandingan dengan Bahasa Tingkat Tinggi}
+
+\begin{table}[H]
+\centering
+\caption{Perbandingan Assembly dan Bahasa Tingkat Tinggi}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\textwidth}{!}{%
+\scriptsize
+\begin{tabular}{|p{1.8cm}|p{3.2cm}|p{3.2cm}|}
+\hline
+\textbf{Aspek} & \textbf{Assembly} & \textbf{Bahasa Tingkat Tinggi} \\
+\hline
+Abstraksi & Rendah; dekat hardware & Tinggi; jauh dari hardware \\
+Portabilitas & Rendah (spesifik ISA) & Lebih tinggi (kompiler/VM) \\
+Produktivitas & Rendah & Tinggi \\
+Kinerja puncak & Sangat tinggi (diopt.) & Baik (optimasi auto) \\
+Pemeliharaan & Sulit & Lebih mudah \\
+Manajemen Memori & Manual & Otomatis \\
+Pustaka & Minim & Kaya \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\subsection{Keunggulan dan Kelemahan}
+
+\textbf{Keunggulan:}
 \begin{itemize}
-  \item \textbf{16-bit Architecture}: 16-bit data bus dan 20-bit address bus
-  \item \textbf{Register Set}: 8 general-purpose registers 16-bit
-  \item \textbf{Instruction Set}: Komprehensif untuk operasi data dan kontrol
-  \item \textbf{Addressing Modes}: Fleksibel untuk akses memori
-  \item \textbf{Segmentation}: Memori management dengan segment registers
+  \item Kontrol penuh terhadap perangkat keras—akses langsung ke register, flag, dan layout memori
+  \item Optimasi mikroskopik untuk kinerja dan ukuran kode
+  \item Pemahaman mendalam atas runtime dan calling convention
+  \item Kinerja dan jejak memori optimal untuk aplikasi embedded dan komponen runtime-critical
 \end{itemize}
 
-\subsection{Register Architecture}
-
-Intel 8086 memiliki 8 general-purpose registers:
-\begin{verbatim}
-General Purpose Registers (16-bit):
-AX  - Accumulator (arithmetic, I/O)
-BX  - Base Register (memory addressing)
-CX  - Count Register (loops, strings)
-DX  - Data Register (arithmetic, I/O)
-
-Special Purpose Registers:
-SP  - Stack Pointer
-BP  - Base Pointer
-SI  - Source Index
-DI  - Destination Index
-
-Segment Registers:
-CS  - Code Segment
-DS  - Data Segment
-SS  - Stack Segment
-ES  - Extra Segment
-\end{verbatim}
-
-\subsection{Memory Organization}
-
-Intel 8086 menggunakan segmented memory architecture:
+\textbf{Kelemahan:}
 \begin{itemize}
-  \item \textbf{Physical Address}: 20-bit (1MB addressable memory)
-  \item \textbf{Logical Address}: Segment:Offset (16:16 bit)
-  \item \textbf{Segmentation}: 4 segment registers untuk 64KB segments
-  \item \textbf{Address Calculation}: Physical = Segment × 16 + Offset
+  \item Pengembangan lambat dan rentan kesalahan
+  \item Sulit dipelihara dan kurang portabel (spesifik arsitektur x86/ARM)
+  \item Minim dukungan pustaka
+  \item Kurangnya abstraksi tingkat tinggi: tidak ada struktur kontrol kompleks, garbage collector, atau tipe data kompleks secara bawaan
 \end{itemize}
 
-\begin{verbatim}
-; Address calculation example
-MOV AX, 1234h    ; Load value into AX
-MOV DS, AX       ; Set DS = 1234h
-MOV SI, 56h      ; Set SI = 56h
-; Physical address = 1234h × 16 + 56h = 12340h + 56h = 12396h
-\end{verbatim}
+\subsection{Aplikasi Bahasa Rakitan}
 
-\subsection{Flag Register}
+Assembly language masih digunakan dalam berbagai bidang khusus \cite{wiki_assembly_language}:
 
-Flag register menyimpan status operasi:
-\begin{verbatim}
-Flag Register (16-bit):
-CF - Carry Flag (carry/borrow)
-PF - Parity Flag (even parity)
-AF - Auxiliary Flag (BCD adjust)
-ZF - Zero Flag (result = 0)
-SF - Sign Flag (negative result)
-TF - Trap Flag (debug)
-IF - Interrupt Flag (interrupt enable)
-DF - Direction Flag (string direction)
-OF - Overflow Flag (signed overflow)
-\end{verbatim}
+\begin{itemize}
+  \item \textbf{Embedded systems}: Firmware mikrokontroler, device driver, interrupt service routine
+  \item \textbf{Bootloader dan BIOS/UEFI}: Kode awal yang dijalankan sebelum sistem operasi
+  \item \textbf{Driver dan kernel}: Bagian kernel yang sensitif terhadap kinerja
+  \item \textbf{Keamanan siber}: Analisis malware, exploit development, reverse engineering
+  \item \textbf{Optimasi hotspot}: Bagian kecil dari aplikasi yang memerlukan latensi minimal
+  \item \textbf{Pengembangan compiler}: Komponen runtime yang sensitif terhadap kinerja
+\end{itemize}
+
+\subsection{Contoh Program Assembly Sederhana}
+
+Berikut contoh program assembly 8086 untuk mencetak karakter \cite{susanto1995belajar}:
+
+\begin{lstlisting}[style=assemblystyle, caption={Program Assembly Sederhana - Output Karakter (A0.asm)}]
+;   PROGRAM : A0.ASM
+;   FUNGSI  : MENCETAK KARAKTER 'A' DENGAN INT 21h
+.MODEL SMALL
+.CODE
+ORG 100h
+Proses:
+    MOV  AH, 02h   ; Nilai servis untuk mencetak karakter
+    MOV  DL, 'A'   ; DL = Karakter ASCII yang akan dicetak
+    INT  21h       ; Cetak karakter
+END Proses
+\end{lstlisting}
+
+Program ini menunjukkan:
+\begin{itemize}
+  \item Penggunaan direktif \asm{.MODEL SMALL} untuk model memori kecil
+  \item Penggunaan direktif \asm{ORG 100h} untuk menentukan starting address
+  \item Instruksi \asm{MOV} untuk memindahkan data ke register
+  \item Penggunaan interrupt \asm{INT 21h} dengan servis \asm{AH=02h} untuk output karakter
+\end{itemize}

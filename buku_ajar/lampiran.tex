@@ -8,7 +8,6 @@
 
 \begin{table}[htbp]
 \centering
-\small
 \begin{tabular}{|>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{3.5cm}|>{\raggedright\arraybackslash}p{3.5cm}|>{\raggedright\arraybackslash}p{3.5cm}|}
 \hline
 \textbf{Kriteria} & \textbf{Sangat Baik} & \textbf{Baik} & \textbf{Perlu Perbaikan} \\
@@ -27,10 +26,61 @@ Testing & Pengujian lengkap dengan TASM debugger & Pengujian sebagian & Tidak ad
 \caption{Rubrik Penilaian Tugas Praktik}
 \end{table}
 
+\textbf{Pemetaan Kriteria Rubrik ke CPMK:}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3cm}|>{\raggedright\arraybackslash}p{4.5cm}|}
+\hline
+\textbf{Kriteria Rubrik} & \textbf{CPMK Terkait} \\
+\hline
+Correctness & CPMK-3: Implementasi program sesuai spesifikasi dan standar Intel 8086 \\
+\hline
+Modularity & CPMK-2: Merancang program assembly dengan struktur modular \\
+\hline
+Documentation & CPMK-2, CPMK-4: Dokumentasi mendukung desain dan evaluasi kode \\
+\hline
+Optimization & CPMK-4: Menganalisis dan mengoptimasi kode assembly \\
+\hline
+Testing & CPMK-3, CPMK-4: Pengujian memvalidasi implementasi dan kualitas \\
+\hline
+\end{tabular}
+\caption{Pemetaan Kriteria Rubrik ke CPMK}
+\end{table}
+
 % ============================================================
-% Lampiran B: Contoh Template Laporan
+% Lampiran B: Contoh Tugas, Portofolio, dan Rubrik Refleksi
 % ============================================================
-\section*{Lampiran B: Contoh Template Laporan Tugas}
+\section*{Lampiran B: Contoh Tugas, Portofolio, dan Rubrik Refleksi}
+
+\subsection*{B.1 Contoh Tugas Praktik Assembly}
+
+\textbf{Tugas}: Buat program assembly yang menerima input dua bilangan (1 digit masing-masing), menjumlahkannya, dan menampilkan hasil ke layar. Gunakan INT 21h untuk input/output.
+
+\textbf{Spesifikasi:}
+\begin{itemize}
+  \item Gunakan interrupt DOS (INT 21h) dengan fungsi 01h (input) dan 02h/09h (output)
+  \item Konversi ASCII ke nilai numerik sebelum operasi
+  \item Program berformat .COM (ORG 100h)
+  \item Cantumkan komentar pada setiap bagian kode
+\end{itemize}
+
+\textbf{Indikator Penilaian}: Correctness, Modularity, Documentation (lihat Lampiran A).
+
+\subsection*{B.2 Struktur Portofolio Mahasiswa}
+
+Portofolio mahasiswa untuk mata kuliah ini memuat kumpulan dokumen berikut:
+
+\begin{enumerate}
+  \item \textbf{Biodata dan Identitas}: Nama, NIM, kelas, foto
+  \item \textbf{Daftar Tugas}: Kumpulan laporan tugas praktik (Bab 2--13) dengan cuplikan kode dan hasil eksekusi
+  \item \textbf{Proyek Akhir}: Laporan proyek assembly yang mengintegrasikan konsep (direktif, prosedur, interupsi)
+  \item \textbf{Refleksi Pembelajaran}: Jurnal refleksi per bab atau per milestone: apa yang dipelajari, tantangan, dan rencana perbaikan
+  \item \textbf{Checklist Kompetensi}: Salinan checklist yang telah diisi untuk self-assessment
+\end{enumerate}
+
+\subsection*{B.3 Template Laporan Tugas}
+
 \begin{enumerate}
   \item Judul dan Identitas Mahasiswa
   \item Deskripsi Masalah
@@ -39,6 +89,26 @@ Testing & Pengujian lengkap dengan TASM debugger & Pengujian sebagian & Tidak ad
   \item Hasil Pengujian dengan TASM
   \item Refleksi dan Kesimpulan
 \end{enumerate}
+
+\subsection*{B.4 Rubrik Penilaian Refleksi}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|>{\raggedright\arraybackslash}p{2.8cm}|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{3.2cm}|}
+\hline
+\textbf{Kriteria} & \textbf{Sangat Baik} & \textbf{Baik} & \textbf{Perlu Perbaikan} \\
+\hline
+Kedalaman Analisis & Merefleksi konsep, kesalahan, dan insight dengan rinci & Refleksi memadai dengan contoh & Hanya ringkasan dangkal \\
+\hline
+Rencana Tindak Lanjut & Action plan jelas dan terukur & Ada rencana perbaikan & Tidak ada rencana konkret \\
+\hline
+Keterkaitan CPMK & Menghubungkan refleksi ke Sub-CPMK yang relevan & Sebagian terhubung ke kompetensi & Tidak mengacu kompetensi \\
+\hline
+Kejujuran dan Kritik Diri & Mengakui kelemahan dan strategi perbaikan & Cukup objektif & Mengabaikan area improvement \\
+\hline
+\end{tabular}
+\caption{Rubrik Penilaian Refleksi Pembelajaran}
+\end{table}
 
 % ============================================================
 % Lampiran C: Glosarium

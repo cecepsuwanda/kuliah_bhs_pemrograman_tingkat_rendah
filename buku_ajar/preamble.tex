@@ -14,11 +14,16 @@
 
 % --- Grafik dan Tabel ---
 \usepackage{graphicx}
+\usepackage{float}
+\graphicspath{{images/}{../images/}{../../images/}}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{multirow}
+\usepackage{etoolbox}
+\AtBeginEnvironment{table}{\small}
 \usepackage{xcolor}
+\usepackage{amsmath}
 \usepackage{amssymb}
 
 % --- TikZ untuk Diagram ---
@@ -69,6 +74,10 @@
 % --- Subfiles untuk Modular Structure ---
 \usepackage{subfiles}
 
+% --- Suppress Empty thebibliography warning (bab standalone tanpa citation) ---
+\usepackage{silence}
+\WarningFilter*{latex}{Empty}
+
 % --- Header dan Footer ---
 \usepackage{fancyhdr}
 \pagestyle{fancy}
@@ -116,7 +125,25 @@
   xrightmargin=5pt
 }
 
-     
+% Style untuk Assembly (x86masm) - untuk kode Assembly Intel 8086
+\lstdefinestyle{assemblystyle}{
+  language=[x86masm]Assembler,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{javapurple}\bfseries,
+  commentstyle=\color{javagreen},
+  numbers=left,
+  numberstyle=\tiny\color{codegray},
+  stepnumber=1,
+  numbersep=10pt,
+  backgroundcolor=\color{codebg},
+  showstringspaces=false,
+  frame=single,
+  tabsize=2,
+  captionpos=b,
+  breaklines=true,
+  breakatwhitespace=false
+}
+
 \renewcommand{\lstlistlistingname}{Daftar Kode Program}
 \renewcommand{\lstlistingname}{Kode Program}
 \lstset{style=javastyle}
@@ -270,3 +297,10 @@
 % Depth untuk table of contents
 \setcounter{tocdepth}{2}
 \setcounter{secnumdepth}{3}
+
+% --- Pengaturan typography untuk mengurangi bad box ---
+\sloppy
+\tolerance=2500
+\emergencystretch=2em
+\hbadness=2500
+\hfuzz=0.5pt

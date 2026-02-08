@@ -7,16 +7,66 @@
 
 \section{TASM Development Environment}
 
-Turbo Assembler (TASM) adalah development environment untuk pemrograman assembly Intel 8086.
+Turbo Assembler (TASM) adalah development environment untuk pemrograman assembly Intel 8086 \cite{borland1990tasm}. GUI Turbo Assembler (GTASM) mengintegrasikan TASM, TLINK, Turbo Debugger, dan DOSBox dalam satu IDE yang ramah pengguna untuk Windows modern \cite{jones2020}.
+
+\subsection{Instalasi GUI Turbo Assembler (GTASM)}
+
+GTASM cocok untuk pembelajaran assembly pada Windows 7, 8, 10, 11 (32-bit maupun 64-bit). Persyaratan: Microsoft .NET Framework 4.0 atau lebih tinggi, minimal 100 MB ruang penyimpanan.
+
+\textbf{Langkah instalasi:}
+\begin{enumerate}
+  \item Unduh dari \url{https://github.com/ljnath/GUI-Turbo-Assembler} atau Softpedia
+  \item Jalankan \texttt{GTASM\_Setup.exe}; jika ada peringatan keamanan, klik ``More info'' lalu ``Run anyway''
+  \item Ikuti wizard (Next $\rightarrow$ pilih direktori $\rightarrow$ Install)
+  \item Verifikasi: Buka GTASM, menu Help $\rightarrow$ About untuk memastikan TASM, TLINK, TD, DOSBox terinstal
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{gtasm_installer.png}
+\caption{Wizard instalasi GUI Turbo Assembler}
+\end{figure}
 
 \subsection{Komponen TASM}
 
 \begin{itemize}
-  \item \textbf{TASM.EXE}: Assembler utama untuk mengompilasi kode assembly
-  \item \textbf{TLINK.EXE}: Linker untuk menghubungkan objek files
-  \item \textbf{TD.EXE}: Debugger untuk debugging program assembly
-  \item \textbf{MAKE.EXE}: Build automation tool
+  \item \textbf{TASM.EXE}: Assembler utama—mengubah berkas \asm{.ASM} menjadi \asm{.OBJ} (object code). Mengecek sintaks dan menghasilkan kode mesin.
+  \item \textbf{TLINK.EXE}: Linker—menghubungkan satu atau lebih \asm{.OBJ} dan library menjadi berkas \asm{.EXE} atau \asm{.COM}. Menyelesaikan referensi eksternal dan relokasi.
+  \item \textbf{TD.EXE} (Turbo Debugger): Debugger untuk step-by-step eksekusi, breakpoint, pemeriksaan register dan memori.
+  \item \textbf{DOSBox}: Emulator lingkungan DOS untuk menjalankan program assembly pada Windows modern; sudah terintegrasi dalam GTASM.
 \end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{gtasm_interface.png}
+\caption{Antarmuka utama GUI Turbo Assembler}
+\end{figure}
+
+\subsection{Struktur Program .COM vs .EXE}
+
+\begin{table}[H]
+\centering
+\caption{Perbandingan .COM dan .EXE}
+\setlength{\tabcolsep}{3pt}
+\scriptsize
+\begin{tabular}{|p{1.8cm}|p{3.5cm}|p{3.5cm}|}
+\hline
+\textbf{Aspek} & \textbf{.COM} & \textbf{.EXE} \\
+\hline
+Header & Tanpa header & Ada header relocation \\
+\hline
+Ukuran max & $\sim$64 KB & Hingga beberapa MB \\
+\hline
+Segmen & CS=DS=ES=SS (umumnya sama) & Kode, data, stack terpisah \\
+\hline
+Entry point & ORG 100h (offset 0100h) & END label\_utama \\
+\hline
+Model & Cocok untuk program kecil & Cocok untuk program besar \\
+\hline
+\end{tabular}
+\end{table}
+
+Program \asm{.COM}: gunakan \asm{ORG 100h} dan pastikan semua dalam satu segmen. Program \asm{.EXE}: gunakan \asm{.MODEL SMALL}, \asm{.DATA}, \asm{.CODE}, \asm{ASSUME}, dan inisialisasi \asm{DS} dengan \asm{MOV AX, @data} / \asm{MOV DS, AX}.
 
 \subsection{Workflow Development}
 
@@ -25,19 +75,30 @@ Turbo Assembler (TASM) adalah development environment untuk pemrograman assembly
 $\downarrow$\\
 \textbf{DEVELOPMENT CYCLE}\\
 $\downarrow$\\
+{\small
 \begin{tabular}{ccc}
 Write Code & Compile & Debug
-\end{tabular}\\
+\end{tabular}
+}\\
 $\downarrow$\\
 \textbf{PRODUKSI}\\
 $\downarrow$\\
+{\small
 \begin{tabular}{ccc}
 Executable File & Testing & Deployment
-\end{tabular}\\
+\end{tabular}
+}\\
 \end{center}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{gtasm_build_process.png}
+\caption{Proses build dengan GTASM (F9)}
+\end{figure}
 
 \subsection{TASM Commands}
 
+\textbf{Command-line (jika tidak menggunakan GTASM):}
 \begin{verbatim}
 ; Compile assembly file
 TASM /zi program.asm
@@ -52,10 +113,10 @@ MAKE
 
 \textbf{Switch Options:}
 \begin{itemize}
-  \item \textbf{/zi}: Include debug information
+  \item \textbf{/zi}: Include debug information (untuk breakpoint dan step)
   \item \textbf{/v}: Include verbose output
   \item \textbf{/c}: Case-sensitive symbols
   \item \textbf{/n}: Generate listing file
 \end{itemize}
 
-\textbf{Kata Kunci}: \textbf{\texttt{Register}}, \textbf{\texttt{Addressing Mode}}, \textbf{\texttt{Segmentation}}, \textbf{\texttt{TASM}}, \textbf{\texttt{Debugger}}
+Dengan GTASM, cukup tekan F9 (Build) dan F10 (Run) untuk mengompilasi dan menjalankan program.

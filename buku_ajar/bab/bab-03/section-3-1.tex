@@ -4,7 +4,7 @@ Assembly language adalah bahasa pemrograman tingkat rendah yang paling dekat den
 
 \subsection{Struktur Program Assembly}
 
-Program assembly terdiri dari beberapa segmen utama:
+Program assembly terdiri dari beberapa segmen utama. Direktif \asm{.MODEL SMALL} (TASM/MASM) menentukan model memori: satu segmen kode ($\leq$64 KB), satu segmen data ($\leq$64 KB), satu segmen stack. Assembler kemudian mengatur \asm{ASSUME} dan ukuran segment secara otomatis.
 
 \begin{verbatim}
 ; Struktur dasar program assembly
@@ -27,6 +27,12 @@ STACK ENDS
 
 END
 \end{verbatim}
+
+\subsection{Program .COM vs .EXE}
+
+\textbf{.COM}: Format sederhana tanpa header, maksimal $\sim$64 KB. Semua segmen (CS, DS, ES, SS) umumnya sama. Entry point di offset \asm{0100h} (setelah PSP). Gunakan \asm{ORG 100h}. Cocok untuk program kecil.
+
+\textbf{.EXE}: Ada header, segmen terpisah untuk kode, data, stack. Gunakan \asm{.MODEL SMALL}, \asm{.DATA}, \asm{.CODE}, \asm{ASSUME}. Inisialisasi \asm{DS} wajib: \asm{MOV AX, @data} / \asm{MOV DS, AX}. Cocok untuk program besar dengan banyak variabel.
 
 \subsection{Assembler Directives}
 

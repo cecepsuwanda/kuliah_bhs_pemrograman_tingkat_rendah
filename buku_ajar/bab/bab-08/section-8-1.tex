@@ -18,21 +18,31 @@ INT interrupt_number    ; Trigger software interrupt
   \item \textbf{Exception}: Interupsi internal CPU (divide by zero, overflow)
 \end{itemize}
 
-\subsection{Interrupt Vector Table}
-Tabel alamat untuk handler interupsi di memori.
+\subsection{Interrupt Vector Table (IVT)}
+
+Interrupt Vector Table adalah tabel di memori yang menyimpan alamat handler untuk setiap interupsi \cite{rbil}. Saat software interrupt (\texttt{INT n}) dieksekusi, CPU mengambil alamat handler dari IVT dan memindahkan eksekusi ke handler tersebut.
 
 \begin{itemize}
-  \item Lokasi: 0000h:0000h - 0000:03FFh (1024 bytes)
-  \item 256 entry (0-255), setiap entry 4 bytes (segment:offset)
-  \item Entry 0-1Fh: BIOS interrupts
-  \item Entry 20h-3Fh: DOS interrupts
-  \item Entry 40h-FFh: User-defined interrupts
+  \item \textbf{Lokasi}: 0000h:0000h -- 0000h:03FFh (1024 bytes)
+  \item \textbf{Struktur}: 256 entry (0--255), setiap entry 4 bytes (segment:offset)
+  \item \textbf{Entry 00h--1Fh}: BIOS interrupts (timer, keyboard, disk, video)
+  \item \textbf{Entry 20h--3Fh}: DOS interrupts (INT 21h di entry 0x21)
+  \item \textbf{Entry 40h--FFh}: User-defined dan reserved
 \end{itemize}
+
+\textbf{Langkah eksekusi software interrupt:}
+\begin{enumerate}
+  \item Push flags, CS, IP ke stack
+  \item IF = 0 (disable maskable interrupt)
+  \item Baca alamat dari IVT[interrupt\_number * 4]
+  \item Jump ke handler (CS:IP)
+  \item Handler menjalankan IRET untuk return
+\end{enumerate}
 
 \section{BIOS Interrupts}
 
 \subsection{INT 10h - Video Services}
-Layanan untuk operasi video dan display.
+Layanan BIOS untuk operasi video dan display. Berguna untuk set mode teks/grafik, posisi kursor, cetak karakter dengan atribut. Skenario: program yang perlu mengontrol tampilan langsung (menu, game sederhana, utilitas sistem).
 
 \begin{verbatim}
 ; Set video mode
@@ -65,7 +75,7 @@ INT 10h           ; Call BIOS
 \end{itemize}
 
 \subsection{INT 13h - Disk Services}
-Layanan untuk operasi disk dan floppy.
+Layanan BIOS untuk operasi disk tingkat rendah (floppy, hard disk). Digunakan untuk bootloader, utilitas disk, atau akses sector langsung. Perhatian: akses low-level dapat merusak data jika salah parameter.
 
 \begin{verbatim}
 ; Reset disk system
@@ -85,7 +95,7 @@ INT 13h           ; Call BIOS
 \end{verbatim}
 
 \subsection{INT 16h - Keyboard Services}
-Layanan untuk input keyboard.
+Layanan BIOS untuk input keyboard. \asm{AH=00h} menunggu tombol ditekan (blocking); \asm{AH=01h} mengecek status tanpa menunggu (non-blocking). Berguna untuk game, menu interaktif, atau utilitas yang memerlukan scan code.
 
 \begin{verbatim}
 ; Get keystroke
@@ -105,6 +115,8 @@ INT 16h           ; Call BIOS
 Layanan sistem operasi DOS untuk file I/O, program control, dan lainnya.
 
 \subsubsection{Character I/O}
+Fungsi I/O karakter paling sering digunakan. \textbf{AH=02h}: cetak karakter di DL. \textbf{AH=01h}: input karakter (echo ke layar), return di AL. \textbf{AH=09h}: cetak string; DX=offset, string harus diakhiri \texttt{\$}. \textbf{AH=0Ah}: input string; buffer format: byte 0 = max length, byte 1 = actual length (diisi DOS), byte 2+ = karakter. Return: CF=0 sukses; CF=1 error, AX=kode error.
+
 \begin{verbatim}
 ; Display character
 MOV AH, 02h       ; Function: display character
@@ -116,32 +128,34 @@ MOV AH, 01h       ; Function: input character
 INT 21h           ; Call DOS
 ; AL = character input
 
-; Display string
+; Display string (terminator $)
 MOV AH, 09h       ; Function: display string
 MOV DX, string_addr ; String address (terminated by $)
 INT 21h           ; Call DOS
 
-; Input string
+; Input string - buffer: [max][actual][chars...]
 MOV AH, 0Ah       ; Function: input string
 MOV DX, buffer    ; Buffer address
 INT 21h           ; Call DOS
 \end{verbatim}
 
 \subsubsection{File Operations}
+Fungsi file menggunakan \textit{handle}: create/open mengembalikan handle di AX (CF=0 sukses); handle tersebut dipakai untuk read/write/close. \textbf{3Ch}: create, CX=atribut (0=normal). \textbf{3Dh}: open, AL=0 read, 1 write, 2 read/write. \textbf{3Fh}: read, BX=handle, CX=bytes, return AX=bytes read. \textbf{3Eh}: close. Selalu cek CF setelah pemanggilan untuk error handling.
+
 \begin{verbatim}
 ; Create file
 MOV AH, 3Ch       ; Function: create file
-MOV CX, 00h       ; Attributes
-MOV DX, filename  ; Filename address
+MOV CX, 00h       ; Attributes (0=normal)
+MOV DX, filename  ; Filename address (DS:DX)
 INT 21h           ; Call DOS
-; AX = file handle
+; CF=0: AX = file handle; CF=1: error
 
 ; Open file
 MOV AH, 3Dh       ; Function: open file
-MOV AL, 00h       ; Access mode (read)
+MOV AL, 00h       ; Access: 0=read, 1=write, 2=read/write
 MOV DX, filename  ; Filename address
 INT 21h           ; Call DOS
-; AX = file handle
+; CF=0: AX = file handle
 
 ; Read file
 MOV AH, 3Fh       ; Function: read file
@@ -149,7 +163,7 @@ MOV BX, handle    ; File handle
 MOV CX, bytes     ; Number of bytes
 MOV DX, buffer    ; Buffer address
 INT 21h           ; Call DOS
-; AX = bytes read
+; AX = bytes read (0 jika EOF)
 
 ; Close file
 MOV AH, 3Eh       ; Function: close file

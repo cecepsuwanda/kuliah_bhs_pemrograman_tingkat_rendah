@@ -54,12 +54,25 @@ JMP label_name     ; Jump ke label_name
 
 \subsection{Flag Register}
 
-Flag register menyimpan status hasil operasi:
+Flag register (FLAGS) menyimpan status hasil operasi dan sangat penting untuk percabangan (conditional jump) \cite{intel_8086_user_manual}:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{8086_flags_register.png}
+\caption{Flag Register Intel 8086}
+\end{figure}
+
+\textbf{Flag Status Penting:}
 \begin{itemize}
-  \item \textbf{CF (Carry Flag)}: Set jika ada carry/borrow
-  \item \textbf{ZF (Zero Flag)}: Set jika hasil = 0
-  \item \textbf{SF (Sign Flag)}: Set jika hasil negatif
-  \item \textbf{OF (Overflow Flag)}: Set jika signed overflow
-  \item \textbf{PF (Parity Flag)}: Set jika parity even
-  \item \textbf{AF (Auxiliary Flag)}: Set untuk BCD adjust
+  \item \textbf{CF (Carry Flag)}: Set jika ada carry out atau borrow; digunakan untuk unsigned comparison
+  \item \textbf{ZF (Zero Flag)}: Set jika hasil operasi = 0; digunakan untuk JZ, JNZ
+  \item \textbf{SF (Sign Flag)}: Set jika hasil negatif (MSB = 1); untuk signed comparison
+  \item \textbf{OF (Overflow Flag)}: Set jika signed overflow; untuk JO, JNO
+  \item \textbf{PF (Parity Flag)}: Set jika jumlah bit 1 genap (even parity)
+  \item \textbf{AF (Auxiliary Flag)}: Set untuk carry/borrow di nibble rendah; BCD adjust
+  \item \textbf{DF (Direction Flag)}: 0 = increment (SI/DI naik), 1 = decrement untuk string ops
+  \item \textbf{IF (Interrupt Flag)}: 0 = disable maskable interrupt, 1 = enable
+  \item \textbf{TF (Trap Flag)}: Single-step mode untuk debugging
 \end{itemize}
+
+\textbf{Implikasi pada Arsitektur}: Operasi aritmatika (ADD, SUB, MUL, DIV) dan logika (AND, OR, XOR) memengaruhi flag. Instruksi CMP mengubah flag tanpa menyimpan hasil. Conditional jump (JE, JNE, JL, JG, dll.) memeriksa flag untuk mengambil keputusan percabangan.

@@ -4,17 +4,21 @@
 \section{Project Development Lifecycle}
 
 \subsection{Konsep Project Development}
-Project development dalam assembly programming memerlukan pendekatan sistematis untuk menghasilkan program yang efisien dan maintainable.
+Project development dalam assembly programming memerlukan pendekatan sistematis untuk menghasilkan program yang efisien dan maintainable. Berbeda dengan bahasa tingkat tinggi, assembly menuntut perhatian khusus pada alokasi register, ukuran memori, dan interupsi yang digunakan.
 
 \textbf{Tahapan project development:}
-\begin{itemize}
-  \item \textbf{Requirements Analysis}: Memahami kebutuhan dan constraints
-  \item \textbf{Design}: Merancang arsitektur dan algoritma
-  \item \textbf{Implementation}: Menulis kode assembly
-  \item \textbf{Testing}: Debugging dan validasi
-  \item \textbf{Optimization}: Meningkatkan performa
-  \item \textbf{Documentation}: Menulis dokumentasi
-\end{itemize}
+
+\textbf{Requirements Analysis}: Pahami kebutuhan fungsional (input/output, format file, interupsi DOS/BIOS) dan constraints (ukuran program .COM 64KB, limit register, ketersediaan interupsi). Tentukan apakah program memerlukan file I/O, grafik, atau hanya teks.
+
+\textbf{Design}: Rancang arsitektur modul (prosedur untuk I/O, matematika, utilitas) dan algoritma dengan mempertimbangkan register usage (AX untuk akumulator, CX untuk loop) dan struktur data (array, buffer dengan DUP). Pilih model memori (.COM vs .EXE) dan strategi parameter passing.
+
+\textbf{Implementation}: Tulis kode assembly dengan sintaks TASM. Gunakan direktif \asm{INCLUDE} untuk modul, \asm{PUBLIC}/\asm{EXTERN} untuk linking. Pastikan inisialisasi DS dan organisasi segment benar.
+
+\textbf{Testing}: Gunakan Turbo Debugger untuk step-by-step eksekusi, breakpoint, dan inspeksi register/memori. Validasi dengan input batas (empty, overflow) dan edge case. Cek flag (CF, ZF) setelah operasi kritis.
+
+\textbf{Optimization}: Terapkan strength reduction (MUL oleh konstanta $\rightarrow$ SHL+ADD), loop unrolling, dan register optimization. Ukur sebelum/sesudah dengan instruction count atau timing.
+
+\textbf{Documentation}: Dokumentasikan prosedur (input/output register, side effect), struktur data, dan konstanta. Komentar di setiap prosedur menjelaskan tujuan dan parameter.
 
 \subsection{Project Planning}
 Perencanaan yang baik adalah kunci keberhasilan project assembly.

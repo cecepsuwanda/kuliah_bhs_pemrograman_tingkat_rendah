@@ -5,6 +5,8 @@
 \chapter{Arsitektur Komputer dan Konsep Assembly}
 
 \begin{subcpmk}
+  \item Melakukan konversi antar sistem bilangan (desimal, biner, heksadesimal)
+  \item Menjelaskan representasi data (Two's complement, Endianness)
   \item Sub-CPMK 1.1: Menjelaskan fungsi register AX, BX, CX, DX, SI, DI, BP, SP dalam prosesor 8086
   \item Sub-CPMK 1.2: Mengidentifikasi mode addressing (immediate, direct, indirect, indexed)
   \item Sub-CPMK 1.3: Mendemonstrasikan organisasi memori segmentasi (CS, DS, ES, SS)
@@ -13,6 +15,8 @@
 % ============================================================
 % MATERI POKOK
 % ============================================================
+\input{bab-02/section-2-0-peta-konsep}
+\input{bab-02/section-2-bilangan}
 \input{bab-02/section-2-1}
 \input{bab-02/section-2-2}
 \input{bab-02/section-2-3}
@@ -24,6 +28,8 @@
 % ============================================================
 
 \begin{aktivitas}
+  \item \textbf{Konversi dan Representasi}: Lakukan konversi 5 bilangan desimal ke biner dan heksadesimal. Verifikasi dengan TASM debugger untuk nilai di register.
+  
   \item \textbf{Eksplorasi Register}: Gunakan TASM debugger untuk mengamati nilai register AX, BX, CX, DX saat program dieksekusi. Dokumentasikan perubahan nilai setiap instruksi.
   
   \item \textbf{Mode Addressing}: Buat program assembly yang mendemonstrasikan 5 mode addressing berbeda (immediate, direct, register, indirect, indexed). Bandingkan efisiensi masing-masing.
@@ -40,6 +46,10 @@
 % ============================================================
 
 \begin{latihan}
+  \item Konversikan \(85_{10}\) ke biner dan heksadesimal. Jelaskan langkah konversinya.
+  
+  \item Jelaskan representasi Two's complement untuk \(-10\) dalam 8-bit dan mengapa Little-Endian penting saat debugging alamat memori di 8086!
+  
   \item Jelaskan perbedaan antara register general purpose (AX, BX, CX, DX) dan register index (SI, DI)! Berikan contoh penggunaan masing-masing.
   
   \item Apa fungsi dari segment register (CS, DS, ES, SS) dalam organisasi memori 8086? Jelaskan dengan contoh alamat fisik.
@@ -62,17 +72,49 @@
 % ============================================================
 
 \begin{asesmen}
-\textbf{Instrumen Penilaian untuk Sub-CPMK 1.1, 1.2, 1.3}
+\textbf{Instrumen Penilaian untuk Sub-CPMK 1.1, 1.2, 1.3 dan Sistem Bilangan}
 
 \textbf{A. Pilihan Ganda}
 
 \begin{enumerate}
+  \item Hasil konversi \(214_{10}\) ke biner adalah:
+  \begin{enumerate}
+    \item \(10101010_2\)
+    \item \(11010110_2\)
+    \item \(11001100_2\)
+    \item \(10110010_2\)
+  \end{enumerate}
+  
+  \item Hasil konversi \(255_{10}\) ke heksadesimal adalah:
+  \begin{enumerate}
+    \item F5h
+    \item FFh
+    \item FEh
+    \item 0Fh
+  \end{enumerate}
+  
   \item Register yang digunakan sebagai counter dalam operasi loop adalah:
   \begin{enumerate}
     \item AX
     \item BX
     \item CX
     \item DX
+  \end{enumerate}
+  
+  \item Pada Intel 8086, word \(0x1234\) disimpan di memori dengan little-endian sebagai:
+  \begin{enumerate}
+    \item Alamat rendah: 0x12, alamat tinggi: 0x34
+    \item Alamat rendah: 0x34, alamat tinggi: 0x12
+    \item Hanya 0x1234 di satu alamat
+    \item 0x12 dan 0x34 di alamat terpisah acak
+  \end{enumerate}
+  
+  \item Two's complement untuk \(-5\) dalam 8-bit adalah:
+  \begin{enumerate}
+    \item \(11111011_{2}\)
+    \item \(00000101_{2}\)
+    \item \(11111010_{2}\)
+    \item \(10000101_{2}\)
   \end{enumerate}
   
   \item Mode addressing yang menggunakan nilai konstan langsung dalam instruksi adalah:
@@ -98,19 +140,47 @@
     \item IP
     \item SI
   \end{enumerate}
+  
+  \item Komponen yang diintegrasikan dalam GUI Turbo Assembler (GTASM) untuk menjalankan program assembly di Windows modern adalah:
+  \begin{enumerate}
+    \item TASM, TLINK, TD, DOSBox
+    \item Hanya TASM dan TLINK
+    \item Visual Studio dan MASM
+    \item GCC dan GDB
+  \end{enumerate}
+  
+  \item Perbedaan program .COM dan .EXE yang benar adalah:
+  \begin{enumerate}
+    \item .COM maksimal $\sim$64 KB, entry point ORG 100h; .EXE memiliki header dan segmen terpisah
+    \item .COM dan .EXE identik
+    \item .EXE lebih kecil dari .COM
+    \item .COM memerlukan header relocation
+  \end{enumerate}
 \end{enumerate}
 
 \textbf{B. Essay}
 
 \begin{enumerate}
+  \item Jelaskan metode konversi desimal ke biner dengan pembagian berulang! Berikan contoh singkat untuk \(42_{10}\).
+  
+  \item Jelaskan mengapa pemahaman Two's complement dan Endianness penting dalam debugging program assembly!
+  
   \item Jelaskan perbedaan antara register AX dan AL! Berikan contoh instruksi yang menggunakan masing-masing register.
   
   \item Bandingkan mode addressing direct dan indirect dalam hal kecepatan akses dan fleksibilitas!
+  
+  \item Jelaskan langkah CPU saat mengeksekusi instruksi \asm{MOV AX, [BX+SI+2]}! (Asumsikan BX=1000h, SI=0010h, DS=2000h).
+  
+  \item Kapan sebaiknya menggunakan mode addressing immediate vs based indexed? Berikan contoh use case!
 \end{enumerate}
 
 \textbf{C. Practical Challenge}
 
 \begin{enumerate}
+  \item Lakukan operasi penjumlahan biner: \(1011_2 + 1101_2\). Tunjukkan langkah carry dan hasilnya dalam biner dan desimal.
+  
+  \item Konversikan \(11010110_2\) ke desimal dan ke heksadesimal. Tunjukkan perhitungannya.
+  
   \item Buat program assembly yang:
   \begin{itemize}
     \item Menggunakan register AX untuk menyimpan nilai 1234h
@@ -118,6 +188,8 @@
     \item Menyimpan nilai ke memori dengan mode addressing direct
     \item Menampilkan nilai tersebut ke layar menggunakan interupsi DOS
   \end{itemize}
+  
+  \item Verifikasi instalasi GTASM: buka menu Help $\rightarrow$ About, pastikan TASM, TLINK, TD, dan DOSBox terinstal. Dokumentasikan dengan screenshot.
   
   \item Dokumentasikan setiap langkah dengan screenshot dari TASM debugger.
 \end{enumerate}
@@ -130,6 +202,11 @@
 % ============================================================
 
 \begin{checklist}
+  \item Saya dapat melakukan konversi desimal ke biner dan heksadesimal
+  \item Saya dapat melakukan konversi biner ke desimal dan heksadesimal
+  \item Saya dapat melakukan operasi penjumlahan dan pengurangan biner
+  \item Saya dapat menjelaskan Two's complement dan representasi bilangan negatif
+  \item Saya dapat menjelaskan Endianness (little-endian) pada 8086
   \item Saya dapat menjelaskan fungsi register AX, BX, CX, DX dalam prosesor 8086
   \item Saya dapat membedakan register index (SI, DI) dan register pointer (BP, SP)
   \item Saya dapat mengidentifikasi 5 mode addressing berbeda
@@ -145,10 +222,12 @@
 % ============================================================
 
 \begin{rangkuman}
-Bab ini membahas landasan teori arsitektur komputer dan konsep assembly language, termasuk struktur prosesor Intel 8086, organisasi register, mode addressing, dan manajemen memori segmentasi.
+Bab ini membahas landasan teori arsitektur komputer dan konsep assembly language, termasuk sistem bilangan, representasi data, struktur prosesor Intel 8086, organisasi register, mode addressing, dan manajemen memori segmentasi.
 
 \textbf{Poin Kunci:}
 \begin{itemize}
+  \item Sistem bilangan: biner, heksadesimal, konversi antar basis, operasi aritmatika biner
+  \item Representasi data: bit, byte, word, Two's complement, Endianness, rentang nilai
   \item Intel 8086 memiliki register general purpose (AX, BX, CX, DX) dan register khusus (SI, DI, BP, SP)
   \item Mode addressing menentukan cara instruksi mengakses data (immediate, direct, indirect, indexed)
   \item Memori segmentasi menggunakan segment register (CS, DS, ES, SS) dan offset
@@ -157,7 +236,7 @@ Bab ini membahas landasan teori arsitektur komputer dan konsep assembly language
   \item Pemahaman arsitektur adalah fondasi untuk pemrograman tingkat rendah
 \end{itemize}
 
-\textbf{Kata Kunci}: \asm{Register}, \asm{Addressing Mode}, \asm{Segmentasi}, \asm{Intel 8086}, \asm{TASM}, \asm{Assembly Language}, \asm{ALU}, \asm{Memori}
+\textbf{Kata Kunci}: \asm{Register}, \asm{Addressing Mode}, \asm{Segmentasi}, \asm{Intel 8086}, \asm{TASM}, \asm{Assembly Language}, \asm{ALU}, \asm{Memori}, \asm{Biner}, \asm{Heksadesimal}, \asm{Two's Complement}, \asm{Endianness}
 \end{rangkuman}
 
 \ifSubfilesClassLoaded{

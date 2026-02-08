@@ -22,6 +22,7 @@ for %%F in (bab-*.tex) do (
     
     pdflatex -interaction=nonstopmode -halt-on-error "%%F"
     if !errorlevel! equ 0 (
+        set "BIBINPUTS=..;%BIBINPUTS%"
         bibtex "!FILE_NAME!"
         pdflatex -interaction=nonstopmode -halt-on-error "%%F"
         pdflatex -interaction=nonstopmode -halt-on-error "%%F"

@@ -29,6 +29,24 @@ JG  greater       ; Jump jika AX > BX (signed)
 JAE above_equal   ; Jump jika AX >= BX (unsigned)
 \end{verbatim}
 
+\textbf{Contoh dari JMPL.ASM} -- Loop dengan CMP dan JE hingga bertemu karakter \texttt{*}:
+\begin{lstlisting}[style=assemblystyle, caption={Loop dengan kondisi (CMP, JE)}]
+.DATA
+  Kal DB 'Lucky Luck menembak ',13,10
+      DB 'Lebih cepat dari bayangannya !! ',7,7,'*'
+.CODE
+    XOR BX, BX           ; BX = 0 (index)
+    MOV AH, 02h          ; Servis cetak karakter
+Ulang:
+    CMP Kal[BX], '*'     ; Bandingkan dengan '*'
+    JE Exit              ; Jika sama, keluar
+    MOV DL, Kal[BX]      ; Karakter ke DL
+    INT 21h              ; Cetak
+    INC BX               ; BX++
+    JMP Ulang            ; Ulangi
+Exit:
+\end{lstlisting}
+
 \subsection{IF-THEN-ELSE Structure}
 Implementasi struktur kondisional dengan jumps.
 
@@ -72,9 +90,24 @@ loop_start:
 LOOP loop_start    ; CX--, jump jika CX != 0
 \end{verbatim}
 
+\textbf{Contoh dari BRA1.ASM} -- Loop dengan instruksi LOOP:
+\begin{lstlisting}[style=assemblystyle, caption={Loop dengan LOOP instruction}]
+.DATA
+  Kalimat DB 'DIBELAKANG TANDA $ TIDAK BISA DICETAK'
+.CODE
+    XOR BX, BX           ; BX = 0 (index)
+    MOV CX, 25h          ; CX = 37 (counter)
+Ulang:
+    MOV DL, Kalimat[BX]  ; Ambil karakter
+    MOV AH, 02h          ; Servis cetak
+    INT 21h              ; Cetak karakter
+    INC BX               ; BX++
+    LOOP Ulang           ; CX--, jump ke Ulang jika CX != 0
+\end{lstlisting}
+
 \textbf{Variasi LOOP:}
 \begin{itemize}
-  \item \textbf{LOOP}: Loop tanpa kondisi
+  \item \textbf{LOOP}: Loop tanpa kondisi (CX--, jump jika CX $\neq$ 0)
   \item \textbf{LOOPE}: Loop jika ZF = 1
   \item \textbf{LOOPNE}: Loop jika ZF = 0
   \item \textbf{LOOPC}: Loop jika CF = 1

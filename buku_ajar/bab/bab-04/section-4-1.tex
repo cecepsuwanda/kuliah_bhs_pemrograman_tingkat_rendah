@@ -1,6 +1,53 @@
 % ============================================================
 % MATERI POKOK
 % ============================================================
+\section{Direktif Tipe Data (DB, DW, DD, EQU)}
+
+Dalam assembly Intel 8086, tidak ada tipe data otomatis. Setiap variabel harus dideklarasikan dengan ukuran eksplisit menggunakan direktif assembler \cite{assembly_language_programming_guide}.
+
+\begin{table}[H]
+\centering
+\caption{Korespondensi Ukuran Data dan Register}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Ukuran} & \textbf{Bit} & \textbf{Register} \\
+\hline
+Byte & 8 & AL, BL, CL, DL, AH, BH, CH, DH \\
+Word & 16 & AX, BX, CX, DX, SI, DI, SP, BP \\
+Double Word & 32 & DX:AX (kombinasi) \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Direktif Data Definition:}
+\begin{itemize}
+  \item \asm{DB} (Define Byte): 8-bit, rentang 0--255 (unsigned) atau $-128$--127 (signed)
+  \item \asm{DW} (Define Word): 16-bit, rentang 0--65535 atau $-32768$--32767
+  \item \asm{DD} (Define Double Word): 32-bit
+  \item \asm{EQU}: Mendefinisikan konstanta (tidak mengalokasikan memori)
+  \item \asm{ORG}: Menentukan alamat awal (origin) kode
+\end{itemize}
+
+\begin{lstlisting}[style=assemblystyle, caption={Contoh Deklarasi Data (dari TAMBAH.ASM)}]
+.MODEL SMALL
+.DATA
+    bil1  DW 0
+    bil2  DW 0
+    hsl1  DW 0
+.CODE
+ORG 100h
+Proses:
+    MOV AX, @data
+    MOV DS, AX
+    MOV bil1, 2000d
+    MOV bil2, 100d
+    MOV AX, bil1
+    ADD AX, bil2
+    MOV hsl1, AX
+    ; ... (output dan exit)
+END Proses
+\end{lstlisting}
+
 \section{Instruksi Data Transfer}
 Instruksi untuk memindahkan data antar register dan memori:
 \begin{itemize}

@@ -1,67 +1,80 @@
 \section{Tipe Data dan Direktif}
 
+Dalam assembly Intel 8086, tidak ada tipe data otomatis seperti di bahasa tingkat tinggi \cite{assembly_language_programming_guide}. Setiap variabel harus dideklarasikan dengan ukuran eksplisit—ini penting untuk memastikan operasi instruksi (MOV, ADD, dll.) menggunakan ukuran operand yang benar dan menghindari error assembler.
+
 \subsection{Tipe Data Dasar}
 
-Intel 8086 mendukung berbagai tipe data untuk operasi yang berbeda:
+Intel 8086 mendukung tipe data berikut dengan rentang nilai dan use case:
 
 \textbf{Integer Types:}
 \begin{itemize}
-  \item \textbf{Byte}: 8-bit unsigned (0-255)
-  \item \textbf{Word}: 16-bit unsigned (0-65535)
-  \item \textbf{Double Word}: 32-bit (0-4294967295)
+  \item \textbf{Byte} (8-bit): Rentang 0--255 (unsigned) atau $-128$--127 (signed). Use case: karakter ASCII, nilai kecil, mask bit, buffer I/O.
+  \item \textbf{Word} (16-bit): Rentang 0--65535 (unsigned) atau $-32768$--32767 (signed). Use case: counter loop, indeks array, nilai integer menengah, operasi aritmatika standar 8086.
+  \item \textbf{Double Word} (32-bit): Rentang 0--4294967295. Use case: hasil MUL/DIV 32-bit (DX:AX), pointer segment:offset, timestamp.
 \end{itemize}
 
 \textbf{String Types:}
 \begin{itemize}
-  \item \textbf{ASCII String}: Array of bytes terminated dengan null (0)
-  \item \textbf{Pascal String}: String dengan length prefix
+  \item \textbf{ASCII String}: Array of bytes diakhiri null (0). Cocok untuk \asm{INT 21h} fungsi 09h (string harus diakhiri \texttt{\$}) atau fungsi string C-style.
+  \item \textbf{Pascal String}: Byte pertama = panjang, diikuti karakter. Berguna untuk operasi yang membutuhkan panjang eksplisit.
 \end{itemize}
 
 \subsection{Data Definition Directives}
 
+Direktif \asm{DB}, \asm{DW}, \asm{DD} mengalokasikan memori; \asm{EQU} tidak mengalokasikan—hanya substitusi teks pada saat assemble.
+
 \begin{verbatim}
 ; Integer data definition
-byte_var   DB  10h      ; 8-bit value
-word_var   DW  1234h     ; 16-bit value
-dword_var  DD  12345678h ; 32-bit value
+byte_var   DB  10h      ; 8-bit value (1 byte)
+word_var   DW  1234h    ; 16-bit value (2 bytes)
+dword_var  DD  12345678h ; 32-bit value (4 bytes)
 
-; String definition
+; String definition - null-terminated
 str_hello  DB 'Hello World', 0
-str_name   DB 'John Doe', 0
-str_age   DB 25, 0
+str_dos    DB 'Pesan$'   ; Untuk INT 21h AH=09h (terminator $)
 
-; Array definition
-numbers   DW 10, 20, 30, 40, 50
-matrix    DW 1, 2, 3, 4
-buffer    DB 256 DUP(0)  ; 256 bytes buffer
+; Array definition - DUP untuk repetisi
+numbers   DW 10, 20, 30, 40, 50    ; 5 word
+matrix    DW 4 DUP(0)               ; 4 word bernilai 0
+buffer    DB 256 DUP(0)             ; 256 bytes buffer (input string)
 \end{verbatim}
+
+\textbf{Buffer untuk INT 21h AH=0Ah}: Format buffer: byte 0 = max length, byte 1 = actual length (diisi DOS), byte 2+ = karakter. Contoh: \asm{input\_buf DB 80, 0, 80 DUP(0)} (total 82 byte).
 
 \subsection{Constant Definition}
 
+\asm{EQU} mendefinisikan konstanta tanpa mengalokasi memori. Nilai diganti saat assemble. Berguna untuk magic number, ukuran buffer, dan kode port.
+
 \begin{verbatim}
-; Constant definitions
-MAX_SIZE EQU 100
-PI       EQU 3.14159
-NEW_LINE  EQU 0Dh, 0Ah
-TRUE     EQU 1
-FALSE    EQU 0
+; Constant definitions - tidak alokasi memori
+MAX_SIZE  EQU 100
+PI        EQU 314159      ; Simulasi fixed-point
+NEW_LINE  EQU 0Dh, 0Ah   ; CR+LF
+TRUE      EQU 1
+FALSE     EQU 0
+
+; Penggunaan: MOV CX, MAX_SIZE  →  MOV CX, 100
 \end{verbatim}
 
+\textbf{EQU vs variabel}: \asm{DW 100} mengalokasikan 2 byte di memori; \asm{EQU 100} hanya substitusi. Variabel dapat diubah saat runtime; EQU tidak.
+
 \subsection{Memory Layout}
+
+Organisasi data mempengaruhi addressing. Letakkan konstanta (EQU) di atas, variabel statis, lalu buffer dinamis.
 
 \begin{verbatim}
 ; Memory organization example
 DATA SEGMENT
-    ; Constants
+    ; Constants (tidak alokasi)
     MAX_SIZE EQU 100
     
-    ; Variables
-    array1 DW 10 DUP(0)
-    array2 DW MAX_SIZE DUP(0)
-    string1 DB 'Hello', 0
-    string2 DB 'World', 0
+    ; Variables (alokasi memori)
+    array1   DW 10 DUP(0)      ; 20 bytes
+    array2   DW MAX_SIZE DUP(0) ; 200 bytes
+    string1  DB 'Hello', 0     ; 6 bytes
+    string2  DB 'World', 0     ; 6 bytes
     
-    ; Aligned data
+    ; Aligned data - word boundary untuk akses efisien
     aligned_var DW 0
 DATA ENDS
 \end{verbatim}

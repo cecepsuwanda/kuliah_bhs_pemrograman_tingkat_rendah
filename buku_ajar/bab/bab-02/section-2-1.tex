@@ -1,41 +1,81 @@
 \section{Arsitektur Intel 8086}
 
-Intel 8086 adalah 16-bit processor yang menjadi fondasi untuk arsitektur x86 modern. Processor ini dirancang untuk memberikan keseimbangan antara performa, kompleksitas, dan biaya produksi \cite{ref1}.
+Intel 8086 adalah 16-bit processor yang menjadi fondasi untuk arsitektur x86 modern \cite{ref1}. Mikroprosesor ini diperkenalkan pada Juni 1978 dan merevolusi industri komputer dengan kemampuannya mengalamati hingga 1 MB memori melalui sistem segmentasi \cite{intel_8086_user_manual, wiki_8086}.
+
+\subsection{Spesifikasi Teknis}
+
+\begin{table}[H]
+\centering
+\caption{Spesifikasi Teknis Intel 8086}
+\begin{tabular}{|p{2.2cm}|p{2.5cm}|p{5cm}|}
+\hline
+\textbf{Aspek} & \textbf{Spesifikasi} & \textbf{Keterangan} \\
+\hline
+Arsitektur & 16-bit internal/eksternal & Data path dan register 16-bit \\
+\hline
+Bus Alamat & 20-bit & Pengalamatan hingga 1 MB ($2^{20}$ byte) \\
+\hline
+Bus Data & 16-bit & Transfer data 2 byte sekaligus \\
+\hline
+Frekuensi Clock & 5--10 MHz & Tergantung versi prosesor \\
+\hline
+Transistor & $\sim$29.000 & Proses manufaktur 3-micron HMOS \\
+\hline
+Konsumsi Daya & $\sim$2.5 watt & Relatif efisien untuk era tersebut \\
+\hline
+Paket & 40-pin DIP & Dual Inline Package \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Arsitektur Internal: BIU dan EU}
+
+Arsitektur internal Intel 8086 menggunakan desain \textit{pipelined} yang terdiri dari dua unit utama yang bekerja secara paralel \cite{computer_organization_design}:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{8086_architecture.jpg}
+\caption{Arsitektur Internal Intel 8086}
+\end{figure}
+
+\textbf{Bus Interface Unit (BIU)} bertanggung jawab untuk komunikasi dengan memori dan I/O eksternal:
+\begin{itemize}
+  \item \textbf{Instruction Queue}: Buffer 6-byte untuk instruksi yang telah diambil
+  \item \textbf{Segment Registers}: CS, DS, SS, ES untuk pengalamatan segmentasi
+  \item \textbf{Instruction Pointer (IP)}: Menunjuk ke instruksi berikutnya
+  \item \textbf{Address Adder}: Menghitung alamat fisik dari segment:offset
+  \item \textbf{Bus Control Logic}: Mengatur sinyal kontrol bus (RD, WR, M/IO)
+\end{itemize}
+
+\textbf{Execution Unit (EU)} bertanggung jawab untuk eksekusi instruksi:
+\begin{itemize}
+  \item \textbf{ALU}: Melakukan operasi aritmatika dan logika
+  \item \textbf{General Purpose Registers}: AX, BX, CX, DX
+  \item \textbf{Index and Pointer Registers}: SI, DI, SP, BP
+  \item \textbf{Flag Register}: Menyimpan status hasil operasi
+\end{itemize}
+
+\textbf{Prefetch Queue}: Ketika EU mengeksekusi instruksi, BIU secara bersamaan mengambil instruksi berikutnya dari memori ke queue 6-byte, sehingga eksekusi lebih efisien.
 
 \subsection{Evolusi Processor Intel}
 
 \begin{enumerate}
-  \item \textbf{1971}: Intel 4004 - 4-bit processor pertama
-  \item \textbf{1974}: Intel 8080 - 8-bit processor
-  \item \textbf{1978}: Intel 8086 - 16-bit processor (target kita)
-  \item \textbf{1982}: Intel 80286 - 16-bit dengan protected mode
-  \item \textbf{1985}: Intel 80386 - 32-bit processor
-  \item \textbf{1989}: Intel 80486 - 32-bit dengan cache
-  \item \textbf{1993}: Pentium - Superscalar architecture
+  \item \textbf{1971}: Intel 4004 -- 4-bit processor pertama
+  \item \textbf{1974}: Intel 8080 -- 8-bit processor
+  \item \textbf{1978}: Intel 8086 -- 16-bit processor (target pembelajaran)
+  \item \textbf{1982}: Intel 80286 -- 16-bit dengan protected mode
+  \item \textbf{1985}: Intel 80386 -- 32-bit processor
+  \item \textbf{1989}: Intel 80486 -- 32-bit dengan cache
+  \item \textbf{1993}: Pentium -- Superscalar architecture
 \end{enumerate}
 
-\subsection{Fitur Utama Intel 8086}
+\subsection{Instruction Set dan Mode Operasi}
 
-\textbf{Arsitektur 16-bit:}
-\begin{itemize}
-  \item Data bus 16-bit untuk transfer data paralel
-  \item Address bus 20-bit untuk 1MB addressable memory
-  \item Clock speed: 4.77MHz hingga 10MHz
-  \item 29,000 transistors pada chip
-\end{itemize}
-
-\textbf{Instruction Set:}
-\begin{itemize}
-  \item 117 instruksi dasar
-  \item Operasi aritmatika, logika, dan transfer data
-  \item String processing instructions
-  \item Control flow dan loop instructions
-  \item I/O dan interrupt instructions
-\end{itemize}
+\textbf{Instruction Set:} 117 instruksi dasar untuk operasi aritmatika, logika, transfer data, string, control flow, dan I/O.
 
 \textbf{Mode Operasi:}
 \begin{itemize}
-  \item \textbf{Real Mode}: Kompatibel dengan 8080/8085
+  \item \textbf{Real Mode}: Satu-satunya mode pada 8086; kompatibel dengan 8080/8085
   \item \textbf{Protected Mode}: Tersedia di 80286 ke atas
   \item \textbf{Virtual 8086 Mode}: Tersedia di 80386 ke atas
 \end{itemize}

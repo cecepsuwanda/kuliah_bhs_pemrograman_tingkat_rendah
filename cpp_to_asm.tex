@@ -1,0 +1,417 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{hyperref}
+
+\title{Tutorial Langkah-per-Langkah Konversi Program Kalkulator C++ ke Assembly Intel 8086 (16-bit)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Tujuan}
+Mengkonversi aplikasi kalkulator sederhana dari C++ menjadi Assembly Intel 8086 16-bit.
+
+\section{Prasyarat dan Referensi}
+Tutorial ini mengasumsikan pembaca sudah memahami materi dari Buku Ajar Pemrograman Bahasa Tingkat Rendah:
+\begin{itemize}
+\item \textbf{Bab 2}: Arsitektur Intel 8086, register (AX, BX, CX, DX, DS)
+\item \textbf{Bab 4}: Direktif tipe data (DB, DW), instruksi MOV, ADD, SUB
+\item \textbf{Bab 5}: Instruksi MUL, DIV (operand implisit AX/DX:AX)
+\item \textbf{Bab 6}: CMP, JE, JMP untuk percabangan if-else
+\item \textbf{Bab 8}: INT 21h untuk I/O (AH=01h input, AH=02h output, AH=09h string, AH=4Ch exit)
+\end{itemize}
+
+\section{Prinsip Dasar Konversi}
+\begin{enumerate}
+\item Program C/C++ dikompilasi menjadi kode Assembly sebelum menjadi kode mesin.
+\item Assembly menggunakan register CPU (AX, BX, CX, DX), instruksi aritmatika, dan interrupt untuk I/O.
+\item Operasi aritmatika: ADD, SUB untuk penjumlahan/pengurangan; MUL menggunakan AX implisit; DIV menggunakan DX:AX sebagai dividend.
+\item I/O pada DOS memakai INT 21h dengan fungsi di register AH.
+\end{enumerate}
+
+\section{Kode C++ Awal}
+\begin{lstlisting}[language=C++]
+#include <iostream>
+using namespace std;
+
+int main(){
+    double a, b;
+    char op;
+
+    cout << "Masukkan operasi (a op b): ";
+    cin >> a >> op >> b;
+
+    if(op == '+')
+        cout << a << " + " << b << " = " << (a + b) << endl;
+    else if(op == '-')
+        cout << a << " - " << b << " = " << (a - b) << endl;
+    else if(op == '*')
+        cout << a << " * " << b << " = " << (a * b) << endl;
+    else if(op == '/'){
+        if(b != 0)
+            cout << a << " / " << b << " = " << (a / b) << endl;
+        else
+            cout << "Error: pembagian dengan nol!" << endl;
+    }
+    else
+        cout << "Error: operator tidak valid!" << endl;
+
+    return 0;
+}
+\end{lstlisting}
+
+\section{Langkah 1: Analisis Struktur Program}
+Identifikasi bagian utama sesuai kode C++:
+\begin{enumerate}
+\item Prompt: cetak pesan ``Masukkan operasi (a op b):''
+\item Input: baca \texttt{a}, \texttt{op}, \texttt{b} (urutan sesuai \texttt{cin})
+\item Percabangan: \texttt{if (op=='+')} ... \texttt{else if} ... \texttt{else}
+\item Cek pembagian nol: \texttt{if (b != 0)} sebelum operasi bagi
+\item Handler operator tidak valid: \texttt{else} cetak pesan error
+\item Output hasil atau pesan error
+\item Return/exit
+\end{enumerate}
+
+\section{Langkah 2: Konversi Variabel}
+Sesuai direktif tipe data Assembly 8086 (Buku Ajar Bab 4):
+\begin{itemize}
+\item Variabel C++ $\rightarrow$ deklarasi data Assembly
+\item \texttt{double a, b} $\rightarrow$ \texttt{DW} (Define Word, 16-bit). Rentang word: 0--65535 (unsigned) atau $-32768$--32767 (signed). Disederhanakan untuk tutorial karena 8086 tidak punya floating-point native.
+\item \texttt{char op} $\rightarrow$ \texttt{DB} (Define Byte, 8-bit)
+\item String untuk prompt dan pesan error: diakhiri \texttt{\$} untuk INT 21h AH=09h
+\end{itemize}
+
+\begin{lstlisting}
+prompt db "Masukkan operasi (a op b): $"
+err_div db "Error: pembagian dengan nol!$"
+err_op  db "Error: operator tidak valid!$"
+a dw ?
+b dw ?
+hasil dw ?
+op db ?
+\end{lstlisting}
+
+\section{Langkah 3: Konversi Input}
+Sesuai \texttt{cout} dan \texttt{cin} pada C++: tampilkan prompt, lalu baca \texttt{a}, \texttt{op}, \texttt{b}. Input/Output pada DOS 8086 menggunakan INT 21h (Buku Ajar Bab 8):
+
+\subsection{Output prompt (cout << ``...'')}
+\begin{lstlisting}
+mov ah,09h
+lea dx,prompt
+int 21h
+\end{lstlisting}
+
+\subsection{Input op (cin >> op)}
+\begin{lstlisting}
+mov ah,01h
+int 21h
+mov op,al
+\end{lstlisting}
+
+\subsection{Input a dan b}
+Untuk tutorial, nilai \texttt{a} dan \texttt{b} dapat diisi dari buffer atau dibaca per digit. Input numerik penuh memerlukan subrutin konversi string$\rightarrow$angka. Referensi: prosedur \texttt{Cetak\_Bil} pada TAMBAHP.ASM (Buku Ajar) melakukan kebalikannya (angka$\rightarrow$string) dengan DIV 10 berulang dan PUSH sisa ke stack.
+
+\section{Langkah 4: Konversi Percabangan}
+Memetakan \texttt{if (op=='+')} ... \texttt{else if} ... \texttt{else} dengan \texttt{CMP} dan \texttt{JE} (Buku Ajar Bab 6). CMP membandingkan operand dan mengatur flags; JE (Jump if Equal) melompat jika ZF=1.
+
+\begin{lstlisting}
+cmp op,'+'
+je tambah
+
+cmp op,'-'
+je kurang
+
+cmp op,'*'
+je kali
+
+cmp op,'/'
+je bagi
+
+; else: operator tidak valid (sesuai C++)
+jmp error_op
+\end{lstlisting}
+
+\section{Langkah 5: Konversi Operasi Aritmatika}
+Sesuai Buku Ajar Bab 5. Instruksi ADD/SUB mengubah flags (ZF, SF, CF, OF). MUL memakai AX implisit; hasil 16-bit di AX, 32-bit di DX:AX. DIV memakai DX:AX sebagai dividend; AX=quotient, DX=remainder.
+
+\subsection{Penjumlahan}
+\begin{lstlisting}
+tambah:
+mov ax,a
+add ax,b
+mov hasil,ax
+jmp selesai
+\end{lstlisting}
+
+\subsection{Pengurangan}
+\begin{lstlisting}
+kurang:
+mov ax,a
+sub ax,b
+mov hasil,ax
+jmp selesai
+\end{lstlisting}
+
+\subsection{Perkalian}
+MUL operand: AX = AX $\times$ operand (16-bit). Hasil 32-bit disimpan di DX:AX; untuk hasil $\leq$ 65535, cukup simpan AX (Buku Ajar Bab 5, KALI.ASM).
+\begin{lstlisting}
+kali:
+mov ax,a
+mul b          ; DX:AX = AX * b
+mov hasil,ax   ; Simpan bagian rendah
+jmp selesai
+\end{lstlisting}
+
+\subsection{Pembagian}
+Sesuai C++: \texttt{if (b != 0)} sebelum \texttt{a/b}. DIV membutuhkan DX:AX sebagai dividend; quotient di AX, remainder di DX. Buku Ajar Bab 5: divide-by-zero memicu interrupt 0.
+
+\begin{lstlisting}
+bagi:
+mov ax,b
+cmp ax,0
+je error_div        ; if (b==0) -> error
+
+mov ax,a
+mov dx,0
+div b
+mov hasil,ax
+jmp selesai
+
+error_div:
+mov ah,09h
+lea dx,err_div
+int 21h
+jmp keluar
+
+error_op:
+mov ah,09h
+lea dx,err_op
+int 21h
+jmp keluar
+\end{lstlisting}
+
+\section{Langkah 6: Output Hasil}
+Sesuai C++: \texttt{cout << a << " op " << b << " = " << hasil}. Output pada DOS: AH=02h untuk satu karakter, AH=09h untuk string. Konversi angka$\rightarrow$ASCII: digit 0--9 = kode 30h--39h. Untuk hasil multi-digit, gunakan prosedur seperti \texttt{Cetak\_Bil} pada TAMBAHP.ASM (Buku Ajar): DIV 10 berulang, PUSH sisa, POP dan cetak. Contoh sederhana (1 digit):
+
+\begin{lstlisting}
+selesai:
+mov ax,hasil
+add al,30h          ; konversi digit ke ASCII
+mov dl,al
+mov ah,02h
+int 21h
+jmp keluar
+
+keluar:
+mov ah,4ch
+int 21h
+\end{lstlisting}
+
+\section{Langkah 7: Struktur Program Lengkap Assembly 8086}
+Struktur program TASM/MASM (Buku Ajar Bab 1, A0.asm): \texttt{.MODEL SMALL} (model memori), \texttt{.STACK 100h}, \texttt{.DATA} (variabel), \texttt{.CODE} (instruksi). Inisialisasi: \texttt{MOV AX,@data} lalu \texttt{MOV DS,AX} untuk mengatur segment data. Program lengkap sesuai alur kode C++ (dengan nilai \texttt{a}, \texttt{b}, \texttt{op} hardcode untuk kejelasan tutorial):
+
+\begin{lstlisting}
+.model small
+.stack 100h
+.data
+prompt db "Masukkan operasi (a op b): $"
+err_div db "Error: pembagian dengan nol!$"
+err_op  db "Error: operator tidak valid!$"
+a dw 5
+b dw 3
+hasil dw ?
+op db '+'
+
+.code
+main proc
+mov ax,@data
+mov ds,ax
+
+; cout << prompt (sesuai C++)
+mov ah,09h
+lea dx,prompt
+int 21h
+
+; Percabangan: if (op=='+') ... else if ... else
+cmp op,'+'
+je tambah
+cmp op,'-'
+je kurang
+cmp op,'*'
+je kali
+cmp op,'/'
+je bagi
+jmp error_op       ; else: operator tidak valid
+
+tambah:
+mov ax,a
+add ax,b
+mov hasil,ax
+jmp selesai
+
+kurang:
+mov ax,a
+sub ax,b
+mov hasil,ax
+jmp selesai
+
+kali:
+mov ax,a
+mul b
+mov hasil,ax
+jmp selesai
+
+bagi:
+mov ax,b
+cmp ax,0
+je error_div      ; if (b==0) -> error
+mov ax,a
+mov dx,0
+div b
+mov hasil,ax
+jmp selesai
+
+error_div:
+mov ah,09h
+lea dx,err_div
+int 21h
+jmp keluar
+
+error_op:
+mov ah,09h
+lea dx,err_op
+int 21h
+jmp keluar
+
+selesai:
+; cout << hasil (sederhana: 1 digit)
+mov ax,hasil
+add al,30h
+mov dl,al
+mov ah,02h
+int 21h
+
+keluar:
+mov ah,4ch         ; return 0
+int 21h
+main endp
+end main
+\end{lstlisting}
+
+\section{Fakta Teknis}
+\begin{itemize}
+\item Assembly menggunakan register (AX, BX, CX, DX, SI, DI, BP, SP) dan instruksi CPU langsung.
+\item Instruksi aritmatika: ADD, SUB (flags ZF, SF, CF, OF); MUL (AX implisit, hasil DX:AX); DIV (dividend DX:AX).
+\item INT 21h DOS: AH=01h (input char), AH=02h (output char), AH=09h (output string, diakhiri \$), AH=0Ah (input string), AH=4Ch (exit).
+\item Rentang word 16-bit: 0--65535 (unsigned) atau $-32768$--32767 (signed, two's complement).
+\item Divide-by-zero memicu interrupt 0; cek divisor sebelum DIV.
+\end{itemize}
+
+\section{Langkah Lanjutan (Opsional)}
+
+\subsection{Input Numerik Lengkap}
+Untuk membaca angka dari keyboard (menggantikan nilai hardcode \texttt{a} dan \texttt{b}):
+
+\textbf{1. Buffer untuk INT 21h AH=0Ah:}
+\begin{lstlisting}
+; Format buffer: byte 0 = max length, byte 1 = actual length, byte 2+ = chars
+buf_a  db 6, 0, 6 dup (?)
+buf_b  db 6, 0, 6 dup (?)
+\end{lstlisting}
+
+\textbf{2. Baca string:}
+\begin{lstlisting}
+lea dx, buf_a
+mov ah, 0Ah
+int 21h
+\end{lstlisting}
+
+\textbf{3. Konversi ASCII$\rightarrow$angka} (loop: result = result*10 + (char-'0')):
+\begin{lstlisting}
+; Asumsikan string di buf_a+2, panjang di buf_a+1
+Baca_Angka PROC
+    xor ax, ax
+    xor cx, cx
+    mov cl, buf_a+1      ; panjang string
+    lea si, buf_a+2      ; ptr ke karakter pertama
+    mov bx, 10
+loop_conv:
+    mul bx               ; DX:AX = AX * 10 (8086: MUL src)
+    mov dl, [si]
+    sub dl, '0'          ; digit ke nilai (0-9)
+    xor dh, dh           ; zero-extend ke 16-bit
+    add ax, dx
+    inc si
+    loop loop_conv
+    ret
+Baca_Angka ENDP
+\end{lstlisting}
+
+\subsection{Output Multi-Digit: Prosedur Cetak\_Bil}
+Prosedur dari TAMBAHP.ASM untuk mencetak bilangan desimal (angka$\rightarrow$string dengan DIV 10):
+
+\begin{lstlisting}
+; Input: bil_ctk (word) berisi angka yang akan dicetak
+Cetak_Bil PROC NEAR
+    xor ax, ax
+    mov ax, bil_ctk      ; AX = angka yang akan dicetak
+    mov bx, 10           ; BX = penyebut (divisor)
+    xor cx, cx           ; CX = counter digit
+Ulang:
+    xor dx, dx           ; DX harus 0 untuk DIV
+    div bx               ; AX = AX/10, DX = sisa (digit)
+    push dx              ; Simpan digit ke stack (LIFO)
+    inc cx
+    cmp ax, 0
+    jne Ulang            ; Ulangi jika belum habis
+Cetak:
+    pop dx
+    add dl, '0'          ; Konversi ke ASCII
+    mov ah, 02h
+    int 21h              ; Cetak karakter
+    loop Cetak
+    ret
+Cetak_Bil ENDP
+\end{lstlisting}
+
+Alur: DIV 10 berulang $\rightarrow$ sisa (digit) di PUSH $\rightarrow$ POP dan cetak (urutan terbalik menjadi benar).
+
+\subsection{Floating-Point}
+Intel 8086 tidak memiliki instruksi floating-point native. Opsi:
+\begin{itemize}
+\item \textbf{Emulasi}: Subrutin perangkat lunak untuk add/sub/mul/div floating-point (lambat).
+\item \textbf{8087 FPU}: Coprocessor terpisah (jika tersedia); instruksi FADD, FSUB, FMUL, FDIV.
+\item \textbf{Sederhana}: Gunakan integer fixed-point (misal: 1234 = 12.34 dengan skala 100).
+\end{itemize}
+
+\subsection{Prosedur Terpisah dengan Preservation Register}
+Sesuai Buku Ajar Bab 7: simpan register yang dipakai prosedur agar tidak mengubah nilai di caller.
+
+\begin{lstlisting}
+; Prosedur yang mengubah AX, BX, CX harus menyimpannya
+Hitung_Hasil PROC
+    push ax
+    push bx
+    push cx
+    ; ... body prosedur ...
+    pop cx
+    pop bx
+    pop ax
+    ret
+Hitung_Hasil ENDP
+\end{lstlisting}
+
+Atau gunakan konvensi: prosedur yang \emph{memakai} register bertanggung jawab menyimpannya; prosedur yang \emph{merusak} (mengubah) register harus PUSH sebelum dipakai dan POP sebelum RET.
+
+\section{Referensi}
+\begin{enumerate}
+\item Buku Ajar Pemrograman Bahasa Tingkat Rendah: Bab 2 (Arsitektur), Bab 4 (Direktif), Bab 5 (Aritmatika), Bab 6 (Kontrol), Bab 8 (Interupsi)
+\item TAMBAHP.ASM, KALI.ASM, A0.asm (contoh dalam Buku Ajar)
+\item \url{https://github.com/mschwartz/assembly-tutorial}
+\item \url{https://gist.github.com/suntong}
+\end{enumerate}
+
+\end{document}

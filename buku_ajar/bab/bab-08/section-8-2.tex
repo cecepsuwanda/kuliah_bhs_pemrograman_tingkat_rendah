@@ -79,6 +79,22 @@
     \item INT 13h
     \item INT 15h
   \end{enumerate}
+  
+  \item Format buffer untuk INT 21h AH=0Ah: byte 1 (setelah max length) diisi oleh DOS dengan:
+  \begin{enumerate}
+    \item Actual length (jumlah karakter yang dibaca)
+    \item Max length
+    \item Karakter pertama
+    \item Terminator CR
+  \end{enumerate}
+  
+  \item Setelah INT 21h file operations (create/open), cara mengecek apakah operasi berhasil adalah:
+  \begin{enumerate}
+    \item Cek CF: CF=0 sukses, CF=1 error
+    \item Cek ZF
+    \item Cek AX saja
+    \item Tidak perlu pengecekan
+  \end{enumerate}
 \end{enumerate}
 
 \textbf{B. Essay}
@@ -87,6 +103,10 @@
   \item Jelaskan perbedaan antara BIOS interrupts dan DOS interrupts! Berikan contoh penggunaan masing-masing.
   
   \item Mengapa interrupt vector table penting dalam sistem operasi?
+  
+  \item Kapan sebaiknya menggunakan INT 10h vs INT 21h untuk output teks/karakter? Jelaskan skenario penggunaannya!
+  
+  \item Jelaskan format buffer untuk INT 21h AH=0Ah dan cara mengecek error (CF) setelah operasi file (create, open)!
 \end{enumerate}
 
 \textbf{C. Practical Challenge}
@@ -95,7 +115,7 @@
   \item Buat program file manager:
   \begin{itemize}
     \item Display directory listing dengan INT 21h
-    \item File operations (create, read, write, delete)
+    \item File operations (create, read, write, delete) dengan error handling (cek CF setelah create/open)
     \item Directory operations (create, remove, change)
     \item File attribute management
     \item Search functionality

@@ -122,6 +122,30 @@
     \item MOV
     \item ADD
   \end{enumerate}
+  
+  \item Perbedaan \asm{EQU} dan variabel (\asm{DW}, \asm{DB}) yang benar adalah:
+  \begin{enumerate}
+    \item EQU tidak mengalokasi memori; variabel mengalokasi memori
+    \item EQU dan variabel sama saja
+    \item Variabel tidak mengalokasi memori
+    \item EQU hanya untuk string
+  \end{enumerate}
+  
+  \item Format buffer untuk INT 21h AH=0Ah (input string): byte 0 menyimpan:
+  \begin{enumerate}
+    \item Max length (maksimal karakter yang dapat dibaca)
+    \item Actual length (jumlah karakter yang dibaca)
+    \item Karakter pertama
+    \item Terminator string
+  \end{enumerate}
+  
+  \item Program .COM menggunakan entry point:
+  \begin{enumerate}
+    \item \asm{ORG 100h} dengan CS=DS=ES=SS
+    \item \asm{END label} dengan segmen terpisah
+    \item \asm{.MODEL LARGE}
+    \item Tidak ada entry point
+  \end{enumerate}
 \end{enumerate}
 
 \textbf{B. Essay}
@@ -130,6 +154,10 @@
   \item Jelaskan perbedaan fungsi antara register AX dan register CX! Berikan contoh program yang menggunakan kedua register tersebut.
   
   \item Mengapa register BP sering digunakan untuk mengakses parameter dalam prosedur? Jelaskan dengan contoh.
+  
+  \item Jelaskan perbedaan \asm{EQU} dan variabel (\asm{DW})! Kapan masing-masing sebaiknya digunakan?
+  
+  \item Jelaskan format buffer untuk INT 21h AH=0Ah! Apa fungsi byte 0, byte 1, dan byte 2+?
 \end{enumerate}
 
 \textbf{C. Practical Challenge}
@@ -144,6 +172,8 @@
     \item Gunakan register DS untuk mengakses data program
     \item Dokumentasikan penggunaan register dengan TASM debugger
   \end{itemize}
+  
+  \item Buat deklarasi buffer untuk input string dengan INT 21h AH=0Ah yang dapat menerima maksimal 80 karakter. Jelaskan format buffer yang Anda gunakan.
 \end{enumerate}
 
 \textbf{Rubrik Penilaian}: Lihat Lampiran A

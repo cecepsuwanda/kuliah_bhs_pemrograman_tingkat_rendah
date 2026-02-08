@@ -1,8 +1,10 @@
 \section{Addressing Modes}
 
-Addressing modes menentukan bagaimana processor mengakses operan untuk instruksi.
+Addressing modes menentukan bagaimana processor mengakses operan untuk instruksi \cite{electronics_hub_8086_addressing}. Pemilihan mode mempengaruhi kecepatan eksekusi, ukuran kode, dan fleksibilitas program.
 
 \subsection{Immediate Addressing}
+
+Mode immediate menggunakan nilai konstan yang disertakan langsung dalam instruksi. Cocok untuk inisialisasi register, konstanta mask, dan nilai yang tidak berubah saat runtime.
 
 \begin{verbatim}
 ; Immediate addressing - nilai konstan langsung
@@ -14,11 +16,14 @@ MOV BX, 'A'        ; BX = ASCII 'A'
 \textbf{Karakteristik:}
 \begin{itemize}
   \item Nilai konstan langsung dalam instruksi
-  \item Tidak memerlukan akses memori
+  \item Tidak memerlukan akses memori untuk operand
   \item Paling cepat untuk operasi konstan
+  \item Operand kedua biasanya; format: hex (h), desimal, biner (b), ASCII ('A')
 \end{itemize}
 
 \subsection{Register Addressing}
+
+Mode register paling efisien karena operand berada langsung di register. Tidak ada akses memori tambahan sehingga kecepatan eksekusi tertinggi. Digunakan untuk perhitungan sementara dan operasi berulang dalam loop.
 
 \begin{verbatim}
 ; Register addressing - operan adalah register
@@ -29,16 +34,19 @@ SUB DX, SI        ; DX = DX - SI
 
 \textbf{Karakteristik:}
 \begin{itemize}
-  \item Operan adalah register general purpose
+  \item Operan adalah register general purpose (AX, BX, CX, DX, SI, DI, BP, SP)
   \item Tidak memerlukan akses memori
   \item Sangat cepat dan efisien
+  \item Beberapa instruksi memiliki register khusus (mis. MUL menggunakan AX)
 \end{itemize}
 
 \subsection{Direct Addressing}
 
+Mode direct menggunakan alamat memori yang ditentukan secara eksplisit. Alamat adalah offset dalam segmen default (biasanya DS). Berguna untuk akses variabel global dengan alamat tetap.
+
 \begin{verbatim}
 ; Direct addressing - alamat memori langsung
-MOV AX, [1234h]    ; AX = memory[1234h]
+MOV AX, [1234h]    ; AX = memory[DS:1234h]
 ADD BX, [data_var]   ; BX = memory[data_var]
 MOV CX, [array+10]   ; CX = memory[array+10]
 \end{verbatim}
@@ -46,38 +54,83 @@ MOV CX, [array+10]   ; CX = memory[array+10]
 \textbf{Karakteristik:}
 \begin{itemize}
   \item Alamat memori langsung dalam instruksi
-  \item Akses ke memory yang spesifik
-  \item Lebih lambat dari register addressing
+  \item Akses ke memory yang spesifik (default segment: DS)
+  \item Lebih lambat dari register addressing (1 siklus memori)
+  \item Segment override: \asm{ES:[addr]}, \asm{CS:[addr]}, \asm{SS:[addr]}
 \end{itemize}
 
 \subsection{Register Indirect Addressing}
 
+Mode indirect menggunakan register sebagai pointer ke memori. Register (BX, SI, DI, BP) berisi alamat offset. Fleksibel untuk akses array dan struktur data dinamis karena alamat dapat diubah saat runtime.
+
 \begin{verbatim}
 ; Register indirect - register berisi alamat
-MOV AX, [BX]        ; AX = memory[BX]
-MOV CX, [SI]        ; CX = memory[SI]
-ADD DX, [DI]        ; DX = memory[DI]
+MOV AX, [BX]        ; AX = memory[DS:BX]
+MOV CX, [SI]        ; CX = memory[DS:SI]
+ADD DX, [DI]        ; DX = memory[ES:DI]
+MOV AX, [BP]        ; AX = memory[SS:BP] (stack frame)
 \end{verbatim}
 
 \textbf{Karakteristik:}
 \begin{itemize}
-  \item Register berisi alamat memori
-  \item Fleksibel untuk pointer operations
-  \item Mendukung array dan struktur data dinamis
+  \item Register valid: BX, SI, DI, BP
+  \item Segment default: DS untuk BX/SI/DI; SS untuk BP
+  \item Fleksibel untuk pointer dan loop array
+  \item Lebih efisien daripada direct untuk akses berulang
 \end{itemize}
 
 \subsection{Based Indexed Addressing}
 
+Mode based indexed menggabungkan base register (BX atau BP) dengan index register (SI atau DI) dan displacement opsional. Sangat fleksibel untuk akses array dua dimensi, struktur data, dan parameter stack.
+
 \begin{verbatim}
 ; Based indexed addressing - base + index + displacement
 MOV AX, [BX+SI]     ; AX = memory[BX+SI]
-MOV CX, [BP+DI+4]   ; CX = memory[BP+DI+4]
+MOV CX, [BP+DI+4]   ; CX = memory[BP+DI+4] (parameter stack)
 ADD DX, [BX+SI+10]  ; DX = memory[BX+SI+10]
 \end{verbatim}
 
 \textbf{Karakteristik:}
 \begin{itemize}
-  \item Kombinasi base register dan index register
-  \item Displacement opsional untuk offset
-  \item Sangat fleksibel untuk array dan struktur
+  \item Kombinasi valid: BX+SI, BX+DI, BP+SI, BP+DI
+  \item Displacement opsional: 8-bit atau 16-bit
+  \item Sangat fleksibel untuk array 2D dan struktur data
+  \item BP+displacement untuk akses parameter prosedur
 \end{itemize}
+
+\subsection{Perbandingan dan Pemilihan}
+
+\begin{table}[H]
+\centering
+\caption{Perbandingan Mode Addressing}
+\setlength{\tabcolsep}{3pt}
+\scriptsize
+\begin{tabular}{|p{1.8cm}|p{1.5cm}|p{2cm}|p{3.2cm}|}
+\hline
+\textbf{Mode} & \textbf{Kecepatan} & \textbf{Fleksibilitas} & \textbf{Use Case Optimal} \\
+\hline
+Immediate & Paling cepat & Rendah & Konstanta, inisialisasi \\
+\hline
+Register & Sangat cepat & Sedang & Perhitungan, loop body \\
+\hline
+Direct & Cepat & Sedang & Variabel global, alamat tetap \\
+\hline
+Indirect & Sedang & Tinggi & Array, pointer dinamis \\
+\hline
+Based Indexed & Sedang & Tertinggi & Array 2D, struktur, stack frame \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Contoh Kombinasi: \asm{MOV AX, [BX+SI+2]}}
+
+Instruksi ini menggunakan based indexed addressing. CPU melakukan langkah berikut:
+\begin{enumerate}
+  \item Baca nilai BX (base address, misal 1000h)
+  \item Baca nilai SI (index, misal 0010h)
+  \item Hitung alamat efektif: 1000h + 0010h + 2 = 1012h
+  \item Gabung dengan DS: alamat fisik = (DS × 16) + 1012h
+  \item Baca 2 byte dari memori (LSB dulu, little-endian) ke AX
+\end{enumerate}
+
+Aplikasi: mengakses \texttt{array[BX][SI]} atau field struktur dengan offset 2.

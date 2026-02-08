@@ -46,6 +46,25 @@ Dokumentasi untuk TASM dan Turbo Debugger.
   \item Variable watching
 \end{itemize}
 
+\section{Topik Lanjutan (Overview)}
+
+Ringkasan topik yang dapat dieksplorasi untuk pembelajaran lanjutan:
+
+\subsection{Array dan String}
+Instruksi string 8086: \asm{MOVS} (move), \asm{CMPS} (compare), \asm{SCAS} (scan), \asm{LODS} (load), \asm{STOS} (store). Awalan \asm{REP}, \asm{REPE}, \asm{REPNE} untuk iterasi. Pengelolaan \asm{DF} (Direction Flag) dengan \asm{CLD} dan \asm{STD}.
+
+\subsection{Pemrograman Modular}
+\asm{PROC}/\asm{ENDP} untuk prosedur. Makro \asm{MACRO}/\asm{ENDM} untuk kode berulang. \asm{PUBLIC} dan \asm{EXTERN} untuk linking antar modul.
+
+\subsection{Pemrograman Grafik Dasar}
+INT 10h mode 13h (320x200 VGA). Operasi pixel dan garis. Referensi: Michael Abrash's Graphics Programming Black Book.
+
+\subsection{File Handling}
+INT 21h: 3Ch (create), 3Dh (open), 3Fh (read), 40h (write), 3Eh (close). Fungsi 42h untuk manipulasi file pointer (seek).
+
+\subsection{Program Residen (TSR)}
+Konsep Terminate-and-Stay-Resident. Program tetap di memori setelah exit. Hook interrupt untuk layanan background.
+
 \section{Advanced Topics}
 
 \subsection{Memory Management}

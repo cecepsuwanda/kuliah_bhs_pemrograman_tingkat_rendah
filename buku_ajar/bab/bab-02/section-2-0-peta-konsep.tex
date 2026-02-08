@@ -1,0 +1,41 @@
+% ============================================================
+% PETA KONSEP / BAGAN STRUKTUR MATERI
+% ============================================================
+\section{Peta Konsep dan Struktur Materi}
+
+Peta konsep berikut menggambarkan hierarki dan hubungan antar konsep utama dalam pemrograman Assembly Intel 8086 yang akan dipelajari dalam buku ajar ini:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=0.8cm and 1.2cm,
+  box/.style={rectangle, draw, rounded corners=2pt, fill=blue!8, minimum width=2.8cm, minimum height=0.6cm, font=\small, align=center},
+  subbox/.style={rectangle, draw, rounded corners=1pt, fill=green!8, minimum width=2.2cm, minimum height=0.5cm, font=\footnotesize, align=center},
+  arrow/.style={->, >=stealth, thick}
+]
+  % Level 1: Arsitektur
+  \node[box] (arch) {Arsitektur Intel 8086};
+  
+  % Level 2: Register, Addressing, Segmentasi
+  \node[subbox, below left=of arch] (reg) {Register\\AX, BX, CX, DX\\SI, DI, BP, SP};
+  \node[subbox, below=of arch] (addr) {Mode Addressing\\Immediate, Direct\\Indirect, Indexed};
+  \node[subbox, below right=of arch] (seg) {Segmentasi Memori\\CS, DS, ES, SS\\Segment:Offset};
+  
+  % Level 3: Instruksi, TASM
+  \node[box, below=2.2cm of arch] (inst) {Instruksi Dasar\\Data Transfer, Aritmatika\\Logika, Control Flow};
+  \node[box, below=3.5cm of arch] (tasm) {TASM / Turbo Assembler\\Assemble, Link, Debug};
+  
+  % Arrows
+  \draw[arrow] (arch) -- (reg);
+  \draw[arrow] (arch) -- (addr);
+  \draw[arrow] (arch) -- (seg);
+  \draw[arrow] (reg) -- (inst);
+  \draw[arrow] (addr) -- (inst);
+  \draw[arrow] (seg) -- (inst);
+  \draw[arrow] (inst) -- (tasm);
+\end{tikzpicture}
+\caption{Peta Konsep Pemrograman Assembly Intel 8086}
+\label{fig:peta-konsep}
+\end{figure}
+
+\textbf{Alur Pembelajaran:} Fondasi dimulai dari arsitektur 8086 (BIU, EU, register). Pemahaman register dan mode addressing memungkinkan penggunaan instruksi assembly yang benar. Konsep segmentasi memori dibutuhkan untuk pengalamatan dan organisasi program. Seluruh konsep diintegrasikan melalui TASM untuk pengembangan program assembly yang fungsional.

@@ -1,5 +1,11 @@
 \section{Register dan Organisasi Memori}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{8086_registers.png}
+\caption{Register-Register Intel 8086}
+\end{figure}
+
 \subsection{General Purpose Registers}
 
 Intel 8086 memiliki 8 general-purpose registers 16-bit yang dapat digunakan untuk berbagai operasi:
@@ -14,10 +20,10 @@ DX = DH + DL    ; Data register
 
 \textbf{Fungsi Spesifik Register:}
 \begin{itemize}
-  \item \textbf{AX}: Akumulator untuk operasi aritmatika dan I/O
-  \item \textbf{BX}: Base register untuk addressing modes
-  \item \textbf{CX}: Count register untuk loop dan string operations
-  \item \textbf{DX}: Data register untuk aritmatika dan I/O
+  \item \textbf{AX}: Akumulator utama—digunakan untuk operasi aritmatika (\asm{ADD}, \asm{SUB}), I/O (\asm{IN}/\asm{OUT}), dan return value. MUL/DIV menggunakan AX secara implisit.
+  \item \textbf{BX}: Base register—untuk addressing modes \asm{[BX]}, \asm{[BX+SI]}. Pointer ke struktur data dan array.
+  \item \textbf{CX}: Count register—counter untuk \asm{LOOP} (decrement otomatis) dan \asm{REP} (string ops). Juga untuk shift count (\asm{SHL AX, CL}).
+  \item \textbf{DX}: Data register—extended accumulator untuk MUL/DIV (DX:AX), I/O port $>$255, dividend high untuk DIV.
 \end{itemize}
 
 \subsection{Special Purpose Registers}
@@ -33,10 +39,10 @@ IP  - Instruction Pointer (menunjuk ke next instruction)
 
 \textbf{Penggunaan Special Registers:}
 \begin{itemize}
-  \item \textbf{SP}: Stack management dan procedure calls
-  \item \textbf{BP}: Access ke stack frame dan local variables
-  \item \textbf{SI/DI}: String operations dan array indexing
-  \item \textbf{IP}: Program counter (tidak dapat diakses langsung)
+  \item \textbf{SP}: Stack management—diubah otomatis oleh PUSH, POP, CALL, RET. Tidak diubah manual kecuali setup/cleanup.
+  \item \textbf{BP}: Base pointer untuk stack frame—akses parameter (\asm{[BP+4]}) dan variabel lokal (\asm{[BP-2]}). Default segment: SS.
+  \item \textbf{SI/DI}: String operations (MOVS, CMPS, LODS, STOS)—SI default DS, DI default ES. Juga untuk array indexing.
+  \item \textbf{IP}: Program counter (tidak dapat diakses langsung; diubah oleh JMP, CALL, RET).
 \end{itemize}
 
 \subsection{Segment Registers}
@@ -56,6 +62,14 @@ ES  - Extra Segment (data transfer)
   \item \textbf{SS}: Berisi alamat segment untuk stack
   \item \textbf{ES}: Berisi alamat segment untuk string operations
 \end{itemize}
+
+\subsection{Segmentasi Memori}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{8086_memory_segmentation.png}
+\caption{Organisasi Memori Segmentasi Intel 8086}
+\end{figure}
 
 \subsection{Perhitungan Alamat Fisik}
 
@@ -96,3 +110,5 @@ MOV [0100h], AX
 ; Access dengan segment:offset
 MOV AX, DS:[SI]
 \end{verbatim}
+
+\textbf{Contoh SI/DI untuk string:} \asm{MOV SI, OFFSET src} / \asm{MOV DI, OFFSET dst} lalu \asm{REP MOVSB} untuk menyalin string. \textbf{Contoh BP untuk stack frame:} \asm{PUSH BP} / \asm{MOV BP, SP} lalu \asm{MOV AX, [BP+4]} untuk akses parameter yang di-push sebelum CALL.

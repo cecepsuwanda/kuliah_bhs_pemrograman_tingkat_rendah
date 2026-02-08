@@ -8,6 +8,14 @@ set "SOURCE_DIR=%ROOT_DIR%buku_ajar"
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%" 2>nul
 
+REM Hapus PDF lama agar tidak terkunci saat compile (tutup PDF viewer jika dibuka)
+if exist "%OUTPUT_DIR%\main.pdf" (
+    del "%OUTPUT_DIR%\main.pdf" 2>nul
+    if exist "%OUTPUT_DIR%\main.pdf" (
+        echo WARNING: main.pdf mungkin sedang dibuka. Tutup aplikasi PDF viewer lalu coba lagi.
+    )
+)
+
 echo ============================================================
 echo Compiling Main Document
 echo ============================================================
@@ -37,17 +45,25 @@ if errorlevel 1 (
 )
 
 :pdflatex_loop
+set "TEXINPUTS=%OUTPUT_DIR%;%TEXINPUTS%"
 echo Running Stage 1: pdflatex...
 pdflatex -interaction=nonstopmode -halt-on-error -output-directory="%OUTPUT_DIR%" "main.tex"
 if errorlevel 1 goto :failed
 
 echo Running Stage 2: bibtex...
+set "BIBINPUTS=%SOURCE_DIR%;%BIBINPUTS%"
 bibtex "%OUTPUT_DIR%\main"
+
+REM Salin .bbl ke source agar pdflatex menemukan referensi (saat pakai -output-directory)
+if exist "%OUTPUT_DIR%\main.bbl" copy /Y "%OUTPUT_DIR%\main.bbl" "%SOURCE_DIR%\main.bbl" >nul
 
 echo Running Stage 3: pdflatex...
 pdflatex -interaction=nonstopmode -halt-on-error -output-directory="%OUTPUT_DIR%" "main.tex"
 
 echo Running Stage 4: pdflatex...
+pdflatex -interaction=nonstopmode -halt-on-error -output-directory="%OUTPUT_DIR%" "main.tex"
+
+echo Running Stage 5: pdflatex (final for refs)...
 pdflatex -interaction=nonstopmode -halt-on-error -output-directory="%OUTPUT_DIR%" "main.tex"
 if errorlevel 1 goto :failed
 
@@ -57,6 +73,7 @@ popd
 echo Cleaning up intermediate files...
 call :cleanup "%OUTPUT_DIR%"
 call :cleanup "%SOURCE_DIR%"
+if exist "%SOURCE_DIR%\main.bbl" del "%SOURCE_DIR%\main.bbl" 2>nul
 
 echo.
 echo Operation Completed.

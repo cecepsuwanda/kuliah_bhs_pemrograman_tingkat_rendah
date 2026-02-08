@@ -91,6 +91,10 @@
   \item Jelaskan kelebihan dan kekurangan setiap mode addressing! Berikan contoh kasus penggunaan optimal.
   
   \item Mengapa instruksi LEA berbeda dengan MOV dalam hal pengalamatan?
+  
+  \item Berdasarkan tabel perbandingan addressing modes, pilih mode yang paling tepat untuk: (a) inisialisasi register dengan konstanta 100, (b) akses variabel global \asm{result}, (c) akses array 2D \texttt{array[row][col]}. Jelaskan alasannya!
+  
+  \item Jelaskan langkah CPU saat mengeksekusi \asm{MOV AX, [BX+SI+2]}! (Asumsikan BX=1000h, SI=0010h, DS=3000h). Hitung alamat efektif dan alamat fisik.
 \end{enumerate}
 
 \textbf{C. Practical Challenge}
@@ -100,7 +104,7 @@
   \begin{itemize}
     \item Definisikan array 10 bilangan dengan DW
     \item Hitung rata-rata, minimum, maksimum
-    \item Gunakan minimal 4 mode addressing berbeda
+    \item Gunakan minimal 4 mode addressing berbeda (termasuk based indexed \asm{[BX+SI]} atau \asm{[BX+SI+offset]})
     \item Tampilkan hasil dengan interupsi DOS
     \item Dokumentasikan setiap addressing mode yang digunakan
   \end{itemize}

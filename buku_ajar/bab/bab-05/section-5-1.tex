@@ -54,6 +54,20 @@ IDIV BX         ; AX = DX:AX / BX (signed), DX = DX:AX % BX (signed)
   \item Overflow pada MUL/DIV set CF dan OF
 \end{itemize}
 
+\textbf{Contoh Perkalian 16-bit (dari KALI.ASM):}
+\begin{lstlisting}[style=assemblystyle, caption={Perkalian 16-bit, hasil di DX:AX}]
+.DATA
+    A     DW 2000d
+    B     DW 100d
+    HslLo DW ?
+    HslHi DW ?
+.CODE
+    MOV AX, A      ; AX = 2000
+    MUL B          ; DX:AX = AX * B = 2000 * 100 = 200000
+    MOV HslLo, AX  ; Simpan bagian rendah
+    MOV HslHi, DX  ; Simpan bagian tinggi
+\end{lstlisting}
+
 \subsection{Increment dan Decrement}
 Instruksi INC dan DEC untuk operasi +1 dan -1.
 

@@ -1,22 +1,26 @@
 \section{Instruksi Dasar}
 
-Instruksi dasar adalah fundamental untuk pemrograman assembly Intel 8086.
+Instruksi dasar adalah fundamental untuk pemrograman assembly Intel 8086. Setiap instruksi memetakan hampir satu-ke-satu ke kode mesin. Pemahaman kategori instruksi membantu merancang alur program: transfer data untuk inisialisasi dan pengiriman hasil; aritmatika untuk perhitungan; logika untuk masking dan pengujian bit; kontrol alur untuk percabangan dan perulangan.
 
 \subsection{Data Transfer Instructions}
 
+Digunakan untuk memindahkan data antar register, memori, dan konstanta. Inisialisasi register, menyimpan hasil ke memori, dan menyiapkan parameter untuk prosedur/interupsi.
+
 \begin{verbatim}
-; MOV - Move data
+; MOV - Move data (tidak mengubah flag)
 MOV AX, BX        ; AX = BX
 MOV CX, 1234h     ; CX = 4660
 MOV [mem_var], AX ; memory[mem_var] = AX
 MOV DX, [SI]      ; DX = memory[SI]
 
-; XCHG - Exchange data
+; XCHG - Exchange data (swap tanpa register temp)
 XCHG AX, BX       ; Swap AX dan BX
 XCHG CX, DX       ; Swap CX dan DX
 \end{verbatim}
 
 \subsection{Arithmetic Instructions}
+
+Untuk perhitungan numerik. Semua instruksi aritmatika mengubah flag (ZF, CF, SF, OF). \asm{CMP} membandingkan tanpa menyimpan hasil—hanya mengatur flag untuk conditional jump.
 
 \begin{verbatim}
 ; ADD - Addition
@@ -28,44 +32,62 @@ ADD [mem], 10     ; memory[mem] = memory[mem] + 10
 SUB AX, BX        ; AX = AX - BX
 SUB CX, 5         ; CX = CX - 5
 
-; INC/DEC - Increment/Decrement
+; INC/DEC - Increment/Decrement (INC tidak mengubah CF)
 INC AX            ; AX = AX + 1
 DEC BX            ; BX = BX - 1
 
-; MUL/DIV - Multiply/Divide
-MUL BX            ; AX = AL * BX (8-bit)
+; MUL/DIV - Multiply/Divide (AX/DX implisit)
+MUL BX            ; DX:AX = AX * BX (16-bit)
 DIV BX            ; AX / BX -> AL=quotient, AH=remainder
 \end{verbatim}
 
 \subsection{Logic Instructions}
 
+Untuk manipulasi bit: masking (AND), setting bit (OR), toggle (XOR), clear register (XOR reg,reg). \asm{TEST} seperti AND tapi tidak menyimpan hasil—hanya mengatur flag.
+
 \begin{verbatim}
-; AND - Logical AND
-AND AX, 0Fh       ; AX = AX AND 15
+; AND - Logical AND (masking, test bit)
+AND AX, 0Fh       ; AX = AX AND 15 (ambil 4 bit rendah)
 
-; OR - Logical OR
-OR AX, 80h        ; AX = AX OR 128
+; OR - Logical OR (set bit)
+OR AX, 80h        ; AX = AX OR 128 (set bit 7)
 
-; XOR - Logical XOR
-XOR AX, AX        ; AX = 0 (clear register)
+; XOR - Logical XOR (toggle, clear)
+XOR AX, AX        ; AX = 0 (clear register, 2 byte)
 
-; NOT - Logical NOT
-NOT AX            ; AX = NOT AX
+; NOT - Logical NOT (bitwise complement)
+NOT AX            ; AX = ~AX
 
-; SHL/SHR - Shift operations
-SHL AX, 1         ; AX = AX << 1
-SHR AX, 1         ; AX = AX >> 1
+; SHL/SHR - Shift (perkalian/pembagian dengan 2)
+SHL AX, 1         ; AX = AX << 1 (AX * 2)
+SHR AX, 1         ; AX = AX >> 1 (unsigned / 2)
 \end{verbatim}
 
 \subsection{Control Flow Instructions}
+
+Mengendalikan urutan eksekusi. \asm{JMP} unconditional; \asm{JZ}, \asm{JNZ}, \asm{JC}, \asm{JNC} conditional berdasarkan flag. Biasanya didahului \asm{CMP} atau \asm{TEST}.
 
 \begin{verbatim}
 ; JMP - Unconditional jump
 JMP label_name    ; Jump ke label_name
 
-; Conditional jumps
-JZ  zero_flag     ; Jump if zero
-JNZ not_zero      ; Jump if not zero
-JC  carry_flag    ; Jump if carry
-JNC no_carry      ; Jump if no carry
+; Conditional jumps (berdasarkan flag)
+JZ  zero_flag     ; Jump if Zero (ZF = 1)
+JNZ not_zero      ; Jump if Not Zero (ZF = 0)
+JC  carry_flag    ; Jump if Carry (CF = 1)
+JNC no_carry      ; Jump if No Carry (CF = 0)
+\end{verbatim}
+
+\subsection{Contoh Kombinasi Instruksi}
+
+\begin{verbatim}
+; Inisialisasi dan loop: jumlahkan 5 nilai dari array
+    XOR AX, AX        ; AX = 0 (akumulator)
+    MOV CX, 5         ; CX = counter
+    MOV SI, 0         ; SI = indeks
+loop_start:
+    ADD AX, [array+SI] ; AX += array[SI]
+    ADD SI, 2          ; SI += 2 (word = 2 byte)
+    LOOP loop_start   ; CX--; jump jika CX != 0
+    MOV [jumlah], AX   ; simpan hasil
 \end{verbatim}
