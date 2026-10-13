@@ -1,0 +1,84 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab13}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item Prosedur dipakai untuk memperoleh modularitas, penggunaan
+          ulang, dan abstraksi. Biaya pemanggilannya berupa dorongan
+          parameter, \asm{CALL}, \eng{prologue}, \eng{epilogue}, dan
+          \asm{RET}.
+
+    \item \asm{CALL} menyimpan alamat kembali \reg{CS}:\reg{IP} ke
+          stack lalu melompat ke prosedur; \asm{RET} mengambil
+          alamat itu dan mengembalikan kendali kepada pemanggil.
+          Pemanggilan \eng{near} menyimpan \reg{IP} (\dec{2} byte)
+          dan ditutup \asm{RET}, sedangkan pemanggilan \eng{far}
+          menyimpan \reg{CS} dan \reg{IP} (\dec{4} byte) dan ditutup
+          \asm{RETF}.
+
+    \item Stack bekerja secara LIFO dan ditunjuk \reg{SS}:\reg{SP}.
+          Stack 8086 tumbuh ke arah alamat rendah: \asm{PUSH}
+          menurunkan \reg{SP} \dec{2} byte, \asm{POP} menaikkannya
+          kembali. \asm{PUSHF} dan \asm{POPF} menyimpan serta
+          memulihkan register \reg{FLAGS}.
+
+    \item \eng{Stack frame} standar dibangun dengan \eng{prologue}
+          \lstasm|PUSH BP| dan \lstasm|MOV BP, SP|, lalu dibongkar
+          dengan \eng{epilogue} \lstasm|POP BP| dan \asm{RET}.
+          Parameter diakses melalui \code{[BP+4]}, \code{[BP+6]},
+          dan seterusnya; variabel lokal melalui \code{[BP-2]}.
+
+    \item Konvensi pemanggilan mengatur letak parameter, letak nilai
+          balik, dan tanggung jawab pembersihan stack. Pembersihan
+          dilakukan prosedur melalui \asm{RET} \code{n}, atau
+          dilakukan pemanggil melalui \lstasm|ADD SP, n|.
+
+    \item Nilai balik diletakkan pada \reg{AL}, \reg{AX}, atau
+          \reg{DX}:\reg{AX}. Register \reg{AX}, \reg{BX}, \reg{CX},
+          \reg{DX}, dan \reg{ES} boleh dirusak prosedur, sedangkan
+          \reg{BP}, \reg{SI}, \reg{DI}, \reg{DS}, dan \reg{SS} wajib
+          dipulihkan.
+
+    \item Rekursi pada assembly adalah penumpukan bingkai stack.
+          Rekursi memakai stack $O(n)$ dan berisiko \eng{stack
+          overflow}, sedangkan versi iteratif biasanya memakai stack
+          tetap $O(1)$.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menjelaskan perbedaan \asm{CALL}
+          \eng{near} dan \asm{CALL} \eng{far} beserta isi stack
+          masing-masing.
+    \item[\checkbox] Saya dapat menggambar isi stack sel per sel
+          sebelum dan sesudah \asm{PUSH}, \asm{CALL}, dan \asm{POP}.
+    \item[\checkbox] Saya dapat menuliskan \eng{prologue} dan
+          \eng{epilogue} prosedur yang benar.
+    \item[\checkbox] Saya dapat mengakses parameter melalui
+          \code{[BP+4]} dan \code{[BP+6]} dengan urutan yang tepat.
+    \item[\checkbox] Saya dapat memilih cara pengiriman parameter
+          yang sesuai beserta alasannya.
+    \item[\checkbox] Saya dapat mengembalikan nilai prosedur melalui
+          \reg{AX} dan menjelaskan peran \asm{RET} \code{n}.
+    \item[\checkbox] Saya dapat menulis prosedur rekursif yang
+          memiliki kasus basis dan menjelaskan risiko
+          \eng{stack overflow}.
+    \item[\checkbox] Saya dapat memperbaiki program yang stack-nya
+          tidak seimbang.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke bab berikutnya.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
+\cite{bodur}, \cite{hyde2010}, \cite{bartlett2004}, dan
+\cite{uva2024}. Untuk penelusuran lebih dalam mengenai konvensi
+pemanggilan dan pengelolaan \eng{stack frame}, lihat
+\cite{hyde2010} dan \cite{uva2024}.
+\end{infobox}

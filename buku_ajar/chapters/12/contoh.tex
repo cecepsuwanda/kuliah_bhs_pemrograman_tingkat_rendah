@@ -1,0 +1,96 @@
+\section{Contoh Program}
+\label{sec:contoh-bab12}
+
+Bagian ini menyajikan dua program utuh yang memakai seluruh bahan pada
+bab ini: \asm{CMP} sebagai penyiap \eng{flag}, lompatan bersyarat,
+perulangan \asm{LOOP}, dan prosedur dengan \asm{CALL} serta \asm{RET}.
+
+\subsection{Contoh 1: Mencari Nilai Maksimum Larik}
+
+Program pada Kode~\ref{lst:loop-maksimum} mencari nilai terbesar
+dalam sebuah larik bilangan 16-bit, lalu mencetaknya sebagai bilangan
+desimal.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{loop-maksimum.asm} mencari nilai maksimum
+    dalam larik.},
+    label={lst:loop-maksimum}
+]{\CodeDir/loop-maksimum.asm}
+
+Alur programnya adalah sebagai berikut.
+
+\begin{enumerate}
+    \item \lstasm|LEA SI, deret| menempatkan alamat elemen pertama
+          pada \reg{SI}; karena elemen dideklarasikan dengan \dir{DW},
+          penunjuk dimajukan dengan \lstasm|ADD SI, 2|.
+    \item \lstasm|MOV CX, BANYAK - 1| menetapkan banyak pembandingan:
+          elemen pertama sudah menjadi kandidat, sehingga hanya $n-1$
+          elemen yang perlu diperiksa.
+    \item Di dalam label \code{CARI}, instruksi
+          \lstasm|CMP AX, [SI]| menyiapkan \eng{flag}, lalu
+          \asm{JAE LANJUT} mengambil keputusan. Pemakaian \asm{JAE}
+          dan bukan \asm{JGE} disengaja: data pada larik diperlakukan
+          sebagai bilangan \emph{tak bertanda}.
+    \item \asm{LOOP CARI} mengurangi \reg{CX} dan mengulang
+          perbandingan selama masih ada elemen yang belum diperiksa.
+    \item Setelah perulangan berakhir, \reg{AX} berisi nilai
+          maksimum yang dicetak prosedur \code{CETAK\_DESIMAL}
+          dengan layanan DOS fungsi \hex{02}.
+\end{enumerate}
+
+Prosedur \code{CETAK\_DESIMAL} membagi \reg{AX} dengan \dec{10} secara
+berulang, menyimpan sisa pembagian ke \eng{stack}, lalu mencetak
+digit tersebut dari depan ke belakang (Bab~\ref{chap:prosedur}).
+
+\begin{session}[caption={Keluaran program \file{loop-maksimum.asm}.},
+label={lst:keluaran-maksimum}]
+Nilai maksimum: 93
+\end{session}
+
+\subsection{Contoh 2: Pengurutan Gelembung}
+
+Program pada Kode~\ref{lst:bubble-sort} mengurutkan larik delapan byte
+secara menaik dengan algoritme pengurutan gelembung.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{bubble-sort.asm} mengurutkan larik dengan
+    algoritme gelembung.},
+    label={lst:bubble-sort}
+]{\CodeDir/bubble-sort.asm}
+
+Bagian terpenting program ini adalah perulangan bersarangnya.
+
+\begin{itemize}
+    \item \textbf{Perulangan luar} (\code{LINTASAN}) dijalankan
+          $n-1 = 7$ kali; setiap lintasan memastikan satu elemen
+          tambahan menempati posisi akhirnya.
+    \item \textbf{Perulangan dalam} (\code{BANDING}) membandingkan
+          pasangan bersebelahan; \reg{SI} menunjuk elemen kiri dan
+          \reg{DI} elemen kanan.
+    \item \asm{JBE TIDAK\_TUKAR} memeriksa apakah pasangan sudah
+          urut. Bila belum, ketiga instruksi berikutnya menukar isi
+          kedua posisi.
+\end{itemize}
+
+Karena kedua perulangan memakai register \reg{CX} sebagai pencacah,
+nilai \reg{CX} milik perulangan luar harus diselamatkan lebih dahulu
+dengan \asm{PUSH CX}, lalu diambil kembali dengan \asm{POP CX} setelah
+perulangan dalam selesai. Bila langkah ini dilupakan, perulangan dalam
+akan menimpa pencacah luar sampai bernilai nol, lalu \asm{LOOP} luar
+menguranginya menjadi \hex{FFFF} dan perulangan berjalan tanpa henti.
+
+\begin{session}[caption={Keluaran program \file{bubble-sort.asm}.},
+label={lst:keluaran-bubble}]
+Hasil pengurutan: 1 2 3 4 6 7 8 9
+\end{session}
+
+\begin{infobox}
+Kedua program di atas dapat ditelusuri langkah demi langkah pada
+Emu8086 dengan tombol \file{Single Step} (teknik \eng{debugging} yang
+diuraikan pada Bab~\ref{chap:debugging}). Perhatikan keadaan
+\flag{ZF} dan \flag{CF} tepat sebelum setiap lompatan bersyarat:
+inilah cara paling cepat untuk memastikan bahwa instruksi \asm{Jcc}
+yang dipilih memang sesuai dengan jenis data yang dibandingkan.
+\end{infobox}

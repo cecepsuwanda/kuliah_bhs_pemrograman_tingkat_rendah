@@ -1,0 +1,75 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Instruksi Transfer Data dan Aritmatika}
+\label{chap:aritmatika}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{3.1} --- Menulis program assembly lengkap menggunakan
+instruksi transfer data (\asm{MOV}, \asm{XCHG}, \asm{LEA},
+\asm{PUSH}/\asm{POP}) dan instruksi aritmatika (\asm{ADD}, \asm{SUB},
+\asm{INC}, \asm{DEC}, \asm{MUL}, \asm{IMUL}, \asm{DIV}, \asm{IDIV}).
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{03} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menerapkan aturan legalitas instruksi \asm{MOV} serta
+          mengatasi pemindahan yang tidak diizinkan dengan register
+          perantara;
+    \item membedakan \asm{MOV} dan \asm{LEA} berdasarkan apa yang
+          dipindahkan: nilai data atau alamat data;
+    \item menggunakan \asm{PUSH} dan \asm{POP} untuk menyimpan serta
+          mengambil kembali data pada \eng{stack};
+    \item menjelaskan pengaruh instruksi aritmatika terhadap
+          \flag{CF}, \flag{ZF}, \flag{SF}, \flag{OF}, \flag{AF}, dan
+          \flag{PF};
+    \item menuliskan operasi perkalian dan pembagian dengan aturan
+          operand implisit yang benar;
+    \item mengenali dan menangani kesalahan \eng{divide overflow};
+    \item menyusun aritmatika bertingkat (lebih dari 16 bit) dengan
+          \asm{ADC} dan \asm{SBB};
+    \item mengubah nilai biner di register menjadi deretan digit
+          desimal dan mencetaknya ke layar.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Instruksi transfer data: \asm{MOV}, \asm{XCHG}, \asm{LEA},
+          \asm{LDS}/\asm{LES}, \asm{PUSH}/\asm{POP}.
+    \item Aturan legalitas \asm{MOV} dan pemakaian register perantara.
+    \item Perbedaan \asm{MOV} dan \asm{LEA}.
+    \item Instruksi aritmatika dasar: \asm{ADD}, \asm{ADC}, \asm{SUB},
+          \asm{SBB}, \asm{INC}, \asm{DEC}, \asm{NEG}, \asm{CMP} beserta
+          pengaruhnya pada \eng{flag}.
+    \item Perkalian dan pembagian: \asm{MUL}, \asm{IMUL}, \asm{DIV},
+          \asm{IDIV}, operand implisit, dan \eng{divide overflow}.
+    \item Operasi bertanda (\eng{signed}) dan tak bertanda
+          (\eng{unsigned}).
+    \item Aritmatika bertingkat dengan \asm{ADC} dan \asm{SBB}.
+    \item Konversi biner ke desimal dan pencetakannya.
+    \item Studi kasus: kalkulator empat operasi sederhana.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

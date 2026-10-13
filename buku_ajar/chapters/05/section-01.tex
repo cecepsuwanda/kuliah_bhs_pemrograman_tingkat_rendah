@@ -1,0 +1,183 @@
+\section{Register Umum dan Register Segmen}
+\label{sec:register-umum}
+
+Seluruh pekerjaan prosesor dilakukan di atas sekumpulan tempat
+penyimpanan kecil yang berada langsung di dalam cip prosesor. Tempat
+penyimpanan itu disebut \term{register}. Register adalah memori
+tercepat yang dimiliki komputer: satu register dapat dibaca atau
+ditulis dalam satu daur mesin, jauh lebih cepat daripada mengakses
+memori utama yang harus melewati bus.
+
+Prosesor 8086 memiliki empat belas register yang dapat dipakai
+programmer. Masing-masing berukuran 16 bit, sehingga dapat menampung
+nilai \hex{0000} sampai \hex{FFFF}. Keempat belas register tersebut
+dikelompokkan menjadi empat kelompok: register umum, register segmen,
+register \eng{pointer} dan \eng{index}, serta register \eng{flag}.
+Bab ini membahas keempat kelompok tersebut satu per satu.
+Pembahasan mengenai organisasi internal prosesor secara menyeluruh
+telah disinggung pada Bab~\ref{chap:arsitektur-8086}.
+
+\subsection{Register Umum dan Akses Byte}
+
+Empat register pertama, yaitu \reg{AX}, \reg{BX}, \reg{CX}, dan
+\reg{DX}, disebut \term{register umum} (\eng{general purpose
+register}). Disebut umum karena keempatnya dapat dipakai untuk
+hampir semua keperluan: menampung hasil hitungan, menyimpan alamat,
+menjadi penghitung, atau sekadar tempat sementara.
+
+Keistimewaan keempat register ini terletak pada kemampuannya diakses
+sebagai dua bagian 8 bit yang terpisah. Setiap register 16 bit
+terbagi menjadi \term{byte tinggi} (\eng{high byte}) dan \term{byte
+rendah} (\eng{low byte}), seperti tampak pada Tabel~\ref{tab:register-umum}.
+
+\begin{table}[H]
+    \centering
+    \caption{Register umum 8086 dan akses byte rendah/tinggi.}
+    \label{tab:register-umum}
+    \small
+    \begin{tabular}{@{}llllp{4.6cm}@{}}
+        \toprule
+        \textbf{Register} & \textbf{Byte tinggi} &
+        \textbf{Byte rendah} & \textbf{Ukuran} & \textbf{Peran khas} \\
+        \midrule
+        \reg{AX} & \reg{AH} & \reg{AL} & 16 bit (2 $\times$ 8 bit)
+        & Akumulator: hasil hitungan, operand wajib \asm{MUL}/\asm{DIV},
+        layanan DOS \\
+        \addlinespace
+        \reg{BX} & \reg{BH} & \reg{BL} & 16 bit (2 $\times$ 8 bit)
+        & Basis: penunjuk alamat memori pada mode terindeks \\
+        \addlinespace
+        \reg{CX} & \reg{CH} & \reg{CL} & 16 bit (2 $\times$ 8 bit)
+        & Pencacah: pengulangan \asm{LOOP}, operasi string, posisi bit
+        \asm{SHL}/\asm{SHR} \\
+        \addlinespace
+        \reg{DX} & \reg{DH} & \reg{DL} & 16 bit (2 $\times$ 8 bit)
+        & Data: pasangan \reg{AX} pada \asm{MUL}/\asm{DIV}, alamat port
+        I/O dan layanan DOS \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Akses byte ini sangat menghemat memori dan langkah kerja. Untuk
+menyimpan nilai 5, cukup satu instruksi:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AL, 5       ; hanya byte rendah AX yang berubah (AH tetap)
+\end{lstlisting}
+
+Sebaliknya, \lstasm|MOV AX, 5| menulis kedua bagian sekaligus:
+\reg{AH} menjadi \hex{00} dan \reg{AL} menjadi \hex{05}. Perbedaan
+ini penting karena \lstasm|MOV AL, 5| \emph{tidak} mengosongkan
+\reg{AH}. Bila sebelumnya \reg{AH} bernilai \hex{FF}, maka setelah
+\lstasm|MOV AL, 5| register \reg{AX} bernilai \hex{FF05}, bukan
+\hex{0005}.
+
+\subsection{Mengapa Peran Setiap Register Berbeda}
+
+Keempat register umum sebenarnya sama-sama dapat menampung nilai apa
+pun. Meskipun demikian, konvensi pemakaiannya berbeda-beda. Perbedaan
+ini bukan sekadar kebiasaan, melainkan akibat cara prosesor 8086
+menyandikan instruksinya \cite{intel1979}. Beberapa instruksi
+memberikan perlakuan khusus kepada register tertentu.
+
+\begin{description}
+    \item[\reg{AX} sebagai akumulator] Operasi \asm{MUL}, \asm{DIV},
+          \asm{IN}, \asm{OUT}, dan sebagian besar layanan DOS
+          mengandaikan operand berada di \reg{AX} atau \reg{AL}.
+          Instruksi yang melibatkan akumulator juga memiliki bentuk
+          mesin yang lebih pendek sehingga lebih cepat.
+
+    \item[\reg{BX} sebagai basis] Hanya \reg{BX} yang boleh menjadi
+          register basis di dalam tanda kurung, misalnya
+          \lstasm|MOV AL, [BX]|. Register umum lain tidak dapat
+          dipakai dengan cara itu. Aturan mode pengalamatan ini
+          dibahas pada Bab~\ref{chap:mode-pengalamatan}.
+
+    \item[\reg{CX} sebagai pencacah] Instruksi \asm{LOOP}, \asm{REP},
+          dan operasi string memakai \reg{CX} sebagai penghitung
+          otomatis. Instruksi \asm{SHL} dan \asm{SHR} juga memakai
+          \reg{CL} sebagai jumlah pergeseran.
+
+    \item[\reg{DX} sebagai pasangan data] Pada perkalian dan
+          pembagian, \reg{DX} bersama \reg{AX} membentuk bilangan 32
+          bit: \reg{DX} menyimpan bagian tinggi. Pada layanan DOS,
+          \reg{DX} menyimpan alamat string atau nomor port.
+\end{description}
+
+Pemahaman mengenai peran khas ini memudahkan membaca program orang
+lain. Ketika melihat \lstasm|MOV CX, 10|, programmer langsung
+menduga bahwa instruksi itu menyiapkan pengulangan sepuluh kali.
+
+\begin{infobox}
+Register umum boleh dipakai di luar peran khasnya. Yang tidak boleh
+adalah melanggar aturan khusus: \lstasm|MUL BX| selalu memakai
+\reg{AX} sebagai operand tersembunyi, sedangkan
+\lstasm|MOV AX, [CX]| tidak sah karena \reg{CX} bukan register basis
+yang diizinkan.
+\end{infobox}
+
+\subsection{Register Segmen}
+
+Empat register berikutnya, yaitu \reg{CS}, \reg{DS}, \reg{SS}, dan
+\reg{ES}, disebut \term{register segmen}. Register segmen tidak
+menyimpan data yang dihitung, melainkan menyimpan \emph{nomor
+segmen} tempat data atau instruksi berada. Pada arsitektur 8086,
+alamat memori dibentuk dari pasangan nomor segmen dan \eng{offset},
+seperti yang telah dijelaskan pada Bab~\ref{chap:segmentasi}.
+
+\begin{table}[H]
+    \centering
+    \caption{Register segmen dan perannya pada pengalamatan memori.}
+    \label{tab:register-segmen}
+    \small
+    \begin{tabular}{@{}lp{4.6cm}p{6.0cm}@{}}
+        \toprule
+        \textbf{Register} & \textbf{Nama lengkap} &
+        \textbf{Peran} \\
+        \midrule
+        \reg{CS} & \eng{Code Segment} & Menunjuk segmen tempat
+        instruksi program berada; berpasangan dengan \reg{IP} \\
+        \addlinespace
+        \reg{DS} & \eng{Data Segment} & Menunjuk segmen tempat
+        variabel berada; dipakai pada hampir semua akses data \\
+        \addlinespace
+        \reg{SS} & \eng{Stack Segment} & Menunjuk segmen tempat
+        \eng{stack} berada; berpasangan dengan \reg{SP} dan \reg{BP} \\
+        \addlinespace
+        \reg{ES} & \eng{Extra Segment} & Segmen tambahan; dipakai
+        sebagai segmen tujuan pada operasi string bersama \reg{DI} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Setiap akses memori pada dasarnya bermain dengan pasangan register
+segmen--offset berikut.
+
+\begin{itemize}
+    \item \reg{CS}:\reg{IP} --- alamat instruksi berikutnya yang
+          akan diambil.
+    \item \reg{DS}:\reg{SI}, \reg{DS}:\reg{BX}, atau \reg{DS} plus
+          offset --- alamat data umum.
+    \item \reg{SS}:\reg{SP} atau \reg{SS}:\reg{BP} --- alamat di
+          dalam \eng{stack}.
+    \item \reg{ES}:\reg{DI} --- alamat tujuan operasi string.
+\end{itemize}
+
+Karena itu, program \file{.EXE} wajib menginisialisasi \reg{DS} di
+awal program. Tanpa inisialisasi tersebut, \reg{DS} masih berisi
+nilai peninggalan DOS dan instruksi seperti
+\lstasm|MOV AX, nilai| membaca alamat yang salah.
+
+\begin{peringatanbox}
+Dua kesalahan yang sering terjadi pada register segmen.
+\begin{enumerate}
+    \item Menulis nilai segera langsung ke register segmen, misalnya
+          \lstasm|MOV DS, 1000h|. Instruksi ini \emph{tidak sah}.
+          Nilai hanya boleh dipindahkan dari register umum:
+          \lstasm|MOV AX, 1000h| lalu \lstasm|MOV DS, AX|.
+    \item Mengubah \reg{DS} di tengah program tanpa menyimpan nilai
+          lamanya. Setelah itu, seluruh variabel pada segmen data
+          lama tidak dapat dijangkau lagi sampai \reg{DS}
+          dikembalikan.
+\end{enumerate}
+\end{peringatanbox}

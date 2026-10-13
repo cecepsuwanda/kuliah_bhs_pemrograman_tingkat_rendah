@@ -1,0 +1,191 @@
+\section{Praktikum}
+\label{sec:praktikum-bab16}
+
+\begin{praktikumbox}
+\textbf{Judul:} Menganalisis, mengoptimasi, dan mengukur program pada
+level instruksi.\\[0.3em]
+\textbf{Sub-CPMK:} 4.3 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 150 menit \quad\textbullet\quad
+\textbf{Bentuk:} kelompok (2--3 mahasiswa) dan laporan individu
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu membongkar
+program menjadi kode mesin, menemukan inefisiensi berdasarkan metrik,
+menulis versi perbaikan, serta membuktikan perbaikannya melalui
+pengukuran yang adil.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan DOSBox dan MS-DEBUG, atau Emu8086.
+    \item TASM dan TLINK (atau GUI Turbo Assembler).
+    \item Berkas \file{naif.asm}, \file{teroptimasi.asm}, dan
+          \file{teroptimasi-unroll.asm} dari \file{code/asm/}.
+    \item Lembar kerja pengukuran dan formulir jurnal praktikum.
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Merakit dan menjalankan tiga versi program.}
+    \begin{enumerate}
+        \item Rakit ketiga berkas dengan perintah \file{tasm} dan
+              \file{tlink} di dalam DOSBox.
+        \item Jalankan tiap versi, lalu periksa isi variabel
+              \code{hasil} melalui jendela memori Emu8086 atau perintah
+              \code{D} pada DEBUG untuk memastikan ketiganya
+              menghasilkan \hex{1130}.
+        \item Catat panjang berkas \file{.exe} masing-masing versi.
+    \end{enumerate}
+
+    \item \textbf{Membongkar kode mesin.}
+    \begin{enumerate}
+        \item Muat program dengan perintah \code{N} dan \code{L} pada
+              DEBUG, lalu bongkar mulai titik masuk program dengan
+              perintah \code{U}.
+        \item Catat alamat, byte mesin, dan \eng{mnemonic} setiap
+              instruksi pada lembar kerja.
+        \item Tandai setiap pola yang telah dipelajari pada
+              Tabel~\ref{tab:pola-disassembly}: perulangan,
+              inisialisasi segmen, dan sebagainya.
+        \item Ulangi untuk versi teroptimasi, lalu susun kedua hasil
+              secara berdampingan seperti pada
+              Gambar~\ref{fig:disasm-bandingan}.
+    \end{enumerate}
+
+    \item \textbf{Mengidentifikasi inefisiensi.}
+    \begin{enumerate}
+        \item Tandai instruksi pada versi naif yang memakai akses
+              memori berulang, memuat konstanta panjang, atau
+              memakai \asm{MUL}/\asm{DIV}.
+        \item Hitung perkiraan siklus bagian yang diukur dengan
+              bantuan Tabel~\ref{tab:siklus-8086-perkiraan}.
+        \item Tuliskan usulan perbaikan beserta alasan dan syarat
+              berlakunya.
+    \end{enumerate}
+
+    \item \textbf{Menulis versi perbaikan sendiri.}
+    \begin{enumerate}
+        \item Salin \file{naif.asm} menjadi \file{optimasi-anda.asm}.
+        \item Terapkan minimal tiga teknik dari
+              Tabel~\ref{tab:strength-reduction}.
+        \item Pastikan keluaran tetap sama: variabel \code{hasil}
+              harus tetap bernilai \hex{1130}.
+    \end{enumerate}
+
+    \item \textbf{Mengukur secara adil.}
+    \begin{enumerate}
+        \item Tambahkan penghitung iterasi dan pencatat waktu
+              \code{INT 1Ah} fungsi \hex{00} seperti pada
+              Subbab~\ref{sec:optimasi-instruksi}.
+        \item Ukur ketiga versi (naif, teroptimasi, dan
+              \file{optimasi-anda.asm}) dengan larik dan jumlah
+              iterasi yang sama.
+        \item Ulangi setiap pengukuran lima kali, buang percobaan
+              pertama, lalu hitung nilai tengahnya.
+        \item Isi Tabel~\ref{tab:hasil-pengukuran-16} dengan hasil
+              pengukuran Anda, bukan dengan angka perkiraan.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Berkas \file{optimasi-anda.asm} yang dapat dirakit tanpa
+          kesalahan.
+    \item Tabel perbandingan hasil \eng{disassembly} versi naif dan
+          versi perbaikan.
+    \item Tabel hasil pengukuran sebelum dan sesudah, lengkap dengan
+          perkiraan siklus dan jumlah akses memori.
+    \item Analisis singkat: teknik mana yang memberi perbaikan
+          terbesar, dan teknik mana yang menambah ukuran kode.
+\end{enumerate}
+
+\subsection{Studi Kasus dan Presentasi Proyek Akhir}
+
+Praktikum terakhir semester ini sekaligus menjadi tempat studi kasus
+dan presentasi proyek akhir. Setiap kelompok memilih satu program
+dari bab-bab sebelumnya, lalu menjalankan seluruh alur kerja bab ini
+terhadap program tersebut.
+
+\begin{studikasusbox}
+\textbf{Studi kasus: ``Program mahasiswa yang lambat''.} Sebuah
+program pengolah larik buatan mahasiswa memerlukan waktu yang jauh
+lebih lama daripada perkiraan pemiliknya. Program itu benar dan
+keluarannya tepat, sehingga tidak ada kesalahan yang dapat ditemukan
+dengan \eng{debugging} biasa. Tugas kelompok adalah menemukan
+penyebabnya dengan perintah \code{U}, menunjukkannya melalui metrik,
+memperbaikinya, dan membuktikan perbaikan itu dengan pengukuran.
+
+\vspace{0.4em}
+\textbf{Panduan singkat presentasi (7 menit + 3 menit tanya jawab):}
+\begin{enumerate}
+    \item Tampilkan potongan hasil \eng{disassembly} sebelum dan
+          sesudah, dan tunjuk satu instruksi yang menjadi biang
+          kelambatan (2 menit).
+    \item Jelaskan teknik optimasi yang dipilih beserta syarat
+          berlakunya (2 menit).
+    \item Tampilkan tabel pengukuran sebelum dan sesudah; sebutkan
+          metrik yang dipakai dan asumsi pengukurannya (2 menit).
+    \item Nyatakan batas pekerjaan: apa yang \emph{tidak} berubah
+          dan risiko apa yang masih tersisa (1 menit).
+\end{enumerate}
+Semua anggota kelompok harus mengambil bagian berbicara, dan setiap
+klaim perbaikan wajib disertai angka.
+\end{studikasusbox}
+
+\begin{asesmenbox}
+\textbf{Asesmen praktikum 15 (bobot 15\% dari komponen praktikum).}
+
+\begin{tabular}{@{}p{6.0cm}cp{4.8cm}@{}}
+    \toprule
+    \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \midrule
+    Ketepatan hasil \eng{disassembly} & 25\% &
+    Alamat, byte mesin, dan \eng{mnemonic} tercatat benar serta pola
+    dikenali dengan tepat \\
+    \addlinespace
+    Kualitas identifikasi inefisiensi & 20\% &
+    Minimal tiga inefisiensi ditemukan dan dikaitkan dengan metrik \\
+    \addlinespace
+    Kebenaran versi perbaikan & 25\% &
+    Program berjalan, hasil \hex{1130} tetap, dan minimal tiga
+    teknik optimasi diterapkan sesuai syaratnya \\
+    \addlinespace
+    Keabsahan pengukuran & 20\% &
+    Masukan dan jumlah iterasi sama; pengukuran diulang dan nilai
+    tengah dilaporkan \\
+    \addlinespace
+    Kerapian laporan dan jurnal & 10\% &
+    Langkah kerja dapat diulang oleh pembaca lain \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}
+
+\begin{asesmenbox}
+\textbf{Rubrik presentasi proyek akhir (bobot 10\% dari komponen
+praktikum).}
+
+\begin{tabular}{@{}p{4.2cm}p{1.6cm}p{5.0cm}@{}}
+    \toprule
+    \textbf{Aspek} & \textbf{Bobot} & \textbf{Kriteria penilaian} \\
+    \midrule
+    Penguasaan hasil \eng{disassembly} & 25\% &
+    Dapat menjelaskan makna byte dan pola tiap instruksi yang
+    ditampilkan \\
+    \addlinespace
+    Argumentasi optimasi & 25\% &
+    Setiap perubahan disertai alasan, syarat berlaku, dan
+    kesadaran akan trade-off \\
+    \addlinespace
+    Bukti pengukuran & 25\% &
+    Tabel sebelum/sesudah lengkap; keadilan pengukuran dijelaskan \\
+    \addlinespace
+    Penyajian dan tanya jawab & 25\% &
+    Sistematis, waktu terpenuhi, seluruh anggota berbicara, jawaban
+    tepat sasaran \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

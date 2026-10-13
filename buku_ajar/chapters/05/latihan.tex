@@ -1,0 +1,71 @@
+\section{Latihan}
+\label{sec:latihan-bab5}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan apa yang dimaksud dengan
+          register, lalu sebutkan empat kelompok register 8086
+          beserta satu contoh register pada setiap kelompok.
+
+    \item \textbf{Konseptual.} Sebuah register \reg{AX} berisi
+          \hex{ABCD}. Tentukan nilai \reg{AH} dan \reg{AL} setelah
+          instruksi \lstasm|MOV AL, 55h| dijalankan. Jelaskan
+          mengapa \reg{AH} tidak berubah.
+
+    \item \textbf{Analisis peran register.} Seorang programmer ingin
+          menjumlahkan dua nilai, menyimpan hasilnya, lalu
+          mengulangi proses sebanyak sepuluh kali. Register mana
+          yang paling tepat dipakai untuk menampung hasil dan
+          register mana yang tepat menjadi pencacah pengulangan?
+          Jelaskan alasan pemilihan Anda.
+
+    \item \textbf{Register segmen.} Jelaskan perbedaan peran
+          \reg{CS}, \reg{DS}, \reg{SS}, dan \reg{ES}. Mengapa
+          register \reg{DS} harus diinisialisasi pada awal program
+          \file{.EXE}, sedangkan \reg{CS} tidak perlu diubah?
+
+    \item \textbf{Analisis flag.} Untuk setiap kasus berikut,
+          tentukan nilai \flag{CF}, \flag{OF}, \flag{SF}, dan
+          \flag{ZF} setelah instruksi \lstasm|ADD AL, BL|
+          dijalankan. Sertakan penjelasan singkat.
+          \begin{enumerate}
+              \item \reg{AL} = \hex{7F}, \reg{BL} = \hex{01}
+              \item \reg{AL} = \hex{80}, \reg{BL} = \hex{80}
+              \item \reg{AL} = \hex{FF}, \reg{BL} = \hex{01}
+              \item \reg{AL} = \hex{05}, \reg{BL} = \hex{05}
+          \end{enumerate}
+
+    \item \textbf{Penulisan program.} Tulislah program lengkap yang
+          memuat nilai \hex{1234} ke register \reg{AX} dan
+          \hex{5678} ke register \reg{BX}, kemudian menukar isi
+          kedua register tersebut dengan satu instruksi \asm{XCHG}.
+          Setelah itu, tuliskan versi kedua yang menukar keduanya
+          melalui \asm{PUSH} dan \asm{POP}, lalu jelaskan register
+          mana yang berperan pada versi kedua tersebut.
+
+    \item \textbf{Penulisan program.} Tulislah potongan program yang
+          memuat \hex{F0} ke \reg{AL} dan \hex{10} ke \reg{BL},
+          menjalankan \lstasm|ADD AL, BL|, lalu mencetak pesan
+          ``NOL'' bila \flag{ZF} bernilai 1 dan pesan ``BUKAN NOL''
+          bila \flag{ZF} bernilai 0. Gunakan instruksi \asm{JZ} dan
+          \asm{JMP}.
+
+    \item \textbf{Analisis kesalahan.} Sebuah program berisi urutan
+          \lstasm|MOV SP, 0000h| sebelum memanggil prosedur.
+          Jelaskan mengapa tindakan itu berbahaya dan apa yang akan
+          terjadi saat instruksi \asm{RET} dijalankan.
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Dari empat kelompok register, kelompok mana yang paling
+          sulit Anda pahami? Bagian mana yang masih membingungkan?
+    \item Ketika memprediksi \eng{flag} pada
+          Tabel~\ref{tab:prediksi-flag}, berapa banyak prediksi Anda
+          yang benar? Kesalahan Anda paling banyak terjadi pada
+          \eng{flag} apa, dan apa penyebabnya?
+    \item Setelah mengamati perubahan register secara langsung,
+          konsep apa yang menurut Anda paling penting untuk diingat
+          sebelum mempelajari bab berikutnya?
+\end{enumerate}
+\end{refleksibox}

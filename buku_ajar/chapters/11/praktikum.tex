@@ -1,0 +1,166 @@
+\section{Praktikum}
+\label{sec:praktikum-bab11}
+
+\begin{praktikumbox}
+\textbf{Judul:} Manipulasi bit --- pemeriksaan paritas dan
+\eng{packing} BCD.\\[0.3em]
+\textbf{Sub-CPMK:} 3.2 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu memanipulasi bit
+sebuah byte, memeriksa paritas data, serta menyusun dan memisahkan dua
+digit BCD dalam satu byte. Praktikum ditutup dengan \textbf{Kuis 3}.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan sistem operasi Windows.
+    \item Emu8086 atau GUI Turbo Assembler beserta TASM dan TLINK.
+    \item Berkas contoh \file{paritas.asm} dan \file{xor-cipher.asm}
+          dari \file{code/asm/}.
+    \item Lembar pengamatan Tabel~\ref{tab:pengamatan-bit}.
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Menelusuri program paritas.}
+    \begin{enumerate}
+        \item Muat \file{paritas.asm} dan jalankan dengan
+              \file{Single Step}.
+        \item Catat \reg{AL}, \reg{BL}, dan \flag{CF} setelah setiap
+              putaran \lstasm|SHR AL, 1| pada
+              Tabel~\ref{tab:pengamatan-bit}.
+        \item Ubah byte uji menjadi \bin{1011 0111} dan
+              \bin{0101 0101}, lalu catat paritas ketiga nilai.
+    \end{enumerate}
+
+    \item \textbf{Melatih manipulasi bit ke-$n$.}
+    \begin{enumerate}
+        \item Isikan \hex{A5} ke \reg{AL}, lalu nyalakan bit ke-3
+              dengan \lstasm|OR AL, 08h| dan catat hasilnya.
+        \item Padamkan kembali bit ke-3 dengan \lstasm|AND AL, 0F7h|.
+        \item Balikkan bit ke-6 dengan \lstasm|XOR AL, 40h| dua kali.
+        \item Uji bit ke-6 dengan \lstasm|TEST AL, 40h| dan catat
+              \flag{ZF}.
+    \end{enumerate}
+
+    \item \textbf{\eng{Packing} dan \eng{unpacking} BCD.}
+    \begin{enumerate}
+        \item Susun puluhan $= 7$ dan satuan $= 5$ menjadi satu byte
+              BCD memakai \asm{SHL} dan \asm{OR}, lalu pisahkan kembali
+              dengan \asm{AND} dan \asm{SHR}.
+        \item Ulangi untuk pasangan digit $9$ dan $3$, lalu periksa
+              hasilnya pada jendela memori Emu8086.
+    \end{enumerate}
+
+    \item \textbf{Pergeseran dan rotasi.}
+    \begin{enumerate}
+        \item Muat \reg{AX} dengan $-106$ (\hex{FF96}), lalu bandingkan
+              \lstasm|SHR AX, 1| dan \lstasm|SAR AX, 1| dalam bentuk
+              biner dan jelaskan perbedaannya.
+        \item Putar \reg{AL} = \hex{81} dengan \lstasm|ROL AL, 1| lalu
+              \lstasm|ROR AL, 1|, dan catat \flag{CF} pada
+              masing-masing kasus.
+    \end{enumerate}
+
+    \item \textbf{Perkalian cepat.} Hitung $7 \times 12$ tanpa
+          \asm{MUL}, yaitu sebagai $(7 \times 4) + (7 \times 8)$, lalu
+          verifikasi hasilnya.
+
+    \item \textbf{Menyelesaikan Kuis 3} pada akhir praktikum.
+\end{enumerate}
+
+\begin{table}[H]
+    \centering
+    \caption{Lembar pengamatan pencacahan bit 1 pada program
+    \file{paritas.asm}.}
+    \label{tab:pengamatan-bit}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabular}{@{}p{1.6cm}p{2.6cm}p{2.0cm}p{1.6cm}p{2.6cm}p{2.2cm}@{}}
+        \toprule
+        \textbf{Putaran} & \textbf{Nilai \reg{AL} (biner)} &
+        \textbf{\flag{CF}} & \textbf{\reg{BL}} &
+        \textbf{Byte uji} & \textbf{Paritas} \\
+        \midrule
+        1 & \dots & \dots & \dots & \bin{1011 0110} & \dots \\
+        \addlinespace
+        2 & \dots & \dots & \dots & \bin{1011 0110} & \dots \\
+        \addlinespace
+        3 & \dots & \dots & \dots & \bin{1011 0110} & \dots \\
+        \addlinespace
+        \dots & \dots & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        8 & \dots & \dots & \dots & \bin{1011 0110} & \dots \\
+        \addlinespace
+        Akhir & \dots & \dots & \dots & \bin{1011 0111} & \dots \\
+        \addlinespace
+        Akhir & \dots & \dots & \dots & \bin{0101 0101} & \dots \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Tabel~\ref{tab:pengamatan-bit} yang telah dilengkapi.
+    \item Berkas program manipulasi bit ke-$n$ hasil modifikasi.
+    \item Berkas program \eng{packing} BCD beserta tangkapan layar
+          jendela memori.
+    \item Tabel perbandingan \asm{SHR} dan \asm{SAR} pada bilangan
+          negatif.
+    \item Lembar jawaban Kuis 3.
+\end{enumerate}
+
+\subsection{Kuis 3}
+
+Kuis 3 dilaksanakan pada 20 menit terakhir praktikum, dikerjakan
+individu tanpa membuka catatan.
+
+\begin{enumerate}
+    \item Tentukan hasil dan nilai \flag{CF} dari
+          \lstasm|SHL AL, 1|, \lstasm|SHR AL, 1|, dan
+          \lstasm|SAR AL, 1| bila \reg{AL} = \bin{1100 0101}.
+    \item Diketahui \reg{AL} = \bin{1010 0110}. Tuliskan instruksi
+          untuk menyalakan bit ke-1, memadamkan bit ke-3, dan menguji
+          bit ke-6.
+    \item Jelaskan perbedaan \asm{TEST} dan \asm{CMP} beserta satu
+          contoh pemakaian yang tepat untuk masing-masing.
+    \item Hitung cacah bit 1 pada byte \bin{1110 0011} dan tentukan
+          paritasnya.
+    \item Byte \hex{68} berbentuk \eng{packed BCD}. Tuliskan dua
+          instruksi yang memisahkannya menjadi digit puluhan dan
+          satuan.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen praktikum 3 dan Kuis 3 (bobot 10\% dari komponen
+praktikum).}
+
+\begin{tabular}{@{}p{5.9cm}cp{4.9cm}@{}}
+    \toprule
+    \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \midrule
+    Ketepatan lembar pengamatan paritas & 25\% &
+    Seluruh baris terisi benar; nilai \flag{CF} sesuai hasil
+    penelusuran \\
+    \addlinespace
+    Kebenaran manipulasi bit ke-$n$ & 20\% &
+    Ketiga operasi menghasilkan nilai yang benar \\
+    \addlinespace
+    Keberhasilan \eng{packing} BCD & 15\% &
+    Byte BCD tersusun dan terpisah dengan benar \\
+    \addlinespace
+    Kuis 3 & 30\% &
+    Minimal empat dari lima soal terjawab benar \\
+    \addlinespace
+    Kerapian dokumentasi praktikum & 10\% &
+    Tangkapan layar lengkap dan langkah kerja dapat diulang \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

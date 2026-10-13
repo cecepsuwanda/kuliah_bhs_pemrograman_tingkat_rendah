@@ -1,0 +1,123 @@
+\section{Interupsi BIOS: Video, Keyboard, dan Printer}
+\label{sec:bios}
+
+\subsection{Kedudukan BIOS}
+
+\term{BIOS} (\eng{Basic Input/Output System}) adalah kumpulan rutin
+yang tersimpan pada cip memori baca-saja dan dipetakan ke alamat
+\hex{F000} pada ruang memori. Rutin ini berbicara langsung dengan
+pengendali video, pengendali keyboard, dan port printer, lalu
+menyajikan antarmuka yang seragam bagi program di atasnya
+\cite{brown2000}. Karena perbedaan perangkat keras disembunyikan di
+sini, program tidak perlu mengenal nomor port perangkat.
+
+\begin{infobox}
+Seluruh layanan BIOS memakai konvensi yang sama: \reg{AH} berisi nomor
+fungsi, register lain berisi argumen, dan hasil dikembalikan pada
+register.
+\end{infobox}
+
+\subsection{\code{INT 10h}: Layanan Video}
+
+Interupsi \hex{10} melayani keperluan tampilan. Fungsi yang paling
+sering dipakai pada praktikum dirangkum pada Tabel~\ref{tab:int10h}.
+
+\begin{table}[H]
+    \centering
+    \caption{Fungsi \code{INT 10h} yang dipakai pada bab ini.}
+    \label{tab:int10h}
+    \small
+    \begin{tabular}{@{}cp{3.9cm}p{2.9cm}p{4.6cm}@{}}
+        \toprule
+        \textbf{Fungsi} & \textbf{Register masukan} &
+        \textbf{Register keluaran} & \textbf{Keterangan} \\
+        \midrule
+        \hex{00} & \reg{AL} = nomor mode video & --- &
+        Menetapkan mode; \hex{03} berarti teks $80 \times 25$ berwarna,
+        dan layar dibersihkan \\
+        \addlinespace
+        \hex{02} & \reg{BH} = halaman; \reg{DH} = baris;
+        \reg{DL} = kolom & --- &
+        Memindahkan posisi kursor tanpa mencetak apa pun \\
+        \addlinespace
+        \hex{03} & \reg{BH} = halaman &
+        \reg{DH}, \reg{DL} = posisi kursor; \reg{CX} = bentuk kursor &
+        Membaca posisi kursor, berguna untuk menyimpan lalu memulihkan
+        posisi \\
+        \addlinespace
+        \hex{06} & \reg{AL} = jumlah baris gulung; \reg{BH} = atribut;
+        \reg{CH}, \reg{CL}, \reg{DH}, \reg{DL} = batas jendela & --- &
+        Menggulung jendela ke atas; \reg{AL} = \hex{00} menggulung
+        seluruh jendela \\
+        \addlinespace
+        \hex{09} & \reg{AL} = karakter; \reg{BH} = halaman;
+        \reg{BL} = atribut; \reg{CX} = jumlah penulisan & --- &
+        Menulis karakter berwarna berulang; kursor \emph{tidak}
+        bergeser \\
+        \addlinespace
+        \hex{0A} & \reg{AL} = karakter; \reg{BH} = halaman;
+        \reg{CX} = jumlah penulisan & --- &
+        Menulis karakter memakai atribut yang sudah ada di layar;
+        kursor juga tidak bergeser \\
+        \addlinespace
+        \hex{13} & \reg{AL} = mode tulis; \reg{BH} = halaman;
+        \reg{BL} = atribut; \reg{CX} = panjang string; \reg{DH},
+        \reg{DL} = posisi; \reg{ES}:\reg{BP} = alamat string & --- &
+        Menulis seluruh string sekaligus; mode \reg{AL} = \hex{01}
+        memindahkan kursor ke akhir string \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Fungsi \hex{09} menulis satu karakter yang dapat diulang sebanyak nilai
+\reg{CX} tanpa menggeser kursor, sehingga tepat untuk membuat blok
+warna. Fungsi \hex{13} mencetak seluruh string pada
+\reg{ES}:\reg{BP}, sehingga \reg{DS} harus disalin ke \reg{ES} lebih
+dahulu.
+
+\subsection{Byte Atribut Warna}
+
+Warna pada mode teks ditentukan satu byte \term{atribut} dengan susunan
+bit yang tetap: bit 3--0 menentukan warna huruf (\eng{foreground}),
+bit 6--4 menentukan warna latar (\eng{background}), dan bit 7
+menentukan apakah huruf berkedip. Nilai \hex{07} berarti abu-abu
+terang pada latar hitam (bawaan DOS), \hex{0E} kuning, \hex{1F} putih
+pada latar biru, dan \hex{4E} kuning pada latar merah. Pemakaian
+\code{INT 10h} lebih aman daripada menulis langsung ke memori video
+pada alamat \hex{B800}, karena BIOS sudah mengurus alamat karakter dan
+atributnya.
+
+\subsection{\code{INT 16h}: Layanan Keyboard}
+
+Interupsi \hex{16} menyediakan tiga fungsi utama.
+
+\begin{description}
+    \item[Fungsi \hex{00} --- baca tombol.] Prosesor menunggu sampai
+          ada tombol ditekan, lalu mengembalikan \reg{AH} =
+          \eng{scan code} dan \reg{AL} = kode ASCII. Untuk tombol
+          panah, kode ASCII bernilai nol sehingga \reg{AH} yang harus
+          diperiksa.
+
+    \item[Fungsi \hex{01} --- periksa status tombol.] Fungsi ini tidak
+          menunggu. Bila ada tombol pada penyangga keyboard, \flag{ZF}
+          bernilai nol dan \reg{AX} berisi tombol tersebut tanpa
+          mengeluarkannya.
+
+    \item[Fungsi \hex{02} --- status tombol pengubah.] Fungsi ini
+          mengembalikan keadaan \file{Shift}, \file{Ctrl}, \file{Alt},
+          dan \file{Caps Lock} pada \reg{AL}.
+\end{description}
+
+Masukan DOS melakukan \eng{echo} ke layar dan menghormati tombol
+\file{Ctrl}+\file{C}, sedangkan masukan BIOS tidak melakukan keduanya.
+Program yang memakai BIOS bertanggung jawab mencetak sendiri karakter
+yang dibaca.
+
+\subsection{\code{INT 17h}: Layanan Printer}
+
+Interupsi \hex{17} mengirim satu byte ke printer melalui port paralel:
+fungsi \hex{00} mencetak karakter pada \reg{AL}, fungsi \hex{01}
+menginisialisasi printer, dan fungsi \hex{02} membaca statusnya.
+Nilai balikan pada \reg{AH} berupa bit status, antara lain bit 1 waktu
+tunggu habis, bit 3 kesalahan masukan/keluaran, bit 5 kertas habis, dan
+bit 7 printer sibuk.

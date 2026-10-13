@@ -1,0 +1,87 @@
+\section{Latihan}
+\label{sec:latihan-bab4}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan perbedaan antara arsitektur
+          internal dan arsitektur eksternal sebuah mikroprosesor.
+          Sebutkan dua contoh hal yang termasuk arsitektur internal
+          dan dua contoh yang termasuk arsitektur eksternal pada
+          8086.
+
+    \item \textbf{Konseptual.} Mengapa 8086 dibagi menjadi dua unit,
+          yaitu \eng{Bus Interface Unit} dan \eng{Execution Unit}?
+          Jelaskan keuntungan pembagian ini dibandingkan prosesor
+          yang hanya memiliki satu unit pengolah.
+
+    \item \textbf{Perhitungan alamat.} Diketahui \reg{CS} $=$
+          \hex{2A10} dan \reg{IP} $=$ \hex{00F3}. Hitung alamat fisik
+          instruksi berikutnya dengan memakai
+          Rumus~\ref{eq:alamat-fisik}. Tunjukkan langkah
+          perhitungannya, bukan hanya hasil akhirnya.
+
+    \item \textbf{Analisis \eng{pipeline}.} Jelaskan mengapa
+          instruksi lompatan seperti \asm{JMP} menghapus keuntungan
+          \eng{instruction queue}. Kaitkan jawaban Anda dengan
+          istilah \eng{queue flush} dan sebutkan akibatnya pada
+          program yang banyak memuat lompatan.
+
+    \item \textbf{Analisis kode.} Perhatikan potongan program
+          berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AX, 0001h
+    MOV BX, 0002h
+    ADD AX, BX
+    MOV CX, AX
+\end{lstlisting}
+
+          \begin{enumerate}
+              \item Berapa byte total keempat instruksi tersebut?
+              \item Berapa nilai \reg{IP} setelah keempat instruksi
+                    selesai bila \reg{IP} mula-mula bernilai
+                    \hex{0100}?
+              \item Pada instruksi manakah tahap \eng{store}
+                    benar-benar memerlukan siklus bus? Jelaskan.
+          \end{enumerate}
+
+    \item \textbf{Analisis bus.} Lengkapi pernyataan berikut dan
+          jelaskan alasan setiap jawaban.
+          \begin{enumerate}
+              \item Bus yang bersifat satu arah adalah bus \dots
+              \item Bus yang lebarnya menentukan kapasitas memori
+                    maksimum adalah bus \dots
+              \item Sinyal yang menandai bahwa pin \reg{AD0}--\reg{AD15}
+                    sedang membawa alamat adalah \dots
+              \item Sinyal yang menentukan sasaran akses memori atau
+                    I/O adalah \dots
+          \end{enumerate}
+
+    \item \textbf{Penulisan program.} Tulislah program lengkap yang
+          menyalin nilai \hex{ABCD} dari register \reg{AX} ke
+          register \reg{BX}, lalu menambahkan \hex{0001} pada
+          \reg{BX}. Jelaskan pada langkah mana tahap \eng{fetch},
+          \eng{decode}, \eng{execute}, dan \eng{store} terjadi untuk
+          instruksi terakhir.
+
+    \item \textbf{Analisis kesalahan.} Seorang mahasiswa mengamati
+          bahwa \reg{IP} pada Emu8086 bertambah tiga setelah
+          menjalankan instruksi \lstasm|MOV AX, 1234h|, tetapi hanya
+          bertambah satu setelah menjalankan instruksi
+          \lstasm|INC AX|. Mahasiswa tersebut menyimpulkan bahwa
+          programnya salah. Tentukan apakah kesimpulan itu benar,
+          lalu jelaskan alasan sebenarnya.
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Bagian mana dari bab ini yang paling sulit dibayangkan
+          secara visual: diagram blok, \eng{pipeline}, atau bus
+          eksternal? Apa yang Anda lakukan untuk mengatasinya?
+    \item Setelah menelusuri satu instruksi dengan \eng{Single Step},
+          apakah pemahaman Anda tentang cara kerja \reg{IP}
+          berubah? Jelaskan bagian mana yang paling mengejutkan.
+    \item Konsep apa yang masih perlu Anda jelaskan ulang sebelum
+          masuk ke Bab~\ref{chap:register}?
+\end{enumerate}
+\end{refleksibox}

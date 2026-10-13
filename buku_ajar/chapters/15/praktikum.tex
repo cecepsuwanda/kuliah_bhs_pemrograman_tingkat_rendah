@@ -1,0 +1,181 @@
+\section{Praktikum}
+\label{sec:praktikum-bab15}
+
+\begin{praktikumbox}
+\textbf{Judul:} \eng{Debugging} terpandu tiga kasus bug tingkat
+instruksi.\\[0.3em]
+\textbf{Sub-CPMK:} 4.1 dan 4.2 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu, laporan tertulis
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menelusuri
+program pada level instruksi dengan perintah \code{R}, \code{U},
+\code{T}, \code{P}, \code{G}, dan \code{D}; mengisi tabel \eng{trace}
+register dan \eng{flag}; membaca \eng{dump} memori dan \eng{stack};
+serta menemukan dan memperbaiki perulangan tak berujung, kesalahan
+\eng{off-by-one}, dan \eng{stack} yang tidak seimbang.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan sistem operasi Windows.
+    \item DOSBox beserta berkas \file{DEBUG.EXE}.
+    \item TASM dan TLINK (atau Emu8086 sebagai pembanding).
+    \item Berkas \file{bug-loop.asm}, \file{bug-stack.asm}, dan
+          \file{program-larik.asm} yang disiapkan dosen.
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Menyiapkan berkas uji.}
+    \begin{enumerate}
+        \item Salin berkas \file{bug-loop.asm} ke direktori kerja
+              DOSBox, lalu rakit dan gabungkan dengan perintah
+              \file{tasm bug-loop.asm} dan \file{tlink bug-loop.obj}.
+        \item Ulangi langkah yang sama untuk \file{bug-stack.asm}.
+        \item Tuliskan program \eng{off-by-one} pada
+              Kode~\ref{lst:off-by-one} ke dalam berkas
+              \file{program-larik.asm}, lalu rakit.
+    \end{enumerate}
+
+    \item \textbf{Kasus 1: perulangan tak berujung
+          (\file{bug-loop.exe}).}
+    \begin{enumerate}
+        \item Jalankan DEBUG, lalu muat program dengan urutan
+              \code{N} dan \code{L}.
+        \item Catat keluaran \code{R}. Berapa nilai \reg{CS}, \reg{IP},
+              \reg{DS}, \reg{SS}, dan \reg{SP}?
+        \item Tampilkan hasil pembongkaran dengan \code{U 0000 001c},
+              lalu salin ke dalam laporan.
+        \item Jalankan \code{T} sekurang-kurangnya sepuluh kali.
+              Catat setiap langkah pada tabel \eng{trace}
+              (gunakan susunan kolom pada
+              Tabel~\ref{tab:trace-register}).
+        \item Jawab: pada langkah berapa penyimpangan mulai terjadi,
+              dan register apa yang menyimpang?
+        \item Tuliskan hipotesis penyebab, buktikan dengan data
+              \eng{trace}, lalu ubah program dan rakit ulang sampai
+              keluarannya benar (\hex{000F} atau \dec{15}).
+    \end{enumerate}
+
+    \item \textbf{Kasus 2: kesalahan \eng{off-by-one}
+          (\file{program-larik.exe}).}
+    \begin{enumerate}
+        \item Muat program ke dalam DEBUG, lalu jalankan sampai
+              perulangan selesai menggunakan \code{G} pada alamat
+              setelah \asm{LOOP}.
+        \item Tampilkan isi larik dengan \code{D DS:0}.
+        \item Tentukan berapa byte yang seharusnya dibaca dan berapa
+              byte yang benar-benar dibaca.
+        \item Perbaiki program, rakit ulang, dan buktikan bahwa
+              hasilnya sekarang \hex{0096}.
+    \end{enumerate}
+
+    \item \textbf{Kasus 3: \eng{stack} tidak seimbang
+          (\file{bug-stack.exe}).}
+    \begin{enumerate}
+        \item Muat program, lalu jalankan dengan \code{G 0005} agar
+              berhenti tepat sebelum \asm{CALL}.
+        \item Telusuri dengan \code{T} sampai seluruh register selesai
+              ditekan. Perhatikan nilai \reg{SP} pada setiap langkah
+              dan catat pada tabel \eng{trace} dengan menambahkan
+              kolom \reg{SP}.
+        \item Tampilkan \eng{stack} dengan \code{D SS:SP}, lalu
+              gambarkan susunan bingkai \eng{stack}-nya seperti pada
+              Gambar~\ref{fig:stack-frame}.
+        \item Lanjutkan penelusuran sampai \asm{RET} dijalankan.
+              Alamat berapa yang diambil oleh \asm{RET}, dan mengapa
+              demikian?
+        \item Bandingkan pemakaian \code{T} dan \code{P} pada
+              instruksi \asm{CALL} tersebut. Tuliskan perbedaan
+              keluarannya dan jelaskan kapan masing-masing lebih
+              tepat dipakai.
+        \item Perbaiki program sehingga pesan \code{Selesai.}
+              tercetak.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Tabel Kerja}
+
+Salin dan lengkapi tabel berikut pada jurnal praktikum Anda.
+
+\begin{table}[H]
+    \centering
+    \caption{Templat tabel \eng{trace} untuk diisi mahasiswa.}
+    \label{tab:template-trace}
+    \scriptsize
+    \setlength{\tabcolsep}{2.5pt}
+    \begin{tabular}{@{}rl l rrrr r ccc p{2.3cm}@{}}
+        \toprule
+        \textbf{L} & \textbf{Alamat} & \textbf{Instruksi} &
+        \textbf{AX} & \textbf{BX} & \textbf{CX} & \textbf{DX} &
+        \textbf{SP} & \textbf{ZF} & \textbf{CF} & \textbf{OF} &
+        \textbf{Keterangan} \\
+        \midrule
+        1 & & & & & & & & & & & \\
+        \addlinespace
+        2 & & & & & & & & & & & \\
+        \addlinespace
+        3 & & & & & & & & & & & \\
+        \addlinespace
+        4 & & & & & & & & & & & \\
+        \addlinespace
+        5 & & & & & & & & & & & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Tabel \eng{trace} lengkap untuk ketiga kasus, minimal
+          sepuluh langkah per kasus, memuat kolom \reg{AX},
+          \reg{BX}, \reg{CX}, \reg{DX}, \reg{SP}, \flag{ZF},
+          \flag{CF}, dan \flag{OF}.
+    \item Salinan keluaran \code{R}, \code{U}, \code{D}, dan
+          \code{T} untuk setiap kasus.
+    \item Rumusan hipotesis dan bukti pengujiannya untuk setiap
+          kasus, ditulis dengan alur metodologi pada
+          Gambar~\ref{fig:metodologi-debugging}.
+    \item Berkas hasil perbaikan ketiga program beserta tangkapan
+          layar keluarannya.
+    \item Perbandingan pengalaman memakai \code{T} dan \code{P} pada
+          instruksi \asm{CALL}.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen kinerja \eng{debugging} (bobot 10\% dari komponen
+praktikum).} Penilaian dilakukan terhadap laporan dan demonstrasi
+langsung.
+
+\begin{tabular}{@{}p{2.6cm}cp{9.6cm}@{}}
+    \toprule
+    \textbf{Aspek kinerja} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \midrule
+    Penggunaan perintah DEBUG & 20\% &
+    Mampu memuat berkas (\code{N}, \code{L}), menampilkan register
+    (\code{R}), membongkar kode (\code{U}), dan menelusuri
+    (\code{T}, \code{P}, \code{G}) tanpa bantuan \\
+    \addlinespace
+    Ketepatan tabel \eng{trace} & 25\% &
+    Nilai register dan \eng{flag} tercatat benar pada setiap langkah;
+    perbedaan \code{T} dan \code{P} dicatat dengan tepat \\
+    \addlinespace
+    Analisis \eng{dump} memori & 20\% &
+    Mampu menafsirkan isi larik dan bingkai \eng{stack}; menemukan
+    byte atau alamat yang menyimpang \\
+    \addlinespace
+    Ketepatan diagnosis & 20\% &
+    Hipotesis sesuai bukti; penyebab yang disebutkan benar-benar
+    sumber kesalahan, bukan gejala \\
+    \addlinespace
+    Mutu perbaikan dan verifikasi & 15\% &
+    Perbaikan mengubah satu hal pada satu waktu dan seluruh kasus uji
+    diulang setelah perbaikan \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

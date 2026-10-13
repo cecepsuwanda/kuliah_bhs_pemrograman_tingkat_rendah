@@ -1,0 +1,255 @@
+\section{Operasi Logika pada Level Bit}
+\label{sec:logika-bit}
+
+Instruksi \asm{ADD}, \asm{SUB}, dan \asm{MUL} pada
+Bab~\ref{chap:aritmatika} memandang operand sebagai satu bilangan utuh
+dan menjalarkan \eng{carry} antarbit. Kelompok instruksi pada bab ini
+bekerja berbeda: setiap posisi bit diperlakukan sebagai satuan mandiri
+yang tidak memengaruhi posisi tetangganya. Operasi semacam ini disebut
+\term{operasi logika} atau \eng{bitwise operation}, karena aturannya
+mengikuti gerbang logika dasar.
+
+\subsection{Tabel Kebenaran dan Empat Instruksi Dasar}
+
+Empat instruksi logika 8086 bekerja pada operand 8 bit maupun 16 bit.
+Hasilnya hanya bergantung pada pasangan bit yang bersesuaian
+(Tabel~\ref{tab:kebenaran-logika}).
+
+\begin{table}[H]
+    \centering
+    \caption{Tabel kebenaran operasi logika 8086.}
+    \label{tab:kebenaran-logika}
+    \small
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabular}{@{}ccccc@{}}
+        \toprule
+        \textbf{Bit $A$} & \textbf{Bit $B$} &
+        \textbf{\asm{AND}} & \textbf{\asm{OR}} &
+        \textbf{\asm{XOR}} \\
+        \midrule
+        0 & 0 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 1 & 1 \\
+        1 & 0 & 0 & 1 & 1 \\
+        1 & 1 & 1 & 1 & 0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Berdasarkan tabel tersebut, sifat setiap instruksi dapat diringkas
+sebagai berikut.
+
+\begin{description}
+    \item[\asm{AND}] Menghasilkan 1 \emph{hanya} bila kedua bit bernilai
+          1, sehingga dipakai untuk mempertahankan bit tertentu dan
+          memadamkan sisanya.
+
+    \item[\asm{OR}] Menghasilkan 1 bila \emph{salah satu} bit bernilai
+          1, sehingga dipakai untuk menyalakan bit tertentu tanpa
+          mengubah bit lain.
+
+    \item[\asm{XOR}] (\eng{exclusive OR}) Menghasilkan 1 bila kedua bit
+          \emph{berbeda}, sehingga dipakai untuk membalik bit.
+
+    \item[\asm{NOT}] Membalik seluruh bit operand dan \emph{tidak}
+          memengaruhi satu pun register \eng{flag}.
+\end{description}
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AL, 10100101b       ; AL = A5h
+    AND AL, 00001111b       ; AL = 00000101b = 05h (nibble rendah saja)
+    MOV BL, 11000011b       ; BL = C3h
+    OR  AL, BL              ; AL = 11000111b = C7h (bit 1 dan 7 menyala)
+    MOV CL, 10100101b       ; CL = A5h
+    XOR CL, 11111111b       ; CL = 01011010b = 5Ah (seluruh bit dibalik)
+    NOT CL                  ; CL = 10100101b = A5h (kembali semula)
+\end{lstlisting}
+
+\subsection{Pengaruh Operasi Logika terhadap \eng{Flag}}
+
+Penjumlahan dan pengurangan menyetel \flag{CF} serta \flag{OF} karena
+adanya \eng{carry} dan kemungkinan luapan bertanda. Pada operasi logika
+tidak ada \eng{carry} antarbit, sehingga perancang 8086 memutuskan untuk
+selalu \emph{mengosongkan} \flag{CF} dan \flag{OF}. Keputusan ini sering
+menjadi sumber kesalahan pada program yang mempercayai nilai \flag{CF}
+setelah operasi logika. Tabel~\ref{tab:flag-logika} merangkum perilaku
+tersebut.
+
+\begin{table}[H]
+    \centering
+    \caption{Pengaruh operasi logika terhadap register \eng{flag}.}
+    \label{tab:flag-logika}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabular}{@{}p{1.6cm}p{5.4cm}p{6.2cm}@{}}
+        \toprule
+        \textbf{Flag} & \textbf{Nilai setelah operasi logika} &
+        \textbf{Alasan} \\
+        \midrule
+        \flag{CF} & Selalu 0 & Tidak ada \eng{carry} yang keluar dari
+        bit paling kiri \\
+        \addlinespace
+        \flag{OF} & Selalu 0 & Operasi bitwise tidak menghasilkan
+        luapan bertanda \\
+        \addlinespace
+        \flag{ZF} & 1 bila seluruh bit hasil bernilai 0 & Dipakai untuk
+        memeriksa apakah suatu bidang bit kosong \\
+        \addlinespace
+        \flag{SF} & Menyalin bit paling kiri hasil & Menandakan hasil
+        dianggap negatif bila ditafsirkan bertanda \\
+        \addlinespace
+        \flag{PF} & 1 bila cacah bit 1 pada byte rendah genap &
+        Dipakai pada pemeriksaan paritas \\
+        \addlinespace
+        \flag{AF} & Tidak terdefinisi & Jangan diandalkan setelah
+        operasi logika \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Instruksi \asm{NOT} adalah satu-satunya pengecualian: ia tidak
+menyentuh \eng{flag} sama sekali. Jadi \flag{ZF}, \flag{SF}, dan
+\flag{PF} setelah \lstasm|NOT AL| masih bernilai seperti sebelum
+instruksi tersebut dijalankan. Bila hasil pembalikan bit perlu diuji,
+tambahkan \lstasm|TEST AL, AL| sesudahnya untuk menyetel \eng{flag}
+berdasarkan isi \reg{AL} yang baru.
+\end{infobox}
+
+\subsection{Aturan Penulisan Operand}
+
+Aturan legalitas operand pada instruksi logika sama dengan aturan
+\asm{MOV} dan \asm{ADD} pada Bab~\ref{chap:aritmatika} dan
+Bab~\ref{chap:register}. Operand tujuan boleh berupa register atau
+memori, sedangkan operand sumber boleh berupa register, memori, atau
+nilai segera. Pemindahan langsung dari memori ke memori tidak diizinkan
+sehingga diperlukan register perantara, dan kedua operand wajib
+berukuran sama. Untuk mengoperasikan \reg{AL} dengan variabel
+\dir{DW} diperlukan penyesuaian ukuran melalui \lstasm|BYTE PTR| atau
+\lstasm|WORD PTR|.
+
+\subsection{Penerapan Praktis: Manipulasi Bit Tertentu}
+
+Kemampuan operasi logika yang paling sering dipakai adalah menyentuh
+satu bit tertentu tanpa mengganggu bit lain. Untuk itu diperlukan
+\term{mask}, yaitu pola bit yang dirancang agar operasi logika
+menghasilkan efek yang dikehendaki pada posisi yang dituju. Bila bit
+yang diincar berada pada posisi ke-$n$ (dihitung dari nol pada bit paling
+kanan), mask-nya adalah $2^n$, yaitu nilai dengan tepat satu bit
+bernilai 1 pada posisi tersebut.
+
+Empat pola manipulasi bit dirangkum pada
+Tabel~\ref{tab:manipulasi-bit}. Misalkan \reg{AL} berisi byte
+\hex{A5} = \bin{1010 0101} dan bit yang disasar adalah bit ke-3
+(\hex{08} = \bin{0000 1000}).
+
+\begin{table}[H]
+    \centering
+    \caption{Pola manipulasi satu bit tertentu dengan mask satu bit.}
+    \label{tab:manipulasi-bit}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabular}{@{}p{2.3cm}p{3.6cm}p{3.6cm}p{3.6cm}@{}}
+        \toprule
+        \textbf{Kehendak} & \textbf{Mask} & \textbf{Instruksi} &
+        \textbf{Hasil pada \hex{A5}, bit 3} \\
+        \midrule
+        Menyalakan bit & mask & \lstasm|OR AL, mask| &
+        \bin{1010 1101} = \hex{AD} \\
+        \addlinespace
+        Memadamkan bit & \lstasm|NOT mask| & \lstasm|AND AL, mask| &
+        \bin{1010 0101} = \hex{A5} \\
+        \addlinespace
+        Membalik bit & mask & \lstasm|XOR AL, mask| &
+        \bin{1010 1101} = \hex{AD} \\
+        \addlinespace
+        Menguji bit & mask & \lstasm|TEST AL, mask| &
+        \flag{ZF} = 0 berarti bit 3 menyala \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Pola pada tabel tersebut dapat dituliskan sebagai berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    ; pola dasar manipulasi satu bit
+    OR  AL, 08h         ; nyalakan bit 3 (hasil A5h -> ADh)
+    AND AL, 0F7h        ; padamkan bit 3 (F7h adalah NOT dari 08h)
+    XOR AL, 08h         ; balikkan bit 3
+    TEST AL, 08h        ; uji bit 3 tanpa mengubah AL
+    JNZ BIT_MENYALA     ; lompat bila bit 3 bernilai 1
+\end{lstlisting}
+
+Mask penghapus \hex{F7} diperoleh dari \lstasm|NOT 08h|. Bila mask
+dihitung saat program berjalan, mask disimpan ke register, dibalik
+dengan \asm{NOT}, lalu dipakai pada \asm{AND}. Karena \asm{NOT} tidak
+menyentuh \eng{flag}, keputusan lompatan sebelumnya tetap sah.
+
+\begin{peringatanbox}
+Kesalahan yang sering terjadi adalah menuliskan nilai mask secara
+terbalik. Untuk memadamkan bit ke-3, instruksi yang benar adalah
+\lstasm|AND AL, 0F7h| (bit ke-3 pada mask bernilai 0), bukan
+\lstasm|AND AL, 08h| yang justru menghapus seluruh bit lain. Kesalahan
+kedua adalah menganggap \asm{AND} menyetel \flag{CF}; operasi ini
+selalu mengosongkan \flag{CF} dan \flag{OF}.
+\end{peringatanbox}
+
+\subsection{\asm{TEST} dan \asm{CMP}: Dua Instruksi Penguji}
+
+Instruksi \asm{TEST} dan \asm{CMP} sama-sama melakukan operasi tanpa
+\emph{menyimpan} hasilnya; yang tertinggal hanyalah jejak pada register
+\eng{flag}. Perbedaannya terletak pada operasi yang dilakukan, seperti
+tampak pada Tabel~\ref{tab:test-cmp}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan \asm{TEST} dan \asm{CMP}.}
+    \label{tab:test-cmp}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabular}{@{}p{2.2cm}p{3.6cm}p{7.2cm}@{}}
+        \toprule
+        \textbf{Aspek} & \asm{TEST} & \asm{CMP} \\
+        \midrule
+        Operasi internal & \asm{AND} tanpa menyimpan hasil &
+        \asm{SUB} tanpa menyimpan hasil \\
+        \addlinespace
+        \flag{CF} dan \flag{OF} & Selalu 0 &
+        Sesuai hasil pengurangan \\
+        \addlinespace
+        Pemakaian utama & Memeriksa keadaan satu bit atau beberapa bit
+        tertentu & Membandingkan besar dua bilangan secara utuh \\
+        \addlinespace
+        Lompatan yang lazim & \asm{JZ}/\asm{JNZ} (bit nol atau
+        menyala), \asm{JP}/\asm{JNP} (paritas) &
+        \asm{JE}/\asm{JNE}, \asm{JA}/\asm{JB}, \asm{JG}/\asm{JL} \\
+        \addlinespace
+        Contoh & \lstasm|TEST AL, 01h| lalu \asm{JNZ} &
+        \lstasm|CMP AL, BL| lalu \asm{JA} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Aturan pemilihannya sederhana: gunakan \asm{TEST} bila yang
+dipermasalahkan adalah \emph{bit} tertentu, dan \asm{CMP} bila yang
+dibandingkan adalah \emph{nilai keseluruhan} dua operand. Kebiasaan
+khusus \asm{TEST} adalah \lstasm|TEST AL, AL|, yang melakukan \asm{AND}
+antara \reg{AL} dengan dirinya sendiri sehingga isinya tidak berubah,
+tetapi \flag{ZF}, \flag{SF}, dan \flag{PF} diperbarui. Pola ini
+menggantikan \lstasm|CMP AL, 0| dengan kode yang lebih pendek dua byte
+dan sering muncul pada hasil \eng{disassembly} yang dioptimalkan
+(Bab~\ref{chap:disassembly}).
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    TEST AL, 80h        ; periksa bit paling kiri (bit tanda)
+    JNZ NEGATIF         ; ZF = 0 -> bit tanda menyala, nilai negatif
+
+    TEST BL, 04h        ; periksa bit ke-2
+    JZ  BIT_NOL         ; ZF = 1 -> bit ke-2 padam
+
+    CMP SI, DI          ; bandingkan dua nilai secara utuh
+    JB  LEBIH_KECIL     ; CF = 1 -> SI < DI (tak bertanda)
+\end{lstlisting}
+
+Penggunaan \asm{CMP} bersama lompatan bersyarat secara lengkap dibahas
+pada Bab~\ref{chap:kontrol}, sedangkan bab ini memusatkan perhatian
+pada \asm{TEST} sebagai alat pemeriksaan bit.

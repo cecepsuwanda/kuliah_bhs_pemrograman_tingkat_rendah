@@ -1,0 +1,169 @@
+\section{Keterkaitan Buku Ajar dengan RPS Berbasis OBE}
+\label{sec:keterkaitan-rps}
+
+Buku ini bukan kumpulan materi yang disusun menurut selera penulis.
+Seluruh isinya diturunkan dari satu dokumen: Rencana Pembelajaran
+Semester (RPS) mata kuliah Pemrograman Bahasa Tingkat Rendah yang
+disusun dengan pendekatan \eng{Outcome-Based Education}.
+
+\subsection{Prinsip Outcome-Based Education}
+
+\term{Outcome-Based Education} (OBE) adalah pendekatan penyusunan
+pembelajaran yang berangkat dari \emph{hasil} yang harus dicapai,
+bukan dari materi yang ingin disampaikan. Urutan perancangannya
+terbalik dibandingkan pendekatan tradisional.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=0.55cm,
+        alur/.style={
+            draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+            rounded corners=3pt, minimum width=4.4cm,
+            minimum height=0.92cm, align=center, font=\small,
+            inner sep=5pt
+        },
+        panah/.style={-{Stealth[length=2.5mm]}, line width=1pt, obeTeal}
+    ]
+        \node[alur] (a) {\textbf{1. CPL}\\apa yang harus dikuasai lulusan};
+        \node[alur, below=of a] (b) {\textbf{2. CPMK}\\kompetensi pada mata kuliah};
+        \node[alur, below=of b] (c) {\textbf{3. Sub-CPMK}\\indikator yang dapat diuji};
+        \node[alur, below=of c, fill=obeAmberLight, draw=obeAmber]
+            (d) {\textbf{4. Asesmen}\\instrumen pengukur indikator};
+        \node[alur, below=of d, fill=obeGreenLight, draw=obeGreen]
+            (e) {\textbf{5. Materi \& kegiatan}\\sarana mencapai indikator};
+
+        \draw[panah] (a) -- (b);
+        \draw[panah] (b) -- (c);
+        \draw[panah] (c) -- (d);
+        \draw[panah] (d) -- (e);
+    \end{tikzpicture}
+    \caption{Perancangan mundur (\eng{backward design}) pada OBE: dari
+    capaian lulusan menuju asesmen, lalu materi.}
+    \label{fig:backward-design}
+\end{figure}
+
+Perhatikan bahwa pada Gambar~\ref{fig:backward-design} materi berada
+pada urutan terakhir. Konsekuensinya penting: sebuah materi hanya
+dianggap perlu bila ia membantu mahasiswa mencapai indikator yang
+sudah ditetapkan dan dapat diukur. Sebaliknya, setiap indikator harus
+memiliki asesmen yang benar-benar mengukurnya.
+
+\subsection{Jalur Capaian Pembelajaran}
+
+Empat tingkat capaian yang dipakai pada mata kuliah ini adalah
+sebagai berikut.
+
+\begin{description}
+    \item[CPL (Capaian Pembelajaran Lulusan)] Kompetensi yang harus
+          dimiliki seluruh lulusan program studi. Mata kuliah ini
+          dibebani dua CPL, yaitu \CPL{02} dan \CPL{03}.
+
+    \item[CPMK (Capaian Pembelajaran Mata Kuliah)] Kompetensi
+          spesifik yang harus dikuasai setelah menyelesaikan mata
+          kuliah ini. Terdapat empat CPMK, yaitu \CPMK{01} sampai
+          \CPMK{04}.
+
+    \item[Sub-CPMK] Penjabaran CPMK menjadi indikator yang lebih
+          terukur dan dapat diuji. Terdapat \dec{14} Sub-CPMK, dari
+          \SubCPMK{1.1} sampai \SubCPMK{4.3}.
+
+    \item[Materi dan aktivitas] Isi setiap bab, contoh program,
+          praktikum, dan latihan yang menjadi sarana mencapai
+          Sub-CPMK.
+\end{description}
+
+Hubungan keempat tingkat tersebut beserta bobot penilaiannya
+ditunjukkan pada Tabel~\ref{tab:jalur-capaian}.
+
+\begin{table}[H]
+    \centering
+    \caption{Jalur capaian pembelajaran dan asesmennya.}
+    \label{tab:jalur-capaian}
+    \small
+    \begin{tabular}{@{}p{2.6cm}p{6.0cm}p{2.5cm}c@{}}
+        \toprule
+        \textbf{Tingkat} & \textbf{Rumusan} & \textbf{Diukur oleh} &
+        \textbf{Bobot} \\
+        \midrule
+        \CPL{02} & Cara kerja sistem komputer dan perancangan algoritma
+        & UTS, tugas & --- \\
+        \addlinespace
+        \CPL{03} & Perancangan, analisis, dan penerapan algoritma pada
+        bahasa tertentu & UAS, proyek & --- \\
+        \addlinespace
+        \CPMK{01} & Arsitektur register dan manajemen memori &
+        UTS, tugas, kuis & 20\% \\
+        \addlinespace
+        \CPMK{02} & Hubungan instruksi mesin dengan perangkat keras &
+        UTS, tugas, kuis & 20\% \\
+        \addlinespace
+        \CPMK{03} & Menulis kode assembly aritmatika dan logika &
+        UAS, praktikum, proyek & 35\% \\
+        \addlinespace
+        \CPMK{04} & \eng{Debugging} level instruksi memori &
+        UAS, praktikum, proyek & 25\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Keterkaitan dengan RPS Mata Kuliah}
+
+RPS mata kuliah ini diselenggarakan dalam \dec{16} pertemuan:
+\dec{14} pertemuan kuliah dan praktikum, ditambah Ujian Tengah
+Semester pada minggu ke-8 dan Ujian Akhir Semester pada minggu ke-16.
+Setiap pertemuan dipetakan ke Sub-CPMK tertentu. Buku ini mengikuti
+pemetaan tersebut secara persis, sehingga mahasiswa dapat membaca
+bab yang bersesuaian dengan minggu perkuliahan yang sedang berjalan.
+
+\begin{table}[H]
+    \centering
+    \caption{Kesepadanan pertemuan, Sub-CPMK, dan bab buku.}
+    \label{tab:kesepadanan-pertemuan}
+    \small
+    \begin{tabular}{@{}cp{5.2cm}p{1.7cm}p{4.0cm}@{}}
+        \toprule
+        \textbf{Minggu} & \textbf{Materi pokok} & \textbf{Sub-CPMK} &
+        \textbf{Bab} \\
+        \midrule
+        1 & Pengenalan pemrograman tingkat rendah & 1.1 & Bab~III \\
+        \addlinespace
+        2 & Arsitektur mikroprosesor 8086 & 1.1 & Bab~IV \\
+        \addlinespace
+        3 & Register 8086 & 1.2 & Bab~V \\
+        \addlinespace
+        4 & Segmentasi memori & 1.3 & Bab~VI \\
+        \addlinespace
+        5 & Format instruksi mesin & 2.1 & Bab~VII \\
+        \addlinespace
+        6 & Mode pengalamatan & 2.2 & Bab~VIII \\
+        \addlinespace
+        7 & Direktif assembler dan translasi & 2.3 & Bab~IX \\
+        \addlinespace
+        8 & \textbf{Ujian Tengah Semester} & 1.1--2.3 & Bab~III--IX \\
+        \addlinespace
+        9 & Transfer data dan aritmatika & 3.1 & Bab~X \\
+        \addlinespace
+        10 & Logika, pergeseran, dan rotasi & 3.2 & Bab~XI \\
+        \addlinespace
+        11 & Struktur kontrol dan percabangan & 3.3 & Bab~XII \\
+        \addlinespace
+        12 & Prosedur dan manajemen stack & 3.4 & Bab~XIII \\
+        \addlinespace
+        13 & Interupsi BIOS/DOS dan I/O & 2.4 & Bab~XIV \\
+        \addlinespace
+        14 & \eng{Debugging} level instruksi & 4.1, 4.2 & Bab~XV \\
+        \addlinespace
+        15 & Disassembly dan optimasi & 4.3 & Bab~XVI \\
+        \addlinespace
+        16 & \textbf{Ujian Akhir Semester} & 3.1--4.3 & Bab~X--XVI \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Bab~I dan Bab~II tidak terikat pada satu pertemuan tertentu. Bab~I
+dibaca sebelum perkuliahan dimulai; Bab~II dibaca seiring pertemuan
+pertama sebagai bekal konseptual. Bab~XVII dibaca menjelang Ujian
+Akhir Semester.
+\end{infobox}

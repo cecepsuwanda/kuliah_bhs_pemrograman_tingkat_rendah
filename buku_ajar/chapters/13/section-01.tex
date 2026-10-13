@@ -1,0 +1,115 @@
+\section{Prosedur, Pemanggilan, dan Pengembalian}
+\label{sec:prosedur-pemanggilan}
+
+Program yang ditulis sebagai satu deretan instruksi panjang sulit
+dibaca, diuji, dan diperbaiki. Ketika tugas yang sama harus
+dikerjakan pada bagian program yang berbeda, kodenya harus disalin
+berkali-kali, sehingga setiap kekeliruan juga harus diperbaiki
+berkali-kali. Solusinya adalah \term{prosedur}.
+
+\subsection{Mengapa Prosedur Diperlukan}
+
+Ada tiga alasan utama program dipecah menjadi prosedur.
+
+\begin{enumerate}
+    \item \term{Modularitas.} Setiap prosedur menangani satu tugas
+          yang batasnya jelas, sehingga program besar menjadi
+          kumpulan bagian kecil yang dapat diuji dan diperbaiki
+          secara terpisah.
+
+    \item \term{Penggunaan ulang} (\eng{reuse}). Kode yang sering
+          dipakai cukup ditulis sekali. Prosedur pencetak bilangan
+          heksadesimal, misalnya, dapat dipanggil dari puluhan tempat
+          tanpa perlu disalin.
+
+    \item \term{Abstraksi.} Pemanggil cukup mengetahui antarmuka
+          prosedur: nama, parameter, dan nilai baliknya. Rincian di
+          dalam prosedur dapat diganti tanpa mengubah pemanggilnya.
+\end{enumerate}
+
+Pembahasan Bab~\ref{chap:kontrol} menunjukkan bahwa \asm{JMP} hanya
+memindahkan kendali tanpa menyediakan cara kembali; prosedur
+melengkapinya dengan mekanisme pengembalian.
+
+\begin{definisi}
+\term{Prosedur} (disebut juga \term{subrutin}) adalah sekelompok
+instruksi bernama yang dapat dipanggil dari bagian lain program,
+menerima parameter, dan dapat mengembalikan nilai kepada
+pemanggilnya.
+\end{definisi}
+
+Pemakaian prosedur tidak gratis. Setiap pemanggilan menimbulkan
+\term{biaya pemanggilan prosedur}: mendorong parameter ke stack,
+menjalankan \asm{CALL}, membangun lalu membongkar bingkai, dan
+menjalankan \asm{RET}. Pada 8086, satu \asm{PUSH} memerlukan sekitar
+\dec{11} sampai \dec{15} siklus, \asm{CALL} sekitar \dec{19} siklus,
+dan \asm{RET} sekitar \dec{16} siklus. Untuk prosedur yang sangat
+sederhana, biaya ini dapat melebihi biaya pekerjaannya sendiri.
+Karena itu prosedur dipakai bukan terutama untuk mengejar kecepatan,
+melainkan untuk kejelasan dan kemudahan pemeliharaan.
+
+\subsection{Instruksi \asm{CALL} dan \asm{RET}}
+
+\asm{CALL} mengerjakan dua hal sekaligus: menyimpan \term{alamat
+kembali}, yaitu nilai \reg{CS} dan \reg{IP} pada saat instruksi
+\emph{sesudah} \asm{CALL}, lalu memuat alamat prosedur yang dipanggil
+ke \reg{CS} dan \reg{IP}.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    CALL HitungLuas         ; simpan alamat kembali, lalu lompat
+    MOV  luas, AX           ; instruksi ini dieksekusi setelah RET
+\end{lstlisting}
+
+Alamat kembali yang disimpan pada contoh di atas adalah alamat
+instruksi \lstasm|MOV luas, AX|. Ketika prosedur selesai, \asm{RET}
+mengambil alamat itu dari stack dan memuatnya kembali ke \reg{IP}.
+Stack dengan demikian merupakan bagian dari mekanisme kendali
+program, bukan sekadar tempat menyimpan data.
+
+\subsection{Pemanggilan \eng{Near} dan \eng{Far}}
+
+Pada \term{pemanggilan dekat} (\eng{near call}), prosedur berada
+pada segmen kode yang sama, sehingga hanya \reg{IP} yang perlu
+disimpan. Pada \term{pemanggilan jauh} (\eng{far call}), prosedur
+berada pada segmen lain, sehingga \reg{CS} dan \reg{IP} sama-sama
+disimpan. Perbedaannya dirangkum pada Tabel~\ref{tab:call-near-far}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan pemanggilan \eng{near} dan \eng{far} pada
+    prosesor 8086.}
+    \label{tab:call-near-far}
+    \small
+    \begin{tabular}{@{}p{3.3cm}p{5.0cm}p{5.0cm}@{}}
+        \toprule
+        \textbf{Aspek} & \textbf{\asm{CALL} \eng{near}} &
+        \textbf{\asm{CALL} \eng{far}} \\
+        \midrule
+        Isi yang didorong ke stack & \reg{IP} saja (\dec{2} byte) &
+        \reg{CS} lalu \reg{IP} (\dec{4} byte) \\
+        \addlinespace
+        Instruksi kembali & \asm{RET} (\code{C3h}) &
+        \asm{RETF} (\code{CBh}) \\
+        \addlinespace
+        Bentuk penulisan & \lstasm|CALL HitungLuas| &
+        \lstasm|CALL LUAR:HitungLuas| \\
+        \addlinespace
+        Pemakaian lazim & Prosedur pada satu berkas program &
+        Prosedur pada pustaka atau \eng{overlay} lain \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Seluruh contoh dalam bab ini memakai pemanggilan \eng{near} karena
+prosedur dan pemanggilnya berada pada satu segmen kode.
+
+\begin{infobox}
+\asm{CALL} tidak sama dengan \asm{JMP}. Keduanya memindahkan
+kendali, tetapi \asm{JMP} tidak menyimpan alamat kembali, sehingga
+\asm{RET} akan mengambil alamat yang salah dari stack.
+\end{infobox}
+
+Setelah memahami bagaimana kendali berpindah, pertanyaan berikutnya
+adalah di mana alamat kembali itu disimpan dan bagaimana isinya
+berubah. Jawabannya adalah stack, yang dibahas pada
+Subbab~\ref{sec:operasi-stack}.

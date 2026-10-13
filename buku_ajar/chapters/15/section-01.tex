@@ -1,0 +1,184 @@
+\section{Taksonomi Kesalahan Program dan Alat Debugging}
+\label{sec:taksonomi-kesalahan}
+
+Menulis program assembly berarti berhadapan langsung dengan register,
+\eng{flag}, dan alamat memori tanpa lapisan pelindung apa pun. Satu
+digit salah pada operand, satu instruksi yang tertukar, atau satu
+\asm{PUSH} yang lupa dipasangkan dengan \asm{POP} dapat membuat
+program berhenti bekerja. Karena itu kemampuan menemukan kesalahan
+menjadi keterampilan yang setara pentingnya dengan kemampuan menulis
+program itu sendiri.
+\begin{definisi}
+\term{Debugging} adalah proses sistematis untuk menemukan penyebab
+suatu kesalahan (\eng{bug}) pada program, membuktikan penyebab itu
+melalui bukti pengamatan, lalu memperbaiki dan memverifikasi hasil
+perbaikan. \eng{Debugging} bukan kegiatan menebak-nebak, melainkan
+kegiatan mengumpulkan bukti pada level instruksi.
+\end{definisi}
+
+Pada bab-bab sebelumnya telah dibahas bagaimana register bekerja
+(Bab~\ref{chap:register}), bagaimana keputusan diambil berdasarkan
+\eng{flag} (Bab~\ref{chap:kontrol}), dan bagaimana prosedur
+menggunakan \eng{stack} (Bab~\ref{chap:prosedur}). Ketiga pengetahuan
+itu menjadi bekal utama pada bab ini.
+
+\subsection{Lima Jenis Kesalahan Program}
+
+Tidak semua kesalahan sama. Mengenali jenis kesalahan lebih dahulu
+mempercepat pemilihan alat dan strategi. Secara umum terdapat lima
+jenis kesalahan yang perlu dibedakan.
+
+\begin{description}
+    \item[Kesalahan sintaks] Kesalahan penulisan yang membuat
+          assembler menolak berkas sumber sehingga program
+          \emph{tidak} dihasilkan sama sekali. Contohnya mnemonic yang
+          salah tulis (\code{MOVV} alih-alih \asm{MOV}), operand yang
+          ukurannya tidak cocok, atau label yang tidak pernah
+          didefinisikan. Jenis ini paling mudah diperbaiki karena
+          assembler menunjukkan nomor barisnya.
+
+    \item[Kesalahan saat berjalan] Kesalahan yang baru muncul ketika
+          program dijalankan, misalnya pembagian dengan nol
+          (\asm{DIV} dengan pembagi nol) atau pembacaan berkas yang
+          tidak ada. Program berjalan sampai titik tertentu lalu
+          berhenti dengan pesan dari sistem operasi.
+
+    \item[Kesalahan logika] Kesalahan yang paling sulit: program
+          \emph{berjalan sampai selesai} tetapi hasilnya salah.
+          Assembler diam, sistem operasi pun diam. Contohnya
+          penghitung perulangan yang salah nilai awal, operasi
+          \asm{ADD} yang seharusnya \asm{SUB}, atau akumulasi yang
+          memakai register yang keliru.
+
+    \item[Kesalahan segmentasi] Kesalahan karena program mengakses
+          alamat di luar segmen yang seharusnya, misalnya karena
+          register segmen belum diinisialisasi, indeks larik melewati
+          batas, atau \reg{DS} tidak pernah diarahkan ke segmen data.
+
+    \item[\eng{Overflow}] Kesalahan karena hasil perhitungan atau
+          pemakaian \eng{stack} melebihi daya tampungnya.
+          \eng{Overflow} aritmatika terjadi ketika hasil melewati
+          batas register 16-bit, misalnya lebih dari \hex{FFFF}.
+          \eng{Overflow} \eng{stack} terjadi ketika \asm{PUSH} atau
+          \asm{CALL} melebihi ruang \dir{.STACK} yang disediakan,
+          atau ketika jumlah \asm{PUSH} dan \asm{POP} tidak seimbang
+          sehingga \asm{RET} mengambil alamat yang salah.
+\end{description}
+
+\begin{table}[H]
+    \centering
+    \caption{Taksonomi kesalahan program beserta gejala dan cara
+    penemuannya.}
+    \label{tab:taksonomi-kesalahan}
+    \small
+    \begin{tabular}{@{}p{2.1cm}p{3.6cm}p{3.3cm}p{4.0cm}@{}}
+        \toprule
+        \textbf{Jenis} & \textbf{Gejala} & \textbf{Kapan
+        terdeteksi} & \textbf{Cara menemukan} \\
+        \midrule
+        Sintaks & Assembler menolak berkas; tidak ada
+        \file{.obj} & Sebelum program dijalankan &
+        Baca pesan assembler beserta nomor barisnya \\
+        \addlinespace
+        Saat berjalan & Program berhenti di tengah jalan; pesan
+        sistem operasi & Ketika dijalankan &
+        Jalankan bertahap sampai titik berhenti \\
+        \addlinespace
+        Logika & Program selesai normal, hasil salah & Tidak
+        terdeteksi otomatis & Tabel \eng{trace} register dan
+        \eng{flag} per langkah \\
+        \addlinespace
+        Segmentasi & Karakter sampah, nilai berubah sendiri,
+        program macet & Ketika dijalankan &
+        Periksa \reg{DS}, \reg{ES}, \reg{SS}, dan batas indeks
+        melalui \code{D} \\
+        \addlinespace
+        \eng{Overflow} & Hasil aritmatika terpotong; \asm{RET}
+        melompat ke alamat aneh & Ketika dijalankan &
+        Periksa \flag{CF}, \flag{OF}, dan pasangan \eng{dump}
+        \eng{stack} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{peringatanbox}
+Kesalahan sintaks dan kesalahan logika sering tertukar oleh pemula.
+Perbedaannya sederhana: kesalahan sintaks membuat program
+\emph{gagal dirakit}, sedangkan kesalahan logika membuat program
+\emph{berhasil dirakit dan berjalan} tetapi menghasilkan nilai yang
+salah. Bila assembler tidak melaporkan apa pun, jangan mencari
+kesalahan pada penulisan; carilah pada nilai.
+\end{peringatanbox}
+
+Tabel~\ref{tab:taksonomi-kesalahan} menunjukkan bahwa hanya kesalahan
+sintaks yang dapat dipercayakan kepada assembler. Empat jenis
+kesalahan lainnya menuntut pengamatan langsung terhadap keadaan
+prosesor saat program berjalan. Di sinilah \eng{debugger} menjadi
+alat yang tidak tergantikan.
+
+\subsection{Alat Debugging yang Tersedia}
+
+Terdapat tiga alat \eng{debugging} yang dipakai pada mata kuliah ini.
+Ketiganya mampu melakukan hal yang sama, yaitu menghentikan program,
+memeriksa register, dan memeriksa memori; perbedaannya terletak pada
+kemudahan pemakaian dan kedekatan dengan mesin sesungguhnya.
+
+\begin{description}
+    \item[MS-DEBUG di DOSBox] Program bawaan DOS yang seluruh
+          interaksinya berupa baris perintah. Yang terlihat
+          benar-benar isi memori, bukan tampilan yang disederhanakan
+          \cite{irvine1999}.
+
+    \item[\eng{Debugger} terpadu GUI Turbo Assembler] Satu jendela
+          terpadu memuat kode sumber, register, dan memori sekaligus;
+          program dijalankan baris per baris dengan menekan tombol
+          \cite{guitasm}.
+
+    \item[Jendela \eng{debug} Emu8086] Register, \eng{flag}, memori,
+          dan \eng{stack} tampil sebagai panel terpisah yang selalu
+          terlihat sehingga cocok untuk pemula. Karena Emu8086 adalah
+          emulator, program yang dijalankan adalah hasil emulasi
+          \cite{emu8086help}.
+\end{description}
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan kemampuan tiga alat \eng{debugging}.}
+    \label{tab:alat-debugging}
+    \small
+    \begin{tabular}{@{}p{2.9cm}p{3.5cm}p{3.7cm}p{3.2cm}@{}}
+        \toprule
+        \textbf{Kemampuan} & \textbf{MS-DEBUG (DOSBox)} &
+        \textbf{GUI Turbo Assembler} & \textbf{Emu8086} \\
+        \midrule
+        Tampilan & Teks, baris perintah & Grafis, jendela terpadu &
+        Grafis, panel terpisah \\
+        \addlinespace
+        Langkah per instruksi & \code{T} dan \code{P} &
+        Tombol \file{Step} & Tombol \file{Single Step} \\
+        \addlinespace
+        \eng{Breakpoint} & \code{G} pada alamat; jumlah terbatas &
+        Titik henti pada baris sumber & Titik henti pada baris sumber \\
+        \addlinespace
+        Memeriksa memori & \code{D} dan \code{E} &
+        Jendela \eng{dump} memori & Jendela memori \\
+        \addlinespace
+        Memeriksa \eng{stack} & \code{D SS:SP} &
+        Jendela \eng{stack} & Jendela \eng{stack} \\
+        \addlinespace
+        Memodifikasi kode mesin & \code{A} dan \code{E} &
+        Tidak langsung & Tidak langsung \\
+        \addlinespace
+        Menjalankan \file{.exe} lama & Ya & Ya & Perlu emulasi \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Pada bab ini penekanan diberikan kepada MS-DEBUG karena dua alasan.
+Pertama, DEBUG memperlihatkan keadaan mesin apa adanya sehingga
+mahasiswa belajar membaca alamat, opcode, dan \eng{dump} memori secara
+mentah. Kedua, kemampuan membaca keluaran DEBUG berlaku umum: jendela
+grafis Emu8086 maupun GUI Turbo Assembler menampilkan informasi yang
+sama dengan tata letak yang lebih nyaman.
+\end{infobox}

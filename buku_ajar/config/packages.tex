@@ -1,0 +1,125 @@
+% =========================================================
+% config/packages.tex
+% SELURUH package buku didefinisikan di sini.
+% Bab dan section TIDAK BOLEH memuat \usepackage.
+% =========================================================
+
+% ---------------------------------------------------------
+% Bahasa dan encoding
+% ---------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}          % font Latin Modern (scalable, wajib untuk microtype)
+\usepackage[indonesian]{babel}
+
+% ---------------------------------------------------------
+% Tata letak halaman
+% ---------------------------------------------------------
+\usepackage[
+    a4paper,
+    top=3cm,
+    bottom=2.8cm,
+    left=3cm,
+    right=2.6cm,
+    headsep=0.6cm,
+    footskip=1.0cm
+]{geometry}
+
+% ---------------------------------------------------------
+% Matematika
+% ---------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+
+% ---------------------------------------------------------
+% Grafik dan diagram
+% ---------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{
+    arrows.meta,
+    positioning,
+    shapes.geometric,
+    shapes.misc,
+    calc,
+    fit,
+    backgrounds,
+    patterns,
+    decorations.pathreplacing,
+    matrix,
+    chains
+}
+
+% ---------------------------------------------------------
+% Tabel
+% ---------------------------------------------------------
+% Catatan: colortbl TIDAK dipakai. Pada instalasi MiKTeX tertentu
+% colortbl versi baru memerlukan makro \insert@pcolumn yang belum
+% tersedia pada array.sty bawaan (tools), sehingga tabel gagal
+% dirakit. Pewarnaan baris tabel dihindari; gunakan booktabs dan
+% judul kolom tebal.
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{makecell}
+
+% ---------------------------------------------------------
+% Warna dan kotak
+% ---------------------------------------------------------
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+
+% ---------------------------------------------------------
+% Daftar
+% ---------------------------------------------------------
+\usepackage{enumitem}
+
+% ---------------------------------------------------------
+% Kode program
+% ---------------------------------------------------------
+\usepackage{listings}
+
+% ---------------------------------------------------------
+% Keterangan (caption) dan judul bab/section
+% ---------------------------------------------------------
+\usepackage{caption}
+\usepackage{titlesec}
+
+% ---------------------------------------------------------
+% Header dan footer
+% ---------------------------------------------------------
+\usepackage{fancyhdr}
+
+% ---------------------------------------------------------
+% Spasi
+% ---------------------------------------------------------
+\usepackage{setspace}
+\usepackage{microtype}
+
+% ---------------------------------------------------------
+% Simbol
+% ---------------------------------------------------------
+\usepackage{pifont}
+
+% ---------------------------------------------------------
+% Referensi dan tautan (dimuat menjelang akhir)
+% ---------------------------------------------------------
+\usepackage[hidelinks,breaklinks]{hyperref}
+\usepackage{url}
+
+% Sitasi memakai gaya numerik [1], [2], ... mengikuti penomoran
+% pada Daftar Referensi RPS. Gaya author-year tidak dipakai karena
+% sebagian sumber resmi (misalnya manual laboratorium dan
+% dokumentasi perangkat lunak) tidak mencantumkan tahun terbit,
+% sehingga label author-year menjadi tidak lengkap.
+\usepackage[numbers,sort&compress]{natbib}
+
+% ---------------------------------------------------------
+% Kompilasi bab mandiri
+% ---------------------------------------------------------
+\usepackage{subfiles}

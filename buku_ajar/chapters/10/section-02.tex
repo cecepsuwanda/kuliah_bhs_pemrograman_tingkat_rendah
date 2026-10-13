@@ -1,0 +1,204 @@
+\section{Instruksi Aritmatika Dasar dan Pengaruhnya pada \eng{Flag}}
+\label{sec:aritmatika-dasar}
+
+Setelah data berada di register, langkah berikutnya adalah
+menghitungnya. Prosesor 8086 menyediakan instruksi penjumlahan,
+pengurangan, dan perbandingan yang bekerja pada operand 8 bit maupun
+16 bit. Setiap instruksi meninggalkan jejak pada register \eng{flag},
+dan jejak inilah yang menentukan benar atau salahnya keputusan yang
+diambil program setelahnya.
+
+\subsection{Penjumlahan: \asm{ADD} dan \asm{ADC}}
+
+Instruksi \asm{ADD} menjumlahkan operand sumber dengan operand tujuan
+dan menyimpan hasilnya pada operand tujuan. Instruksi \asm{ADC}
+bekerja sama, tetapi ikut menambahkan nilai \flag{CF} dari operasi
+sebelumnya.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AX, 25              ; AX = 25
+    ADD AX, 17              ; AX = 42
+    ADD nilai1, AX          ; nilai1 = nilai1 + AX (di memori)
+    ADC AX, BX              ; AX = AX + BX + CF
+\end{lstlisting}
+
+Pada operasi satu langkah kedua instruksi sering dianggap sama karena
+\flag{CF} biasanya bernilai nol. Perbedaannya baru terasa pada
+aritmatika bertingkat, yang dibahas pada Bagian~3.
+
+\subsection{Pengurangan dan Penyangkalan: \asm{SUB}, \asm{SBB},
+\asm{INC}, \asm{DEC}, dan \asm{NEG}}
+
+Instruksi \asm{SUB} mengurangi operand tujuan dengan operand sumber,
+sedangkan \asm{SBB} (\eng{Subtract with Borrow}) ikut mengurangkan
+nilai \flag{CF}. Instruksi \asm{INC} dan \asm{DEC} menambah atau
+mengurangi satu, dan \asm{NEG} mengubah tanda sebuah bilangan.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AX, 100             ; AX = 100
+    SUB AX, 45              ; AX = 55
+    INC AX                  ; AX = 56
+    DEC AX                  ; AX = 55
+    NEG AX                  ; AX = -55 (0FFC9h)
+    SBB AX, BX              ; AX = AX - BX - CF
+\end{lstlisting}
+
+Instruksi \asm{CMP} sering dikelompokkan bersama pengurangan karena
+cara kerjanya identik dengan \asm{SUB}, tetapi \asm{CMP} \emph{tidak
+menyimpan} hasilnya. Yang ditinggalkan hanyalah jejak pada
+\eng{flag}, sehingga \asm{CMP} selalu diikuti lompatan bersyarat
+seperti pada Bab~\ref{chap:kontrol}.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    CMP AX, BX              ; bandingkan AX dengan BX
+    JE SAMA                 ; lompat bila nilainya sama (ZF = 1)
+\end{lstlisting}
+
+\subsection{Makna \eng{Flag} Hasil Aritmatika}
+
+Tabel~\ref{tab:makna-flag} menjelaskan arti setiap \eng{flag} yang
+relevan bagi operasi aritmatika.
+
+\begin{table}[H]
+    \centering
+    \caption{Makna \eng{flag} hasil operasi aritmatika.}
+    \label{tab:makna-flag}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabular}{@{}p{1.4cm}p{7.4cm}p{5.0cm}@{}}
+        \toprule
+        \textbf{Flag} & \textbf{Arti} & \textbf{Tanda pada hasil} \\
+        \midrule
+        \flag{CF} & \eng{Carry}: ada nilai yang keluar dari bit
+        paling kiri (pinjaman pada pengurangan) &
+        \flag{CF} = 1 menandakan hasil tak bertanda melampaui
+        kapasitas \\
+        \addlinespace
+        \flag{ZF} & \eng{Zero}: hasil operasi bernilai nol &
+        \flag{ZF} = 1 menandakan kedua operand sama besar \\
+        \addlinespace
+        \flag{SF} & \eng{Sign}: bit paling kiri hasil operasi
+        bernilai 1 & \flag{SF} = 1 menandakan hasil bertanda negatif \\
+        \addlinespace
+        \flag{OF} & \eng{Overflow}: hasil bertanda melampaui batas
+        yang dapat ditampung & \flag{OF} = 1 menandakan luapan
+        bilangan bertanda \\
+        \addlinespace
+        \flag{AF} & \eng{Auxiliary carry} dari bit ke-3 menuju bit
+        ke-4 & Dipakai instruksi penyesuaian BCD seperti \asm{DAA} \\
+        \addlinespace
+        \flag{PF} & \eng{Parity}: cacah bit 1 pada byte paling rendah
+        genap & Dipakai pada pemeriksaan kesalahan transmisi \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Jejak yang ditinggalkan masing-masing instruksi berbeda. Perbedaan
+itulah yang menentukan benar atau salahnya lompatan bersyarat yang
+menyusul. Tabel~\ref{tab:ringkasan-aritmatika} merangkum bentuk
+operand, hasil, dan \eng{flag} yang terpengaruh untuk setiap
+instruksi.
+
+\begin{table}[H]
+    \centering
+    \caption{Ringkasan instruksi aritmatika 8086.}
+    \label{tab:ringkasan-aritmatika}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabular}{@{}p{1.7cm}p{3.0cm}p{4.1cm}p{4.2cm}@{}}
+        \toprule
+        \textbf{Instruksi} & \textbf{Bentuk operand} &
+        \textbf{Hasil} & \textbf{Flag terpengaruh} \\
+        \midrule
+        \asm{ADD} & \lstasm|ADD tujuan, sumber| &
+        tujuan $\leftarrow$ tujuan + sumber &
+        \flag{OF} \flag{SF} \flag{ZF} \flag{AF} \flag{PF} \flag{CF} \\
+        \addlinespace
+        \asm{ADC} & \lstasm|ADC tujuan, sumber| &
+        tujuan $\leftarrow$ tujuan + sumber + \flag{CF} &
+        seluruh \eng{flag} aritmatika \\
+        \addlinespace
+        \asm{SUB} & \lstasm|SUB tujuan, sumber| &
+        tujuan $\leftarrow$ tujuan $-$ sumber &
+        seluruh \eng{flag} aritmatika \\
+        \addlinespace
+        \asm{SBB} & \lstasm|SBB tujuan, sumber| &
+        tujuan $\leftarrow$ tujuan $-$ sumber $-$\flag{CF} &
+        seluruh \eng{flag} aritmatika \\
+        \addlinespace
+        \asm{INC} & \lstasm|INC tujuan| &
+        tujuan $\leftarrow$ tujuan + 1 &
+        \flag{OF} \flag{SF} \flag{ZF} \flag{AF} \flag{PF}; \flag{CF}
+        tidak berubah \\
+        \addlinespace
+        \asm{DEC} & \lstasm|DEC tujuan| &
+        tujuan $\leftarrow$ tujuan $-$ 1 &
+        \flag{OF} \flag{SF} \flag{ZF} \flag{AF} \flag{PF}; \flag{CF}
+        tidak berubah \\
+        \addlinespace
+        \asm{NEG} & \lstasm|NEG tujuan| &
+        tujuan $\leftarrow$ 0 $-$ tujuan &
+        seluruh \eng{flag}; \flag{CF} = 1 bila hasil tidak nol \\
+        \addlinespace
+        \asm{CMP} & \lstasm|CMP tujuan, sumber| &
+        hasil dibuang, hanya \eng{flag} yang diubah &
+        sama dengan \asm{SUB} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Operasi Bertanda dan Tak Bertanda}
+
+Satu deretan bit yang sama dapat ditafsirkan sebagai bilangan tak
+bertanda (\eng{unsigned}) atau bilangan bertanda (\eng{signed}) dalam
+komplemen dua. Byte \hex{FF} berarti 255 bila tak bertanda, tetapi
+berarti $-1$ bila bertanda. Instruksi \asm{ADD} dan \asm{SUB} melayani
+kedua tafsiran tersebut, tetapi \eng{flag} penandanya berbeda:
+\flag{CF} untuk hasil tak bertanda dan \flag{OF} untuk hasil bertanda.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    ; contoh tak bertanda : 200 + 100 = 300 (tidak muat di 8 bit)
+    MOV AL, 200             ; AL = C8h
+    ADD AL, 100             ; hasil 300 -> AL = 2Ch, CF = 1
+
+    ; contoh bertanda : -56 + 100 = 44
+    MOV AL, 200             ; AL = C8h, nilainya -56
+    ADD AL, 100             ; hasil 44 -> AL = 2Ch, OF = 0
+\end{lstlisting}
+
+Kedua contoh menghasilkan byte \hex{2C} yang sama, tetapi maknanya
+berbeda: yang pertama salah karena \flag{CF} bernilai 1, sedangkan
+yang kedua benar karena \flag{OF} bernilai 0. Aturan praktisnya,
+gunakan lompatan tak bertanda (\asm{JA}, \asm{JB}) setelah operasi
+tak bertanda, dan lompatan bertanda (\asm{JG}, \asm{JL}) setelah
+operasi bertanda. Perbedaan yang sama mendasari pemilihan \asm{MUL}
+atau \asm{IMUL} pada Bagian~3.
+
+\subsection{Operasi Perbandingan dengan \asm{CMP}}
+
+Tiga pola \asm{CMP} berikut adalah yang paling sering muncul pada
+program yang mengambil keputusan.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    CMP AX, BX              ; AX - BX
+    JE  SAMA                ; ZF = 1  -> AX sama dengan BX
+    JA  LEBIH_BESAR         ; CF = 0 dan ZF = 0 -> AX > BX (unsigned)
+    JG  LEBIH_BESAR_TTD     ; SF = OF dan ZF = 0 -> AX > BX (signed)
+\end{lstlisting}
+
+\begin{infobox}
+Instruksi \asm{INC} dan \asm{DEC} sengaja \emph{tidak} mengubah
+\flag{CF} agar operasi penghitung pada perulangan tidak merusak
+\eng{carry} dari aritmatika bertingkat. Akibatnya, \asm{INC} yang
+hasilnya nol tetap menyetel \flag{ZF}, tetapi luapan 8 bit tidak
+menyetel \flag{CF}.
+\end{infobox}
+
+\begin{peringatanbox}
+Dua kesalahan yang sering terjadi pada bagian ini adalah menganggap
+\lstasm|NEG AX| selalu menyetel \flag{CF}, dan memakai \asm{INC} pada
+aritmatika bertingkat. Instruksi \asm{NEG} menghitung $0 - AX$,
+sehingga bila \reg{AX} bernilai nol, hasilnya nol dan \flag{CF}
+bernilai 0. Pada aritmatika bertingkat, \asm{INC} tidak meneruskan
+\eng{carry} ke word berikutnya karena \flag{CF} tidak tersentuh.
+\end{peringatanbox}

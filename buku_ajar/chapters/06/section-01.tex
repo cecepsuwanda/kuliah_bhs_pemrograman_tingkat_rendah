@@ -1,0 +1,257 @@
+\section{Masalah Pengalamatan Memori dan Lahirnya Segmentasi}
+\label{sec:masalah-segmentasi}
+
+Program assembly bekerja langsung dengan alamat memori. Pada
+Bab~\ref{chap:register} telah dibahas bahwa 8086 memiliki empat
+register segmen, yaitu \reg{CS}, \reg{DS}, \reg{SS}, dan \reg{ES},
+yang masing-masing berukuran 16 bit. Muncul pertanyaan yang wajar:
+mengapa prosesor yang bus alamatnya berukuran 20 bit justru memakai
+register segmen 16 bit? Jawaban atas pertanyaan itulah yang menjadi
+inti bab ini.
+
+\subsection{Keterbatasan Register 16-Bit}
+
+Sebuah register 16-bit hanya mampu menampung nilai dari \hex{0000}
+sampai \hex{FFFF}, yaitu \dec{65.536} nilai yang berbeda. Bila satu
+register dipakai untuk menunjuk satu alamat memori secara langsung,
+maka jangkauan alamat yang dapat dijangkau hanyalah \dec{65.536}
+byte atau 64 KB. Dengan kata lain, seluruh memori yang dapat
+disentuh program akan terbatas pada wilayah 64 KB saja.
+
+Keadaan menjadi berbeda ketika kita melihat sisi perangkat keras.
+Prosesor 8086 memiliki bus alamat 20 bit, sehingga ia mampu
+menjangkau $2^{20} = \dec{1.048.576}$ alamat, yaitu 1 MB
+(\eng{megabyte}) memori. Angka ini enam belas kali lebih besar
+daripada jangkauan satu register 16-bit. Perbandingan tersebut
+dirangkum pada Tabel~\ref{tab:lebar-alamat}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan lebar register dan lebar bus alamat 8086.}
+    \label{tab:lebar-alamat}
+    \small
+    \begin{tabular}{@{}p{3.6cm}p{3.4cm}p{3.0cm}p{4.0cm}@{}}
+        \toprule
+        \textbf{Sisi} & \textbf{Lebar} & \textbf{Jangkauan} &
+        \textbf{Akibat} \\
+        \midrule
+        Register umum dan register segmen & 16 bit &
+        \dec{65.536} alamat & Hanya 64 KB dapat ditunjuk langsung \\
+        \addlinespace
+        Bus alamat prosesor & 20 bit &
+        \dec{1.048.576} alamat & Seluruh 1 MB dapat dijangkau \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Terdapat selisih jangkauan sebesar 16 kali antara kedua sisi
+tersebut. Jika register 16-bit dipakai seorang diri, memori di atas
+alamat \hex{FFFF} tidak akan pernah dapat diakses, padahal peta
+memori 8086 justru menempatkan bagian-bagian penting sistem pada
+alamat-alamat tinggi, misalnya ROM BIOS pada \hex{F0000}. Di sinilah
+sebuah strategi tambahan diperlukan, dan strategi itu bernama
+\term{segmentasi}.
+
+\begin{infobox}
+Segmentasi bukan sekadar keterbatasan yang harus diterima, melainkan
+sebuah kompromi rancangan. Dengan segmentasi, lebar instruksi dan
+register tetap 16 bit (sehingga program tetap ringkas dan kompatibel
+dengan perangkat lunak lama), tetapi jangkauan alamat tetap mencapai
+1 MB. Konsep serupa dipakai pada hampir semua sistem berbasis 8086
+dan diwarisi hingga prosesor modern sebagai mode real.
+\end{infobox}
+
+\subsection{Alamat Logis dan Alamat Fisik}
+
+Pemecahan masalah di atas dilakukan dengan membagi sebuah alamat
+menjadi dua bagian yang ditulis berdampingan dan dipisahkan tanda
+titik dua. Bentuk penulisan seperti \code{1234h:5678h} disebut
+\term{alamat logis}, sedangkan alamat sebenarnya yang dikirim ke
+bus alamat disebut \term{alamat fisik}.
+
+\begin{definisi}
+\textbf{Alamat logis} adalah cara programmer menuliskan sebuah
+alamat, yaitu berupa pasangan \eng{segment:offset} dengan bentuk
+\code{segmen:offset}. \textbf{Alamat fisik} adalah alamat 20-bit
+yang benar-benar dibangkitkan prosesor dan dikirim ke bus alamat
+untuk memilih satu lokasi memori.
+\end{definisi}
+
+Pada penulisan \code{1234h:5678h}, nilai \hex{1234} disebut
+\term{segmen} (\eng{segment}) dan nilai \hex{5678} disebut
+\term{offset}. Keduanya berukuran 16 bit. Titik dua di antara
+keduanya hanya berfungsi sebagai pemisah penulisan; prosesor tidak
+mengenalnya sebagai operasi pembagian. Ketika programmer menulis
+\lstasm|MOV AX, [1234h]|, yang dipakai adalah segmen data saat itu
+(ditunjuk oleh \reg{DS}) dengan offset \hex{1234}. Sebaliknya, bila
+alamat ditulis lengkap sebagai \lstasm|MOV AX, 1234h:[5678h]|,
+pasangan tersebut dipakai apa adanya tanpa memperhatikan isi
+\reg{DS}.
+
+\begin{infobox}
+\important{Nilai segmen bukan alamat.} Segmen \hex{1234} bukan
+menunjuk alamat \hex{1234}, melainkan menunjuk awal sebuah paragraf
+yang letaknya lebih jauh, yaitu pada \hex{12340}. Kekeliruan
+memperlakukan nilai segmen sebagai alamat sudah menjadi sumber
+kesalahan perhitungan yang paling sering terjadi.
+\end{infobox}
+
+\subsection{Rumus Alamat Fisik}
+
+Hubungan antara alamat logis dan alamat fisik dinyatakan oleh rumus
+berikut.
+
+\begin{equation}
+\label{eq:rumus-alamat-fisik}
+\text{Alamat fisik} = (\text{Segmen} \times \hex{10}) +
+\text{Offset}
+\end{equation}
+
+Nilai \hex{10} pada Persamaan~\ref{eq:rumus-alamat-fisik} adalah
+bilangan heksadesimal yang sama dengan \dec{16} desimal. Prosesor
+tidak benar-benar melakukan perkalian; secara perangkat keras ia
+hanya menggeser nilai segmen empat bit ke kiri (setara dengan
+mengalikan 16), lalu menjumlahkannya dengan offset. Karena segmen
+dan offset masing-masing 16 bit, hasil penjumlahan tersebut dapat
+mencapai 20 bit, bahkan pada kasus tertentu menghasilkan bit ke-21
+yang akan dibahas pada Bagian~\ref{sec:peta-memori}.
+
+Mengapa pengalinya justru 16 dan bukan 10 atau 100? Karena memori
+dibagi menjadi satuan-satuan berukuran 16 byte yang disebut
+\term{paragraf} (\eng{paragraph}). Nilai segmen sesungguhnya
+menyatakan nomor paragraf, bukan nomor byte. Bila segmen bernilai
+\hex{1234}, artinya alamat dasar berada pada paragraf ke-\hex{1234},
+dan setiap paragraf berisi 16 byte. Dengan demikian dasar segmen
+tersebut berada pada byte ke $(\hex{1234} \times \dec{16}) =
+\hex{12340}$. Satuan inilah yang membuat nilai segmen selalu
+berakhir pada digit nol ketika dituliskan sebagai alamat fisik.
+
+Gambar~\ref{fig:pembentukan-alamat} memperlihatkan proses
+pembentukan alamat fisik untuk pasangan \code{1234h:5678h}. Perhatikan
+bahwa pada baris segmen ditambahkan satu digit nol di sebelah kanan,
+yang menyatakan pergeseran empat bit tersebut.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        digit/.style={draw=obeBlue, line width=0.5pt, minimum size=0.65cm,
+                      inner sep=0pt, font=\ttfamily\small, anchor=center},
+        ket/.style={font=\scriptsize, align=center},
+        labelkiri/.style={font=\scriptsize\bfseries, text=obeBlue,
+                          anchor=east}
+    ]
+        % ---- baris segmen yang sudah digeser 4 bit ----
+        \foreach \d [count=\i from 0] in {1,2,3,4}
+            \node[digit, fill=obeBlueLight] at (1.0+0.65*\i, 2.2) {\d};
+        \node[digit, fill=obeTealLight, draw=obeTeal] (nol) at (3.60, 2.2) {0};
+
+        % ---- baris offset ----
+        \foreach \d [count=\i from 1] in {5,6,7,8}
+            \node[digit, fill=obeGrayLight, draw=obeGray]
+                at (1.0+0.65*\i, 1.45) {\d};
+
+        % ---- garis penjumlahan ----
+        \draw[line width=0.9pt, obeBlue] (0.675, 1.02) -- (3.925, 1.02);
+
+        % ---- baris hasil ----
+        \foreach \d [count=\i from 0] in {1,7,9,B,8}
+            \node[digit, fill=obeAmberLight, draw=obeAmber]
+                at (1.0+0.65*\i, 0.45) {\d};
+
+        % ---- keterangan di sebelah kiri ----
+        \node[labelkiri] at (0.55, 2.2) {Segmen};
+        \node[labelkiri] at (0.55, 1.45) {Offset};
+        \node[labelkiri] at (0.55, 0.45) {Fisik};
+
+        % ---- anotasi pergeseran ----
+        \draw[-{Stealth[length=2mm]}, obeTeal, line width=0.7pt]
+            (nol.north) -- ++(0,0.42)
+            node[above, ket, text=obeTeal]
+            {digit 0 ditambahkan:\\segmen digeser 4 bit ($\times 16$)};
+    \end{tikzpicture}
+    \caption{Pembentukan alamat fisik 20-bit dari pasangan
+    \eng{segment:offset}. Segmen digeser empat bit, lalu dijumlahkan
+    dengan offset.}
+    \label{fig:pembentukan-alamat}
+\end{figure}
+
+\begin{contoh}
+Hitunglah alamat fisik dari pasangan \code{1234h:5678h}.\\[0.3em]
+Langkah pertama, kalikan segmen dengan \hex{10}:
+$\hex{1234} \times \hex{10} = \hex{12340}$. Langkah kedua,
+jumlahkan hasilnya dengan offset:
+$\hex{12340} + \hex{5678} = \hex{179B8}$. Jadi alamat fisiknya
+adalah \hex{179B8}.
+\end{contoh}
+
+\subsection{Contoh Perhitungan Bertingkat}
+
+Enam contoh berikut disusun bertingkat, mulai dari kasus paling
+sederhana sampai kasus yang memunculkan \eng{carry} pada digit
+kelima. Seluruh hasilnya dirangkum pada
+Tabel~\ref{tab:contoh-alamat-fisik}. Kerjakan setiap baris dengan
+rumus pada Persamaan~\ref{eq:rumus-alamat-fisik} sebelum melihat
+hasilnya. Pada kolom terakhir, alamat fisik ditulis dengan lima
+digit heksadesimal agar lebar 20-bitnya terlihat; nilai \hex{00100}
+sama dengan \hex{0100}.
+
+\begin{table}[H]
+    \centering
+    \caption{Enam contoh perhitungan alamat fisik yang disusun
+    bertingkat.}
+    \label{tab:contoh-alamat-fisik}
+    \small
+    \begin{tabular}{@{}cp{1.6cm}p{1.6cm}p{3.9cm}p{2.1cm}@{}}
+        \toprule
+        \textbf{No} & \textbf{Segmen} & \textbf{Offset} &
+        \textbf{Perhitungan} & \textbf{Alamat fisik} \\
+        \midrule
+        1 & \hex{0000} & \hex{0100} &
+        \hex{00000} + \hex{0100} & \hex{00100} \\
+        \addlinespace
+        2 & \hex{1000} & \hex{0020} &
+        \hex{10000} + \hex{0020} & \hex{10020} \\
+        \addlinespace
+        3 & \hex{076A} & \hex{0100} &
+        \hex{076A0} + \hex{0100} & \hex{077A0} \\
+        \addlinespace
+        4 & \hex{2000} & \hex{FFFF} &
+        \hex{20000} + \hex{FFFF} & \hex{2FFFF} \\
+        \addlinespace
+        5 & \hex{1234} & \hex{5678} &
+        \hex{12340} + \hex{5678} & \hex{179B8} \\
+        \addlinespace
+        6 & \hex{B800} & \hex{0000} &
+        \hex{B8000} + \hex{0000} & \hex{B8000} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Setiap baris mengajarkan hal yang berbeda. Baris 1 memperlihatkan
+segmen \hex{0000}, yaitu segmen paling awal, sehingga alamat
+fisiknya sama dengan offsetnya sendiri. Baris 2 memperlihatkan
+segmen yang berakhir pada nol sehingga penjumlahannya mudah dibaca.
+Baris 3 adalah bentuk yang paling sering muncul dalam praktikum
+karena segmennya diambil dari nilai \reg{DS} yang diberikan DOS.
+Baris 4 memakai offset terbesar yang mungkin, yaitu \hex{FFFF},
+sehingga menghasilkan alamat tertinggi yang dapat dicapai segmen
+tersebut. Baris 5 memunculkan \eng{carry} yang mengubah digit
+kelima hasil penjumlahan. Baris 6 menunjuk awal area video teks
+warna, yang akan dibahas pada Bagian~\ref{sec:peta-memori}.
+
+\begin{peringatanbox}
+Kesalahan paling sering adalah menjumlahkan segmen dan offset tanpa
+mengalikan segmen dengan \hex{10}. Pada contoh \code{1234h:5678h},
+cara yang salah menghasilkan $\hex{1234} + \hex{5678} = \hex{68AC}$,
+sedangkan hasil yang benar adalah \hex{179B8}. Selisih kedua hasil
+tersebut sangat besar karena satu langkah perkalian 16 telah
+terlewat. Biasakan menuliskan nilai segmen yang sudah digeser
+sebelum melakukan penjumlahan.
+\end{peringatanbox}
+
+Dengan rumus ini, setiap variabel yang dideklarasikan pada segmen
+data memiliki alamat fisik yang dapat dihitung oleh mahasiswa,
+asalkan nilai \reg{DS} dan offset variabel tersebut diketahui.
+Kedua nilai itu dapat dibaca langsung dari emulator atau
+\eng{debugger}. Cara memperolehnya dibahas pada
+Bagian~\ref{sec:contoh-program} dan Bagian~\ref{sec:praktikum-bab6}.

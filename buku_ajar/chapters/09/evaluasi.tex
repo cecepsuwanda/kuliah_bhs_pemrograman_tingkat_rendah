@@ -1,0 +1,128 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab9}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Pernyataan yang benar tentang direktif assembler adalah
+          \dots
+          \begin{enumerate}
+              \item direktif menghasilkan opcode seperti instruksi
+              \item direktif hanya berlaku saat perakitan dan tidak
+                    menghasilkan kode mesin
+              \item direktif dieksekusi prosesor saat program
+                    berjalan
+              \item direktif tidak berpengaruh pada berkas
+                    \file{.exe}
+          \end{enumerate}
+
+    \item Direktif yang menyediakan dua byte per nilai adalah \dots
+          \begin{enumerate}
+              \item \dir{DB} \item \dir{DW}
+              \item \dir{DD} \item \dir{DT}
+          \end{enumerate}
+
+    \item Deklarasi \lstasm|nilai DW 1234h| menempatkan byte di
+          memori dengan urutan \dots
+          \begin{enumerate}
+              \item \hex{12} lalu \hex{34}
+              \item \hex{34} lalu \hex{12}
+              \item \hex{00} lalu \hex{12}
+              \item \hex{43} lalu \hex{21}
+          \end{enumerate}
+
+    \item Pasangan direktif yang benar beserta sifatnya adalah
+          \dots
+          \begin{enumerate}
+              \item \dir{EQU} dapat didefinisikan ulang, \code{=}
+                    tidak dapat
+              \item \dir{EQU} tidak dapat didefinisikan ulang,
+                    \code{=} dapat
+              \item keduanya tidak dapat didefinisikan ulang
+              \item keduanya selalu dapat didefinisikan ulang
+          \end{enumerate}
+
+    \item Tugas yang dikerjakan linker, bukan assembler, adalah
+          \dots
+          \begin{enumerate}
+              \item menghitung \eng{offset} label di dalam satu
+                    segmen
+              \item menerjemahkan mnemonic menjadi opcode
+              \item menyelesaikan simbol eksternal dan melakukan
+                    \eng{relocation}
+              \item membaca direktif \dir{EQU}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Jelaskan perbedaan instruksi mesin dan direktif assembler,
+          lalu berikan dua contoh direktif yang mempengaruhi isi
+          berkas \file{.exe} dan dua contoh yang tidak.
+
+    \item Tuliskan deklarasi data untuk: string \code{'PRAKTIKUM'},
+          \eng{array} berisi empat nilai 32-bit \hex{00000001}, dan
+          penampung \eng{byte} berisi enam belas nilai nol. Hitung
+          total byte dan \eng{offset} setiap label.
+
+    \item Jelaskan alur translasi \file{.asm} $\rightarrow$
+          \file{.obj} $\rightarrow$ \file{.exe}. Sebutkan apa yang
+          sudah diketahui assembler pada akhir lintasan pertama dan
+          apa yang baru ditentukan linker. Kaitkan jawaban Anda
+          dengan penanda \code{R} pada berkas \file{.lst}.
+
+    \item Sebuah program dirakit tanpa pesan kesalahan, tetapi
+          linker menolak berkas objeknya. Sebutkan tiga
+          kemungkinan penyebabnya beserta cara memperbaikinya.
+\end{enumerate}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:translasi}.}
+    \label{tab:kisi-bab9}
+    \small
+    \begin{tabular}{@{}p{1.5cm}p{5.0cm}p{2.6cm}c@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
+        \textbf{Bentuk soal} & \textbf{Bobot} \\
+        \midrule
+        2.3 & Membedakan instruksi dan direktif serta
+        memilih direktif data & Pilihan ganda 1, 2 & 15\% \\
+        \addlinespace
+        2.3 & Menghitung ukuran dan \eng{offset} deklarasi data &
+        Uraian 2 & 25\% \\
+        \addlinespace
+        2.3 & Menerapkan aturan \eng{little-endian} dan perbedaan
+        \dir{EQU} dengan \code{=} & Pilihan ganda 3, 4; Uraian 1 &
+        25\% \\
+        \addlinespace
+        2.3 & Menjelaskan tugas assembler dan linker serta membaca
+        berkas hasil & Pilihan ganda 5; Uraian 3, 4 & 35\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:translasi}}
+
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 2.3 apabila:
+\begin{itemize}
+    \item[\checked] dapat menjelaskan mengapa direktif tidak
+          menghasilkan kode mesin;
+    \item[\checked] dapat menuliskan deklarasi \dir{DB}, \dir{DW},
+          \dir{DD}, dan \dir{DUP} beserta perhitungan ukurannya;
+    \item[\checked] dapat menentukan urutan byte
+          \eng{little-endian} pada data multi-byte;
+    \item[\checked] dapat menjelaskan perbedaan \dir{EQU} dan
+          \code{=} serta akibat definisi ulang;
+    \item[\checked] dapat menjelaskan tugas assembler dan linker
+          pada alur \file{.asm} $\rightarrow$ \file{.obj}
+          $\rightarrow$ \file{.exe};
+    \item[\checked] berhasil merakit dan mengaitkan program dengan
+          TASM dan TLINK, serta membaca berkas \file{.lst} dan
+          \file{.map}.
+\end{itemize}
+\end{checklistbox}

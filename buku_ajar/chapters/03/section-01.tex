@@ -1,0 +1,149 @@
+\section{Tingkat Abstraksi Bahasa Pemrograman}
+\label{sec:tingkat-abstraksi}
+
+Sebuah program pada akhirnya harus dijalankan oleh perangkat keras,
+yaitu rangkaian gerbang logika di dalam prosesor yang hanya mengenal
+sinyal listrik bernilai tinggi atau rendah. Karena itu, seluruh
+instruksi yang dipahami prosesor pada dasarnya hanyalah deretan bit.
+Perbedaan antarbahasa pemrograman terletak pada \term{tingkat
+abstraksi}: seberapa jauh bahasa tersebut menyembunyikan detail
+perangkat keras dari programmer.
+
+\subsection{Tiga Tingkat Bahasa}
+
+Secara umum bahasa pemrograman dibagi menjadi tiga tingkat.
+
+\begin{enumerate}
+    \item \term{Bahasa mesin} (\eng{machine code}) adalah deretan bit
+          yang langsung dikenali prosesor. Contoh potongan kode mesin
+          8086 untuk memindahkan nilai 5 ke register AX adalah
+          \hex{B8 05 00} dalam notasi heksadesimal. Bahasa mesin tidak
+          memiliki nama simbolik sehingga sangat sulit dibaca dan
+          ditulis manusia.
+
+    \item \term{Bahasa assembly} adalah representasi simbolik dari
+          bahasa mesin. Setiap instruksi mesin diberi nama pendek
+          (\eng{mnemonic}) yang lebih mudah diingat. Deretan bit di
+          atas ditulis sebagai \lstasm|MOV AX, 5|. Hubungan antara
+          assembly dan bahasa mesin bersifat \eng{one-to-one}: satu
+          instruksi assembly menghasilkan tepat satu instruksi mesin.
+
+    \item \term{Bahasa tingkat tinggi} seperti C, Java, atau Python
+          menyembunyikan register dan memori di balik variabel,
+          ekspresi, dan struktur kontrol. Satu baris bahasa tingkat
+          tinggi dapat diterjemahkan menjadi puluhan bahkan ratusan
+          instruksi mesin.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=0.45cm,
+        lapis/.style={
+            draw=obeBlue,
+            line width=0.8pt,
+            rounded corners=3pt,
+            minimum width=10.4cm,
+            minimum height=1.05cm,
+            align=left,
+            inner sep=8pt,
+            font=\small
+        }
+    ]
+        \node[lapis, fill=obeBlueLight] (l4) {
+            \textbf{Bahasa tingkat tinggi}\hfill
+            \textit{satu baris} $\Rightarrow$ \textit{banyak instruksi}};
+        \node[lapis, fill=obeTealLight, below=of l4] (l3) {
+            \textbf{Bahasa assembly}\hfill
+            \textit{satu instruksi} $\Rightarrow$ \textit{satu instruksi mesin}};
+        \node[lapis, fill=obeAmberLight, below=of l3] (l2) {
+            \textbf{Bahasa mesin}\hfill \hex{B8 05 00}};
+        \node[lapis, fill=obeGrayLight, below=of l2] (l1) {
+            \textbf{Perangkat keras}\hfill \textit{gerbang logika, bus, register}};
+
+        \draw[-{Stealth[length=2.5mm]}, obeBlue, line width=0.8pt]
+            ([xshift=-1.4cm]l4.north) -- ([xshift=-1.4cm]l1.south)
+            node[midway, left, font=\scriptsize, align=center]
+            {semakin\\dekat\\mesin};
+        \draw[-{Stealth[length=2.5mm]}, obeBlue, line width=0.8pt]
+            ([xshift=1.4cm]l1.south) -- ([xshift=1.4cm]l4.north)
+            node[midway, right, font=\scriptsize, align=center]
+            {semakin\\tinggi\\abstraksi};
+    \end{tikzpicture}
+    \caption{Tingkat abstraksi bahasa pemrograman, dari perangkat
+    keras hingga bahasa tingkat tinggi.}
+    \label{fig:tingkat-abstraksi}
+\end{figure}
+
+\subsection{Kapan Pemrograman Tingkat Rendah Digunakan}
+
+Bahasa tingkat tinggi hampir selalu menjadi pilihan pertama untuk
+membangun aplikasi, karena lebih cepat ditulis, lebih mudah dibaca,
+dan lebih mudah dipelihara. Meskipun demikian, ada sejumlah situasi
+yang menuntut pemrograman tingkat rendah.
+
+\begin{itemize}
+    \item \textbf{Kendali penuh atas perangkat keras.} Menulis
+          \eng{device driver}, rutin awal sistem operasi
+          (\eng{bootloader}), atau \eng{firmware} memerlukan akses
+          langsung ke register dan port I/O, yang tidak disediakan
+          bahasa tingkat tinggi.
+
+    \item \textbf{Kinerja dan ukuran kode.} Pada sistem tertanam
+          (\eng{embedded system}) dengan memori sangat terbatas,
+          program assembly dapat dibuat jauh lebih kecil dan lebih
+          cepat daripada hasil kompilasi bahasa tingkat tinggi.
+
+    \item \textbf{Analisis dan keamanan.} Pemahaman assembly
+          diperlukan untuk membaca hasil \eng{disassembly}, melakukan
+          analisis \eng{malware}, dan menguji keamanan perangkat lunak.
+
+    \item \textbf{Pendidikan.} Bahasa assembly memperlihatkan secara
+          eksplisit bagaimana prosesor bekerja: bagaimana instruksi
+          diambil, bagaimana data berpindah, dan bagaimana
+          keputusan diambil berdasarkan \eng{flag}.
+\end{itemize}
+
+\subsection{Perbandingan Ringkas}
+
+Tabel~\ref{tab:perbandingan-bahasa} merangkum perbedaan kedua
+kelompok bahasa tersebut.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan bahasa tingkat tinggi dan tingkat rendah.}
+    \label{tab:perbandingan-bahasa}
+    \small
+    \begin{tabular}{@{}p{3.4cm}p{5.2cm}p{5.2cm}@{}}
+        \toprule
+        \textbf{Aspek} & \textbf{Bahasa Tingkat Tinggi} &
+        \textbf{Bahasa Tingkat Rendah} \\
+        \midrule
+        Kedekatan ke mesin & Jauh; mesin disembunyikan &
+        Sangat dekat; instruksi mesin tampak langsung \\
+        \addlinespace
+        Portabilitas & Tinggi, satu kode untuk banyak mesin &
+        Rendah, terikat pada satu keluarga prosesor \\
+        \addlinespace
+        Produktivitas & Tinggi, sedikit kode untuk banyak pekerjaan &
+        Rendah, banyak kode untuk pekerjaan sederhana \\
+        \addlinespace
+        Kendali perangkat keras & Terbatas &
+        Penuh (register, memori, port I/O) \\
+        \addlinespace
+        Ukuran hasil & Lebih besar (ada kode pustaka) &
+        Sangat kecil dan dapat dioptimalkan \\
+        \addlinespace
+        Kemudahan pemeliharaan & Mudah dibaca dan diubah &
+        Sulit dibaca, rawan kesalahan kecil \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Pemrograman tingkat rendah tidak berarti ``lebih baik'' daripada
+pemrograman tingkat tinggi. Keduanya adalah alat dengan tujuan
+berbeda. Yang penting adalah mahasiswa memahami \textit{mengapa}
+sebuah abstraksi ada, sehingga mampu memilih tingkat yang tepat
+sesuai kebutuhan.
+\end{infobox}

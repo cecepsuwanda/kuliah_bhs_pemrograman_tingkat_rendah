@@ -1,0 +1,131 @@
+\section{Operand dan Tiga Mode Pengalamatan Dasar}
+\label{sec:operand-mode-dasar}
+
+Setiap instruksi mesin tersusun atas \term{opcode}, yaitu kode operasi
+yang menentukan pekerjaan yang dilakukan, dan \term{operand}, yaitu
+data atau tempat data yang dikerjakan. Sebagian besar instruksi 8086
+memakai dua operand: operand sumber (\eng{source}) dan operand tujuan
+(\eng{destination}). Instruksi \lstasm|MOV AX, BX| memindahkan isi
+\reg{BX} ke \reg{AX}.
+
+\subsection{Mengapa Mode Pengalamatan Diperlukan}
+
+Pertanyaan mendasar yang harus dijawab prosesor sebelum mengeksekusi
+instruksi adalah: \emph{di manakah operand itu berada?} Jawabannya
+tidak tunggal. Data dapat berada di dalam instruksi itu sendiri, di
+dalam register, atau di dalam memori pada alamat tertentu. Alamat
+memori itu pun dapat berupa bilangan tetap atau dihitung lebih dahulu
+dari isi beberapa register.
+
+Cara prosesor menyatakan letak operand disebut \term{mode
+pengalamatan} (\eng{addressing mode}). Mode pengalamatan adalah
+jembatan antara penulisan simbolik programmer dan byte \eng{ModR/M}
+yang dihasilkan assembler. Karena satu byte \eng{ModR/M} hanya
+delapan bit (Bab~\ref{chap:format-instruksi}), jumlah cara yang dapat
+dinyatakan perangkat keras memang terbatas. Keterbatasan inilah yang
+menjelaskan mengapa hanya empat register tertentu yang boleh menjadi
+penunjuk alamat dan mengapa sejumlah kombinasi register ilegal.
+
+\important{Operand tujuan tidak boleh berupa nilai segera.} Instruksi
+\lstasm|MOV 5, AX| tidak mungkin dilakukan karena angka 5 bukan tempat
+yang dapat menampung hasil. Tempat tujuan harus berupa register atau
+lokasi memori.
+
+\subsection{Mode Immediate}
+
+Pada mode \term{immediate}, operand sumber adalah nilai konstan yang
+sudah tertulis di dalam instruksi. Nilai itu disalin assembler ke
+dalam kode mesin, sehingga prosesor tidak perlu mengakses memori
+untuk mengambilnya.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AX, 1234h       ; AX <- 1234h        (immediate 16 bit)
+    MOV BL, 0Ah         ; BL <- 0Ah          (immediate 8 bit)
+    ADD CX, 100         ; CX <- CX + 100
+    MOV AL, 'A'         ; AL <- 41h, kode ASCII huruf 'A'
+\end{lstlisting}
+
+Ukuran nilai segera mengikuti ukuran register tujuan: 8 bit untuk
+\reg{AL} dan 16 bit untuk \reg{AX}. Nilai segera tidak mengenal
+segmen karena tidak berada di memori, dan dipakai untuk mengisi nilai
+awal serta menaikkan nilai dengan langkah tetap.
+
+\subsection{Mode Register}
+
+Pada mode \term{register}, operand berada di dalam register prosesor.
+Baik sumber maupun tujuan berupa register, tanpa pengaksesan memori.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AX, BX          ; AX <- BX
+    ADD DX, CX          ; DX <- DX + CX
+    MOV DL, AL          ; DL <- AL (ukuran operand harus sama)
+\end{lstlisting}
+
+Mode ini tercepat dan paling ringkas: \lstasm|MOV AX, BX| hanya
+menempati 2 byte dan selesai dalam dua siklus. Keterbatasannya adalah
+jumlah register 8086 yang sangat sedikit.
+
+\subsection{Mode Direct (Memori Langsung)}
+
+Pada mode \term{direct}, operand berada di memori dan alamatnya
+(offset) ditulis harfiah di dalam instruksi. Assembler menggantikan
+nama variabel dengan offset yang sebenarnya.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+.DATA
+    nilai   DW  1234h
+    total   DW  ?
+.CODE
+    MOV AX, nilai       ; AX <- isi memori DS:nilai
+    MOV AX, [1234h]     ; AX <- isi memori pada offset 1234h
+    MOV total, AX       ; simpan AX ke variabel total
+\end{lstlisting}
+
+Alamat pada mode ini tetap selamanya karena tertulis di dalam
+instruksi, sehingga cocok untuk variabel tunggal seperti penghitung
+atau bendera. Kerugiannya, setiap variabel memerlukan byte kode
+sendiri dan datanya tidak dapat dipindahkan tanpa dirakit ulang.
+
+\begin{table}[H]
+    \centering
+    \caption{Tiga mode pengalamatan dasar dan penggunaannya.}
+    \label{tab:mode-dasar}
+    \small
+    \begin{tabular}{@{}p{2.1cm}p{3.0cm}p{3.4cm}p{1.6cm}p{3.2cm}@{}}
+        \toprule
+        \textbf{Mode} & \textbf{Bentuk penulisan} &
+        \textbf{Contoh} & \textbf{Akses memori} &
+        \textbf{Kegunaan utama} \\
+        \midrule
+        Immediate & nilai konstan &
+        \lstasm|MOV AX, 1234h| & tidak &
+        mengisi nilai awal dan tetapan \\
+        \addlinespace
+        Register & register &
+        \lstasm|MOV AX, BX| & tidak &
+        memindahkan data antarvariabel kerja \\
+        \addlinespace
+        Direct & \code{[disp]} atau nama variabel &
+        \lstasm|MOV AX, [1234h]| & ya, sekali &
+        variabel tunggal ber-alamat tetap \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{peringatanbox}
+Dua penulisan berikut tampak mirip, tetapi artinya berbeda.
+\lstasm|MOV AX, nilai| menyalin \emph{isi} variabel \code{nilai}
+(mode direct), sedangkan \lstasm|MOV AX, OFFSET nilai| menyalin
+\emph{offset}-nya sebagai nilai segera. Hal serupa berlaku pada
+\lstasm|MOV AX, 1234h| (nilai) dan \lstasm|MOV AX, [1234h]| (isi
+memori). Pada mode direct, offset dianggap berada pada segmen
+\reg{DS} kecuali dinyatakan lain.
+\end{peringatanbox}
+
+\begin{infobox}
+Ketiga mode di atas belum memanfaatkan register penunjuk, sehingga
+alamat memori harus tetap dan tidak dapat dihitung saat program
+berjalan. Kemampuan menghitung alamat dibahas pada
+Bagian~\ref{sec:mode-memori-segmen} dan menjadi dasar akses array
+serta \eng{record}.
+\end{infobox}

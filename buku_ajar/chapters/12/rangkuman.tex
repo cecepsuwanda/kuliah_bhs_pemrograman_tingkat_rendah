@@ -1,0 +1,81 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab12}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item Pengambilan keputusan berjalan dalam dua langkah: satu
+          instruksi menyiapkan \eng{flag}, lalu satu instruksi
+          lompatan bersyarat membacanya. Lima \eng{flag} terpenting
+          adalah \flag{ZF}, \flag{CF}, \flag{SF}, \flag{OF}, dan
+          \flag{PF} (Bab~\ref{chap:register}).
+
+    \item \asm{CMP} menyiapkan \eng{flag} melalui pengurangan yang
+          hasilnya dibuang, sedangkan \asm{TEST} melalui \asm{AND}
+          yang hasilnya dibuang. \asm{CMP} membandingkan nilai;
+          \asm{TEST} memeriksa bit.
+
+    \item \asm{JMP} memindahkan kendali tanpa syarat. Jarak lompatan
+          menentukan ukuran instruksi: \eng{short} dua byte
+          ($\pm$ 127 byte), \eng{near} tiga byte (satu segmen), dan
+          \eng{far} lima byte (antarsegmen).
+
+    \item Keluarga \asm{Jcc} terbagi menjadi kelompok bertanda
+          (\asm{JG}, \asm{JGE}, \asm{JL}, \asm{JLE}), kelompok tak
+          bertanda (\asm{JA}, \asm{JAE}, \asm{JB}, \asm{JBE}),
+          pemeriksa \eng{flag} tunggal (\asm{JC}, \asm{JS},
+          \asm{JO}, \asm{JP}, \asm{JCXZ}), dan kelompok kesamaan
+          (\asm{JE}/\asm{JNE}) yang berlaku untuk keduanya.
+
+    \item Perulangan dibentuk dengan \asm{LOOP} dan \reg{CX}, varian
+          \asm{LOOPE}/\asm{LOOPNE} yang menambahkan syarat \flag{ZF},
+          atau pola \asm{DEC} dan \asm{JNZ} yang lebih luwes dan
+          lebih cepat pada prosesor modern.
+
+    \item Seluruh struktur kontrol bahasa tingkat tinggi---\code{if},
+          \code{while}, \code{for}, dan \code{switch}---diterjemahkan
+          dari tiga bahan dasar: \asm{CMP}/\asm{TEST}, \asm{Jcc}, dan
+          \asm{JMP}. \code{switch} dengan banyak cabang paling
+          efisien memakai tabel lompatan.
+
+    \item Studi kasus pencarian maksimum, pengurutan gelembung, dan
+          pencarian biner menegaskan bahwa struktur kontrol kompleks
+          tetap dibentuk dari bahan dasar yang sama.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menjelaskan peran \eng{flag} dan
+          menyebutkan instruksi yang menyiapkannya.
+    \item[\checkbox] Saya dapat membedakan \asm{CMP} dan \asm{TEST}
+          beserta situasi pemakaian masing-masing.
+    \item[\checkbox] Saya dapat menjelaskan tiga jenis jarak lompatan
+          dan pengaruhnya pada ukuran kode.
+    \item[\checkbox] Saya dapat memilih \asm{Jcc} yang benar untuk
+          data bertanda dan tak bertanda tanpa melihat tabel.
+    \item[\checkbox] Saya dapat menulis perulangan dengan \asm{LOOP}
+          maupun dengan \asm{DEC} dan \asm{JNZ}.
+    \item[\checkbox] Saya dapat menerjemahkan pseudocode
+          \code{if--else} dan \code{while} ke assembly.
+    \item[\checkbox] Saya dapat menjelaskan cara kerja tabel lompatan
+          pada pola \code{switch}.
+    \item[\checkbox] Saya dapat menelusuri alur percabangan dengan
+          \eng{Single Step} dan menjelaskan keputusan setiap
+          lompatan.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke bab berikutnya.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
+\cite{bartlett2004}, \cite{hyde2010}, \cite{evans2020}, dan
+\cite{irvine2011}. Untuk penelusuran lebih dalam mengenai perulangan
+dan pemilihan instruksi lompatan pada program nyata, lihat
+\cite{irvine2011} dan \cite{hyde2010}. Penerapan tabel lompatan pada
+program besar dibahas pada \cite{evans2020}.
+\end{infobox}

@@ -1,0 +1,59 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Pengenalan Pemrograman Tingkat Rendah dan Lingkungan Kerja}
+\label{chap:pengenalan}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{1.1} --- Menjelaskan perbedaan bahasa tingkat tinggi dan
+tingkat rendah, peran bahasa assembly, gambaran \eng{toolchain}, serta
+menyiapkan lingkungan kerja pemrograman assembly (TASM/Emu8086/DOSBox).
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{01} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan perbedaan mendasar antara bahasa pemrograman
+          tingkat tinggi dan bahasa pemrograman tingkat rendah;
+    \item menjelaskan kedudukan bahasa assembly di antara
+          \eng{machine code} dan bahasa tingkat tinggi;
+    \item menguraikan tahapan rantai proses (\eng{toolchain})
+          \file{.asm} $\rightarrow$ \file{.obj} $\rightarrow$
+          \file{.exe};
+    \item memasang dan mengonfigurasi Emu8086, GUI Turbo Assembler,
+          dan DOSBox pada komputer kerja;
+    \item menulis, merakit, dan menjalankan program assembly pertama
+          yang mencetak teks ke layar.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Perbandingan bahasa tingkat tinggi dan tingkat rendah.
+    \item Peran bahasa assembly dan kedudukannya dalam abstraksi mesin.
+    \item Rantai proses: editor, assembler, linker, dan \eng{loader}.
+    \item Lingkungan kerja: Emu8086, GUI Turbo Assembler, DOSBox.
+    \item Struktur program assembly minimal dan alur eksekusinya.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

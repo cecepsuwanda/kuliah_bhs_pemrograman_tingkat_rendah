@@ -1,0 +1,168 @@
+\section{Praktikum}
+\label{sec:praktikum-bab8}
+
+\begin{praktikumbox}
+\textbf{Judul:} Penelusuran mode pengalamatan dan verifikasi alamat
+efektif dengan \eng{debugger}.\\[0.3em]
+\textbf{Sub-CPMK:} 2.2 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menelusuri
+eksekusi program satu instruksi demi satu, menghitung alamat efektif
+setiap operand memori, dan memverifikasinya melalui jendela memori.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan sistem operasi Windows.
+    \item Emu8086 (emulator dengan tampilan register dan memori).
+    \item DOSBox beserta \file{DEBUG} untuk penelusuran berbasis
+          teks, serta TASM dan TLINK untuk merakit program.
+    \item Berkas \file{mode-array.asm} dan \file{param-bp.asm} dari
+          \file{code/asm/}.
+    \item Lembar kerja pengamatan alamat efektif.
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Menyiapkan program.} Rakit kedua berkas contoh
+          dengan TASM dan TLINK, lalu pastikan keluarannya sesuai
+          Kode~\ref{lst:keluaran-mode-array} dan
+          Kode~\ref{lst:keluaran-param-bp}.
+
+    \item \textbf{Menelusuri dengan Emu8086.}
+    \begin{enumerate}
+        \item Buka \file{mode-array.asm}, tekan \file{Compile and
+              Emulate}, lalu aktifkan tombol \file{Single Step}.
+        \item Catat nilai \reg{DS}, \reg{BX}, \reg{SI}, dan \reg{BP}
+              sebelum setiap instruksi memori dieksekusi, lalu hitung
+              alamat efektifnya secara manual.
+        \item Bandingkan hasil hitungan Anda dengan alamat yang
+              ditampilkan emulator.
+    \end{enumerate}
+
+    \item \textbf{Menelusuri dengan \file{DEBUG}.}
+    \begin{enumerate}
+        \item Jalankan DOSBox, lalu ketik
+              \file{debug mode-array.exe}.
+        \item Tekan \file{u} untuk melihat \eng{disassembly} dan
+              \file{r} untuk melihat isi register.
+        \item Tekan \file{t} beberapa kali dan catat perubahan
+              register setiap instruksi.
+        \item Tampilkan \file{d ds:0} dan \file{d ss:0}, lalu
+              verifikasi alamat yang ditunjuk benar-benar berisi nilai
+              array, bukan nol atau karakter sampah.
+    \end{enumerate}
+
+    \item \textbf{Membandingkan \code{[BX]} dan \code{[BP]}.}
+    \begin{enumerate}
+        \item Pada \file{param-bp.asm}, jalankan sampai
+              \lstasm|MOV BP, SP|, lalu catat nilai \reg{SS} dan
+              \reg{SP}.
+        \item Ubah \lstasm|MOV AX, [BP+0]| menjadi
+              \lstasm|MOV AX, [BX+0]| dengan \reg{BX} bernilai nol.
+        \item Rakit ulang dan jelaskan mengapa keluarannya berubah,
+              dengan mengaitkannya pada
+              Tabel~\ref{tab:segmen-default}.
+    \end{enumerate}
+
+    \item \textbf{Mengisi lembar pengamatan.} Lengkapi
+          Tabel~\ref{tab:pengamatan-ea} berdasarkan hasil penelusuran,
+          lalu kerjakan Kuis 2 pada akhir praktikum.
+\end{enumerate}
+
+\begin{table}[H]
+    \centering
+    \caption{Lembar pengamatan alamat efektif yang harus diisi
+    mahasiswa.}
+    \label{tab:pengamatan-ea}
+    \small
+    \begin{tabular}{@{}p{0.7cm}p{3.7cm}p{2.7cm}p{1.7cm}p{2.2cm}p{1.8cm}@{}}
+        \toprule
+        \textbf{No} & \textbf{Instruksi} & \textbf{EA terhitung} &
+        \textbf{Segmen} & \textbf{Isi memori} &
+        \textbf{Sesuai} \\
+        \midrule
+        1 & \lstasm|MOV AX, data1+0| & \code{offset data1} & \reg{DS}
+        & \hex{000A} (10) & Ya \\
+        \addlinespace
+        2 & \lstasm|MOV AX, data1[SI]|, \reg{SI} = 2 &
+        \dots & \dots & \dots & \dots \\
+        \addlinespace
+        3 & \lstasm|MOV AX, [BX+SI]|, \reg{SI} = 4 &
+        \dots & \dots & \dots & \dots \\
+        \addlinespace
+        4 & \lstasm|MOV AX, [BP+0]| pada \file{param-bp.asm} &
+        \dots & \dots & \dots & \dots \\
+        \addlinespace
+        5 & \lstasm|MOV AX, [BP+2]| pada \file{param-bp.asm} &
+        \dots & \dots & \dots & \dots \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Tabel~\ref{tab:pengamatan-ea} yang telah dilengkapi.
+    \item Tangkapan layar jendela register dan memori Emu8086 untuk
+          minimal tiga instruksi berbeda.
+    \item Tangkapan layar sesi \file{DEBUG} dengan perintah
+          \file{u}, \file{t}, dan \file{d}, serta lembar jawaban
+          Kuis 2.
+\end{enumerate}
+
+\subsection{Kuis 2}
+
+Kuis 2 dilaksanakan pada 15 menit terakhir praktikum secara individu
+tanpa membuka catatan.
+
+\begin{enumerate}
+    \item Tentukan mode pengalamatan dari lima penulisan berikut:
+          \lstasm|MOV AX, 20|, \lstasm|MOV AX, BX|,
+          \lstasm|MOV AX, [BX]|, \lstasm|MOV AX, [SI+4]|, dan
+          \lstasm|MOV AX, [BX+DI+2]|.
+
+    \item Diketahui \reg{DS} = \hex{2000}, \reg{BX} = \hex{0100},
+          \reg{SI} = \hex{0004}, dan \reg{SS} = \hex{3000}.
+          Hitung alamat efektif dan alamat fisik untuk
+          \lstasm|MOV AX, [BX+SI+8]| serta
+          \lstasm|MOV AX, [BP]| dengan \reg{BP} = \hex{0010}.
+
+    \item Program membaca variabel segmen data dengan
+          \lstasm|MOV AX, [BP+2]| dan hasilnya salah. Jelaskan
+          penyebabnya dan tuliskan dua cara memperbaikinya tanpa
+          mengubah nilai perpindahannya.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen praktikum 2 dan Kuis 2 (bobot 10\% dari komponen
+praktikum).}
+
+\begin{tabular}{@{}p{5.9cm}cp{4.9cm}@{}}
+    \toprule
+    \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \midrule
+    Ketepatan perhitungan alamat efektif & 25\% &
+    Seluruh baris lembar pengamatan terisi benar \\
+    \addlinespace
+    Verifikasi melalui jendela memori & 20\% &
+    Alamat dan isi memori yang dicatat sesuai dengan
+    \eng{debugger} \\
+    \addlinespace
+    Analisis perbedaan \code{[BX]} dan \code{[BP]} & 15\% &
+    Penjelasan menyebut peran segmen \reg{DS} dan \reg{SS} \\
+    \addlinespace
+    Kuis 2 & 30\% &
+    Minimal tiga dari empat bagian soal terjawab benar \\
+    \addlinespace
+    Kerapian dokumentasi praktikum & 10\% &
+    Tangkapan layar lengkap dan langkah kerja dapat diulang \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

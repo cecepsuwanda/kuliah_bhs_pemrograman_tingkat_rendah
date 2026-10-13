@@ -1,0 +1,366 @@
+\section{Analisis Memori dan Stack serta Metodologi Debugging}
+\label{sec:memori-stack-metodologi}
+
+Menelusuri register saja belum cukup. Banyak kesalahan hanya tampak
+ketika kita memeriksa isi memori: variabel yang tertimpa, indeks larik
+yang melewati batas, atau alamat kembali yang sudah bergeser di dalam
+\eng{stack}. Bagian ini membahas cara membaca keluaran \code{D} dan
+cara memakainya untuk menemukan tiga kesalahan yang paling sering
+terjadi.
+
+\subsection{Membaca Keluaran \code{D}}
+
+Perintah \code{D} menampilkan 128 byte memori dalam delapan baris.
+Setiap baris memuat tiga bagian yang dibaca secara berbeda: alamat
+dalam bentuk segmen:offset, enam belas pasang digit heksadesimal berisi
+isi memori (setiap dua digit adalah satu byte), dan kolom karakter
+ASCII di sebelah kanan. Byte yang bukan karakter cetak ditampilkan
+sebagai titik, sehingga kolom karakter paling cepat dipakai untuk
+mengenali letak sebuah string.
+
+Perhatikan contoh pada Kode~\ref{lst:sesi-debug-lengkap}:
+
+\begin{lstlisting}[numbers=none, backgroundcolor=\color{obeGrayLight}]
+13A6:0000 4A 75 6D 6C 61 68 20 31-2E 2E 35 20 3D 20 24 00  Jumlah 1..5 = $.
+\end{lstlisting}
+
+Kolom karakter memperlihatkan string \code{Jumlah 1..5 = \$},
+sedangkan kolom heksadesimal memperlihatkan kode ASCII-nya: \hex{4A}
+untuk \code{J}, \hex{75} untuk \code{u}, dan seterusnya sampai
+\hex{24} untuk tanda \code{\$}. Byte terakhir bernilai \hex{00},
+yaitu penanda akhir yang dipasang assembler setelah string.
+
+\subsection{Memeriksa Variabel dengan \code{D}}
+
+Program pada Kode~\ref{lst:off-by-one} bermaksud menjumlahkan lima
+byte pada larik \code{nilai}, tetapi hasilnya tidak sesuai harapan.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Program dengan kesalahan \eng{off-by-one} pada larik.},
+    label={lst:off-by-one}
+]
+.DATA
+    nilai   DB  10, 20, 30, 40, 50      ; lima byte data
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    XOR DX, DX                          ; DX = akumulator jumlah
+    MOV CX, 6                           ; BUG: seharusnya MOV CX, 5
+    MOV SI, 0                           ; SI = indeks larik
+
+ULANG:
+    MOV AH, 0                           ; nolkan AH
+    MOV AL, nilai[SI]                   ; ambil elemen ke-SI
+    ADD DX, AX                          ; tambahkan ke akumulator
+    INC SI                              ; naikkan indeks
+    LOOP ULANG                          ; ulangi sebanyak CX
+
+    MOV AH, 4Ch
+    MOV AL, 00h
+    INT 21h
+END START
+\end{lstlisting}
+
+Jumlah yang benar adalah \dec{150} atau \hex{0096}. Untuk memeriksa
+mengapa hasilnya menyimpang, daerah larik di-\eng{dump} pada
+\reg{DS}:\hex{0000}:
+
+\begin{session}[caption={\eng{Dump} larik \code{nilai} pada
+\reg{DS}:\hex{0000}.}]
+-d ds:0
+13A6:0000  0A 14 1E 28 32 B7 00 00-00 00 00 00 00 00 00 00  ...(2...........
+\end{session}
+
+Lima byte pertama sesuai dengan data yang dideklarasikan, yaitu
+\hex{0A}=\dec{10} sampai \hex{32}=\dec{50}. Byte keenam bernilai
+\hex{B7}, yaitu sisa data lama di memori, bukan bagian dari larik.
+Karena penghitung bernilai 6, byte itulah yang ikut dijumlahkan
+sehingga akumulator menghasilkan \hex{014D} atau \dec{333} alih-alih
+\hex{0096}. Inilah bukti yang mengubah dugaan menjadi kepastian:
+kesalahannya bukan pada penjumlahan, melainkan pada batas perulangan.
+
+\subsection{Membaca Bingkai Stack}
+
+\eng{Stack} tumbuh ke arah alamat yang semakin kecil. Setiap
+\asm{PUSH} dan setiap \asm{CALL} mengurangi \reg{SP} dan menuliskan
+data pada \reg{SS}:\reg{SP} yang baru. Sebuah prosedur \eng{near}
+meninggalkan susunan yang khas di dalam \eng{stack}, yang disebut
+\term{bingkai stack} (\eng{stack frame}), seperti pada
+Gambar~\ref{fig:stack-frame}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        sel/.style={
+            draw=obeBlue,
+            line width=0.7pt,
+            fill=obeBlueLight,
+            minimum width=5.6cm,
+            minimum height=0.72cm,
+            font=\small,
+            inner sep=2pt
+        },
+        selsp/.style={
+            draw=obeMaroon,
+            line width=1.0pt,
+            fill=obeMaroonLight,
+            minimum width=5.6cm,
+            minimum height=0.72cm,
+            font=\small,
+            inner sep=2pt
+        },
+        al/.style={font=\scriptsize\ttfamily, text=obeGray, anchor=east},
+        sp/.style={-{Stealth[length=2.5mm]}, line width=1.0pt, obeMaroon}
+    ]
+        \node[sel, fill=obeGrayLight] (d) at (0,0) {dasar \eng{stack}};
+        \node[sel, below=0.10cm of d] (r) {alamat kembali \hex{0008}};
+        \node[sel, below=0.10cm of r] (ax) {AX lama = \hex{13A6}};
+        \node[sel, below=0.10cm of ax] (bx) {BX lama = \hex{0000}};
+        \node[selsp, below=0.10cm of bx] (cx)
+            {CX lama = \hex{00FF} \quad$\Leftarrow$ \reg{SP}};
+
+        \node[al] at ([xshift=-0.18cm]d.west) {\hex{0100}};
+        \node[al] at ([xshift=-0.18cm]r.west) {\hex{00FE}};
+        \node[al] at ([xshift=-0.18cm]ax.west) {\hex{00FC}};
+        \node[al] at ([xshift=-0.18cm]bx.west) {\hex{00FA}};
+        \node[al] at ([xshift=-0.18cm]cx.west) {\hex{00F8}};
+
+        \draw[sp] ([xshift=0.18cm]cx.east) -- ++(0.9cm,0)
+            node[right, font=\scriptsize, text=obeMaroon, align=left]
+            {\reg{SP} menunjuk\\puncak \eng{stack}};
+    \end{tikzpicture}
+    \caption{Bingkai \eng{stack} prosedur \asm{HITUNG} pada
+    \file{bug-stack.asm} sesaat setelah ketiga \asm{PUSH}.}
+    \label{fig:stack-frame}
+\end{figure}
+
+Alamat kembali berada \emph{di bawah} seluruh data yang ditekan
+prosedur, sehingga ia hanya dapat diambil oleh \asm{RET} apabila
+seluruh data di atasnya sudah diambil kembali. Bila jumlah \asm{PUSH}
+dan \asm{POP} tidak seimbang, \reg{SP} berhenti pada posisi yang
+salah. Sesi berikut memperlihatkan kejadian itu.
+
+\begin{session}[caption={Menemukan \eng{stack} tidak seimbang melalui
+\code{D} dan \code{T}.}, label={lst:sesi-stack}]
+-g 0005
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0005   NV UP EI PL NZ NA PO NC
+13A1:0005 E80D00         CALL    0015
+
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=00FE  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0015   NV UP EI PL NZ NA PO NC
+13A1:0015 50             PUSH    AX
+
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=00FC  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0016   NV UP EI PL NZ NA PO NC
+13A1:0016 53             PUSH    BX
+
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=00FA  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0017   NV UP EI PL NZ NA PO NC
+13A1:0017 51             PUSH    CX
+
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=00F8  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0018   NV UP EI PL NZ NA PO NC
+13A1:0018 B80100         MOV     AX,0001
+
+-d ss:00f8
+13A7:00F8  FF 00 00 00 A6 13 08 00-00 00 00 00 00 00 00 00  ................
+
+-t
+AX=0001  BX=0000  CX=00FF  DX=0000  SP=00F8  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=001B   NV UP EI PL NZ NA PO NC
+13A1:001B BB0200         MOV     BX,0002
+
+-t
+AX=0001  BX=0002  CX=00FF  DX=0000  SP=00F8  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=001E   NV UP EI PL NZ NA PO NC
+13A1:001E 01D8           ADD     AX,BX
+
+-t
+AX=0003  BX=0002  CX=00FF  DX=0000  SP=00F8  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0020   NV UP EI PL NZ NA PE NC
+13A1:0020 89C1           MOV     CX,AX
+
+-t
+AX=0003  BX=0002  CX=0003  DX=0000  SP=00F8  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0022   NV UP EI PL NZ NA PE NC
+13A1:0022 59             POP     CX
+
+-t
+AX=0003  BX=0002  CX=00FF  DX=0000  SP=00FA  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0023   NV UP EI PL NZ NA PE NC
+13A1:0023 5B             POP     BX
+
+-t
+AX=0003  BX=0000  CX=00FF  DX=0000  SP=00FC  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0024   NV UP EI PL NZ NA PE NC
+13A1:0024 C3             RET
+
+-d ss:00fc
+13A7:00FC  A6 13 08 00-00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+-t
+AX=0003  BX=0000  CX=00FF  DX=0000  SP=00FE  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=13A6   NV UP EI PL NZ NA PE NC
+13A1:13A6 0000           ADD     [BX+SI],AL
+\end{session}
+
+\asm{CALL} menurunkan \reg{SP} dari \hex{0100} ke \hex{00FE} dan
+menuliskan alamat kembali \hex{0008} di sana; ketiga \asm{PUSH}
+kemudian menurunkan \reg{SP} sampai \hex{00F8}. \eng{Dump} pada
+\reg{SS}:\hex{00F8} menunjukkan susunan yang persis sama dengan
+Gambar~\ref{fig:stack-frame}. Setelah dua \asm{POP}, \reg{SP} berada
+pada \hex{00FC} dan menunjuk \code{A6 13}, yaitu nilai \reg{AX} lama.
+\asm{RET} mengambil kata itu sebagai alamat kembali, sehingga
+\reg{IP} berubah menjadi \hex{13A6} --- jauh di luar batas program.
+Baris terakhir sesi menunjukkan akibatnya: DEBUG membongkar isi memori
+pada \hex{13A1}:\hex{13A6} dan menemukan instruksi sampah
+\lstasm|ADD [BX+SI], AL|.
+
+\subsection{Deteksi \eng{Overflow} melalui Flag dan \reg{SP}}
+
+\eng{Overflow} aritmatika tidak selalu menghentikan program, tetapi
+selalu meninggalkan jejak pada \eng{flag}: operasi yang melewati batas
+bilangan bertanda menyalakan \flag{OF}, sedangkan yang melewati batas
+bilangan tak bertanda menyalakan \flag{CF}. \eng{Overflow}
+\eng{stack} meninggalkan jejak yang berbeda, yaitu nilai \reg{SP} yang
+terus menurun tanpa pernah naik kembali. Bila perulangan menekan data
+tanpa pernah mengambilnya, \eng{stack} akan melimpah dan menimpa
+daerah lain; gejalanya adalah perubahan nilai variabel yang tidak
+pernah disentuh program. Karena itu, kedua \eng{flag} tersebut dan
+register \reg{SP} sebaiknya selalu disertakan pada tabel \eng{trace}
+\cite{irvine1999}.
+
+\subsection{Metodologi Debugging yang Sistematis}
+
+\eng{Debugging} yang berhasil hampir selalu mengikuti alur yang sama.
+Keenam tahapnya diperlihatkan pada
+Gambar~\ref{fig:metodologi-debugging}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=0.42cm,
+        tahap/.style={
+            draw=obeTeal,
+            line width=0.8pt,
+            fill=obeTealLight,
+            rounded corners=3pt,
+            text width=8.4cm,
+            minimum height=1.0cm,
+            align=center,
+            inner sep=4pt,
+            font=\small
+        },
+        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt, obeTeal},
+        balik/.style={-{Stealth[length=2.5mm]}, line width=0.9pt,
+            obeMaroon, dashed}
+    ]
+        \node[tahap] (t1) {\textbf{1. Reproduksi}\\
+            {\footnotesize\itshape pastikan kesalahan dapat dimunculkan ulang}};
+        \node[tahap, below=of t1] (t2) {\textbf{2. Isolasi}\\
+            {\footnotesize\itshape perkecil cakupan sampai bagian terkecil}};
+        \node[tahap, below=of t2] (t3) {\textbf{3. Hipotesis}\\
+            {\footnotesize\itshape rumuskan dugaan penyebab yang dapat diuji}};
+        \node[tahap, below=of t3] (t4) {\textbf{4. Uji hipotesis}\\
+            {\footnotesize\itshape buktikan dengan \code{T}, \code{G}, dan \code{D}}};
+        \node[tahap, below=of t4] (t5) {\textbf{5. Perbaiki}\\
+            {\footnotesize\itshape ubah satu hal saja pada satu waktu}};
+        \node[tahap, below=of t5] (t6) {\textbf{6. Verifikasi}\\
+            {\footnotesize\itshape ulangi pengujian pada seluruh kasus}};
+
+        \draw[panah] (t1) -- (t2);
+        \draw[panah] (t2) -- (t3);
+        \draw[panah] (t3) -- (t4);
+        \draw[panah] (t4) -- (t5);
+        \draw[panah] (t5) -- (t6);
+
+        \draw[balik] (t6.west) to[out=180, in=180, looseness=1.15]
+            node[midway, left=2mm, font=\scriptsize, align=center,
+                 text=obeMaroon]
+            {hipotesis\\gugur atau\\perbaikan\\belum berhasil}
+            (t3.west);
+    \end{tikzpicture}
+    \caption{Metodologi \eng{debugging} sistematis dan jalur pengulangan
+    ketika hipotesis terbukti salah.}
+    \label{fig:metodologi-debugging}
+\end{figure}
+
+Pada tahap isolasi, tentukan bagian program yang pasti bersalah dan
+yang pasti benar. Pada tahap hipotesis, tuliskan dugaan dalam satu
+kalimat yang dapat diuji, misalnya ``\reg{CX} tidak pernah mencapai
+nol karena dinaikkan di dalam perulangan''. Pengujian dilakukan
+dengan mengumpulkan bukti melalui tabel \eng{trace}. Pada tahap
+perbaikan, ubah \emph{satu hal saja} agar penyebab keberhasilan dapat
+dipastikan, lalu verifikasi dengan mengulang seluruh pengujian.
+
+\begin{peringatanbox}
+Kesalahan paling sering dalam \eng{debugging} adalah mengubah
+beberapa baris sekaligus ketika program berperilaku salah. Bila
+program kemudian berjalan benar, programmer tidak akan pernah tahu
+baris mana yang sebenarnya memperbaiki keadaan, dan bug yang sama akan
+terulang pada program berikutnya.
+\end{peringatanbox}
+
+\subsection{Studi Kasus Tiga Bug}
+
+\begin{studikasusbox}
+\textbf{Kasus 1: perulangan tak berujung karena \reg{CX} atau
+\eng{flag} yang tidak berubah.}
+Program \file{bug-loop.asm} pada Kode~\ref{lst:bug-loop} berhenti
+tidak pada waktunya. Tabel~\ref{tab:trace-register} menjadi bukti
+utamanya: pada langkah 6, \reg{CX} naik menjadi \hex{0006}, lalu
+\asm{LOOP} menguranginya kembali menjadi \hex{0005}. Hipotesis
+``\reg{CX} tidak pernah mencapai nol'' terbukti, dan perbaikannya
+adalah menghapus \asm{INC CX} (Kode~\ref{lst:bug-loop-fix}).
+
+Kerabat dekat kesalahan ini adalah perulangan berbasis \eng{flag}
+yang menguji instruksi yang tidak mengubah \eng{flag}. Bila
+\asm{SUB CX, 1} pada pola \asm{SUB}--\asm{JNZ} diganti dengan
+\asm{MOV CX, BX}, maka \flag{ZF} tidak lagi mencerminkan penghitung
+dan perulangan berjalan selamanya. Kaidah amannya: pastikan instruksi
+yang mengubah \eng{flag} berada tepat sebelum instruksi yang menguji
+\eng{flag} tersebut.
+\end{studikasusbox}
+
+\begin{studikasusbox}
+\textbf{Kasus 2: kesalahan \eng{off-by-one} pada larik.}
+Program pada Kode~\ref{lst:off-by-one} selesai dengan normal, sehingga
+kesalahan sintaks dan kesalahan saat berjalan dapat disingkirkan.
+\eng{Dump} \code{D DS:0} memperlihatkan bahwa byte keenam bernilai
+\hex{B7}, sedangkan larik hanya berisi lima byte. Bukti itu cukup
+untuk menyimpulkan bahwa penghitung perulangan melebihi jumlah elemen;
+perbaikannya adalah mengubah \lstasm|MOV CX, 6| menjadi
+\lstasm|MOV CX, 5|. Cara yang lebih aman adalah menghitung jumlah
+elemen secara otomatis dengan \code{panjang EQU \$ - nilai} sehingga
+kesalahan yang sama tidak terulang ketika larik diperpanjang.
+\end{studikasusbox}
+
+\begin{studikasusbox}
+\textbf{Kasus 3: \eng{stack} tidak seimbang yang menyebabkan \asm{RET}
+ke alamat salah.}
+Program \file{bug-stack.asm} melompat ke alamat aneh. Gejala ini khas
+\eng{stack} yang rusak, karena hanya \asm{CALL}, \asm{RET}, dan
+\asm{INT} yang dapat memindahkan kendali ke luar batas program.
+Langkah diagnostiknya adalah membandingkan jumlah \asm{PUSH} dengan
+jumlah \asm{POP}, lalu membuktikannya melalui \eng{dump} \eng{stack}
+seperti pada Kode~\ref{lst:sesi-stack}. Prosedur menekan tiga register
+tetapi hanya memulihkan dua, sehingga \reg{SP} berhenti pada
+\hex{00FC} dan \asm{RET} membaca \hex{13A6}. Perbaikan pada
+Kode~\ref{lst:bug-stack-fix} menambahkan satu \asm{POP AX}.
+\end{studikasusbox}
+
+\begin{infobox}
+Ketiga kasus di atas memiliki satu pola yang sama: gejalanya muncul di
+satu tempat, sedangkan penyebabnya berada di tempat lain. Karena itu,
+menelusuri program pada level instruksi --- bukan membaca ulang kode
+sumber saja --- merupakan cara paling cepat menemukan penyebab
+sesungguhnya \cite{ebrahim2018}.
+\end{infobox}

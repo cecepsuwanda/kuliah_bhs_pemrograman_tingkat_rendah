@@ -1,0 +1,92 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab5}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item Register adalah tempat penyimpanan tercepat di dalam
+          prosesor. Prosesor 8086 memiliki empat belas register
+          16 bit yang dapat dipakai programmer.
+
+    \item Register umum \reg{AX}, \reg{BX}, \reg{CX}, dan \reg{DX}
+          dapat diakses sebagai dua byte terpisah: \reg{AH}/\reg{AL},
+          \reg{BH}/\reg{BL}, \reg{CH}/\reg{CL}, dan \reg{DH}/\reg{DL}.
+          Menulis ke byte rendah tidak mengubah byte tinggi.
+
+    \item Setiap register umum memiliki peran khas sebagai akibat
+          cara penyandian instruksi: \reg{AX} sebagai akumulator,
+          \reg{BX} sebagai basis pengalamatan, \reg{CX} sebagai
+          pencacah, dan \reg{DX} sebagai pasangan data pada operasi
+          32 bit serta penunjuk alamat port.
+
+    \item Register segmen \reg{CS}, \reg{DS}, \reg{SS}, dan \reg{ES}
+          menyimpan nomor segmen, bukan data. Pasangannya adalah
+          \reg{IP} untuk kode, \reg{BP}/\reg{SP} untuk \eng{stack},
+          serta \reg{SI} dan \reg{DI} untuk data dan tujuan operasi
+          string.
+
+    \item Register \eng{pointer} dan \eng{index} menyimpan
+          \eng{offset}. \reg{SP} menunjuk puncak \eng{stack} dan
+          berubah otomatis pada \asm{PUSH}/\asm{POP}, \reg{BP}
+          menjadi acuan tetap di dalam \eng{stack}, sedangkan
+          \reg{SI} dan \reg{DI} menunjuk sumber dan tujuan operasi
+          string.
+
+    \item Register \reg{IP} menyimpan \eng{offset} instruksi
+          berikutnya dan selalu berpasangan dengan \reg{CS}.
+
+    \item Register \reg{FLAGS} 16 bit memuat sembilan \eng{flag}
+          aktif: \flag{CF}, \flag{PF}, \flag{AF}, \flag{ZF},
+          \flag{SF}, \flag{OF} sebagai \eng{flag} status, serta
+          \flag{TF}, \flag{IF}, \flag{DF} sebagai \eng{flag}
+          kendali.
+
+    \item \flag{CF} melaporkan simpanan keluar pada bilangan tak
+          bertanda, sedangkan \flag{OF} melaporkan \eng{overflow}
+          pada bilangan bertanda. Keduanya harus dibedakan dengan
+          cermat.
+
+    \item \eng{Flag} menjadi berguna ketika dibaca oleh lompatan
+          bersyarat, sedangkan \asm{MOV}, \asm{LEA}, \asm{PUSH}, dan
+          \asm{POP} tidak mengubah \eng{flag}.
+
+    \item Register \reg{CS}, \reg{IP}, \reg{SS}, dan \reg{SP}
+          mengendalikan alur program dan letak \eng{stack}, sehingga
+          tidak boleh diubah sembarangan.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menyebutkan keempat belas register
+          8086 beserta kelompoknya.
+    \item[\checkbox] Saya dapat menjelaskan akses byte rendah dan
+          byte tinggi pada \reg{AX}, \reg{BX}, \reg{CX}, \reg{DX}.
+    \item[\checkbox] Saya dapat menjelaskan peran khas setiap
+          register umum beserta alasannya.
+    \item[\checkbox] Saya dapat menjelaskan peran \reg{CS}, \reg{DS},
+          \reg{SS}, dan \reg{ES} dalam pengalamatan memori.
+    \item[\checkbox] Saya dapat menjelaskan perbedaan tugas \reg{SP},
+          \reg{BP}, \reg{SI}, \reg{DI}, dan \reg{IP}.
+    \item[\checkbox] Saya dapat menyebutkan sembilan \eng{flag}
+          beserta posisi bitnya.
+    \item[\checkbox] Saya dapat memprediksi \flag{CF}, \flag{OF},
+          \flag{SF}, dan \flag{ZF} pada operasi \asm{ADD}.
+    \item[\checkbox] Saya dapat menjelaskan akibat mengubah
+          \reg{CS}, \reg{IP}, \reg{SS}, atau \reg{SP} secara
+          sembarangan.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke bab berikutnya.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Uraian mengenai fungsi dan penyandian register
+8086 bersumber dari \cite{intel1979}. Penjelasan tentang \eng{flag}
+dan pengaruhnya terhadap eksekusi diperkuat oleh \cite{brey2009}
+dan \cite{hyde2010}. Ringkasan praktis mengenai daftar register dan
+\eng{flag} dapat ditelusuri pada \cite{wikibooksx86}.
+\end{infobox}

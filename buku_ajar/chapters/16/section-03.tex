@@ -1,0 +1,378 @@
+\section{Strategi Optimasi pada Level Instruksi}
+\label{sec:optimasi-instruksi}
+
+Setelah hambatan ditemukan melalui pengukuran, langkah berikutnya
+adalah memperbaiki instruksinya. Bagian ini membahas enam teknik
+optimasi yang dapat diterapkan langsung pada program assembly 8086,
+kemudian menutup dengan trade-off, cara pengukuran yang adil, dan
+batas etika optimasi.
+
+\subsection{Memilih Register daripada Memori}
+
+Teknik paling mendasar adalah menyimpan nilai yang sering dipakai di
+dalam register, bukan di memori. Perhatikan perbedaannya:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+; --- kurang baik: nilai diambil dari memori setiap iterasi ---
+    MOV CX, 10
+ULANG:
+    ADD AX, jumlah      ; akses memori: 9 + 6 = 15 siklus
+    LOOP ULANG
+
+; --- lebih baik: nilai sudah ada di register ---
+    MOV CX, 10
+    MOV BX, jumlah      ; sekali saja: 8 + 6 = 14 siklus
+ULANG:
+    ADD AX, BX          ; akses register: 3 siklus
+    LOOP ULANG
+\end{lstlisting}
+
+Pada versi pertama, sepuluh iterasi memerlukan sepuluh akses memori
+($10 \times 15 = 150$ siklus). Pada versi kedua, satu akses memori di
+awal ditambah sepuluh operasi register
+($14 + 10 \times 3 = 44$ siklus). Selisih ini berasal dari satu
+perubahan sederhana: memindahkan data ke tempat yang paling cepat
+diakses prosesor.
+
+\subsection{Strength Reduction}
+
+\term{Strength reduction} adalah penggantian operasi yang mahal
+dengan operasi yang lebih murah yang menghasilkan nilai sama.
+Tabel~\ref{tab:strength-reduction} memuat penggantian yang paling
+umum beserta syarat berlakunya. Kolom syarat sangat penting: tanpa
+memenuhi syarat tersebut, penggantian justru menghasilkan nilai yang
+salah.
+
+\begin{table}[H]
+    \centering
+    \caption{Penggantian operasi (\eng{strength reduction}) yang umum
+    pada 8086.}
+    \label{tab:strength-reduction}
+    \small
+    \begin{tabular}{@{}p{3.8cm}p{3.8cm}p{5.3cm}@{}}
+        \toprule
+        \textbf{Operasi asal} & \textbf{Pengganti} &
+        \textbf{Syarat berlaku} \\
+        \midrule
+        \lstasm|MUL BX| dengan \reg{BX} = 2 & \lstasm|ADD AX, AX| &
+        Pengali tepat dua; hasil tidak memerlukan \reg{DX} \\
+        \addlinespace
+        \lstasm|MUL BX| dengan \reg{BX} = $2^n$ & \lstasm|SHL AX, n| &
+        Pengali pangkat dua dan tak bertanda \\
+        \addlinespace
+        \lstasm|DIV BX| dengan \reg{BX} = $2^n$ & \lstasm|SHR AX, n| &
+        Pembagi pangkat dua, nilai tak bertanda,
+        sisa pembagian tidak diperlukan \\
+        \addlinespace
+        \lstasm|IDIV BX| dengan \reg{BX} = $2^n$ & \lstasm|SAR AX, n| &
+        Nilai bertanda (komplemen dua); pembulatan ke bawah \\
+        \addlinespace
+        \lstasm|MOV AX, 0| & \lstasm|XOR AX, AX| &
+        Hasil harus nol; \eng{flag} memang boleh berubah \\
+        \addlinespace
+        \lstasm|CMP AX, 0| & \lstasm|TEST AX, AX| &
+        Uji dilakukan hanya terhadap nol \\
+        \addlinespace
+        \lstasm|ADD AX, 1| & \lstasm|INC AX| &
+        \flag{CF} tidak diperiksa sesudahnya (\asm{INC} tidak mengubah
+        \flag{CF}) \\
+        \addlinespace
+        \lstasm|SUB AX, 1| & \lstasm|DEC AX| &
+        \flag{CF} tidak diperiksa sesudahnya \\
+        \addlinespace
+        \lstasm|ADD SI, 2| & \lstasm|LEA SI, [SI+2]| &
+        \eng{Flag} harus dipertahankan agar pembandingan sebelumnya
+        tetap sahih \\
+        \addlinespace
+        \lstasm|DEC CX| + \lstasm|JNZ| & \lstasm|LOOP| &
+        Penghitung ada di \reg{CX} dan jarak lompatan kurang dari
+        $\pm$128 byte \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Pergeseran sebagai Pengganti Perkalian dan Pembagian}
+
+Penggantian \asm{MUL} dan \asm{DIV} dengan pergeseran adalah contoh
+\eng{strength reduction} yang paling menguntungkan pada 8086.
+Sebuah \lstasm|MUL BX| memerlukan 118--133 siklus, sedangkan
+\lstasm|SHL AX, 1| hanya 2 siklus. Untuk mengalikan dengan delapan,
+tiga kali pergeseran satu bit sudah cukup dan totalnya hanya enam
+siklus.
+
+Menariknya, pada 8086 ada dua cara yang keduanya sah, tetapi
+memiliki keunggulan berbeda:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+; --- varian cepat: 3 instruksi, 6 byte, 6 siklus ---
+    SHL AX, 1           ; AX = AX x 2
+    SHL AX, 1           ; AX = AX x 4
+    SHL AX, 1           ; AX = AX x 8
+
+; --- varian kecil: 2 instruksi, 4 byte, 20 siklus ---
+    MOV CL, 3           ; CL = banyak pergeseran
+    SHL AX, CL          ; 8 + 4 x 3 = 20 siklus
+\end{lstlisting}
+
+Varian pertama lebih cepat tetapi lebih panjang dua byte; varian
+kedua lebih pendek tetapi lebih lambat. Contoh ini menunjukkan bahwa
+``teroptimasi'' tidak memiliki satu arti tunggal: jawabannya
+bergantung pada metrik yang dipentingkan.
+
+\begin{peringatanbox}
+Pergeseran hanya setara dengan perkalian bila nilai yang digeser
+\emph{tidak bertanda} dan bit yang tergeser keluar memang boleh
+hilang. Untuk nilai bertanda, \asm{SHR} dapat mengubah tanda menjadi
+positif; pada kasus itu \asm{SAR} yang benar. Selain itu, \asm{MUL}
+memperhatikan \flag{CF} dan \flag{OF} untuk mendeteksi limpahan
+(\eng{overflow}), sedangkan \asm{SHL} tidak. Bila program mengandalkan
+kedua \eng{flag} tersebut, penggantian harus dibatalkan.
+\end{peringatanbox}
+
+\subsection{LEA untuk Aritmatika Tanpa Mengubah Flag}
+
+Instruksi \asm{LEA} (\eng{Load Effective Address}) menghitung alamat
+efektif tanpa benar-benar mengakses memori. Instruksi ini memiliki
+dua kegunaan yang sering terlewat.
+
+\begin{enumerate}
+    \item \textbf{Menghitung alamat majemuk dalam satu instruksi.}
+          \lstasm|LEA SI, [BX+SI+4]| menjumlahkan \reg{BX}, \reg{SI},
+          dan konstanta 4 sekaligus, sesuatu yang tidak dapat
+          dilakukan satu instruksi aritmatika biasa.
+    \item \textbf{Aritmatika tanpa mengubah flag.} Karena \asm{LEA}
+          tidak menyentuh \eng{flag}, ia dipakai ketika sebuah
+          pembandingan harus tetap berlaku setelah alamat dihitung.
+\end{enumerate}
+
+Perhatikan ilustrasi berikut. Pada versi pertama, \asm{ADD} mengubah
+\flag{ZF} sehingga lompatan bersyarat menjadi salah:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    CMP AX, 0           ; ZF = 1 bila AX = 0
+    ADD SI, 2           ; SALAH: ADD mengubah ZF
+    JE  kosong          ; lompatan tidak lagi dapat dipercaya
+
+    CMP AX, 0           ; ZF = 1 bila AX = 0
+    LEA SI, [SI+2]      ; BENAR: LEA tidak mengubah flag
+    JE  kosong          ; lompatan masih sahih
+\end{lstlisting}
+
+Namun \asm{LEA} bukan pilihan yang selalu lebih cepat: pada 8086
+\lstasm|LEA SI,[SI+2]| memerlukan 10 siklus, sedangkan
+\lstasm|ADD SI,2| hanya 4 siklus. Keunggulan \asm{LEA} adalah
+keringkasan dan sifatnya yang tidak mengubah \eng{flag}, bukan
+kecepatannya. Hubungan \asm{LEA} dengan mode pengalamatan dibahas
+pada Bab~\ref{chap:mode-pengalamatan}.
+
+\subsection{Mengurangi Lompatan dan \eng{Loop Unrolling}}
+
+Setiap lompatan memiliki harga: \lstasm|LOOP| memerlukan 17 siklus,
+lompatan bersyarat 16 siklus, dan lompatan jauh lebih mahal lagi.
+Bahkan pada prosesor 8086, lompatan juga menghalangi
+\eng{prefetch queue} mengisi instruksi berikutnya. Ada dua cara
+mengurangi jumlah lompatan.
+
+\begin{enumerate}
+    \item \textbf{Menyusun ulang alur.} Bila dua cabang berakhir pada
+          pekerjaan yang sama, pekerjaan itu dapat dipindahkan keluar
+          dari cabang sehingga hanya ada satu salinan. Susunan
+          ``lompat ke pekerjaan bersama'' menggantikan dua salinan
+          kode menjadi satu.
+    \item \textbf{\eng{Loop unrolling}.} Isi perulangan digandakan
+          sehingga satu iterasi mengerjakan dua elemen sekaligus.
+          Penghitung dan lompatan dikerjakan setengah kali, sehingga
+          overhead \asm{LOOP} berkurang separuh. Harganya jelas:
+          kode menjadi lebih panjang.
+\end{enumerate}
+
+\begin{lstlisting}[language=MASM, numbers=none]
+; --- perulangan biasa: 1 elemen per iterasi ---
+    MOV CX, 10
+ULANG:
+    ADD AX, [SI]
+    ADD SI, 2
+    LOOP ULANG
+
+; --- setelah unrolling 2x: 2 elemen per iterasi ---
+    MOV CX, 5           ; cukup 5 iterasi
+ULANG2:
+    ADD AX, [SI]        ; elemen ke-1
+    ADD AX, [SI+2]      ; elemen ke-2
+    ADD SI, 4           ; maju dua word
+    LOOP ULANG2
+\end{lstlisting}
+
+\subsection{Mengosongkan Register dengan \asm{XOR reg, reg}}
+\label{sec:xor-reg-reg}
+
+Untuk mengosongkan sebuah register, banyak programmer menulis
+\lstasm|MOV AX, 0|. Tulisan itu benar dan mudah dibaca, tetapi bukan
+yang terpendek:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AX, 0           ; 3 byte (B8 00 00), 4 siklus
+    XOR AX, AX          ; 2 byte (31 C0),    3 siklus
+    SUB AX, AX          ; 2 byte (29 C0),    3 siklus
+\end{lstlisting}
+
+\lstasm|XOR AX, AX| lebih pendek satu byte dan lebih cepat satu
+siklus, karena tidak perlu memuat nilai segera. Selain itu,
+\lstasm|XOR AX, AX| mengosongkan register 16-bit sekaligus, sedangkan
+\lstasm|MOV AX, 0| menyimpan nilai \hex{00} dua byte. Dasar logika
+operasi \eng{XOR} dijelaskan pada Bab~\ref{chap:logika}.
+
+Harganya adalah \eng{flag}: \asm{XOR} mengubah \flag{ZF}, \flag{SF},
+\flag{PF}, dan menghapus \flag{CF} serta \flag{OF}. Bila
+pengosongan register dilakukan di antara sebuah pembandingan dan
+lompatan bersyaratnya, \asm{XOR} justru merusak program. Karena itu
+pemakaiannya harus ditempatkan pada awal blok, bukan di tengah alur
+keputusan.
+
+\subsection{Trade-off: Ukuran Kode atau Kecepatan}
+
+Tidak ada optimasi yang gratis. Setiap perubahan hampir selalu
+memindahkan biaya dari satu metrik ke metrik lain. Dua arah optimasi
+yang berlawanan dirumuskan berikut ini.
+
+\begin{itemize}
+    \item \textbf{Optimasi ukuran} dipilih bila kode harus muat pada
+          memori terbatas, misalnya \eng{firmware}, rutin
+          \eng{bootloader}, atau program yang dipanggil dari disket.
+          Tekniknya: varian pendek (\lstasm|MOV CL,3| +
+          \lstasm|SHL AX, CL|), hindari \eng{unrolling}, dan hindari
+          salinan kode yang berulang.
+    \item \textbf{Optimasi kecepatan} dipilih bila program berjalan
+          pada bagian yang paling sering dieksekusi dan memori masih
+          mencukupi. Tekniknya: varian cepat (tiga kali
+          \lstasm|SHL AX,1|), \eng{unrolling}, register daripada
+          memori, dan \asm{LEA}.
+\end{itemize}
+
+Gambar~\ref{fig:alur-keputusan-optimasi} merangkum alur keputusan yang
+dipakai pada praktikum akhir bab ini.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=0.6cm,
+        simpul/.style={
+            draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+            rounded corners=3pt, align=center, font=\small,
+            inner sep=5pt, text width=4.3cm
+        },
+        uji/.style={
+            draw=obeAmber, line width=0.8pt, fill=obeAmberLight,
+            diamond, aspect=2.6, align=center, font=\small,
+            inner sep=1pt, text width=3.2cm
+        },
+        akhir/.style={
+            draw=obeGreen, line width=0.8pt, fill=obeGreenLight,
+            rounded corners=3pt, align=center, font=\small,
+            inner sep=5pt, text width=4.3cm
+        },
+        panah/.style={-{Stealth[length=2.2mm]}, line width=0.8pt, obeTeal},
+        ket/.style={font=\scriptsize, text=obeGray, fill=white,
+                    inner sep=1pt}
+    ]
+        \node[simpul] (ukur1) {Langkah 1: ukur versi naif (waktu,
+            ukuran byte)};
+        \node[uji, below=of ukur1] (tanya)
+            {\textbf{Hambatan utama sudah diketahui?}};
+        \node[simpul, below=of tanya, fill=obeMaroonLight,
+              draw=obeMaroon] (cari)
+            {Langkah 2: cari hambatan dengan \code{U} dan penghitung
+             iterasi};
+        \node[uji, below=of cari] (pilih)
+            {\textbf{Batasan pokok proyek?}};
+        \node[akhir, below left=0.8cm and 0.15cm of pilih] (kecil)
+            {Optimasi ukuran: varian pendek, tanpa \eng{unrolling}};
+        \node[akhir, below right=0.8cm and 0.15cm of pilih] (cepat)
+            {Optimasi kecepatan: register, tiga kali \asm{SHL AX,1},
+             \eng{unrolling}};
+        \node[akhir, below=2.5cm of pilih] (verif)
+            {Langkah 3: ukur ulang dan verifikasi hasil tetap benar};
+
+        \draw[panah] (ukur1) -- (tanya);
+        \draw[panah] (tanya) -- node[ket, right] {belum} (cari);
+        \draw[panah] (cari.west) -- ++(-0.9,0) |-
+            node[ket, left, pos=0.3] {ulangi} (tanya.west);
+        \draw[panah] (tanya) -- (pilih);
+        \draw[panah] (pilih) -- node[ket, left] {ukuran} (kecil);
+        \draw[panah] (pilih) -- node[ket, right] {kecepatan} (cepat);
+        \draw[panah] (kecil.south) |- (verif.west);
+        \draw[panah] (cepat.south) |- (verif.east);
+    \end{tikzpicture}
+    \caption{Alur keputusan optimasi: ukur dahulu, kenali hambatan,
+    pilih arah optimasi, lalu ukur ulang.}
+    \label{fig:alur-keputusan-optimasi}
+\end{figure}
+
+\subsection{Pengukuran yang Adil}
+
+Agar perbandingan sebelum dan sesudah dapat dipercaya, tiga syarat
+berikut harus dipenuhi.
+
+\begin{enumerate}
+    \item \textbf{Masukan sama dan jumlah iterasi sama.} Kedua versi
+          harus memakai larik yang sama dan mengerjakan pekerjaan yang
+          sama banyaknya. Penghitung iterasi dicatat untuk
+          membuktikannya.
+    \item \textbf{Batas pengukuran sama.} Waktu mulai dicatat tepat
+          sebelum pekerjaan dan waktu berhenti tepat sesudah
+          pekerjaan, tidak termasuk pemuatan program, pencetakan
+          keluaran, atau penekanan tombol.
+    \item \textbf{Diulang beberapa kali.} Jalankan minimal lima kali,
+          buang percobaan pertama (pemanasan), lalu ambil nilai
+          tengah. Satu kali pengukuran selalu ramai oleh kebetulan.
+\end{enumerate}
+
+Waktu dapat dicatat dengan layanan sistem. BIOS menyediakan pencacah
+\eng{tick} melalui \code{INT 1Ah} fungsi \hex{00}, yang bertambah
+18,2 kali per detik.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AH, 00h         ; baca pencacah tick BIOS
+    INT 1Ah             ; CX:DX = tick sejak tengah malam
+    MOV tick_awal, DX   ; simpan titik awal
+
+    ; ... pekerjaan yang diukur ...
+
+    MOV AH, 00h
+    INT 1Ah             ; baca lagi
+    SUB DX, tick_awal   ; DX = selisih tick (18,2 tick = 1 detik)
+\end{lstlisting}
+
+Cara lain adalah \code{INT 21h} fungsi \hex{2C} yang mengembalikan
+jam, menit, detik, dan perseratus detik pada register \reg{CH},
+\reg{CL}, \reg{DH}, dan \reg{DL}. Karena resolusi pencacah
+\eng{tick} hanya sekitar 55 milidetik, pekerjaan yang diukur harus
+dijalankan berulang-ulang di dalam satu perulangan pengukuran agar
+selisihnya terlihat.
+
+\subsection{Etika dan Batas Optimasi}
+
+Optimasi memiliki harga yang tidak terlihat pada metrik: keterbacaan.
+Kode yang penuh trik sulit dibaca, sulit diperbaiki, dan mudah rusak
+ketika kebutuhan berubah. Tiga prinsip berikut menjadi pedoman.
+
+\begin{itemize}
+    \item \textbf{Benar lebih dahulu, cepat kemudian.} Program yang
+          cepat tetapi salah tidak berguna. Uji kebenaran setiap versi
+          dengan masukan yang sama sebelum membandingkan kecepatannya.
+    \item \textbf{Jangan mengoptimasi dini.} Optimasi hanya layak
+          dilakukan pada bagian yang sudah terbukti menjadi hambatan
+          melalui pengukuran, bukan pada bagian yang hanya
+          \emph{diperkirakan} lambat.
+    \item \textbf{Jaga keterbacaan dan dokumentasi.} Setiap trik harus
+          diberi komentar yang menjelaskan alasan dan syarat
+          berlakunya. Simpan versi naif sebagai pembanding dan
+          rujukan bila versi teroptimasi bermasalah.
+\end{itemize}
+
+\begin{infobox}
+Optimasi yang baik bersifat dapat dipertanggungjawabkan: ada
+pengukuran sebelum, ada penjelasan mengapa perubahan dipilih, dan ada
+pengukuran sesudah. Bila salah satu dari ketiganya tidak ada, yang
+dikerjakan bukan optimasi melainkan sekadar perubahan.
+\end{infobox}

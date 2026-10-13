@@ -1,0 +1,132 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab13}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Instruksi \asm{CALL} \eng{near} menyimpan \dots ke dalam
+          stack.
+          \begin{enumerate}
+              \item register \reg{CS} dan \reg{IP}
+              \item register \reg{IP} saja
+              \item seluruh register umum
+              \item register \reg{FLAGS} dan \reg{BP}
+          \end{enumerate}
+
+    \item Pada 8086, instruksi \asm{PUSH} bekerja dengan cara \dots
+          \begin{enumerate}
+              \item menambah \reg{SP} sebesar \dec{2}, lalu menyimpan
+                    data
+              \item mengurangi \reg{SP} sebesar \dec{2}, lalu
+                    menyimpan data
+              \item menyimpan data, lalu menambah \reg{SP} sebesar
+                    \dec{2}
+              \item menyimpan data, lalu mengurangi \reg{SP} sebesar
+                    \dec{2}
+          \end{enumerate}
+
+    \item Setelah \eng{prologue} prosedur dijalankan, parameter
+          pertama yang didorong paling akhir oleh pemanggil berada
+          pada alamat \dots
+          \begin{enumerate}
+              \item \code{[BP+0]} \item \code{[BP+2]}
+              \item \code{[BP+4]} \item \code{[BP+6]}
+          \end{enumerate}
+
+    \item Prosedur yang memakai \asm{RET} \code{4} berarti \dots
+          \begin{enumerate}
+              \item pemanggil harus menambahkan \lstasm|ADD SP, 4|
+              \item prosedur membuang \dec{4} byte argumen setelah
+                    mengambil alamat kembali
+              \item prosedur mengembalikan nilai \dec{4} bit
+              \item prosedur menyimpan empat register ke stack
+          \end{enumerate}
+
+    \item Pernyataan yang benar mengenai register \eng{callee-saved}
+          pada konvensi 8086 adalah \dots
+          \begin{enumerate}
+              \item \reg{AX} dan \reg{DX} wajib dipulihkan prosedur
+              \item \reg{BP}, \reg{SI}, dan \reg{DI} wajib dipulihkan
+                    prosedur
+              \item seluruh register segmen boleh dirusak prosedur
+              \item \reg{SP} boleh berubah setelah \asm{RET}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Diketahui \reg{SS} $=$ \hex{3000} dan \reg{SP} $=$
+          \hex{FFF8}. Gambarkan isi stack sel per sel (minimal lima
+          sel) untuk urutan berikut: \lstasm|PUSH 000Ah|,
+          \lstasm|PUSH 0014h|, \lstasm|CALL Hitung|,
+          \lstasm|PUSH BP|, \lstasm|MOV BP, SP|. Tuliskan alamat
+          setiap sel, isinya, dan nilai \reg{SP} serta \reg{BP}
+          setelah setiap langkah.
+
+    \item Tuliskan prosedur \code{HitungLuas} lengkap dengan
+          \eng{prologue} dan \eng{epilogue}, lalu tuliskan pula
+          bagian pemanggilnya. Jelaskan mengapa urutan \asm{PUSH}
+          pada pemanggil menentukan nomor offset \code{[BP+4]} dan
+          \code{[BP+6]}.
+
+    \item Sebuah program berprosedur menghasilkan perilaku yang tidak
+          menentu: kadang berjalan benar, kadang melompat ke alamat
+          acak. Sebutkan empat kemungkinan penyebab yang berkaitan
+          dengan pengelolaan stack, lalu jelaskan langkah pemeriksaan
+          untuk masing-masing penyebab dengan bantuan
+          \eng{debugger}.
+
+    \item Bandingkan prosedur faktorial rekursif dan iteratif untuk
+          $n = \dec{12}$ dari segi pemakaian stack, jumlah
+          pemanggilan, dan risiko \eng{stack overflow}. Simpulkan
+          kapan rekursi tetap merupakan pilihan yang tepat.
+\end{enumerate}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:prosedur}.}
+    \label{tab:kisi-bab13}
+    \small
+    \begin{tabular}{@{}p{1.5cm}p{5.2cm}p{2.8cm}c@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
+        \textbf{Bentuk soal} & \textbf{Bobot} \\
+        \midrule
+        3.4 & Menjelaskan kerja \asm{CALL} dan \asm{RET} serta isi
+        stack saat pemanggilan & Pilihan ganda 1, 2 & 15\% \\
+        \addlinespace
+        3.4 & Menganalisis \eng{stack frame} dan akses parameter
+        melalui \reg{BP} & Pilihan ganda 3, 4; Uraian 2 & 30\% \\
+        \addlinespace
+        3.4 & Mengelola konvensi pemanggilan dan penyimpanan register
+        & Pilihan ganda 5; Uraian 3 & 25\% \\
+        \addlinespace
+        3.4 & Menelusuri isi stack dan menilai pemakaian rekursi &
+        Uraian 1, 4 & 30\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:prosedur}}
+
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 3.4 apabila:
+\begin{itemize}
+    \item[\checked] dapat menjelaskan mekanisme \asm{CALL} dan
+          \asm{RET} beserta isi stack yang terlibat;
+    \item[\checked] dapat menggambar isi stack sel per sel pada
+          setiap langkah pemanggilan prosedur;
+    \item[\checked] dapat menulis prosedur berparameter dengan
+          \eng{prologue}, \eng{epilogue}, dan \asm{RET} \code{n}
+          yang benar;
+    \item[\checked] dapat mengembalikan nilai prosedur melalui
+          \reg{AX} serta menjelaskan pemakaian \reg{DX}:\reg{AX};
+    \item[\checked] dapat menulis prosedur rekursif dengan kasus
+          basis dan menjelaskan risiko \eng{stack overflow};
+    \item[\checked] dapat menemukan dan memperbaiki kesalahan stack
+          yang tidak seimbang pada program nyata.
+\end{itemize}
+\end{checklistbox}

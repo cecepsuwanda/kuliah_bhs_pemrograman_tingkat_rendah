@@ -1,0 +1,106 @@
+\section{Praktikum}
+\label{sec:praktikum-bab2}
+
+\begin{praktikumbox}
+\textbf{Judul:} Konversi bilangan dan verifikasi penyandian data di
+memori.\\[0.3em]
+\textbf{Sub-CPMK:} fondasi untuk 1.1--4.3 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Memastikan mahasiswa dapat melakukan konversi bilangan secara manual
+dan memverifikasi sendiri bahwa penyandian data di memori sesuai
+dengan yang dihitung.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan Emu8086 dan DOSBox terpasang.
+    \item Program pada Kode~\ref{lst:penyandian} dan
+          Kode~\ref{lst:flag-uji}.
+    \item Kalkulator \eng{programmer} (boleh kalkulator bawaan sistem
+          operasi) untuk memeriksa hasil, bukan untuk menggantikan
+          perhitungan manual.
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Konversi manual.}
+    \begin{enumerate}
+        \item Konversi desimal \dec{200}, \dec{100}, dan \dec{63} ke
+              biner dan heksadesimal tanpa alat bantu.
+        \item Nyatakan \dec{-1}, \dec{-64}, dan \dec{-100} dalam
+              \eng{two's complement} 8 bit.
+        \item Periksa hasil Anda dengan kalkulator \eng{programmer}.
+              Bila berbeda, temukan letak kesalahannya.
+    \end{enumerate}
+
+    \item \textbf{Verifikasi penyandian di memori.}
+    \begin{enumerate}
+        \item Rakit dan jalankan program pada Kode~\ref{lst:penyandian}
+              di Emu8086.
+        \item Buka jendela memori dan arahkan ke segmen data.
+        \item Isi tabel pengamatan: untuk setiap variabel, catat
+              alamat dan isi byte-nya.
+        \item Bandingkan hasil pengamatan dengan perhitungan manual
+              Anda pada Tabel~\ref{tab:penyandian-hasil}.
+    \end{enumerate}
+
+    \item \textbf{Menguji pengaruh flag.}
+    \begin{enumerate}
+        \item Jalankan program pada Kode~\ref{lst:flag-uji} dengan
+              \eng{single step}.
+        \item Sebelum eksekusi \asm{ADD AL, 01h}, tuliskan prediksi
+              Anda untuk \flag{CF}, \flag{ZF}, \flag{SF}, dan
+              \flag{OF}.
+        \item Setelah eksekusi, catat nilai sebenarnya dan bandingkan
+              dengan prediksi.
+        \item Ulangi dengan nilai \asm{7Fh} serta \asm{80h} dan
+              jelaskan perbedaan hasilnya.
+    \end{enumerate}
+
+    \item \textbf{Menyusun tabel konversi pribadi.}
+    \begin{enumerate}
+        \item Buat tabel heksadesimal 0--F beserta nilai biner dan
+              desimalnya di buku catatan Anda.
+        \item Hafalkan tabel tersebut. Tabel ini akan sangat
+              mempercepat pekerjaan Anda pada bab-bab berikutnya.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Lembar kerja konversi manual (sebelum diperiksa dengan
+          kalkulator).
+    \item Tabel pengamatan alamat dan isi memori.
+    \item Tabel prediksi versus hasil pengamatan flag.
+    \item Tabel konversi heksadesimal pribadi.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen fondasi (prasyarat, tanpa nilai numerik).} Praktikum
+ini tidak dinilai, tetapi menjadi prasyarat untuk Tugas 1 pada
+Bab~\ref{chap:register}. Mahasiswa yang belum menguasai konversi
+bilangan akan mengalami kesulitan besar pada bab-bab berikutnya.
+
+\begin{tabular}{@{}p{7.0cm}p{6.4cm}@{}}
+    \toprule
+    \textbf{Butir} & \textbf{Kriteria terpenuhi} \\
+    \midrule
+    Konversi manual & Seluruh soal konversi benar dan langkah
+    pengerjaan terlihat \\
+    \addlinespace
+    Verifikasi memori & Isi memori hasil pengamatan sama dengan
+    perhitungan manual \\
+    \addlinespace
+    Prediksi flag & Minimal tiga dari empat prediksi benar \\
+    \addlinespace
+    Tabel pribadi & Tabel 0--F lengkap dan sudah dihafalkan \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

@@ -1,0 +1,10 @@
+perintah :
+1. Buatkan buku ajar Pemrograman Bahasa Tingkat rendah sesuai silabus yang ada di 
+   C:\Matakuliah\kuliah_bhs_pemrograman_tingkat_rendah\rps_silabus
+2. Struktur dan arsitektur buku ajar tersebut mengikuti 
+   C:\Matakuliah\kuliah_bhs_pemrograman_tingkat_rendah\struktur_bab_buku_ajar_OBE.text 
+   dan C:\Matakuliah\kuliah_bhs_pemrograman_tingkat_rendah\Arsitektur_Buku_Ajar.md
+3. Taruh buku ajar tersebut di folder C:\Matakuliah\kuliah_bhs_pemrograman_tingkat_rendah\buku_ajar
+4. Pembuatan buku tersebut dilakukan bertahap, per-bab
+5. buat rencana penulisan per-bab dalam bentuk dokumen md, taruh dokumen md tersebut di folder
+   C:\Matakuliah\kuliah_bhs_pemrograman_tingkat_rendah\buku_ajar     

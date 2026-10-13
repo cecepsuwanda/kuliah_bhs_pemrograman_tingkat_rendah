@@ -1,0 +1,122 @@
+\section{Praktikum}
+\label{sec:praktikum-bab4}
+
+\begin{praktikumbox}
+\textbf{Judul:} Menggambar diagram blok 8086 dan menelusuri siklus
+instruksi dengan \eng{Single Step}.\\[0.3em]
+\textbf{Sub-CPMK:} 1.1 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menggambar
+diagram blok BIU/EU dari ingatan, menelusuri satu instruksi langkah
+demi langkah, serta menghitung jumlah byte instruksi dari hasil
+\eng{disassembly}.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan Emu8086 terpasang.
+    \item Berkas \file{siklus-dasar.asm} dan
+          \file{jumlah-dua-cara.asm} dari \file{code/asm/}.
+    \item Selembar kertas kosong dan alat tulis untuk menggambar
+          diagram.
+    \item Lembar jurnal praktikum untuk mencatat hasil pengamatan.
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Menggambar diagram blok dari ingatan.}
+    \begin{enumerate}
+        \item Tutup buku dan halaman materi bab ini.
+        \item Gambarkan diagram blok 8086 yang memuat kotak EU, kotak
+              BIU, bus internal, dan bus eksternal.
+        \item Tuliskan register apa saja yang berada di dalam EU dan
+              di dalam BIU, serta letakkan \eng{instruction queue}
+              pada posisi yang benar.
+        \item Setelah selesai, buka kembali
+              Gambar~\ref{fig:blok-8086} dan tandai setiap bagian
+              yang salah letak atau terlewat.
+        \item Catat jumlah kesalahan pada jurnal praktikum.
+    \end{enumerate}
+
+    \item \textbf{Menelusuri satu instruksi dengan \eng{Single Step}.}
+    \begin{enumerate}
+        \item Buka \file{siklus-dasar.asm} pada Emu8086, lalu tekan
+              \file{Compile and Emulate}.
+        \item Aktifkan jendela register dan jendela \eng{instruction
+              queue} bila tersedia.
+        \item Catat nilai awal \reg{CS}, \reg{IP}, \reg{AX}, dan
+              \reg{DS}.
+        \item Tekan \file{Single Step} satu kali, lalu catat
+              perubahan \reg{CS}, \reg{IP}, dan isi antrean.
+        \item Ulangi sampai program berakhir. Catat setiap perubahan
+              dalam tabel pengamatan.
+        \item Hentikan penelusuran tepat sebelum perintah
+              \code{INT 21h} dijalankan agar penelusuran tidak
+              keluar dari program.
+    \end{enumerate}
+
+    \item \textbf{Menghitung jumlah byte instruksi.}
+    \begin{enumerate}
+        \item Tampilkan hasil \eng{disassembly} program.
+        \item Catat alamat dan panjang setiap instruksi.
+        \item Periksa apakah selisih alamat antarinstruksi sama
+              dengan panjang instruksi yang dilaporkan.
+        \item Bandingkan hasilnya dengan kolom ``Panjang'' pada
+              Tabel~\ref{tab:trace-program}.
+    \end{enumerate}
+
+    \item \textbf{Membandingkan dua cara penjumlahan.}
+    \begin{enumerate}
+        \item Rakit dan jalankan \file{jumlah-dua-cara.asm}.
+        \item Periksa isi \code{hasil1} dan \code{hasil2} pada
+              jendela memori.
+        \item Catat jumlah siklus yang dilaporkan emulator untuk
+              masing-masing instruksi bila fitur tersebut tersedia.
+        \item Bandingkan hasil pengamatan Anda dengan
+              Tabel~\ref{tab:perbandingan-siklus} dan jelaskan
+              perbedaannya bila ada.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Gambar diagram blok BIU/EU hasil kerja dari ingatan
+          beserta catatan koreksinya.
+    \item Tabel pengamatan nilai \reg{CS}, \reg{IP}, \reg{AX}, dan
+          isi \eng{instruction queue} untuk setiap langkah.
+    \item Tabel hasil \eng{disassembly} berisi alamat dan panjang
+          setiap instruksi.
+    \item Perbandingan hasil pengamatan dengan
+          Tabel~\ref{tab:perbandingan-siklus} beserta penjelasan
+          singkat.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen praktikum 2 (bobot 5\% dari komponen praktikum).}
+
+\begin{tabular}{@{}p{6.0cm}cp{4.8cm}@{}}
+    \toprule
+    \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \midrule
+    Ketepatan diagram blok BIU/EU & 30\% &
+    Seluruh unit dan register utama berada pada kotak yang benar \\
+    \addlinespace
+    Ketepatan tabel penelusuran & 30\% &
+    Nilai \reg{CS}, \reg{IP}, dan antrean tercatat benar pada setiap
+    langkah \\
+    \addlinespace
+    Ketepatan perhitungan panjang instruksi & 25\% &
+    Panjang setiap instruksi sesuai hasil \eng{disassembly} \\
+    \addlinespace
+    Kedalaman analisis perbandingan & 15\% &
+    Perbedaan jumlah siklus dijelaskan dengan alasan yang benar \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

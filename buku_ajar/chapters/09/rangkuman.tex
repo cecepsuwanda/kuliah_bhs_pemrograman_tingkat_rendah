@@ -1,0 +1,84 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab9}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item Kode sumber assembly terdiri atas dua jenis baris:
+          instruksi mesin yang menghasilkan opcode dan dieksekusi
+          saat program berjalan, serta direktif assembler yang
+          hanya berlaku pada saat perakitan dan tidak menghasilkan
+          kode mesin \cite{hyde2010}.
+
+    \item \dir{DB} menyediakan satu byte, \dir{DW} dua byte,
+          \dir{DD} empat byte, dan \dir{DT} sepuluh byte. Operator
+          \dir{DUP} mengulang satu pola, sedangkan penanda \code{?}
+          hanya menyediakan ruang tanpa nilai awal.
+
+    \item Bilangan multi-byte disimpan dengan urutan
+          \eng{little-endian}, sehingga \lstasm|DW 1234h|
+          tersimpan sebagai byte \hex{34} lalu \hex{12}.
+
+    \item \dir{EQU} membuat konstanta tetap yang tidak dapat
+          didefinisikan ulang, sedangkan \code{=} membuat nilai
+          yang boleh diganti berkali-kali.
+
+    \item Direktif lokasi dan struktur meliputi \dir{ORG},
+          \dir{SEGMENT}/\dir{ENDS}, \dir{ASSUME}, dan \dir{END}.
+          Direktif \dir{END} yang diberi label sekaligus
+          menetapkan titik masuk program.
+
+    \item \dir{.MODEL} memilih model memori: \file{TINY} satu
+          segmen, \file{SMALL} satu segmen kode dan satu segmen
+          data, sedangkan model yang lebih besar memakai banyak
+          segmen.
+
+    \item Assembler bekerja dalam dua lintasan: membangun tabel
+          simbol dan menghitung \eng{offset}, lalu menghasilkan
+          kode mesin. Berkas \file{.lst} memperlihatkan hasilnya,
+          termasuk penanda \code{R} \cite{bodur}. Linker kemudian
+          menyelesaikan simbol eksternal, melakukan
+          \eng{relocation}, dan merekam alamat akhir pada berkas
+          \file{.map} \cite{nasm2024}.
+
+    \item Alur lengkap dari DOS adalah
+          \file{tasm /l program.asm} $\rightarrow$
+          \file{tlink /m program.obj} $\rightarrow$ menjalankan
+          \file{program.exe}.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menjelaskan mengapa direktif tidak
+          menghasilkan kode mesin.
+    \item[\checkbox] Saya dapat memilih direktif data yang tepat
+          dan menghitung besar memori yang disediakannya.
+    \item[\checkbox] Saya dapat menentukan urutan byte
+          \eng{little-endian} pada \dir{DW} dan \dir{DD}.
+    \item[\checkbox] Saya dapat menjelaskan perbedaan \dir{EQU} dan
+          \code{=} beserta akibat definisi ulang.
+    \item[\checkbox] Saya dapat menuliskan struktur segmen program
+          \file{.COM} dan \file{.EXE}.
+    \item[\checkbox] Saya dapat memilih model memori \dir{.MODEL}
+          dan menjelaskan pengaruhnya pada jumlah segmen.
+    \item[\checkbox] Saya dapat membaca tabel simbol pada berkas
+          \file{.lst} dan tabel segmen pada berkas \file{.map}.
+    \item[\checkbox] Saya dapat merakit dan mengaitkan program
+          dengan TASM dan TLINK tanpa kesalahan.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke bab berikutnya.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Pembahasan direktif data dan peran assembler
+diperkuat oleh \cite{hyde2010} dan \cite{bodur}. Keterangan praktis
+mengenai direktif \dir{EQU}, \dir{ORG}, dan \dir{DUP} pada assembler
+modern dapat ditelusuri pada \cite{nasm2024}, sedangkan contoh
+pemakaiannya pada lingkungan belajar tersedia pada
+\cite{emu8086help}.
+\end{infobox}

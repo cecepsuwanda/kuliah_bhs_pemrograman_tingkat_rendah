@@ -1,0 +1,127 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab8}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Mode pengalamatan yang dipakai oleh operand
+          \lstasm|MOV AX, [BX+SI+4]| adalah \dots
+          \begin{enumerate}
+              \item \eng{indexed}
+              \item \eng{base-relative}
+              \item \eng{based-indexed}
+              \item \eng{register indirect}
+          \end{enumerate}
+
+    \item Segmen \eng{default} untuk operand \lstasm|MOV AX, [BP+2]|
+          adalah \dots
+          \begin{enumerate}
+              \item \reg{CS} \item \reg{DS}
+              \item \reg{ES} \item \reg{SS}
+          \end{enumerate}
+
+    \item Penulisan operand berikut yang ditolak assembler karena
+          tidak memiliki \eng{encoding} 8086 adalah \dots
+          \begin{enumerate}
+              \item \lstasm|MOV AX, [SI+DI]|
+              \item \lstasm|MOV AX, [BX+DI]|
+              \item \lstasm|MOV AX, [BP+DI]|
+              \item \lstasm|MOV AX, [BX+SI]|
+          \end{enumerate}
+
+    \item Di antara pasangan instruksi berikut, yang paling cepat
+          dieksekusi adalah \dots
+          \begin{enumerate}
+              \item \lstasm|MOV AX, [BX+SI+2]|
+              \item \lstasm|MOV AX, [BP+2]|
+              \item \lstasm|MOV AX, [1234h]|
+              \item \lstasm|MOV AX, BX|
+          \end{enumerate}
+
+    \item Diketahui \reg{BX} = \hex{0100} dan \reg{SI} =
+          \hex{0010}. Alamat efektif operand
+          \lstasm|MOV AX, [BX+SI+8]| adalah \dots
+          \begin{enumerate}
+              \item \hex{0110} \item \hex{0118}
+              \item \hex{0108} \item \hex{0128}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Jelaskan mengapa 8086 hanya mengizinkan \reg{BX},
+          \reg{BP}, \reg{SI}, dan \reg{DI} sebagai penunjuk alamat
+          serta mengapa \code{[AX]} dan \code{[SI+DI]} tidak dapat
+          dikodekan. Kaitkan dengan byte \eng{ModR/M} pada
+          Bab~\ref{chap:format-instruksi}.
+
+    \item Tuliskan satu operasi yang sama, yaitu menyalin elemen
+          berindeks pertama dari sebuah array \dir{DW} ke register
+          \reg{AX}, dalam lima mode pengalamatan berbeda. Untuk
+          setiap cara, sebutkan segmen \eng{default} yang dipakai.
+
+    \item Diketahui \reg{DS} = \hex{1500}, \reg{SS} = \hex{2500},
+          \reg{BX} = \hex{0040}, \reg{BP} = \hex{0060}, dan
+          \reg{DI} = \hex{0006}. Hitung alamat efektif dan alamat
+          fisik untuk \lstasm|MOV AX, [BX+DI+2]| dan
+          \lstasm|MOV AX, [BP]|. Sebutkan pula langkah verifikasi yang
+          Anda lakukan pada jendela memori \eng{debugger}.
+
+    \item Tabel nilai mahasiswa berisi \eng{record} enam byte: empat
+          byte NIM dan dua byte nilai. Rancang mode pengalamatan untuk
+          membaca medan nilai mahasiswa ke-$i$, tuliskan potongan
+          kodenya, dan jelaskan mengapa \lstasm|[BX+SI+4]| lebih
+          tepat daripada tiga instruksi \lstasm|MOV| terpisah
+          (Bab~\ref{chap:prosedur}).
+\end{enumerate}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:mode-pengalamatan}.}
+    \label{tab:kisi-bab8}
+    \small
+    \begin{tabular}{@{}p{1.5cm}p{5.4cm}p{3.0cm}c@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
+        \textbf{Bentuk soal} & \textbf{Bobot} \\
+        \midrule
+        2.2 & Mengenali mode pengalamatan dari penulisan operand &
+        Pilihan ganda 1; Uraian 2 & 25\% \\
+        \addlinespace
+        2.2 & Menghitung alamat efektif dan alamat fisik &
+        Pilihan ganda 5; Uraian 3 & 25\% \\
+        \addlinespace
+        2.2 & Menentukan segmen \eng{default} dan
+        \eng{override} & Pilihan ganda 2; Uraian 3 & 20\% \\
+        \addlinespace
+        2.2 & Menganalisis legalitas operand dan efisiensi mode &
+        Pilihan ganda 3, 4; Uraian 1 & 15\% \\
+        \addlinespace
+        2.2 & Menerapkan mode pengalamatan pada array dan
+        \eng{record} & Uraian 4 & 15\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:mode-pengalamatan}}
+
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 2.2 apabila:
+\begin{itemize}
+    \item[\checked] dapat menyebutkan tujuh mode pengalamatan beserta
+          contoh dan kegunaannya;
+    \item[\checked] dapat menentukan segmen \eng{default} setiap mode
+          serta menuliskan \eng{segment override prefix};
+    \item[\checked] dapat menghitung alamat efektif dan alamat fisik
+          operand memori tanpa kesalahan;
+    \item[\checked] dapat menjelaskan alasan penolakan operand
+          \code{[AX]}, \code{[BX+BP]}, dan \code{[SI+DI]};
+    \item[\checked] dapat memilih mode yang efisien untuk akses array
+          dan \eng{record};
+    \item[\checked] dapat memverifikasi perhitungan alamatnya melalui
+          jendela memori \eng{debugger}.
+\end{itemize}
+\end{checklistbox}

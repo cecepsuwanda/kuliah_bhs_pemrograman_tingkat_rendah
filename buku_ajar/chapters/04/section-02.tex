@@ -1,0 +1,281 @@
+\section{Bus Interface Unit dan Execution Unit}
+\label{sec:biu-eu}
+
+Keistimewaan terbesar 8086 dibandingkan pendahulunya adalah
+pembagian prosesor menjadi dua unit yang bekerja secara paralel:
+\eng{Bus Interface Unit} (BIU) dan \eng{Execution Unit} (EU).
+Pembagian ini memungkinkan pengambilan instruksi berikutnya
+berlangsung sementara instruksi sekarang sedang dikerjakan.
+
+\subsection{Diagram Blok Internal}
+
+Gambar~\ref{fig:blok-8086} memperlihatkan susunan internal 8086
+secara ringkas. Bagian kiri adalah EU, bagian kanan adalah BIU, dan
+keduanya dihubungkan oleh bus internal selebar 16 bit.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        kotak/.style={
+            draw=obeBlue,
+            line width=0.9pt,
+            rounded corners=3pt,
+            align=center,
+            inner sep=4pt,
+            font=\scriptsize
+        },
+        judul/.style={font=\small\bfseries, text=obeBlue}
+    ]
+        % ---------------- EU ----------------
+        \node[kotak, fill=obeBlueLight, minimum width=4.5cm,
+              minimum height=4.9cm] (eu) {};
+        \node[judul, anchor=north] at ([yshift=-5pt]eu.north)
+              {Execution Unit (EU)};
+        \node[kotak, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm] (alu) at ([yshift=-1.35cm]eu.north)
+              {ALU (aritmetika \& logika)};
+        \node[kotak, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of alu] (rgu)
+              {Register umum: AX BX CX DX};
+        \node[kotak, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of rgu] (rgp)
+              {Register penunjuk: SP BP SI DI};
+        \node[kotak, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of rgp] (rfl)
+              {Register flag};
+
+        % ---------------- BIU ----------------
+        \node[kotak, fill=obeTealLight, draw=obeTeal,
+              minimum width=4.5cm, minimum height=4.9cm,
+              right=1.3cm of eu] (biu) {};
+        \node[judul, text=obeTeal, anchor=north]
+              at ([yshift=-5pt]biu.north)
+              {Bus Interface Unit (BIU)};
+        \node[kotak, draw=obeTeal, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm] (rgs)
+              at ([yshift=-1.35cm]biu.north)
+              {Register segmen: CS DS SS ES};
+        \node[kotak, draw=obeTeal, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of rgs] (rip)
+              {Instruction Pointer (IP)};
+        \node[kotak, draw=obeTeal, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of rip] (ique)
+              {Instruction queue 6 byte};
+        \node[kotak, draw=obeTeal, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of ique] (adder)
+              {Penghitung alamat 20-bit};
+
+        % ---------------- bus internal ----------------
+        \draw[{Stealth[length=2.5mm]}-{Stealth[length=2.5mm]},
+              line width=1.5pt, obeBlue]
+              (eu.east) -- (biu.west)
+              node[midway, above, font=\scriptsize, align=center]
+              {bus\\internal};
+
+        % ---------------- bus eksternal ----------------
+        \node[kotak, draw=obeAmber, fill=obeAmberLight,
+              minimum width=4.2cm, minimum height=0.8cm,
+              below=1.1cm of biu] (ext)
+              {Bus eksternal (alamat 20-bit / data 16-bit)};
+        \draw[{Stealth[length=2.5mm]}-{Stealth[length=2.5mm]},
+              line width=1.3pt, obeAmber]
+              (biu.south) -- (ext.north);
+        \node[kotak, draw=obeGray, fill=obeGrayLight,
+              minimum width=4.2cm, minimum height=0.8cm,
+              below=0.55cm of ext] (mem) {Memori dan perangkat I/O};
+        \draw[{Stealth[length=2.5mm]}-{Stealth[length=2.5mm]},
+              line width=1.1pt, obeGray]
+              (ext.south) -- (mem.north);
+    \end{tikzpicture}
+    \caption{Diagram blok internal mikroprosesor 8086: EU, BIU,
+    \eng{instruction queue}, dan bus eksternal.}
+    \label{fig:blok-8086}
+\end{figure}
+
+\subsection{Tugas Masing-masing Unit}
+
+Tabel~\ref{tab:biu-eu} membandingkan tugas kedua unit tersebut.
+
+\begin{table}[H]
+    \centering
+    \caption{Pembagian tugas Bus Interface Unit dan Execution Unit.}
+    \label{tab:biu-eu}
+    \small
+    \begin{tabular}{@{}p{3.2cm}p{5.4cm}p{5.2cm}@{}}
+        \toprule
+        \textbf{Aspek} & \textbf{Bus Interface Unit (BIU)} &
+        \textbf{Execution Unit (EU)} \\
+        \midrule
+        Tugas utama & Mengambil instruksi dan data, menangani seluruh
+        lalu lintas bus & Menerjemahkan dan menjalankan instruksi \\
+        \addlinespace
+        Register yang dimiliki & CS, DS, SS, ES, IP, \eng{instruction
+        queue} & AX--DX, SP, BP, SI, DI, flag \\
+        \addlinespace
+        Akses ke bus luar & Punya wewenang tunggal &
+        Tidak punya; harus meminta melalui BIU \\
+        \addlinespace
+        Perhitungan alamat & Menghitung alamat fisik 20-bit dari
+        pasangan segmen:offset & Hanya menghitung
+        \eng{offset} (\eng{effective address}) \\
+        \addlinespace
+        Pekerjaan yang berjalan saat EU sibuk & Mengisi
+        \eng{queue} dengan instruksi berikutnya & Menjalankan
+        instruksi yang sudah diterima \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Pemisahan wewenang ini penting: EU sama sekali tidak terhubung ke
+pin luar chip. Ketika sebuah instruksi memerlukan operand dari
+memori, EU mengirim permintaan alamat ke BIU, lalu BIU menjalankan
+siklus bus dan menyerahkan datanya kembali \cite{intel1979}.
+\end{infobox}
+
+\subsection{Instruction Queue dan Pipelining}
+\label{sec:pipeline}
+
+BIU memiliki sebuah penampung kecil bernama \term{instruction queue}
+berukuran enam byte. Selama EU masih sibuk mengerjakan instruksi
+saat ini, BIU memakai waktu luang bus untuk mengambil byte-byte
+instruksi berikutnya ke dalam antrean. Teknik menumpuk pekerjaan
+fetch dengan pekerjaan execute ini disebut \term{pipelining}
+(\eng{instruction pipelining}).
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[x=1.35cm, y=0.7cm, font=\scriptsize]
+        % --- garis kolom waktu ---
+        \foreach \i in {0,...,6} {
+            \draw[obeGray!35, line width=0.3pt]
+                (\i,0.1) -- (\i,3.75);
+        }
+        \foreach \i in {1,...,6} {
+            \node[font=\scriptsize, text=obeGray] at (\i-0.5,4.3) {\i};
+        }
+        \node[font=\scriptsize, text=obeGray, anchor=west]
+            at (6.15,4.3) {siklus};
+
+        % --- baris 1: tanpa antrean ---
+        \node[anchor=east, font=\scriptsize\bfseries, align=right]
+            at (-0.15,3.15) {Tanpa\\antrean};
+        \foreach \i/\lbl/\c in {%
+            0/F1/obeBlueLight, 1/E1/obeGreenLight,
+            2/F2/obeBlueLight, 3/E2/obeGreenLight,
+            4/F3/obeBlueLight, 5/E3/obeGreenLight} {
+            \draw[draw=obeGray, fill=\c, line width=0.5pt]
+                (\i,2.55) rectangle (\i+1,3.75);
+            \node at (\i+0.5,3.15) {\lbl};
+        }
+
+        % --- baris 2: dengan antrean ---
+        \node[anchor=east, font=\scriptsize\bfseries, align=right]
+            at (-0.15,1.15) {Dengan\\antrean};
+        \draw[draw=obeGray, fill=obeBlueLight, line width=0.5pt]
+            (0,0.55) rectangle (1,1.75);
+        \node at (0.5,1.15) {F1};
+        \draw[draw=obeGray, fill=obeGreenLight, line width=0.5pt]
+            (1,1.15) rectangle (2,1.75);
+        \node[font=\tiny] at (1.5,1.45) {E1};
+        \draw[draw=obeGray, fill=obeBlueLight, line width=0.5pt]
+            (1,0.55) rectangle (2,1.15);
+        \node[font=\tiny] at (1.5,0.85) {F2};
+        \draw[draw=obeGray, fill=obeGreenLight, line width=0.5pt]
+            (2,1.15) rectangle (3,1.75);
+        \node[font=\tiny] at (2.5,1.45) {E2};
+        \draw[draw=obeGray, fill=obeBlueLight, line width=0.5pt]
+            (2,0.55) rectangle (3,1.15);
+        \node[font=\tiny] at (2.5,0.85) {F3};
+        \draw[draw=obeGray, fill=obeGreenLight, line width=0.5pt]
+            (3,0.55) rectangle (4,1.75);
+        \node at (3.5,1.15) {E3};
+
+        % --- keterangan warna ---
+        \node[draw=obeGray, fill=obeBlueLight, line width=0.5pt,
+              minimum width=0.45cm, minimum height=0.35cm] at (7.1,3.4) {};
+        \node[anchor=west, font=\scriptsize, text=obeGray] at (7.4,3.4)
+            {F = \eng{fetch}};
+        \node[draw=obeGray, fill=obeGreenLight, line width=0.5pt,
+              minimum width=0.45cm, minimum height=0.35cm] at (7.1,2.9) {};
+        \node[anchor=west, font=\scriptsize, text=obeGray] at (7.4,2.9)
+            {E = \eng{execute}};
+    \end{tikzpicture}
+    \caption{Perbandingan waktu eksekusi tiga instruksi tanpa dan
+    dengan \eng{instruction queue}.}
+    \label{fig:pipeline}
+\end{figure}
+
+Pada Gambar~\ref{fig:pipeline}, tanpa antrean setiap instruksi
+memerlukan dua siklus berurutan sehingga tiga instruksi selesai
+dalam enam siklus. Dengan antrean, pengambilan F2 dan F3 berimpit
+dengan E1 dan E2, sehingga ketiga instruksi selesai dalam empat
+siklus. Keuntungan ini makin besar pada program yang panjang.
+
+\begin{peringatanbox}
+\eng{Pipeline} pada 8086 hanya bersifat satu tingkat dan antreannya
+hanya enam byte. Ketika EU menjalankan instruksi lompatan
+(\asm{JMP}, \asm{CALL}), antrean harus dikosongkan karena isinya
+sudah tidak relevan. Peristiwa ini disebut \eng{queue flush} dan
+menghapus keuntungan \eng{pipeline} untuk instruksi tersebut. Itulah
+sebabnya program yang penuh lompatan berjalan lebih lambat daripada
+program lurus yang panjangnya sama.
+\end{peringatanbox}
+
+\subsection{Peran Segmentasi pada BIU}
+\label{sec:segmentasi-biu}
+
+BIU bertanggung jawab mengubah pasangan \term{segmen:offset} menjadi
+alamat fisik 20-bit. Register segmen hanya 16 bit, sedangkan bus
+alamat 8086 selebar 20 bit. Jembatannya adalah rumus berikut
+\cite{courses2103}.
+
+\begin{equation}
+    \text{Alamat fisik} = (\text{register segmen} \times 16)
+    + \text{offset}
+    \label{eq:alamat-fisik}
+\end{equation}
+
+Perkalian dengan 16 sama artinya dengan menggeser nilai segmen satu
+digit heksadesimal ke kiri. Sebagai contoh, bila \reg{CS} berisi
+\hex{1234} dan \reg{IP} berisi \hex{0010}, maka instruksi berikutnya
+diambil dari alamat fisik \hex{12340} $+$ \hex{0010} $=$ \hex{12350}.
+Rumus~\ref{eq:alamat-fisik} inilah alasan 8086 mampu menjangkau
+1 MB memori meskipun register-nya hanya 16 bit. Pembahasan
+lengkapnya disajikan pada Bab~\ref{chap:segmentasi}.
+
+\subsection{Sekilas Register Internal}
+
+Tabel~\ref{tab:register-kelompok} merangkum kelompok register 8086
+beserta unit pemiliknya. Rincian setiap register dibahas pada
+Bab~\ref{chap:register}.
+
+\begin{table}[H]
+    \centering
+    \caption{Kelompok register 8086 dan unit yang memilikinya.}
+    \label{tab:register-kelompok}
+    \small
+    \begin{tabular}{@{}p{3.6cm}p{4.4cm}p{5.6cm}@{}}
+        \toprule
+        \textbf{Kelompok} & \textbf{Anggota} & \textbf{Kegunaan utama} \\
+        \midrule
+        Register umum & \reg{AX}, \reg{BX}, \reg{CX}, \reg{DX} &
+        Menyimpan data dan hasil operasi aritmetika \\
+        \addlinespace
+        Register penunjuk & \reg{SP}, \reg{BP} &
+        Menunjuk puncak \eng{stack} dan kerangka data prosedur \\
+        \addlinespace
+        Register indeks & \reg{SI}, \reg{DI} &
+        Menunjuk sumber dan tujuan pada operasi string \\
+        \addlinespace
+        Register segmen & \reg{CS}, \reg{DS}, \reg{SS}, \reg{ES} &
+        Menyimpan nomor segmen kode, data, \eng{stack}, dan tambahan \\
+        \addlinespace
+        Register penunjuk instruksi & \reg{IP} &
+        Menyimpan \eng{offset} instruksi berikutnya \\
+        \addlinespace
+        Register flag & \flag{CF}, \flag{ZF}, \flag{SF}, \dots &
+        Menyimpan kondisi hasil operasi terakhir \\
+        \bottomrule
+    \end{tabular}
+\end{table}

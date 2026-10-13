@@ -1,0 +1,258 @@
+\section{Register Pointer, Index, dan Instruction Pointer}
+\label{sec:register-pointer}
+
+Kelompok register ketiga berjumlah empat buah: \reg{SP}, \reg{BP},
+\reg{SI}, dan \reg{DI}. Keempatnya berukuran 16 bit dan secara
+teknis dapat dipakai seperti register umum, tetapi peran khasnya
+adalah menyimpan \eng{offset} --- yaitu jarak sebuah lokasi dari
+awal segmen. Karena itulah kelompok ini disebut register
+\eng{pointer} dan \eng{index}.
+
+\subsection{Stack Pointer dan Base Pointer}
+
+\term{Stack} adalah daerah memori yang bekerja seperti tumpukan
+piring: data yang terakhir dimasukkan adalah yang pertama diambil
+(\eng{last in, first out}). Instruksi \asm{PUSH} menaruh data ke
+\eng{stack}, sedangkan \asm{POP} mengambilnya kembali.
+
+\begin{description}
+    \item[\reg{SP} (\eng{Stack Pointer})] Selalu menunjuk ke puncak
+          \eng{stack} saat ini. Setiap \asm{PUSH} mengurangi \reg{SP}
+          sebesar 2, dan setiap \asm{POP} menambahnya sebesar 2,
+          karena satu kata (\eng{word}) berukuran 2 byte. Nilai
+          \reg{SP} berpasangan dengan \reg{SS}.
+
+    \item[\reg{BP} (\eng{Base Pointer})] Menjadi titik acuan tetap di
+          dalam \eng{stack}. Berbeda dengan \reg{SP} yang bergerak
+          terus, \reg{BP} biasanya disetel sekali di awal prosedur,
+          lalu dipakai untuk menjangkau parameter dan variabel lokal
+          tanpa terganggu oleh \asm{PUSH} dan \asm{POP}. Pemakaian
+          \reg{BP} dibahas pada Bab~\ref{chap:prosedur}.
+\end{description}
+
+Karena \reg{SP} menunjukkan puncak \eng{stack} yang aktif, mengubah
+\reg{SP} secara sembarangan berarti memindahkan seluruh tumpukan.
+Akibatnya, instruksi \asm{RET} dapat melompat ke alamat yang salah.
+
+\subsection{Source Index dan Destination Index}
+
+Dua register berikutnya dipakai untuk mengakses deretan data,
+misalnya string atau \eng{array}.
+
+\begin{description}
+    \item[\reg{SI} (\eng{Source Index})] Menunjuk alamat \emph{sumber}
+          pada operasi string. Pasangannya adalah \reg{DS},
+          sehingga alamat sumber ditulis sebagai \reg{DS}:\reg{SI}.
+
+    \item[\reg{DI} (\eng{Destination Index})] Menunjuk alamat
+          \emph{tujuan} pada operasi string. Pasangannya adalah
+          \reg{ES}, sehingga alamat tujuan ditulis sebagai
+          \reg{ES}:\reg{DI}.
+\end{description}
+
+Instruksi \asm{MOVSB}, \asm{MOVSW}, dan \asm{REP MOVSB} memindahkan
+data dari \reg{DS}:\reg{SI} ke \reg{ES}:\reg{DI} sambil menyesuaikan
+kedua register tersebut secara otomatis, sehingga keduanya harus
+diisi lebih dahulu.
+
+\subsection{Instruction Pointer dan Register yang Rawan}
+
+Register terakhir yang perlu dikenal adalah \reg{IP} (\eng{Instruction
+Pointer}). Register ini menyimpan \eng{offset} instruksi berikutnya
+yang akan diambil dan dieksekusi. Pasangan \reg{CS}:\reg{IP}
+menentukan alamat instruksi tersebut. Nilai \reg{IP} bertambah
+sendiri setiap kali satu instruksi selesai dijalankan.
+Programmer hampir tidak pernah menulis \reg{IP} secara langsung;
+perubahan \reg{IP} terjadi melalui \asm{JMP}, \asm{CALL}, \asm{RET},
+dan \asm{INT}.
+
+Gambar~\ref{fig:organisasi-register} merangkum pembagian keempat
+belas register 8086 ke dalam kelompoknya.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        reg/.style={
+            draw=obeBlue,
+            line width=0.7pt,
+            fill=obeBlueLight,
+            rounded corners=2pt,
+            minimum width=1.5cm,
+            minimum height=0.62cm,
+            align=center,
+            font=\small\ttfamily,
+            inner sep=3pt
+        },
+        regk/.style={reg, fill=obeTealLight, draw=obeTeal},
+        regs/.style={reg, fill=obeAmberLight, draw=obeAmber},
+        regf/.style={reg, fill=obeGrayLight, draw=obeGray},
+        judul/.style={font=\small\bfseries\sffamily, text=obeBlue},
+        ket/.style={font=\scriptsize\itshape, text=obeGray, align=center}
+    ]
+        % --- kelompok 1: register umum ---
+        \node[judul] at (0,4.6) {Register umum};
+        \node[reg] (ax) at (0,4.05) {AX};
+        \node[reg, right=0.25cm of ax] (bx) {BX};
+        \node[reg, right=0.25cm of bx] (cx) {CX};
+        \node[reg, right=0.25cm of cx] (dx) {DX};
+        \node[ket, below=0.10cm of ax] {akumulator};
+        \node[ket, below=0.10cm of bx] {basis};
+        \node[ket, below=0.10cm of cx] {pencacah};
+        \node[ket, below=0.10cm of dx] {data};
+
+        % --- kelompok 2: register segmen ---
+        \node[judul] at (0,2.75) {Register segmen};
+        \node[regk] (cs) at (0,2.25) {CS};
+        \node[regk, right=0.25cm of cs] (ds) {DS};
+        \node[regk, right=0.25cm of ds] (ss) {SS};
+        \node[regk, right=0.25cm of ss] (es) {ES};
+        \node[ket, below=0.10cm of cs] {kode};
+        \node[ket, below=0.10cm of ds] {data};
+        \node[ket, below=0.10cm of ss] {stack};
+        \node[ket, below=0.10cm of es] {tambahan};
+
+        % --- kelompok 3: pointer dan index ---
+        \node[judul] at (0,0.95) {Pointer, index, dan IP};
+        \node[regs] (sp) at (0,0.45) {SP};
+        \node[regs, right=0.25cm of sp] (bp) {BP};
+        \node[regs, right=0.25cm of bp] (si) {SI};
+        \node[regs, right=0.25cm of si] (di) {DI};
+        \node[regs, right=0.25cm of di] (ip) {IP};
+        \node[ket, below=0.10cm of sp] {puncak stack};
+        \node[ket, below=0.10cm of bp] {acuan stack};
+        \node[ket, below=0.10cm of si] {sumber};
+        \node[ket, below=0.10cm of di] {tujuan};
+        \node[ket, below=0.10cm of ip] {instruksi};
+
+        % --- kelompok 4: flags ---
+        \node[judul] at (0,-0.75) {Register flag};
+        \node[regf, minimum width=7.4cm] (fl) at (1.0,-1.35)
+            {FLAGS (16 bit: CF PF AF ZF SF TF IF DF OF)};
+
+        % --- garis pengelompokan ---
+        \begin{scope}[on background layer]
+            \node[draw=obeBlue, dashed, rounded corners=4pt,
+                  fit=(ax)(dx), inner sep=6pt] {};
+            \node[draw=obeTeal, dashed, rounded corners=4pt,
+                  fit=(cs)(es), inner sep=6pt] {};
+            \node[draw=obeAmber, dashed, rounded corners=4pt,
+                  fit=(sp)(ip), inner sep=6pt] {};
+            \node[draw=obeGray, dashed, rounded corners=4pt,
+                  fit=(fl), inner sep=6pt] {};
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Organisasi keempat belas register 8086 menurut
+    kelompoknya.}
+    \label{fig:organisasi-register}
+\end{figure}
+
+\subsection{Daftar Lengkap Register 8086}
+
+Tabel~\ref{tab:daftar-register} merangkum seluruh register beserta
+ukuran, kelompok, dan fungsi utamanya. Tabel ini dapat dipakai
+sebagai acuan cepat selama praktikum.
+
+\begin{table}[H]
+    \centering
+    \caption{Daftar lengkap register 8086: nama, ukuran, kelompok,
+    dan fungsi utama.}
+    \label{tab:daftar-register}
+    \small
+    \begin{tabular}{@{}llp{2.9cm}p{6.2cm}@{}}
+        \toprule
+        \textbf{Register} & \textbf{Ukuran} & \textbf{Kelompok} &
+        \textbf{Fungsi utama} \\
+        \midrule
+        \reg{AX} & 16 bit & Umum &
+        Akumulator; operand wajib \asm{MUL}/\asm{DIV} dan layanan DOS;
+        dapat diakses sebagai \reg{AH} dan \reg{AL} \\
+        \addlinespace
+        \reg{BX} & 16 bit & Umum &
+        Register basis; satu-satunya register umum yang boleh menjadi
+        basis pengalamatan langsung; dapat diakses sebagai \reg{BH}
+        dan \reg{BL} \\
+        \addlinespace
+        \reg{CX} & 16 bit & Umum &
+        Pencacah pengulangan \asm{LOOP} dan \asm{REP}, jumlah
+        pergeseran pada \asm{SHL}/\asm{SHR}; \reg{CL} dipakai
+        sebagai penghitung bit \\
+        \addlinespace
+        \reg{DX} & 16 bit & Umum &
+        Pasangan \reg{AX} pada operasi 32 bit; alamat port I/O;
+        penunjuk string pada layanan DOS; dapat diakses sebagai
+        \reg{DH} dan \reg{DL} \\
+        \addlinespace
+        \reg{CS} & 16 bit & Segmen &
+        Menunjuk segmen kode; berpasangan dengan \reg{IP} \\
+        \addlinespace
+        \reg{DS} & 16 bit & Segmen &
+        Menunjuk segmen data; pasangan bagi hampir semua akses
+        variabel \\
+        \addlinespace
+        \reg{SS} & 16 bit & Segmen &
+        Menunjuk segmen \eng{stack}; berpasangan dengan \reg{SP} dan
+        \reg{BP} \\
+        \addlinespace
+        \reg{ES} & 16 bit & Segmen &
+        Segmen tambahan; menjadi segmen tujuan \reg{ES}:\reg{DI} pada
+        operasi string \\
+        \addlinespace
+        \reg{SP} & 16 bit & Pointer &
+        Menunjuk puncak \eng{stack}; otomatis berubah pada
+        \asm{PUSH} dan \asm{POP} \\
+        \addlinespace
+        \reg{BP} & 16 bit & Pointer &
+        Titik acuan tetap di dalam \eng{stack} untuk parameter dan
+        variabel lokal \\
+        \addlinespace
+        \reg{SI} & 16 bit & Index &
+        Indeks sumber \reg{DS}:\reg{SI} untuk operasi string \\
+        \addlinespace
+        \reg{DI} & 16 bit & Index &
+        Indeks tujuan \reg{ES}:\reg{DI} untuk operasi string \\
+        \addlinespace
+        \reg{IP} & 16 bit & Kendali &
+        \eng{Offset} instruksi berikutnya; berpasangan dengan
+        \reg{CS}; berubah melalui \asm{JMP}, \asm{CALL}, \asm{RET},
+        dan \asm{INT} \\
+        \addlinespace
+        \reg{FLAGS} & 16 bit & Status &
+        Sembilan \eng{flag} kondisi dan kendali; menentukan hasil
+        keputusan program \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Register yang Tidak Boleh Diubah Sembarangan}
+
+Tidak semua register bebas diubah. Empat register berikut sangat
+rawan karena mengendalikan alur program dan posisi \eng{stack}.
+
+\begin{enumerate}
+    \item \reg{CS} dan \reg{IP} menentukan instruksi berikutnya yang
+          akan dieksekusi. Bila salah satu diubah tanpa alasan yang
+          benar, prosesor akan mengambil instruksi dari alamat yang
+          salah. Akibatnya program dapat macet, menjalankan data
+          sebagai instruksi, atau membuat komputer \eng{hang}.
+          Perubahan \reg{CS} dan \reg{IP} sebaiknya dilakukan hanya
+          melalui \asm{JMP} jauh, \asm{CALL} jauh, \asm{RET}, dan
+          \asm{INT}.
+
+    \item \reg{SS} dan \reg{SP} menentukan letak \eng{stack}. Bila
+          keduanya diubah, nilai kembali prosedur dan alamat
+          \eng{interrupt} yang tersimpan di sana menjadi tidak
+          terjangkau. Instruksi \asm{RET} lalu melompat ke alamat
+          acak dan program berhenti dengan kesalahan.
+
+    \item \reg{DS} dapat diubah, tetapi harus dikembalikan ke nilai
+          semula sebelum program mengakses variabel pada segmen data
+          asal.
+\end{enumerate}
+
+\begin{infobox}
+Aturan praktis: register umum (\reg{AX}--\reg{DX}) bebas dipakai
+untuk perhitungan; \reg{SI}, \reg{DI}, dan \reg{BX} boleh menjadi
+penunjuk alamat selama isinya dicatat; \reg{CS}, \reg{IP}, \reg{SS},
+dan \reg{SP} hanya diubah melalui instruksi yang memang dirancang
+untuk itu.
+\end{infobox}

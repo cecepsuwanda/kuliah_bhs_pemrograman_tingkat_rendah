@@ -1,0 +1,88 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Debugging pada Level Instruksi}
+\label{chap:debugging}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{4.1} --- Melakukan penelusuran program pada level instruksi
+(\eng{single-step}, \eng{trace}, \eng{breakpoint}) dan memantau
+perubahan register serta \eng{flag}.
+
+\vspace{0.4em}
+\SubCPMK{4.2} --- Memeriksa dan menganalisis isi memori dan
+\eng{stack} (\eng{dump}) untuk menemukan kesalahan logika, kesalahan
+segmentasi, dan \eng{overflow}.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{04} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item membedakan lima jenis kesalahan program: kesalahan sintaks,
+          kesalahan saat berjalan, kesalahan logika, kesalahan
+          segmentasi, dan \eng{overflow};
+    \item memilih alat \eng{debugging} yang sesuai di antara
+          MS-DEBUG, \eng{debugger} terpadu GUI Turbo Assembler, dan
+          jendela \eng{debug} Emu8086;
+    \item memakai perintah \code{R}, \code{U}, \code{T}, \code{P},
+          \code{G}, \code{D}, \code{E}, \code{A}, \code{N},
+          \code{L}, dan \code{W} pada DEBUG;
+    \item menjelaskan perbedaan mendasar antara \code{T}
+          (\eng{single-step}) dan \code{P} (\eng{proceed}) ketika
+          menjumpai \asm{CALL} dan \code{INT};
+    \item mengisi tabel \eng{trace} register dan \eng{flag} untuk
+          setiap langkah eksekusi;
+    \item membaca keluaran \code{D}, mengenali pola data, dan
+          menafsirkan bingkai \eng{stack} (\eng{stack frame});
+    \item menerapkan metodologi \eng{debugging} sistematis dan
+          memakainya untuk menemukan \eng{infinite loop},
+          kesalahan \eng{off-by-one}, dan \eng{stack} yang tidak
+          seimbang.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Taksonomi kesalahan: sintaks, saat berjalan, logika,
+          segmentasi, dan \eng{overflow} aritmatika serta \eng{stack}.
+    \item Alat \eng{debugging}: MS-DEBUG di DOSBox,
+          \eng{debugger} terpadu GUI Turbo Assembler, dan jendela
+          \eng{debug} Emu8086 beserta perbandingan kemampuannya.
+    \item Perintah DEBUG lengkap dengan contoh keluaran: \code{R},
+          \code{U}, \code{T}, \code{P}, \code{G}, \code{D},
+          \code{E}, \code{A}, \code{N}, \code{L}, dan \code{W}.
+    \item Perbedaan \code{T} dan \code{P} pada \asm{CALL} dan
+          \code{INT}, serta pemakaian yang tepat.
+    \item \eng{Breakpoint} dengan \code{G} dan keterbatasan DEBUG
+          klasik.
+    \item Pemantauan register dan \eng{flag} per langkah melalui tabel
+          \eng{trace}.
+    \item \eng{Dump} memori dan \eng{stack}, pembacaan bingkai
+          \eng{stack}, dan pemeriksaan variabel.
+    \item Metodologi \eng{debugging} sistematis: reproduksi, isolasi,
+          hipotesis, pengujian, perbaikan, dan verifikasi.
+    \item Studi kasus: \eng{infinite loop}, kesalahan
+          \eng{off-by-one} pada larik, dan \eng{stack} tidak seimbang.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

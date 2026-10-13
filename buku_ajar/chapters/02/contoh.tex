@@ -1,0 +1,174 @@
+\section{Contoh Penerapan}
+\label{sec:contoh-bab2}
+
+\subsection{Contoh 1: Konversi Bilangan Bertahap}
+
+Berikut contoh konversi yang dikerjakan tanpa alat bantu, dengan
+langkah yang dapat diperiksa.
+
+\begin{enumerate}
+    \item \textbf{Desimal 250 ke biner.}
+          Bagi berulang oleh 2 dan catat sisanya:
+          $250 = 1111\,1010_2$.
+
+    \item \textbf{Biner \bin{1111\,1010} ke heksadesimal.}
+          Kelompokkan per empat bit dari kanan: \bin{1111} dan
+          \bin{1010}, yaitu \hex{F} dan \hex{A}. Hasilnya
+          \hex{FA}.
+
+    \item \textbf{Heksadesimal \hex{FA} ke desimal.}
+          $15 \times 16 + 10 = 240 + 10 = 250$. Hasilnya konsisten
+          dengan langkah pertama, sehingga ketiga konversi saling
+          memverifikasi.
+\end{enumerate}
+
+\subsection{Contoh 2: Menghitung \eng{Two's Complement}}
+
+Untuk menyatakan \dec{-25} dalam 8 bit:
+
+\begin{enumerate}
+    \item Tulis nilai positifnya dalam 8 bit: \bin{0001\,1001}
+          (yaitu \hex{19}).
+    \item Balikkan seluruh bitnya: \bin{1110\,0110} (yaitu
+          \hex{E6}).
+    \item Tambahkan satu: \bin{1110\,0111} (yaitu \hex{E7}).
+\end{enumerate}
+
+Verifikasi: \hex{E7} + \hex{19} = \hex{100}, yang dalam 8 bit menjadi
+\hex{00} dengan \eng{carry} keluar. Hasilnya nol, sebagaimana
+mestinya untuk $(-25) + 25$. Sifat inilah yang membuat
+\eng{two's complement} dipakai: prosesor tidak memerlukan rangkaian
+khusus untuk pengurangan, cukup penjumlahan biasa.
+
+\subsection{Contoh 3: Melihat Penyandian Data di Memori}
+
+Program pada Kode~\ref{lst:penyandian} mendeklarasikan beberapa data
+dengan penyandian berbeda, lalu mahasiswa memeriksa bagaimana
+byte-byte tersebut benar-benar tersimpan.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Program yang memperlihatkan penyandian data di memori.},
+    label={lst:penyandian}
+]
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    nilai_desimal   DB  25          ; nilai biner, bukan sandian karakter
+    nilai_bcd       DB  25h         ; 25 dalam BCD
+    sandian_karakter DB '2'         ; sandian ASCII untuk karakter '2'
+    kata_16bit      DW  1234h       ; dua byte, little-endian
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+
+    MOV AH, 4Ch
+    MOV AL, 00h
+    INT 21h
+
+END START
+\end{lstlisting}
+
+Setelah program dirakit, periksa isi segmen data dengan debugger.
+Tabel~\ref{tab:penyandian-hasil} memperlihatkan hasil yang
+seharusnya Anda temukan.
+
+\begin{table}[H]
+    \centering
+    \caption{Isi memori untuk data pada Kode~\ref{lst:penyandian}.}
+    \label{tab:penyandian-hasil}
+    \small
+    \begin{tabular}{@{}llp{7.2cm}@{}}
+        \toprule
+        \textbf{Data} & \textbf{Isi memori} & \textbf{Penjelasan} \\
+        \midrule
+        \code{nilai\_desimal} & \hex{19} &
+        \dec{25} dalam biner; jika dicetak langsung, yang muncul
+        adalah karakter tak terlihat, bukan ``25'' \\
+        \addlinespace
+        \code{nilai\_bcd} & \hex{25} &
+        Dua digit BCD dalam satu byte: \bin{0010} dan \bin{0101} \\
+        \addlinespace
+        \code{sandian\_karakter} & \hex{32} &
+        Sandian ASCII karakter \code{'2'}, yaitu \hex{30} + 2 \\
+        \addlinespace
+        \code{kata\_16bit} & \hex{34} lalu \hex{12} &
+        Nilai \hex{1234} disimpan \eng{little-endian}: byte rendah
+        lebih dahulu \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Perhatikan tiga baris pertama: ketiganya ``bernilai 25'' menurut
+manusia, tetapi tiga-tiganya tersimpan berbeda di memori. Inilah
+sebabnya mahasiswa pemrograman tingkat rendah harus selalu
+memikirkan \emph{representasi}, bukan hanya \emph{nilai}.
+\end{infobox}
+
+\subsection{Contoh 4: Menjumlahkan Data dan Memeriksa Flag}
+
+Program pada Kode~\ref{lst:flag-uji} memperlihatkan bagaimana
+representasi yang sama menghasilkan tafsiran berbeda.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Penjumlahan yang menghasilkan \eng{carry} dan
+    \eng{overflow} sekaligus.},
+    label={lst:flag-uji}
+]
+.MODEL SMALL
+.STACK 100h
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+
+    MOV AL, 0FFh        ; 255 tak bertanda, atau -1 bertanda
+    ADD AL, 01h         ; 255 + 1
+
+    MOV AH, 4Ch
+    MOV AL, 00h
+    INT 21h
+
+END START
+\end{lstlisting}
+
+Setelah \asm{ADD AL, 01h} dieksekusi: \reg{AL} bernilai \hex{00},
+\flag{CF} bernilai 1 (ada \eng{carry} keluar dari bit ke-8),
+\flag{ZF} bernilai 1 (hasilnya nol), dan \flag{OF} bernilai 0
+(tidak ada \eng{overflow} bertanda karena $-1 + 1 = 0$ masih dalam
+rentang). Tafsiran \eng{carry} dan \eng{overflow} bergantung pada
+apakah program bermaksud memperlakukan \hex{FF} sebagai
+\dec{255} atau sebagai $-1$.
+
+\begin{session}[caption={Pengamatan register dan flag pada
+Kode~\ref{lst:flag-uji}.}]
+-R
+AX=00FF  BX=0000  CX=0000  DX=0000  SP=FFFE  BP=0000  SI=0000  DI=0000
+DS=0700  ES=0700  SS=0700  CS=0700  IP=0106   NV UP EI PL NZ NA PO NC
+-T
+AX=0000  BX=0000  CX=0000  DX=0000  SP=FFFE  BP=0000  SI=0000  DI=0000
+DS=0700  ES=0700  SS=0700  CS=0700  IP=0108   NV UP EI PL ZR AC PE CY
+\end{session}
+
+Baris pertama memperlihatkan keadaan sebelum \asm{ADD AL, 01h}:
+\reg{AL} berisi \hex{FF} dan seluruh flag utama bernilai 0, yang pada
+DEBUG ditandai \code{NV} (tidak \eng{overflow}), \code{NZ} (tidak
+nol), dan \code{NC} (tidak ada \eng{carry}).
+
+Baris kedua memperlihatkan keadaan sesudahnya. Penanda berubah
+menjadi \code{ZR} (\flag{ZF} = 1, hasilnya nol), \code{CY}
+(\flag{CF} = 1, ada \eng{carry} keluar bit ke-8), dan \code{AC}
+(\flag{AF} = 1, ada \eng{carry} dari \eng{nibble} rendah ke tinggi).
+Penanda \code{NV} tetap, yang berarti \flag{OF} = 0: sebagai
+bilangan bertanda, $-1 + 1 = 0$ tidak melampaui rentang sehingga
+tidak terjadi \eng{overflow}.
+
+Inilah contoh paling ringkas mengapa \eng{carry} dan
+\eng{overflow} harus dibedakan: pada operasi yang sama,
+\flag{CF} bernilai 1 sementara \flag{OF} bernilai 0.

@@ -1,0 +1,128 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab2}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Prinsip yang menyatakan bahwa instruksi dan data disimpan
+          pada memori yang sama disebut \dots
+          \begin{enumerate}
+              \item \eng{pipelining}
+              \item \eng{stored-program}
+              \item \eng{memory-mapped I/O}
+              \item \eng{little-endian}
+          \end{enumerate}
+
+    \item Urutan tahapan siklus instruksi yang benar adalah \dots
+          \begin{enumerate}
+              \item \eng{decode} $\rightarrow$ \eng{fetch}
+                    $\rightarrow$ \eng{execute}
+              \item \eng{execute} $\rightarrow$ \eng{fetch}
+                    $\rightarrow$ \eng{decode}
+              \item \eng{fetch} $\rightarrow$ \eng{decode}
+                    $\rightarrow$ \eng{execute}
+              \item \eng{fetch} $\rightarrow$ \eng{execute}
+                    $\rightarrow$ \eng{decode}
+          \end{enumerate}
+
+    \item Nilai \dec{-10} dalam 8-bit \eng{two's complement} adalah
+          \dots
+          \begin{enumerate}
+              \item \hex{0A} \item \hex{0F}
+              \item \hex{F5} \item \hex{F6}
+          \end{enumerate}
+
+    \item Hasil \asm{ADD AL, 01h} dengan \reg{AL} = \hex{7F} adalah
+          \dots
+          \begin{enumerate}
+              \item \reg{AL} = \hex{80}, \flag{OF} = 0,
+                    \flag{CF} = 0
+              \item \reg{AL} = \hex{80}, \flag{OF} = 1,
+                    \flag{CF} = 0
+              \item \reg{AL} = \hex{80}, \flag{OF} = 1,
+                    \flag{CF} = 1
+              \item \reg{AL} = \hex{00}, \flag{OF} = 0,
+                    \flag{CF} = 1
+          \end{enumerate}
+
+    \item Sandian ASCII untuk karakter \code{'A'} adalah \dots
+          \begin{enumerate}
+              \item \hex{0A} \item \hex{41}
+              \item \hex{61} \item \hex{45}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Jelaskan model mesin von Neumann beserta keempat
+          komponennya. Kemudian jelaskan satu konsekuensi penting
+          dari prinsip \eng{stored-program} bagi keamanan perangkat
+          lunak.
+
+    \item Jelaskan perbedaan antara \eng{carry} dan \eng{overflow}.
+          Sertakan satu contoh operasi yang menghasilkan \flag{CF} = 1
+          tetapi \flag{OF} = 0, dan satu contoh yang menghasilkan
+          \flag{CF} = 0 tetapi \flag{OF} = 1.
+
+    \item Sebuah variabel berisi \hex{32}. Jelaskan dua tafsiran yang
+          mungkin atas isi variabel tersebut, dan sebutkan konteks
+          yang menentukan tafsiran mana yang benar.
+
+    \item Berdasarkan Gambar~\ref{fig:peta-konsep}, susun rencana
+          belajar Anda untuk enam minggu pertama. Jelaskan mengapa
+          urutan bab tidak dapat ditukar sembarangan.
+\end{enumerate}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:landasan-teori}.}
+    \label{tab:kisi-bab2}
+    \small
+    \begin{tabular}{@{}p{5.4cm}p{5.2cm}c@{}}
+        \toprule
+        \textbf{Aspek yang diukur} & \textbf{Bentuk soal} &
+        \textbf{Bobot} \\
+        \midrule
+        Konsep model mesin dan siklus instruksi & Pilihan ganda 1, 2;
+        Uraian 1 & 25\% \\
+        \addlinespace
+        Representasi bilangan bertanda & Pilihan ganda 3; Uraian 2 &
+        25\% \\
+        \addlinespace
+        Pembedaan \eng{carry} dan \eng{overflow} & Pilihan ganda 4;
+        Uraian 2 & 20\% \\
+        \addlinespace
+        Penyandian data dan tafsirannya & Pilihan ganda 5; Uraian 3 &
+        15\% \\
+        \addlinespace
+        Kemampuan membaca peta konsep buku & Uraian 4 & 15\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Fondasi Bab~\ref{chap:landasan-teori}}
+
+Mahasiswa dinyatakan siap memasuki bab materi apabila:
+\begin{itemize}
+    \item[\checked] dapat menjelaskan model von Neumann dan siklus
+          instruksi;
+    \item[\checked] dapat mengonversi bilangan biner, heksadesimal,
+          dan desimal dengan benar tanpa alat bantu;
+    \item[\checked] dapat menyatakan bilangan negatif dalam
+          \eng{two's complement} dan memverifikasi hasilnya;
+    \item[\checked] dapat membedakan \eng{carry} dan \eng{overflow}
+          beserta flag yang menandainya;
+    \item[\checked] dapat menjelaskan perbedaan nilai biner dan
+          sandian karakter;
+    \item[\checked] dapat menjelaskan urutan ketergantungan antarbab
+          melalui peta konsep.
+\end{itemize}
+
+\vspace{0.4em}
+Seluruh butir di atas bersifat prasyarat untuk
+Bab~\ref{chap:pengenalan}.
+\end{checklistbox}

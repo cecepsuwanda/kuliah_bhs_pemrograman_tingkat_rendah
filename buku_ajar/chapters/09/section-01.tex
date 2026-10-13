@@ -1,0 +1,225 @@
+\section{Instruksi Mesin, Direktif Assembler, dan Direktif Data}
+\label{sec:instruksi-direktif}
+
+Satu berkas kode sumber assembly tidak hanya berisi instruksi.
+Sebagian besar baris justru berupa \term{direktif}, yaitu perintah
+yang ditujukan kepada assembler, bukan kepada prosesor. Bab ini
+membuka perbedaan keduanya, lalu membahas direktif data.
+
+\subsection{Dua Jenis Baris dalam Kode Sumber}
+
+Setiap baris berkas \file{.asm} dapat digolongkan menjadi salah satu
+dari dua kelompok berikut.
+
+\begin{description}
+    \item[Instruksi mesin] Baris yang mnemonic-nya (misalnya
+          \asm{MOV}, \asm{ADD}, \asm{INT}) akan diterjemahkan
+          menjadi \term{opcode}, yaitu kode mesin yang benar-benar
+          dieksekusi prosesor. Instruksi hanya bekerja pada saat
+          program berjalan (\eng{run time}). Bentuk lengkap sebuah
+          instruksi beserta operandnya telah dibahas pada
+          Bab~\ref{chap:format-instruksi}.
+
+    \item[Direktif assembler] Baris yang hanya berlaku pada saat
+          perakitan (\eng{assemble time}). Direktif memberi tahu
+          assembler bagaimana menata program: di mana data harus
+          diletakkan, berapa besar ruang yang disediakan, nilai apa
+          yang dipakai sebagai konstanta, dan seterusnya. Direktif
+          disebut juga \eng{pseudo-op} karena bentuknya mirip
+          instruksi tetapi \important{tidak menghasilkan kode mesin
+          apa pun}.
+\end{description}
+
+Perbedaan ini paling mudah dilihat pada berkas \file{.lst}. Di
+sana, baris instruksi memiliki kolom kode mesin, sedangkan baris
+direktif tidak.
+
+\begin{session}[caption={Cuplikan \file{.lst}: direktif tidak memiliki kode mesin.}, label={lst:lst-direktif}]
+  4                             .DATA
+  5  0000  48 61 6C 6F        pesan   DB 'Halo'
+  6                             panjang EQU 5
+  7
+  8                             .CODE
+  9  0000  B8 ----            START:  MOV AX, @DATA
+ 10  0003  8E D8                      MOV DS, AX
+\end{session}
+
+Baris 6 berisi direktif \dir{EQU}. Kolom kode mesinnya kosong karena
+tidak ada instruksi yang dihasilkan, sedangkan baris 9 dan 10
+menghasilkan opcode \hex{B8} dan \hex{8E D8}. Tanda \code{----}
+menandai nilai yang baru diselesaikan linker
+(Bagian~\ref{sec:peran-assembler-linker}).
+
+\begin{infobox}
+Direktif yang mengisi memori (\dir{DB}, \dir{DW}, \dir{DD}) tetap
+mempengaruhi isi berkas \file{.exe}. Yang tidak dihasilkannya adalah
+\emph{instruksi}. Karena itu, pertanyaan ``apakah direktif
+menghasilkan kode mesin?'' harus dijawab dengan membedakan kode
+mesin (\eng{opcode}) dan data.
+\end{infobox}
+
+\subsection{Direktif Data}
+
+Direktif data menyatakan isi memori, sedangkan direktif lain mengatur
+nama, letak, dan struktur program. Tabel~\ref{tab:direktif-lengkap}
+merangkum seluruh direktif yang dibahas pada bab ini.
+
+\begin{table}[H]
+    \centering
+    \caption{Ringkasan direktif assembler 8086 beserta fungsinya.}
+    \label{tab:direktif-lengkap}
+    \small
+    \begin{tabular}{@{}p{1.9cm}p{4.1cm}p{3.4cm}p{4.6cm}@{}}
+        \toprule
+        \textbf{Direktif} & \textbf{Fungsi} & \textbf{Contoh} &
+        \textbf{Ukuran / efek} \\
+        \midrule
+        \dir{DB} & Data 1 byte &
+        \lstasm|DB 0Ah| & 1 byte per nilai \\
+        \addlinespace
+        \dir{DW} & Data 2 byte &
+        \lstasm|DW 1234h| & 2 byte; \eng{little-endian} \\
+        \addlinespace
+        \dir{DD} & Data 4 byte &
+        \lstasm|DD 12345678h| & 4 byte; \eng{little-endian} \\
+        \addlinespace
+        \dir{DT} & Data 10 byte &
+        \lstasm|DT 1.0| & 10 byte (bilangan pecahan) \\
+        \addlinespace
+        \dir{DUP} & Mengulang satu pola &
+        \lstasm|DB 10 DUP(0)| & 10 byte bernilai nol \\
+        \addlinespace
+        \code{?} & Ruang tanpa nilai awal &
+        \lstasm|DB 8 DUP(?)| & 8 byte tanpa isi \\
+        \addlinespace
+        \code{\$} & Penghitung lokasi &
+        \lstasm|EQU $ - pesan| & Nilai \eng{offset} saat itu \\
+        \addlinespace
+        \dir{EQU} & Konstanta simbolik tetap &
+        \lstasm|KELUAR EQU 4Ch| & 0 byte; tidak dapat diubah \\
+        \addlinespace
+        \code{=} & Simbol yang boleh berubah &
+        \lstasm|NILAI = 10| & 0 byte; boleh didefinisikan ulang \\
+        \addlinespace
+        \dir{ORG} & Menetapkan penghitung lokasi &
+        \lstasm|ORG 100h| & 0 byte; menggeser \eng{offset} \\
+        \addlinespace
+        \dir{SEGMENT} & Membuka segmen bernama &
+        \lstasm|kode SEGMENT| & 0 byte; mengawali segmen \\
+        \addlinespace
+        \dir{ENDS} & Menutup segmen &
+        \lstasm|kode ENDS| & 0 byte; wajib bagi setiap
+        \dir{SEGMENT} \\
+        \addlinespace
+        \dir{ASSUME} & Menetapkan segmen \eng{default} &
+        \lstasm|ASSUME CS:kode| & 0 byte; hanya untuk assembler \\
+        \addlinespace
+        \dir{END} & Menutup berkas sumber &
+        \lstasm|END START| & 0 byte; menetapkan titik masuk \\
+        \addlinespace
+        \dir{.MODEL} & Memilih model memori &
+        \lstasm|.MODEL SMALL| & 0 byte; menentukan jumlah segmen \\
+        \addlinespace
+        \dir{PROC}, \dir{ENDP} & Membuka dan menutup prosedur &
+        \lstasm|cetak PROC| & 0 byte; menandai batas prosedur \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Beberapa bentuk penulisan berikut dipakai terus-menerus pada
+program nyata.
+
+\begin{enumerate}
+    \item \textbf{Literal string.} \lstasm|DB 'Halo'| menyediakan
+          empat byte: \hex{48}, \hex{61}, \hex{6C}, \hex{6F}.
+          String tidak otomatis diakhiri apa pun, sehingga penanda
+          akhir harus ditambahkan sendiri, misalnya
+          \lstasm|DB 'Halo', '$'| untuk layanan DOS fungsi
+          \hex{09}.
+
+    \item \textbf{Beberapa nilai sekaligus.}
+          \lstasm|DW 1, 2, 3| menyediakan tiga kata, yaitu enam
+          byte, dengan urutan sesuai penulisan.
+
+    \item \textbf{Operator \dir{DUP}.} Bentuk
+          \code{<jumlah> DUP(<nilai>)} mengulang satu pola:
+          \lstasm|DB 10 DUP(0)| menyediakan sepuluh byte bernilai
+          nol. Bentuk bersarang juga diizinkan, misalnya
+          \lstasm|DB 2 DUP(3 DUP(0))|.
+
+    \item \textbf{Penanda \code{?}.} Tanda tanya berarti sediakan
+          ruang tanpa nilai awal, seperti pada
+          \lstasm|buffer DB 8 DUP(?)|.
+
+    \item \textbf{Penghitung lokasi \code{\$}.} Simbol \code{\$}
+          berisi \eng{offset} baris yang sedang dirakit, sehingga
+          \lstasm|panjang EQU $ - pesan| menghitung panjang string
+          secara otomatis.
+\end{enumerate}
+
+\subsection{Urutan \eng{Little-Endian} pada \dir{DW} dan \dir{DD}}
+
+Prosesor 8086 menyimpan bilangan multi-byte dengan urutan
+\term{little-endian}: \important{byte berpangkat rendah disimpan pada
+alamat yang lebih kecil}. Jadi, \lstasm|nilai DW 1234h|
+\emph{tidak} tersimpan sebagai \hex{12} lalu \hex{34}, melainkan
+\hex{34} lalu \hex{12}; aturan yang sama berlaku untuk \dir{DD}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        sel/.style={
+            draw=obeBlue, line width=0.8pt,
+            minimum width=1.25cm, minimum height=0.8cm,
+            align=center, font=\ttfamily\small,
+            fill=obeBlueLight, inner sep=0pt
+        },
+        selD/.style={
+            draw=obeTeal, line width=0.8pt,
+            minimum width=1.25cm, minimum height=0.8cm,
+            align=center, font=\ttfamily\small,
+            fill=obeTealLight, inner sep=0pt
+        },
+        addr/.style={font=\scriptsize, text=obeGray},
+        nama/.style={font=\small\bfseries, text=obeBlue, anchor=east},
+        catat/.style={font=\scriptsize\itshape, text=obeMaroon}
+    ]
+        % ---- DW 1234h : dua byte ----
+        \node[nama] at (-0.2,0) {\dir{DW} \hex{1234}};
+        \node[sel] (w0) at (0,0) {34};
+        \node[sel] (w1) at (1.25,0) {12};
+        \node[addr, below=0.08cm of w0] {\hex{0300}};
+        \node[addr, below=0.08cm of w1] {\hex{0301}};
+        \node[catat, above=0.15cm of w1, xshift=-0.62cm]
+            {byte rendah lebih dulu};
+
+        % ---- DD 12345678h : empat byte ----
+        \node[nama] at (-0.2,-2.3) {\dir{DD} \hex{12345678}};
+        \node[selD] (d0) at (0,-2.3) {78};
+        \node[selD] (d1) at (1.25,-2.3) {56};
+        \node[selD] (d2) at (2.50,-2.3) {34};
+        \node[selD] (d3) at (3.75,-2.3) {12};
+        \node[addr, below=0.08cm of d0] {\hex{0302}};
+        \node[addr, below=0.08cm of d1] {\hex{0303}};
+        \node[addr, below=0.08cm of d2] {\hex{0304}};
+        \node[addr, below=0.08cm of d3] {\hex{0305}};
+        \node[catat, above=0.15cm of d1, xshift=0.62cm]
+            {urutan penulisan nilai tetap dibaca dari kiri ke kanan};
+
+        \draw[-{Stealth[length=2mm]}, obeGray, line width=0.8pt]
+            (2.9,-0.55) -- (2.9,-1.75);
+        \node[font=\scriptsize, text=obeGray, right] at (2.95,-1.15)
+            {alamat bertambah};
+    \end{tikzpicture}
+    \caption{Penataan byte \dir{DW} dan \dir{DD} di memori dengan
+    urutan \eng{little-endian}.}
+    \label{fig:little-endian}
+\end{figure}
+
+Gambar~\ref{fig:little-endian} menjelaskan mengapa urutan ini
+penting bagi penyusunan tabel dan \eng{array}. Bila program membaca
+satu kata sekaligus dengan \lstasm|MOV AX, nilai|, prosesor sendiri
+yang menggabungkan kedua byte dalam urutan yang benar. Sebaliknya,
+bila memori dibaca \emph{byte per byte}, urutan little-endian
+terlihat dan harus diperhitungkan, seperti dimanfaatkan pada
+Kode~\ref{lst:direktif-data}.

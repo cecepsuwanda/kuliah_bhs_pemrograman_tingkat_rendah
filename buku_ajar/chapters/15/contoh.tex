@@ -1,0 +1,85 @@
+\section{Contoh Program}
+\label{sec:contoh-bab15}
+
+Bagian ini menyajikan dua program yang \emph{sengaja dibuat salah}
+beserta versi perbaikannya. Keduanya dirakit tanpa kesalahan sintaks,
+sehingga assembler tidak memberi petunjuk apa pun: kesalahan baru
+tampak ketika program dijalankan dan ditelusuri.
+
+\subsection{Contoh 1: Perulangan Tak Berujung}
+
+Program pada Kode~\ref{lst:bug-loop} bermaksud menjumlahkan bilangan
+1 sampai 5, yang seharusnya menghasilkan \hex{000F} atau \dec{15}.
+Kenyataannya program tidak pernah selesai, dan karena baris pencetakan
+berada setelah perulangan, program tampak ``menggantung'' tanpa
+penjelasan apa pun bagi pemakainya.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program ber-bug \file{bug-loop.asm}: perulangan tak
+    berujung.},
+    label={lst:bug-loop}
+]{\CodeDir/bug-loop.asm}
+
+Versi perbaikan pada Kode~\ref{lst:bug-loop-fix} menghapus
+\asm{INC CX} dan menambahkan rutin pencetakan dua digit desimal agar
+hasilnya dapat dilihat di layar.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Versi perbaikan \file{bug-loop-fix.asm}.},
+    label={lst:bug-loop-fix}
+]{\CodeDir/bug-loop-fix.asm}
+
+\begin{session}[caption={Keluaran program
+\file{bug-loop-fix.exe}.}, label={lst:keluaran-loop-fix}]
+Jumlah 1..5 = 15
+\end{session}
+
+\begin{infobox}
+Perhatikan bahwa \asm{LOOP} sudah melakukan dua pekerjaan sekaligus:
+mengurangi \reg{CX} sebesar satu, lalu melompat bila \reg{CX} belum
+nol. Karena itu, penghitung perulangan \emph{tidak perlu} dan
+\emph{tidak boleh} diubah sendiri di dalam badan perulangan.
+\end{infobox}
+
+\subsection{Contoh 2: Stack yang Tidak Seimbang}
+
+Program pada Kode~\ref{lst:bug-stack} memanggil prosedur
+\asm{HITUNG}, lalu bermaksud mencetak pesan penutup. Program berhasil
+dirakit, tetapi ketika dijalankan kendali melompat ke alamat yang
+tidak dikenal dan pesan penutup tidak pernah muncul. Prosedur
+tersebut menekan tiga register (\reg{AX}, \reg{BX}, \reg{CX}) tetapi
+hanya memulihkan dua, sehingga \asm{RET} tidak menemukan alamat
+kembali pada puncak \eng{stack}.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program ber-bug \file{bug-stack.asm}: \eng{stack} tidak
+    seimbang.},
+    label={lst:bug-stack}
+]{\CodeDir/bug-stack.asm}
+
+Versi perbaikan pada Kode~\ref{lst:bug-stack-fix} menambahkan satu
+instruksi \asm{POP AX} sehingga jumlah \asm{PUSH} dan \asm{POP}
+kembali seimbang.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Versi perbaikan \file{bug-stack-fix.asm}.},
+    label={lst:bug-stack-fix}
+]{\CodeDir/bug-stack-fix.asm}
+
+\begin{session}[caption={Keluaran program
+\file{bug-stack-fix.exe}.}, label={lst:keluaran-stack-fix}]
+Selesai.
+\end{session}
+
+\begin{peringatanbox}
+Kaidah yang harus dihafal: \emph{setiap} \asm{PUSH} memerlukan
+\asm{POP} pasangannya pada jalur eksekusi yang sama. Pada prosedur
+yang memakai beberapa jalur keluar, pastikan seluruh jalur
+menyeimbangkan \eng{stack} sebelum \asm{RET}. Bila tidak, \asm{RET}
+akan melompat ke alamat yang salah dan gejalanya muncul jauh dari
+penyebabnya.
+\end{peringatanbox}

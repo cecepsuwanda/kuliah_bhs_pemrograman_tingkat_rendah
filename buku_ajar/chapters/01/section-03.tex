@@ -1,0 +1,146 @@
+\section{Cara Menggunakan Buku Ajar}
+\label{sec:cara-menggunakan}
+
+Buku ini dapat dibaca dengan dua cara: berurutan dari awal sampai
+akhir, atau per bab sesuai minggu perkuliahan. Kedua cara itu sah.
+Yang tidak disarankan adalah membaca bab secara acak, karena bab-bab
+materi saling bergantung seperti dijelaskan pada
+Bagian~\ref{sec:tujuan-buku}.
+
+\subsection{Struktur Setiap Bab}
+
+Setiap bab materi mengikuti kerangka yang sama. Mengenal kerangka ini
+akan mempercepat Anda menemukan bagian yang dibutuhkan.
+
+\begin{table}[H]
+    \centering
+    \caption{Kerangka baku setiap bab dan cara memanfaatkannya.}
+    \label{tab:kerangka-bab}
+    \small
+    \begin{tabular}{@{}p{3.8cm}p{9.6cm}@{}}
+        \toprule
+        \textbf{Bagian bab} & \textbf{Cara memanfaatkannya} \\
+        \midrule
+        Sub-CPMK & Baca lebih dahulu. Inilah yang akan diukur pada
+        bab ini. \\
+        \addlinespace
+        Tujuan Pembelajaran & Jadikan daftar periksa: setelah selesai
+        membaca, Anda harus mampu melakukan semua yang tertulis. \\
+        \addlinespace
+        Materi Pokok (section) & Bacaan utama. Setiap konsep disertai
+        contoh dan tabel. \\
+        \addlinespace
+        Contoh Program & Baca kode, lalu \emph{jalankan sendiri}.
+        Jangan hanya membaca. \\
+        \addlinespace
+        Praktikum & Kerjakan di laboratorium atau di komputer
+        sendiri; inilah bagian penilaian kinerja. \\
+        \addlinespace
+        Latihan & Kerjakan tanpa melihat kunci. Latihan menulis
+        program lebih penting daripada latihan membaca. \\
+        \addlinespace
+        Rangkuman \& Checklist & Periksa diri. Tandai butir yang belum
+        dikuasai dan ulangi bagian terkait. \\
+        \addlinespace
+        Evaluasi & Ukur pencapaian. Kerjakan setelah seluruh bagian
+        lain selesai. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Alur Belajar yang Disarankan}
+
+Untuk setiap pertemuan, ikuti alur berikut.
+
+\begin{enumerate}
+    \item \textbf{Sebelum kelas (30--45 menit).} Baca bagian
+          Sub-CPMK, Tujuan Pembelajaran, dan materi pokok bab yang
+          bersangkutan. Catat istilah yang belum dipahami.
+    \item \textbf{Saat kelas.} Fokus pada praktik dan tanya jawab.
+          Karena teori sudah dibaca di rumah, waktu kelas digunakan
+          untuk menulis dan menjalankan program.
+    \item \textbf{Setelah kelas (60--90 menit).} Kerjakan contoh
+          program, praktikum, dan latihan. Tuliskan hasilnya pada
+          jurnal praktikum.
+    \item \textbf{Menjelang asesmen.} Kerjakan bagian Evaluasi dan
+          periksa Checklist Pencapaian Kompetensi.
+\end{enumerate}
+
+\begin{aktivitasbox}
+Aturan praktis yang perlu dipegang: \textbf{jangan pernah membaca
+kode assembly tanpa menjalankannya.} Pemahaman assembly tumbuh dari
+mengamati perubahan register dan flag pada setiap langkah eksekusi.
+Karena itu, siapkan emulator sejak hari pertama.
+\end{aktivitasbox}
+
+\subsection{Portofolio dan Jurnal Praktikum}
+
+Sebagian besar penilaian mata kuliah ini bersifat kinerja, bukan
+hafalan. Karena itu, Anda perlu memelihara dua dokumen sepanjang
+semester.
+
+\begin{description}
+    \item[Portofolio program] Kumpulan seluruh berkas
+          \file{.asm} yang Anda tulis, disusun menurut bab. Portofolio
+          inilah bukti utama pencapaian \CPMK{03}.
+
+    \item[Jurnal praktikum] Catatan setiap sesi praktikum yang
+          memuat: tujuan, langkah, kendala yang dihadapi, cara
+          mengatasinya, dan refleksi singkat. Jurnal inilah bukti
+          utama pencapaian \CPMK{04} serta bahan asesmen sikap.
+\end{description}
+
+Format jurnal praktikum yang disarankan ditunjukkan pada
+Tabel~\ref{tab:format-jurnal}.
+
+\begin{table}[H]
+    \centering
+    \caption{Format jurnal praktikum.}
+    \label{tab:format-jurnal}
+    \small
+    \begin{tabular}{@{}p{3.2cm}p{10.2cm}@{}}
+        \toprule
+        \textbf{Kolom} & \textbf{Isi} \\
+        \midrule
+        Sesi & Bab dan tanggal pelaksanaan \\
+        \addlinespace
+        Tujuan & Sub-CPMK yang hendak dicapai pada sesi ini \\
+        \addlinespace
+        Langkah & Urutan tindakan yang dilakukan, termasuk perintah
+        perakitan \\
+        \addlinespace
+        Kendala & Kesalahan yang muncul beserta pesan assembler atau
+        perilaku program yang salah \\
+        \addlinespace
+        Penyelesaian & Bagaimana kendala diatasi dan mengapa cara itu
+        benar \\
+        \addlinespace
+        Refleksi & Apa yang dipahami lebih baik setelah sesi ini \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Peralatan Minimum}
+
+Anda memerlukan tiga perangkat lunak yang tersedia bebas
+(lihat Bab~\ref{chap:pengenalan} untuk cara pemasangannya):
+Emu8086 untuk mengamati register dan memori, GUI Turbo Assembler
+untuk merakit program seperti pada alur kerja nyata, dan DOSBox untuk
+menjalankan peralatan DOS klasik seperti \file{DEBUG}, \file{TASM},
+dan \file{TLINK}.
+
+\subsection{Konvensi Penulisan dalam Buku Ini}
+
+\begin{itemize}
+    \item Istilah asing ditulis miring pada kemunculan pertama, contoh:
+          \eng{debugger}.
+    \item Nama instruksi dan direktif ditulis dengan huruf tetap,
+          contoh: \asm{MOV}, \dir{DB}.
+    \item Nama register dan flag ditulis dengan huruf tetap, contoh:
+          \reg{AX}, \flag{ZF}.
+    \item Bilangan heksadesimal ditulis dengan akhiran \code{h},
+          contoh: \hex{1234}; bilangan biner dengan akhiran
+          \code{b}, contoh: \bin{1010}.
+    \item Diagram dan tabel dirujuk dengan nomor, bukan ditulis
+          manual: ``Gambar~\ref{fig:backward-design}''.
+\end{itemize}

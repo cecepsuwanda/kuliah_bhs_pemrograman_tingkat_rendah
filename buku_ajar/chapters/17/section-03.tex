@@ -1,0 +1,126 @@
+\section{Refleksi, Portofolio, dan Tindak Lanjut}
+\label{sec:refleksi-tindak-lanjut}
+
+\subsection{Penilaian Diri (Self-Assessment)}
+
+Penilaian diri adalah bagian resmi dari penilaian mata kuliah ini,
+bukan sekadar latihan. Mahasiswa diminta menilai pencapaian
+Sub-CPMK-nya sendiri dengan menunjuk bukti. Setiap klaim tanpa bukti
+dianggap belum tercapai.
+
+\begin{table}[H]
+    \centering
+    \caption{Lembar penilaian diri berbasis bukti.}
+    \label{tab:self-assessment}
+    \small
+    \begin{tabular}{@{}p{3.0cm}p{3.4cm}p{3.4cm}p{3.6cm}@{}}
+        \toprule
+        \textbf{CPMK} & \textbf{Tingkat penguasaan yang diklaim} &
+        \textbf{Bukti yang ditunjuk} & \textbf{Rencana perbaikan} \\
+        \midrule
+        \CPMK{01} & belum / cukup / baik / sangat baik &
+        misalnya Tugas 1 dan Kuis 1 & \\
+        \addlinespace
+        \CPMK{02} & belum / cukup / baik / sangat baik &
+        misalnya Tugas 2, 3, dan 7 & \\
+        \addlinespace
+        \CPMK{03} & belum / cukup / baik / sangat baik &
+        misalnya Tugas 4, 5, 6 & \\
+        \addlinespace
+        \CPMK{04} & belum / cukup / baik / sangat baik &
+        misalnya laporan \eng{debugging} & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Penilaian Antarteman (Peer Assessment)}
+
+Untuk pekerjaan berpasangan, setiap mahasiswa menilai pasangannya
+pada tiga aspek berikut menggunakan skala 1 sampai 4.
+
+\begin{enumerate}
+    \item \textbf{Kontribusi teknis.} Seberapa besar sumbangan
+          pasangan terhadap kode yang dihasilkan.
+    \item \textbf{Kualitas kolaborasi.} Seberapa mudah bekerja sama,
+          termasuk kesediaan menjelaskan dan mendengarkan.
+    \item \textbf{Keandalan.} Seberapa konsisten pasangan memenuhi
+          kesepakatan waktu dan menyelesaikan bagiannya.
+\end{enumerate}
+
+\important{Nilai antarteman tidak dipakai untuk menjatuhkan
+pasangan.} Nilai ini dipakai sebagai pembanding terhadap penilaian
+diri, dan selisih yang besar antara keduanya menjadi bahan diskusi,
+bukan hukuman.
+
+\subsection{Jurnal Refleksi Akhir}
+
+Pada akhir semester, tulis satu jurnal refleksi akhir yang menjawab
+pertanyaan berikut.
+
+\begin{enumerate}
+    \item Kompetensi apa yang paling berkembang pada diri Anda
+          selama satu semester ini? Tunjukkan buktinya.
+    \item Kompetensi apa yang masih paling lemah? Apa rencana
+          konkret Anda untuk memperbaikinya?
+    \item Bagian mana dari proses belajar Anda yang paling tidak
+          efisien, dan bagaimana Anda akan mengubahnya pada mata
+          kuliah berikutnya?
+    \item Setelah mempelajari cara kerja komputer pada level
+          instruksi, bagaimana pandangan Anda berubah terhadap
+          program yang Anda tulis sehari-hari dalam bahasa tingkat
+          tinggi?
+\end{enumerate}
+
+\subsection{Rekomendasi Tindak Lanjut}
+
+Mata kuliah ini adalah pintu masuk, bukan tujuan akhir. Mahasiswa
+yang tertarik memperdalam dapat menempuh jalur berikut.
+
+\begin{table}[H]
+    \centering
+    \caption{Jalur tindak lanjut menurut minat.}
+    \label{tab:tindak-lanjut}
+    \small
+    \begin{tabular}{@{}p{3.6cm}p{5.2cm}p{4.6cm}@{}}
+        \toprule
+        \textbf{Minat} & \textbf{Topik lanjutan} &
+        \textbf{Sumber awal} \\
+        \midrule
+        Arsitektur komputer & Prosesor 32/64-bit, mode terproteksi,
+        \eng{paging}, \eng{cache} & \cite{stallings2016},
+        \cite{tanenbaum2013} \\
+        \addlinespace
+        Pemrograman sistem & Sintaks NASM, pemanggilan sistem Linux,
+        penyusunan \eng{linker script} & \cite{bartlett2004},
+        \cite{nasm2024} \\
+        \addlinespace
+        Analisis dan keamanan & \eng{Reverse engineering} etis,
+        analisis \eng{malware}, \eng{exploit} dasar &
+        \cite{wikibooksdisasm}, \cite{bartlett2023} \\
+        \addlinespace
+        Sistem tertanam & Mikrokontroler, pemrograman \eng{firmware},
+        interaksi perangkat keras & \cite{brey2009},
+        \cite{intel2024} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Bila Anda hanya dapat mengingat satu hal dari seluruh buku ini,
+ingatlah yang ini: \textbf{program selalu dapat ditelusuri}.
+Ketika sebuah program berperilaku aneh, selalu ada urutan instruksi
+yang dapat diikuti, register yang dapat diperiksa, dan memori yang
+dapat dibaca. Kemampuan menelusuri itulah yang membedakan programmer
+yang dapat memperbaiki masalah dari programmer yang hanya dapat
+menebak.
+\end{infobox}
+
+\subsection{Penutup}
+
+Buku ini dimulai dengan pertanyaan sederhana: bagaimana sebuah
+komputer benar-benar bekerja? Sepanjang tujuh belas bab, pertanyaan
+itu dijawab setahap demi setahap, dari gerbang logika sampai program
+yang mencetak nama pengguna. Bila pada akhirnya Anda mampu membaca
+kode mesin seperti membaca kalimat, meramalkan nilai register sebelum
+program dijalankan, dan menemukan kesalahan dengan menelusuri
+langkah demi langkah, maka tujuan buku ini telah tercapai.

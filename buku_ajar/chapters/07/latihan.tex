@@ -1,0 +1,93 @@
+\section{Latihan}
+\label{sec:latihan-bab7}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan hubungan antara
+          \eng{mnemonic} dan \eng{opcode}. Mengapa programmer cukup
+          menulis \lstasm|MOV AX, BX| tanpa menentukan sendiri byte
+          \hex{89 D8}?
+
+    \item \textbf{Konseptual.} Sebutkan tiga sebab yang membuat satu
+          \eng{mnemonic} seperti \asm{MOV} memiliki banyak bentuk
+          \eng{encoding}. Berikan satu contoh instruksi untuk
+          masing-masing sebab.
+
+    \item \textbf{Analisis field.} Sebuah instruksi memiliki byte
+          \hex{C7 80 34 12 78 56}. Tentukan:
+          \begin{enumerate}
+              \item \eng{opcode}-nya dan operasi yang dilakukan;
+              \item nilai biner field \code{mod}, \code{reg}, dan
+                    \code{r/m};
+              \item panjang dan isi \eng{displacement};
+              \item panjang dan isi \eng{immediate}.
+          \end{enumerate}
+
+    \item \textbf{Encoding manual.} Tuliskan byte kode mesin untuk
+          instruksi berikut beserta langkah perhitungannya.
+          \begin{enumerate}
+              \item \lstasm|MOV DX, 00FFh|
+              \item \lstasm|ADD AL, 3|
+              \item \lstasm|MOV [BX], AL|
+          \end{enumerate}
+
+    \item \textbf{Analisis ModR/M.} Uraikan byte ModR/M berikut
+          menjadi ketiga fieldnya, lalu jelaskan operand apa yang
+          diwakilinya.
+          \begin{enumerate}
+              \item \hex{D8}
+              \item \hex{44}
+              \item \hex{C1}
+              \item \hex{16}
+          \end{enumerate}
+
+    \item \textbf{Displacement dan immediate.} Jelaskan perbedaan
+          peran \eng{displacement} dan \eng{immediate}. Kapan
+          keduanya muncul pada sebuah instruksi, dan dapatkah
+          keduanya muncul sekaligus? Berikan contoh.
+
+    \item \textbf{Analisis ukuran dan kecepatan.} Dua program memiliki
+          hasil akhir sama. Program pertama memakai
+          \lstasm|MOV AX, 0001h| dan \lstasm|MOV BX, 0001h|; program
+          kedua memakai \lstasm|MOV BX, 0001h| dan \lstasm|MOV AX, BX|.
+          \begin{enumerate}
+              \item Hitung jumlah byte kedua program.
+              \item Sebutkan field yang menjadi penyebab selisihnya.
+              \item Kaitkan dengan jumlah byte yang harus diambil
+                    prosesor.
+          \end{enumerate}
+
+    \item \textbf{Analisis kode dan kesalahan.} Diberikan keluaran
+          perintah \code{U} berikut.
+
+\begin{session}[numbers=none]
+1A2B:0100 B80500        MOV     AX,0005
+1A2B:0103 8908          MOV     [BX+SI],CX
+1A2B:0105 CD21          INT     21
+\end{session}
+
+          \begin{enumerate}
+              \item Jelaskan mengapa baris kedua dapat berakhir pada
+                    alamat \hex{103}, bukan \hex{102}.
+              \item Mengapa disassembler menampilkan
+                    \lstasm|[BX+SI]| dan bukan nama variabel yang
+                    mungkin dipakai pada kode sumber?
+              \item Sebutkan satu risiko bila hasil \eng{disassembly}
+                    langsung dipercaya tanpa memeriksa kode
+                    sumbernya.
+          \end{enumerate}
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Bagian mana yang paling menantang saat Anda mengisi lembar
+          kerja \eng{encoding} secara manual: menentukan
+          \eng{opcode}, menyusun ModR/M, atau mengurutkan
+          \eng{little-endian}? Jelaskan alasannya.
+    \item Setelah melihat hasil perintah \code{U}, apakah dugaan awal
+          Anda tentang panjang sebuah instruksi berubah? Bagian mana
+          yang paling mengejutkan?
+    \item Konsep apa pada bab ini yang masih perlu Anda latih lagi
+          sebelum mempelajari mode pengalamatan pada bab berikutnya?
+\end{enumerate}
+\end{refleksibox}

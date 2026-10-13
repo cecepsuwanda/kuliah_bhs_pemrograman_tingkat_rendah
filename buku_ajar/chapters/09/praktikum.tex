@@ -1,0 +1,136 @@
+\section{Praktikum}
+\label{sec:praktikum-bab9}
+
+\begin{praktikumbox}
+\textbf{Judul:} Merakit program dengan TASM dan TLINK serta
+memeriksa berkas \file{.lst} dan \file{.map}.\\[0.3em]
+\textbf{Sub-CPMK:} 2.3 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu \quad\textbullet\quad
+\textbf{Tugas 3 dikumpulkan pada praktikum ini.}
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menjalankan
+perakitan dan pengaitan langkah demi langkah, serta membaca berkas
+\file{.lst} dan \file{.map} untuk memeriksa tabel simbol dan letak
+akhir setiap segmen.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan DOSBox terpasang dan direktori kerja
+          yang sudah di-\eng{mount}, misalnya \file{mount c: D:\textbackslash asm}.
+    \item TASM dan TLINK versi DOS.
+    \item Berkas \file{direktif-data.asm} dan
+          \file{equ-konstanta.asm} dari \file{code/asm/}.
+    \item Lembar kerja untuk mencatat keluaran setiap perintah.
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Perakitan dengan berkas \file{.lst}.}
+    \begin{enumerate}
+        \item Jalankan \file{tasm /l direktif-data.asm}.
+        \item Catat seluruh keluaran TASM, termasuk jumlah lintasan
+              (\eng{passes}) dan pesan kesalahan.
+        \item Pastikan berkas \file{direktif-data.obj} dan
+              \file{direktif-data.lst} terbentuk.
+    \end{enumerate}
+
+    \item \textbf{Pengaitan dengan berkas \file{.map}.}
+    \begin{enumerate}
+        \item Jalankan \file{tlink /m direktif-data.obj}.
+        \item Catat keluaran TLINK dan pastikan
+              \file{direktif-data.exe} serta
+              \file{direktif-data.map} terbentuk.
+        \item Jalankan \file{direktif-data} dan catat keluaran
+              program.
+    \end{enumerate}
+
+    \item \textbf{Pemeriksaan berkas \file{.lst}.}
+    \begin{enumerate}
+        \item Buka \file{direktif-data.lst} dan salin sepuluh baris
+              pertama.
+        \item Tandai baris yang kolom kode mesinnya kosong, lalu
+              tuliskan direktif apa yang berada di situ.
+        \item Catat \eng{offset} \code{sapaan}, \code{kata},
+              \code{bintang}, dan \code{buffer} dari daftar tabel
+              simbol.
+        \item Jelaskan mengapa \eng{offset} \code{kata} sama dengan
+              nilai \code{panjang}, yaitu \hex{12}.
+    \end{enumerate}
+
+    \item \textbf{Pemeriksaan berkas \file{.map}.}
+    \begin{enumerate}
+        \item Buka \file{direktif-data.map} dan salin tabel
+              segmennya.
+        \item Hitung besar segmen \file{\_DATA}, lalu bandingkan
+              dengan jumlah byte seluruh direktif data pada berkas
+              \file{.asm}.
+        \item Catat alamat \eng{entry point} dan jelaskan
+              hubungannya dengan label \code{START}.
+    \end{enumerate}
+
+    \item \textbf{Menguji kesalahan perakitan.}
+    \begin{enumerate}
+        \item Ubah satu baris \dir{EQU} sehingga satu nama
+              didefinisikan dua kali, lalu rakit ulang dan catat
+              pesan kesalahannya.
+        \item Perbaiki dengan mengganti \dir{EQU} menjadi \code{=}
+              dan rakit ulang sampai bersih.
+        \item Ulangi percobaan dengan menghapus label pada
+              \dir{END}, lalu bandingkan pesan TASM dan TLINK.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Hasil yang Dikumpulkan (Tugas 3)}
+
+\begin{enumerate}
+    \item Berkas \file{direktif-data.asm} beserta seluruh hasil
+          perakitan (\file{.obj}, \file{.lst}, \file{.map},
+          \file{.exe}).
+    \item Catatan keluaran setiap perintah TASM dan TLINK.
+    \item Cuplikan berkas \file{.lst} dengan penandaan pada baris
+          direktif dan pada baris bertanda \code{R}.
+    \item Cuplikan berkas \file{.map} beserta perhitungan besar
+          segmen \file{\_DATA} dan \file{\_TEXT}.
+    \item Catatan kesalahan perakitan yang disengaja beserta pesan
+          dan cara memperbaikinya.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen praktikum 5 (Tugas 3, bobot 10\%)} --- tabel rubrik
+penilaian.
+
+\begin{table}[H]
+    \centering
+    \caption{Rubrik penilaian Tugas 3.}
+    \label{tab:rubrik-praktikum9}
+    \small
+    \begin{tabular}{@{}p{5.6cm}cp{5.2cm}@{}}
+        \toprule
+        \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
+        \midrule
+        Program dirakit dan dijalankan sampai benar & 30\% &
+        Keluaran \file{.exe} sesuai harapan tanpa kesalahan \\
+        \addlinespace
+        Pembacaan berkas \file{.lst} & 25\% &
+        Tabel simbol dan \eng{offset} tercatat benar \\
+        \addlinespace
+        Pembacaan berkas \file{.map} & 20\% &
+        Besar segmen dihitung benar dan dibandingkan dengan
+        deklarasi \\
+        \addlinespace
+        Analisis kesalahan perakitan & 15\% &
+        Dua kesalahan diuji, pesannya dicatat, dan perbaikannya
+        tepat \\
+        \addlinespace
+        Kerapian jurnal dan dokumentasi & 10\% &
+        Langkah terdokumentasi dan dapat diulang orang lain \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+\end{asesmenbox}

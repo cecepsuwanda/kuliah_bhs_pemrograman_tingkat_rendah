@@ -1,0 +1,94 @@
+\section{Contoh Penilaian Proyek Akhir}
+\label{sec:contoh-bab17}
+
+Agar rubrik pada Tabel~\ref{tab:rubrik-proyek} tidak menjadi
+dokumen yang abstrak, berikut contoh penerapannya pada satu proyek.
+
+\subsection{Deskripsi Proyek yang Dinilai}
+
+Seorang mahasiswa mengerjakan Pilihan 1, yaitu kalkulator dengan
+validasi masukan. Proyeknya memuat:
+
+\begin{itemize}
+    \item prosedur \code{BacaAngka} yang membaca string masukan
+          dengan \code{INT 21h} fungsi \hex{0A} lalu mengubahnya
+          menjadi nilai biner;
+    \item prosedur \code{Hitung} yang menerima dua parameter melalui
+          stack beserta kode operator, lalu mengembalikan hasil pada
+          \reg{AX} dan \reg{DX};
+    \item prosedur \code{TulisAngka} yang mengubah hasil biner
+          kembali menjadi deretan digit dan mencetaknya;
+    \item penanganan pembagian dengan nol yang mencetak pesan
+          kesalahan dan kembali ke menu.
+\end{itemize}
+
+\subsection{Penerapan Rubrik}
+
+Tabel~\ref{tab:contoh-penilaian} memperlihatkan cara pemberian skor
+beserta alasan yang harus dituliskan penilai. Kolom alasan inilah
+yang membuat penilaian dapat dipertanggungjawabkan.
+
+\begin{table}[H]
+    \centering
+    \caption{Contoh penerapan rubrik proyek akhir.}
+    \label{tab:contoh-penilaian}
+    \footnotesize
+    \begin{tabular}{@{}p{2.9cm}cp{7.6cm}@{}}
+        \toprule
+        \textbf{Kriteria} & \textbf{Skor} & \textbf{Alasan} \\
+        \midrule
+        Kebenaran fungsi & 4 &
+        Empat operasi berjalan benar; pembagian dengan nol ditangani
+        dengan pesan kesalahan; masukan bukan angka ditolak \\
+        \addlinespace
+        Kualitas kode & 3 &
+        Prosedur terpisah dengan baik, tetapi prosedur
+        \code{TulisAngka} memiliki tiga baris yang berulang dan tidak
+        dijadikan subprosedur \\
+        \addlinespace
+        Penggunaan instruksi & 4 &
+        Perkalian pangkat dua memakai \asm{SHL} alih-alih
+        \asm{MUL}; mode \eng{base-relative} dipakai untuk menelusuri
+        array digit \\
+        \addlinespace
+        Pengujian dan \eng{debugging} & 3 &
+        Tabel \eng{trace} disertakan untuk dua dari tiga bug; satu
+        bug terakhir ditemukan dengan bantuan dosen \\
+        \addlinespace
+        Laporan dan presentasi & 4 &
+        Laporan memuat rancangan, kendala, dan bukti pengujian;
+        presentasi menjelaskan alasan pemilihan mode pengalamatan \\
+        \midrule
+        \textbf{Rata-rata} & \textbf{3{,}6} &
+        Setara dengan kategori ``baik'' menuju ``sangat baik'' \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Pelajaran dari Contoh}
+
+Tiga hal dapat dipelajari dari contoh di atas.
+
+\begin{enumerate}
+    \item \textbf{Skor tertinggi tidak menuntut proyek yang paling
+          rumit.} Proyek sederhana yang dikerjakan dengan benar dan
+          didokumentasikan dengan baik memperoleh nilai lebih tinggi
+          daripada proyek rumit yang tidak dapat dijelaskan.
+
+    \item \textbf{Alasan harus dituliskan.} Rubrik tanpa alasan
+          hanya menghasilkan angka; rubrik dengan alasan
+          menghasilkan umpan balik yang dapat ditindaklanjuti.
+
+    \item \textbf{Bukti menentukan.} Kriteria pengujian dan
+          \eng{debugging} tidak dapat dinilai tanpa tabel
+          \eng{trace} dan catatan bug. Inilah alasan jurnal
+          praktikum wajib dipelihara sejak pertemuan pertama.
+\end{enumerate}
+
+\begin{infobox}
+Perhatikan bahwa seluruh kriteria pada rubrik berasal dari CPMK.
+Kriteria ``penggunaan instruksi'' misalnya berasal dari \CPMK{02},
+sedangkan ``kebenaran fungsi'' dan ``kualitas kode'' berasal dari
+\CPMK{03}. Tidak ada kriteria yang tidak dapat ditelusuri ke CPMK
+--- inilah yang dimaksud dengan asesmen berbasis OBE.
+\end{infobox}

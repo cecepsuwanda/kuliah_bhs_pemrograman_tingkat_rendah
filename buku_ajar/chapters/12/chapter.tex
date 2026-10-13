@@ -1,0 +1,74 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Struktur Kontrol dan Percabangan}
+\label{chap:kontrol}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{3.3} --- Mengimplementasikan struktur kontrol (\asm{CMP},
+\asm{TEST}, lompatan bersyarat \asm{Jcc}, \asm{LOOP}, dan prosedur
+dengan \asm{CALL}/\asm{RET}) dalam program assembly.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{03} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan peran \eng{flag} sebagai dasar pengambilan
+          keputusan;
+    \item membedakan cara kerja \asm{CMP} dan \asm{TEST};
+    \item memilih \asm{Jcc} yang tepat untuk bilangan bertanda dan
+          tak bertanda;
+    \item menjelaskan pengaruh jarak lompatan terhadap ukuran kode;
+    \item menyusun perulangan dengan \asm{LOOP}, \asm{LOOPE}, dan
+          \asm{LOOPNE} serta membandingkannya dengan pola
+          \asm{DEC} dan \asm{JNZ};
+    \item menerjemahkan pola \code{if}, \code{if--else}, \code{while},
+          \code{do--while}, \code{for}, dan \code{switch} dari bahasa
+          tingkat tinggi ke assembly;
+    \item menuliskan program pencarian nilai maksimum dan pengurutan
+          sederhana menggunakan struktur kontrol;
+    \item menghindari kekeliruan umum pada label dan lompatan.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Konsep \eng{flag} sebagai dasar pengambilan keputusan;
+          kaitan dengan \flag{ZF}, \flag{CF}, \flag{SF}, \flag{OF},
+          dan \flag{PF}.
+    \item \asm{CMP} dan \asm{TEST} sebagai penyiap \eng{flag} beserta
+          perbedaan keduanya.
+    \item Lompatan tak bersyarat \asm{JMP} dan jarak lompatan
+          \eng{short}, \eng{near}, dan \eng{far}.
+    \item Lompatan bersyarat \asm{Jcc} dan pemetaannya terhadap
+          bilangan bertanda serta tak bertanda.
+    \item Label, aturan penamaan, dan kesalahan umum pada lompatan.
+    \item Perulangan: \asm{LOOP}, \asm{LOOPE}/\asm{LOOPZ},
+          \asm{LOOPNE}/\asm{LOOPNZ}, dan register \reg{CX}.
+    \item Penerjemahan pola bahasa tingkat tinggi ke assembly,
+          termasuk tabel lompatan untuk \code{switch}.
+    \item Studi kasus: nilai maksimum, pengurutan gelembung, dan
+          pengantar pencarian biner.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

@@ -1,0 +1,146 @@
+\section{Lingkungan Kerja dan Struktur Program Assembly Minimal}
+\label{sec:lingkungan-kerja}
+
+Sebelum menulis program, lingkungan kerja harus disiapkan. Mata
+kuliah ini menggunakan tiga perangkat lunak yang tersedia bebas,
+yang dapat dipilih sesuai kebutuhan.
+
+\subsection{Pilihan Lingkungan Kerja}
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan perangkat lunak lingkungan kerja assembly.}
+    \label{tab:tools-assembly}
+    \small
+    \begin{tabular}{@{}p{3.5cm}p{5.2cm}p{5.1cm}@{}}
+        \toprule
+        \textbf{Perangkat} & \textbf{Kelebihan} &
+        \textbf{Keterbatasan} \\
+        \midrule
+        \textbf{Emu8086} & Emulator dengan tampilan register, memori,
+        dan \eng{flag} secara langsung; cocok untuk pemula &
+        Menjalankan emulasi, bukan perangkat keras sungguhan \\
+        \addlinespace
+        \textbf{GUI Turbo Assembler} & Antarmuka grafis untuk
+        TASM/TLINK dengan \eng{debugger} terpadu; mendekati alur kerja
+        nyata & Perlu pemahaman struktur segmen dan linker \\
+        \addlinespace
+        \textbf{DOSBox} & Menyediakan lingkungan DOS asli; dapat
+        menjalankan DEBUG, TASM, TLINK, dan program \file{.exe} lama &
+        Antarmuka baris perintah, tanpa tampilan register otomatis \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{aktivitasbox}
+Langkah penyiapan yang harus diselesaikan mahasiswa sebelum
+pertemuan berikutnya:
+\begin{enumerate}
+    \item Pasang Emu8086, lalu buat satu berkas program sederhana dan
+          jalankan.
+    \item Pasang GUI Turbo Assembler beserta TASM dan TLINK, lalu
+          rakit ulang program yang sama.
+    \item Pasang DOSBox, tambahkan perintah \file{mount} ke direktori
+          kerja, dan jalankan perintah \file{DEBUG} di dalamnya.
+    \item Dokumentasikan langkah pemasangan dalam jurnal praktikum.
+\end{enumerate}
+\end{aktivitasbox}
+
+\subsection{Struktur Program Assembly Minimal}
+
+Program assembly 8086 untuk lingkungan DOS memiliki kerangka baku.
+Kerangka tersebut tampak pada Kode~\ref{lst:kerangka-program}.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Kerangka baku program assembly 8086 untuk DOS.},
+    label={lst:kerangka-program}
+]
+.MODEL SMALL        ; tentukan model memori
+.STACK 100h         ; sediakan ruang stack
+
+.DATA               ; ------- segmen data -------
+    ; deklarasi variabel dan konstanta di sini
+
+.CODE               ; ------- segmen kode -------
+START:              ; label titik masuk program
+    MOV AX, @DATA   ; inisialisasi register DS
+    MOV DS, AX
+
+    ; instruksi program di sini
+
+    MOV AH, 4Ch     ; keluar dari program
+    MOV AL, 00h
+    INT 21h
+
+END START           ; akhiri dan tunjuk titik masuk
+\end{lstlisting}
+
+Setiap bagian kerangka tersebut memiliki peran sebagai berikut.
+
+\begin{description}
+    \item[\dir{.MODEL SMALL}] Menetapkan model memori. Model
+          \file{SMALL} berarti program memakai satu segmen kode dan
+          satu segmen data, masing-masing berukuran maksimum 64 KB.
+          Model ini paling banyak dipakai untuk program pembelajaran.
+
+    \item[\dir{.STACK 100h}] Menyediakan ruang \eng{stack} sebesar
+          \hex{100} byte (\dec{256} byte) untuk menyimpan alamat
+          kembali pemanggilan prosedur dan data sementara.
+
+    \item[\dir{.DATA}] Awal segmen data. Semua variabel dan konstanta
+          dideklarasikan di sini menggunakan direktif \dir{DB},
+          \dir{DW}, atau \dir{DD}.
+
+    \item[\dir{.CODE}] Awal segmen kode. Seluruh instruksi yang
+          dieksekusi berada pada bagian ini.
+
+    \item[\file{START:}] Label yang menandai instruksi pertama. Nama
+          label bebas, tetapi harus sama dengan nama yang ditulis
+          setelah \dir{END}.
+
+    \item[\dir{END START}] Menutup berkas program sekaligus
+          memberi tahu assembler bahwa eksekusi dimulai dari label
+          \file{START}.
+\end{description}
+
+\subsection{Inisialisasi Register Segmen}
+
+Program \file{.EXE} tidak otomatis memiliki \reg{DS} yang benar. Dua
+instruksi berikut wajib ada di awal program:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, @DATA       ; salin alamat segmen data ke AX
+MOV DS, AX          ; lalu pindahkan ke DS
+\end{lstlisting}
+
+Mengapa harus melalui \reg{AX} dan tidak langsung
+\lstasm|MOV DS, @DATA|? Karena arsitektur 8086 melarang pemindahan
+nilai segera (\eng{immediate}) langsung ke register segmen.
+Pemindahan ke register segmen hanya boleh berasal dari register
+umum. Aturan ini akan dibahas lebih rinci pada Bab~\ref{chap:register}
+dan Bab~\ref{chap:translasi}.
+
+\begin{infobox}
+Simbol \code{@DATA} adalah simbol bawaan yang dihasilkan oleh
+\dir{.MODEL}. Simbol ini berisi nomor segmen tempat \dir{.DATA}
+berada. Bila program tidak memakai \dir{.MODEL}, nama segmen harus
+ditulis manual melalui direktif \dir{SEGMENT}.
+\end{infobox}
+
+\subsection{Alur Eksekusi Program Pertama}
+
+Ketika program dijalankan, urutan kejadiannya adalah sebagai berikut.
+
+\begin{enumerate}
+    \item DOS memuat berkas \file{.exe}, membuat \eng{Program Segment
+          Prefix}, dan menetapkan \reg{CS} serta \reg{IP} ke titik
+          masuk program.
+    \item Instruksi pertama menginisialisasi \reg{DS} agar penunjukan
+          variabel pada segmen data menjadi benar.
+    \item Instruksi program dijalankan satu per satu sesuai urutan.
+    \item Layanan DOS \code{INT 21h} fungsi \hex{09} mencetak string
+          ke layar.
+    \item Layanan DOS \code{INT 21h} fungsi \hex{4C} mengakhiri
+          program dan mengembalikan kendali ke DOS.
+\end{enumerate}

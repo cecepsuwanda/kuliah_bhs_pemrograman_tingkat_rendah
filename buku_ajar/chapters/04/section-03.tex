@@ -1,0 +1,227 @@
+\section{Bus Eksternal dan Siklus Instruksi}
+\label{sec:bus-siklus}
+
+Setelah membahas susunan internal, bagian ini membahas sisi luar
+chip. Bus adalah sekumpulan penghantar yang dipakai bersama oleh
+prosesor, memori, dan perangkat I/O. Pada 8086 terdapat tiga
+kelompok bus dengan tugas yang berbeda.
+
+\subsection{Tiga Kelompok Bus}
+
+\begin{description}
+    \item[Bus alamat (\eng{address bus})] Selebar 20 bit, yaitu
+          \reg{A0}--\reg{A19}. Bus ini membawa alamat lokasi yang
+          akan diakses. Karena selebar 20 bit, ruang alamat yang
+          dapat dijangkau adalah $2^{20}$ byte atau 1 MB. Bus alamat
+          selalu bersifat satu arah: dari prosesor menuju memori
+          atau perangkat I/O.
+
+    \item[Bus data (\eng{data bus})] Selebar 16 bit, yaitu
+          \reg{AD0}--\reg{AD15}. Bus ini membawa data yang sedang
+          dibaca atau ditulis. Berbeda dengan bus alamat, bus data
+          bersifat dua arah.
+
+    \item[Bus kontrol (\eng{control bus})] Kumpulan sinyal yang
+          mengatur \emph{jenis} dan \emph{arah} pertukaran data:
+          apakah operasi ini membaca atau menulis, apakah sasarannya
+          memori atau perangkat I/O, dan kapan perangkat siap
+          melayani.
+\end{description}
+
+\subsection{Multiplexing AD0--AD15}
+
+Jumlah pin pada kemasan 8086 terbatas, yaitu 40 pin. Agar seluruh
+kebutuhan bus dapat dipenuhi, sebagian pin dipakai bergantian.
+Pin \reg{AD0}--\reg{AD15} bersifat \term{multipleks}, artinya pada
+awal siklus bus pin tersebut membawa alamat, dan pada paruh
+berikutnya membawa data. Teknik ini disebut \eng{multiplexing}
+\cite{intel1979}.
+
+Karena alamat hanya muncul sebentar, alamat tersebut harus
+``ditangkap'' dan disimpan oleh rangkaian luar bernama \eng{latch}.
+Sinyal \reg{ALE} (\eng{Address Latch Enable}) memberi tahu rangkaian
+luar kapan saat yang tepat untuk menangkap alamat. Tabel~\ref{tab:sinyal-bus}
+merangkum sinyal kendali utama 8086.
+
+\begin{table}[H]
+    \centering
+    \caption{Sinyal kendali utama mikroprosesor 8086.}
+    \label{tab:sinyal-bus}
+    \small
+    \begin{tabular}{@{}p{2.1cm}p{2.0cm}p{9.0cm}@{}}
+        \toprule
+        \textbf{Sinyal} & \textbf{Arah} & \textbf{Fungsi} \\
+        \midrule
+        \reg{ALE} & Keluaran &
+        Menandai bahwa pin \reg{AD0}--\reg{AD15} sedang membawa
+        alamat, sehingga harus disimpan oleh \eng{latch} \\
+        \addlinespace
+        \code{M/IO} & Keluaran &
+        Menentukan sasaran akses: bernilai tinggi untuk memori,
+        rendah untuk perangkat I/O \\
+        \addlinespace
+        \reg{RD} & Keluaran &
+        Aktif rendah; menandakan prosesor sedang melakukan operasi
+        baca \\
+        \addlinespace
+        \reg{WR} & Keluaran &
+        Aktif rendah; menandakan prosesor sedang melakukan operasi
+        tulis \\
+        \addlinespace
+        \reg{READY} & Masukan &
+        Memberi tahu prosesor bahwa perangkat lambat sudah selesai;
+        bila rendah, prosesor menambah siklus tunggu (\eng{wait
+        state}) \\
+        \addlinespace
+        \reg{RESET} & Masukan &
+        Mengembalikan prosesor ke keadaan awal; \reg{CS} diisi
+        \hex{FFFF} dan \reg{IP} diisi \hex{0000} \\
+        \addlinespace
+        \code{MN/MX} & Masukan &
+        Memilih mode minimum (prosesor memakai pengendali bus
+        internal) atau mode maksimum (memakai pengendali bus
+        eksternal 8288) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Mode minimum dan mode maksimum hanya berbeda pada cara sinyal
+kendali dihasilkan, bukan pada cara program bekerja. Untuk keperluan
+pembelajaran, seluruh contoh pada buku ini dapat dipandang berjalan
+pada mode minimum. Yang perlu diingat adalah fungsi sinyalnya:
+\reg{ALE} untuk menangkap alamat, \code{M/IO} untuk memilih sasaran,
+\reg{RD} dan \reg{WR} untuk menentukan arah, serta \reg{READY} untuk
+sinkronisasi dengan perangkat lambat.
+\end{infobox}
+
+\subsection{Siklus Instruksi: Fetch--Decode--Execute--Store}
+
+Satu putaran lengkap pengambilan dan pelaksanaan sebuah instruksi
+disebut \term{siklus instruksi} (\eng{instruction cycle}).
+Siklus ini terdiri atas empat tahap yang tampak pada
+Gambar~\ref{fig:siklus-instruksi}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        tahap/.style={
+            draw=obeBlue,
+            line width=0.9pt,
+            fill=obeBlueLight,
+            rounded corners=3pt,
+            minimum width=2.55cm,
+            minimum height=1.25cm,
+            align=center,
+            font=\small\bfseries
+        },
+        panah/.style={-{Stealth[length=2.5mm]}, line width=1pt, obeTeal},
+        unit/.style={font=\scriptsize, text=obeGray}
+    ]
+        \node[tahap] (f) {Fetch\\{\normalfont\scriptsize ambil opcode}};
+        \node[tahap, right=0.65cm of f, fill=obeTealLight,
+              draw=obeTeal] (d) {Decode\\{\normalfont\scriptsize baca opcode}};
+        \node[tahap, right=0.65cm of d, fill=obeAmberLight,
+              draw=obeAmber] (e) {Execute\\{\normalfont\scriptsize jalankan}};
+        \node[tahap, right=0.65cm of e, fill=obeMaroonLight,
+              draw=obeMaroon] (s) {Store\\{\normalfont\scriptsize simpan hasil}};
+
+        \draw[panah] (f) -- (d);
+        \draw[panah] (d) -- (e);
+        \draw[panah] (e) -- (s);
+
+        \node[unit, below=0.12cm of f] {dikerjakan BIU};
+        \node[unit, below=0.12cm of d] {dikerjakan EU};
+        \node[unit, below=0.12cm of e] {dikerjakan EU};
+        \node[unit, below=0.12cm of s] {dikerjakan BIU};
+
+        \draw[panah, dashed] (s.south) -- ++(0,-1.05)
+              -| (f.south);
+        \node[font=\scriptsize, text=obeGray]
+              at ($(d.south)!0.5!(e.south) + (0,-1.05)$)
+              {instruksi berikutnya};
+    \end{tikzpicture}
+    \caption{Empat tahap siklus instruksi pada 8086 beserta unit
+    yang mengerjakannya.}
+    \label{fig:siklus-instruksi}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Fetch.} BIU menghitung alamat fisik dari
+          \reg{CS}:\reg{IP}, membacanya melalui bus, lalu memasukkan
+          byte hasilnya ke \eng{instruction queue}. Setelah itu
+          \reg{IP} ditambah sesuai panjang instruksi.
+
+    \item \textbf{Decode.} EU mengambil byte pertama dari antrean.
+          Byte ini adalah \term{opcode}, yaitu kode yang menentukan
+          operasi apa yang harus dilakukan. EU menentukan panjang
+          instruksi dan jenis operandnya.
+
+    \item \textbf{Execute.} EU menjalankan operasinya, misalnya
+          menjumlahkan dua register atau menaikkan nilai register.
+          Bila operand berada di memori, EU meminta BIU mengambil
+          atau menyimpannya.
+
+    \item \textbf{Store.} Hasil operasi dituliskan ke tujuan.
+          Tahap ini hanya nyata bila tujuannya adalah memori; bila
+          hasil cukup disimpan di register, tahap ini selesai tanpa
+          siklus bus tambahan.
+\end{enumerate}
+
+Satuan waktu terkecil pada siklus ini disebut \term{siklus T}
+(\eng{T-state}), yaitu satu denyut \eng{clock}. Beberapa siklus T
+membentuk satu \term{siklus bus} atau \eng{machine cycle}, dan
+beberapa siklus bus membentuk satu siklus instruksi. Pada 8086
+dengan \eng{clock} 5 MHz, satu siklus T berlangsung 200 nanodetik.
+
+\subsection{Menelusuri Satu Instruksi}
+
+Agar tahapan di atas menjadi konkret, perhatikan instruksi
+\lstasm|MOV AX, 1234h|. Instruksi ini berukuran tiga byte dengan
+opcode \hex{B8} diikuti nilai \hex{34} dan \hex{12} secara
+\eng{little endian}. Tabel~\ref{tab:trace-mov} menelusuri langkah
+demi langkah dengan mengandaikan \reg{CS} $=$ \hex{1000} dan
+\reg{IP} $=$ \hex{0000} pada keadaan awal.
+
+\begin{table}[H]
+    \centering
+    \caption{Penelusuran langkah demi langkah instruksi
+    \code{MOV AX, 1234h}.}
+    \label{tab:trace-mov}
+    \small
+    \begin{tabular}{@{}clp{2.2cm}p{1.5cm}p{6.6cm}@{}}
+        \toprule
+        \textbf{No.} & \textbf{Tahap} & \textbf{Alamat fisik} &
+        \textbf{\reg{IP}} & \textbf{Kejadian} \\
+        \midrule
+        1 & Fetch & \hex{10000} & \hex{0001} &
+        BIU membaca \hex{B8}; antrean berisi \hex{B8} \\
+        \addlinespace
+        2 & Fetch & \hex{10001} & \hex{0002} &
+        BIU membaca \hex{34}; antrean berisi \hex{B8 34} \\
+        \addlinespace
+        3 & Fetch & \hex{10002} & \hex{0003} &
+        BIU membaca \hex{12}; antrean berisi \hex{B8 34 12} \\
+        \addlinespace
+        4 & Decode & --- & \hex{0003} &
+        EU mengambil \hex{B8}; opcode dikenali sebagai
+        \lstasm|MOV reg16, imm16| \\
+        \addlinespace
+        5 & Execute & --- & \hex{0003} &
+        EU membaca \hex{34} dan \hex{12} dari antrean, menyusunnya
+        menjadi \hex{1234}, lalu menuliskan ke \reg{AX} \\
+        \addlinespace
+        6 & Store & --- & \hex{0003} &
+        Tidak ada siklus bus; hasil sudah berada di register \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Penelusuran pada Tabel~\ref{tab:trace-mov} memperlihatkan dua hal
+penting. Pertama, \reg{IP} bertambah tiga kali, sekali untuk setiap
+byte yang diambil, sehingga bernilai \hex{0003} ketika instruksi
+selesai. Kedua, tahap \eng{store} tidak memerlukan bus karena tujuan
+instruksi adalah register. Bandingkan dengan instruksi
+\lstasm|MOV hasil1, AX| yang tujuannya di memori: pada instruksi itu
+BIU harus menjalankan siklus bus tulis, sehingga waktu eksekusinya
+lebih lama. Perbandingan semacam ini diuji pada Bagian~\ref{sec:contoh-bab4}.

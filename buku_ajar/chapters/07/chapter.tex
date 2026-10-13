@@ -1,0 +1,67 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Format Instruksi Mesin}
+\label{chap:format-instruksi}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{2.1} --- Menjelaskan format instruksi mesin (\eng{opcode},
+byte ModR/M, \eng{displacement}/\eng{immediate}) dan mengaitkannya
+dengan operasi yang dieksekusi perangkat keras.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{02} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan hubungan antara \eng{mnemonic} assembly dan kode
+          mesin yang dihasilkan assembler;
+    \item menjelaskan alasan satu \eng{mnemonic} memiliki beberapa
+          bentuk \eng{encoding} yang berbeda;
+    \item menguraikan susunan field instruksi 8086: awalan,
+          \eng{opcode}, ModR/M, \eng{displacement}, dan
+          \eng{immediate};
+    \item memecah byte ModR/M menjadi field \code{mod},
+          \code{reg/opcode}, dan \code{r/m};
+    \item melakukan \eng{encoding} manual instruksi sederhana dan
+          membacanya kembali dengan \eng{disassembler};
+    \item menilai pengaruh format instruksi terhadap ukuran kode dan
+          kecepatan eksekusi.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Hubungan \eng{mnemonic} assembly dengan kode mesin.
+    \item Format umum instruksi 8086: awalan, \eng{opcode},
+          ModR/M, \eng{displacement}, dan \eng{immediate}.
+    \item Struktur byte ModR/M: field \code{mod}, \code{reg/opcode},
+          dan \code{r/m}.
+    \item Peran \eng{displacement} dan \eng{immediate}.
+    \item Pengaruh format instruksi terhadap ukuran kode dan kecepatan
+          eksekusi.
+    \item \eng{Encoding} manual dan peran \eng{disassembler} pada
+          DEBUG.
+    \item Tabel ringkas \eng{opcode} instruksi umum 8086.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

@@ -1,0 +1,69 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Mode Pengalamatan}
+\label{chap:mode-pengalamatan}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{2.2} --- Menganalisis mode pengalamatan (\eng{immediate},
+\eng{direct}, \eng{register indirect}, \eng{indexed},
+\eng{base-relative}, dan \eng{based-indexed}) serta menentukan
+segmen \eng{default} yang digunakan setiap mode.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{02} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan peran mode pengalamatan dalam menentukan letak
+          operand;
+    \item mengenali mode pengalamatan hanya dari penulisan
+          operandnya;
+    \item menghitung alamat efektif (\eng{effective address}) dan
+          alamat fisik suatu operand;
+    \item menentukan segmen \eng{default} setiap mode serta menuliskan
+          \eng{segment override prefix} yang tepat;
+    \item memilih mode yang paling efisien untuk mengakses elemen
+          array dan medan \eng{record};
+    \item menuliskan satu operasi yang sama dalam beberapa mode
+          berbeda.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Konsep operand sumber dan tujuan serta alasan mode
+          pengalamatan diperlukan.
+    \item Mode \eng{immediate}, \eng{register}, dan \eng{direct}
+          (memori langsung).
+    \item Mode \eng{register indirect}: \code{[BX]}, \code{[SI]},
+          \code{[DI]}, dan \code{[BP]}.
+    \item Mode \eng{indexed}, \eng{base-relative}, dan
+          \eng{based-indexed}.
+    \item Kombinasi register yang legal dan yang ilegal.
+    \item Segmen \eng{default} dan \eng{segment override prefix}
+          (\code{CS:}, \code{DS:}, \code{SS:}, \code{ES:}).
+    \item Perbandingan efisiensi: jumlah byte dan siklus relatif.
+    \item Studi kasus akses array satu dimensi dan \eng{record}.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

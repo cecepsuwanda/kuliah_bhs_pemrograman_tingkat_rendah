@@ -1,0 +1,77 @@
+\section{Latihan}
+\label{sec:latihan-bab11}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan dengan kalimat Anda sendiri
+          perbedaan cara kerja \asm{AND}, \asm{OR}, dan \asm{XOR}
+          pada level bit. Sertakan tabel kebenaran singkat untuk
+          masing-masing instruksi.
+
+    \item \textbf{Konseptual.} Mengapa \flag{CF} dan \flag{OF} selalu
+          bernilai 0 setelah operasi \asm{AND}, \asm{OR}, \asm{XOR},
+          atau \asm{TEST}? Kaitkan jawaban Anda dengan sifat operasi
+          \eng{bitwise} yang tidak menjalarkan \eng{carry} antarbit.
+
+    \item \textbf{Perbandingan instruksi.} Sebutkan tiga perbedaan
+          \asm{TEST} dan \asm{CMP}, lalu tentukan yang lebih tepat
+          untuk:
+          \begin{enumerate}
+              \item memeriksa apakah bit ke-4 \reg{AL} menyala;
+              \item memeriksa apakah \reg{AX} lebih besar daripada
+                    \reg{BX}.
+          \end{enumerate}
+
+    \item \textbf{Analisis kode.} Diketahui \reg{AL} = \hex{A5}.
+          Tentukan nilai akhir \reg{AL} dan nilai \flag{ZF} untuk
+          potongan program berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    AND AL, 00001111b
+    OR  AL, 00110000b
+    XOR AL, 00000011b
+    TEST AL, AL
+\end{lstlisting}
+
+    \item \textbf{Analisis pergeseran.} Diketahui \reg{AL} =
+          \bin{1001 0110} (\hex{96}) yang ditafsirkan sebagai bilangan
+          bertanda. Tentukan hasil dan nilai \flag{CF} untuk
+          \lstasm|SHL AL, 1|, \lstasm|SHR AL, 1|, dan
+          \lstasm|SAR AL, 1|. Jelaskan mengapa hanya \asm{SAR} yang
+          memberi hasil pembagian bertanda yang benar.
+
+    \item \textbf{Analisis rotasi.} Diketahui \reg{AL} =
+          \bin{0110 1001} dan \flag{CF} = 1. Tentukan hasil
+          \lstasm|ROL AL, 1|, \lstasm|ROR AL, 1|, dan
+          \lstasm|RCL AL, 1|. Sebutkan pula nilai \flag{CF} sesudah
+          masing-masing instruksi.
+
+    \item \textbf{Penulisan program.} Tulislah program yang memeriksa
+          paritas byte \hex{B7} memakai \lstasm|TEST AL, AL| diikuti
+          \asm{JP} atau \asm{JNP}, lalu mencetak \code{PARITAS GENAP}
+          atau \code{PARITAS GANJIL}.
+
+    \item \textbf{Penulisan program.} Tulislah program yang
+          menyandikan string \code{'LOGIKA'} dengan \eng{XOR cipher}
+          berkunci \hex{20}, lalu menghitung berapa byte hasil
+          penyandian yang bit ke-0-nya bernilai 1. Cetak cacah itu
+          sebagai digit desimal memakai \code{INT} 21h fungsi
+          \hex{02}.
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Dari ketiga cara pemeriksaan paritas pada
+          Tabel~\ref{tab:paritas}, cara mana yang paling Anda pahami?
+          Mengapa?
+    \item Bagian mana yang paling sulit dibayangkan saat menelusuri
+          pergeseran bit secara manual: pergeseran logis, pergeseran
+          aritmetika, atau rotasi? Apa yang Anda lakukan untuk
+          mengatasinya?
+    \item Setelah mencoba \eng{XOR cipher}, menurut Anda mengapa cara
+          penyandian itu belum cukup aman untuk data yang benar-benar
+          rahasia?
+    \item Konsep apa yang perlu Anda ulangi sebelum mempelajari
+          instruksi lompatan bersyarat pada bab berikutnya?
+\end{enumerate}
+\end{refleksibox}

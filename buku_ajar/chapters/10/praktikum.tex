@@ -1,0 +1,113 @@
+\section{Praktikum}
+\label{sec:praktikum-bab10}
+
+\begin{praktikumbox}
+\textbf{Judul:} Membangun kalkulator sederhana (masukan--proses--keluaran).\\[0.3em]
+\textbf{Sub-CPMK:} 3.1 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu \quad\textbullet\quad
+\textbf{Tugas:} \textbf{Tugas 4} dikumpulkan pada praktikum ini
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menulis program
+assembly utuh yang menerima masukan pengguna, menjalankan operasi
+aritmatika, dan menampilkan hasil dalam bentuk bilangan desimal.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan Emu8086, GUI Turbo Assembler, atau DOSBox.
+    \item Berkas contoh \file{aritmatika.asm} dan \file{kali-bagi.asm}
+          dari direktori \file{code/asm/}.
+    \item Lembar kerja Tugas~4 dan jurnal praktikum.
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Pengamatan program contoh.}
+    \begin{enumerate}
+        \item Rakit dan jalankan \file{aritmatika.asm}. Catat
+              keluarannya pada jurnal.
+        \item Jalankan kembali dengan \file{Single Step}, lalu amati
+              nilai \reg{AX}, \reg{BX}, \flag{CF}, dan \reg{SP} pada
+              setiap langkah.
+        \item Catat nilai \flag{CF} dan \flag{OF} tepat setelah
+              instruksi \asm{ADD} dan \asm{SUB} dijalankan.
+        \item Ulangi langkah yang sama untuk \file{kali-bagi.asm},
+              lalu catat isi \reg{AH} dan \reg{AL} setelah setiap
+              \asm{DIV} berhasil.
+    \end{enumerate}
+
+    \item \textbf{Percobaan luapan.}
+    \begin{enumerate}
+        \item Pada \file{kali-bagi.asm}, hapus sementara pemeriksaan
+              \lstasm|CMP AH, BL| dan lompatan sesudahnya.
+        \item Rakit ulang, jalankan, lalu catat apa yang terjadi
+              ketika program menghitung $1000 \div 3$.
+        \item Kembalikan pemeriksaan tersebut dan pastikan program
+              kembali berjalan normal.
+    \end{enumerate}
+
+    \item \textbf{Menyusun kalkulator empat operasi (Tugas~4).}
+    \begin{enumerate}
+        \item Salin kerangka \file{aritmatika.asm} menjadi berkas
+              baru bernama \file{kalkulator.asm}.
+        \item Tambahkan menu empat pilihan: \code{1} tambah,
+              \code{2} kurang, \code{3} kali, \code{4} bagi.
+        \item Baca pilihan pengguna, lalu arahkan alur program dengan
+              \asm{CMP} dan lompatan bersyarat seperti pada
+              Bab~\ref{chap:kontrol}.
+        \item Baca dua bilangan satu digit, kemudian jalankan operasi
+              yang dipilih.
+        \item Untuk pilihan bagi, periksa pembagi nol dengan
+              \asm{CMP} sebelum \asm{DIV}, dan periksa \reg{AH}
+              terhadap \reg{BL} sebelum \asm{DIV BL} dijalankan.
+        \item Cetak hasil dengan prosedur \code{CETAK\_AX};
+              untuk perkalian, tampilkan hasil 16 bit secara utuh.
+        \item Uji setiap pilihan dengan bilangan terbesar yang masih
+              diterima, misalnya $9$ dan $9$, serta dengan pembagi
+              nol.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Berkas \file{kalkulator.asm} yang lengkap dan dapat
+          dirakit tanpa kesalahan.
+    \item Tangkapan layar keluaran program untuk keempat operasi.
+    \item Tangkapan layar pesan kesalahan ketika pembagi bernilai
+          nol.
+    \item Tabel pengamatan nilai \reg{AX}, \flag{CF}, \flag{ZF}, dan
+          \flag{OF} untuk setiap operasi.
+    \item Jurnal praktikum berisi refleksi singkat.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen praktikum 3 (Tugas 4, bobot 10\% dari komponen
+praktikum).}
+
+\begin{tabular}{@{}p{6.0cm}cp{4.6cm}@{}}
+    \toprule
+    \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \midrule
+    Kelengkapan empat operasi aritmatika & 30\% &
+    Keempat pilihan menu menghasilkan nilai yang benar \\
+    \addlinespace
+    Ketepatan penanganan luapan dan pembagi nol & 25\% &
+    Program menampilkan pesan, bukan berhenti mendadak \\
+    \addlinespace
+    Ketepatan pencetakan hasil desimal & 20\% &
+    Hasil multi-digit tercetak dengan urutan digit yang benar \\
+    \addlinespace
+    Struktur program dan kerapian kode & 15\% &
+    Prosedur dipakai ulang, komentar jelas, register dipulihkan \\
+    \addlinespace
+    Dokumentasi dan jurnal praktikum & 10\% &
+    Tabel pengamatan lengkap dan dapat dipertanggungjawabkan \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

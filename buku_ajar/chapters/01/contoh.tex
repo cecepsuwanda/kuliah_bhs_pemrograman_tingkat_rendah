@@ -1,0 +1,91 @@
+\section{Contoh: Menelusuri Satu Bab dengan Alur OBE}
+\label{sec:contoh-bab1}
+
+Agar alur belajar pada Bagian~\ref{sec:cara-menggunakan} menjadi
+konkret, berikut contoh penerapannya pada satu bab, yaitu
+Bab~\ref{chap:register} (Register 8086 dan Register Flag) yang
+menempati minggu ke-3.
+
+\subsection{Langkah 1: Membaca Sub-CPMK}
+
+Bab tersebut menetapkan \SubCPMK{1.2} dengan indikator: mengidentifikasi
+fungsi register umum, register segmen, register \eng{pointer} dan
+\eng{index}, serta register \eng{flag} beserta pengaruhnya terhadap
+eksekusi program. Dari rumusan ini mahasiswa sudah tahu bahwa yang
+akan diuji bukan sekadar kemampuan menghafal nama register, melainkan
+kemampuan \emph{memprediksi} perilaku program ketika register berubah.
+
+\subsection{Langkah 2: Membaca Materi dan Menandai Pertanyaan}
+
+Saat membaca, tandai hal yang belum jelas. Contoh pertanyaan yang
+wajar muncul pada bab tersebut:
+
+\begin{itemize}
+    \item Mengapa \reg{AX} disebut akumulator, dan apakah ia wajib
+          dipakai pada operasi aritmatika?
+    \item Apa bedanya \reg{SP} dan \reg{BP}? Keduanya menunjuk stack,
+          tetapi mengapa perlu dua register?
+    \item Jika \flag{CF} dan \flag{OF} sama-sama menunjukkan
+          ``kelebihan'', mengapa keduanya dibedakan?
+\end{itemize}
+
+Pertanyaan seperti ini dibawa ke kelas. Inilah inti
+\eng{flipped classroom}: waktu tatap muka dipakai untuk menjawab
+kebingungan, bukan untuk membacakan ulang isi buku.
+
+\subsection{Langkah 3: Menjalankan Contoh Program}
+
+Bagian Contoh Program pada bab tersebut meminta mahasiswa menjalankan
+program penjumlahan dan memprediksi nilai flag sebelum program
+dijalankan. Tabel~\ref{tab:contoh-prediksi} memperlihatkan bentuk
+tabel pengamatan yang diisi setelah program dijalankan.
+
+\begin{table}[H]
+    \centering
+    \caption{Contoh tabel prediksi dan hasil pengamatan \eng{flag}
+    untuk \asm{ADD AL, BL}.}
+    \label{tab:contoh-prediksi}
+    \small
+    \begin{tabular}{@{}cccccc@{}}
+        \toprule
+        \textbf{AL} & \textbf{BL} & \textbf{Hasil} &
+        \textbf{Prediksi ZF} & \textbf{Prediksi CF} &
+        \textbf{Keterangan} \\
+        \midrule
+        \hex{7F} & \hex{01} & \hex{80} & 0 & 0 &
+        \textit{overflow} bertanda, \flag{OF} = 1 \\
+        \addlinespace
+        \hex{FF} & \hex{01} & \hex{00} & 1 & 1 &
+        \eng{carry} keluar bit ke-8 \\
+        \addlinespace
+        \hex{40} & \hex{40} & \hex{80} & 0 & 0 &
+        hasil bertanda negatif, \flag{SF} = 1 \\
+        \addlinespace
+        \hex{10} & \hex{10} & \hex{20} & 0 & 0 &
+        hasil biasa, semua flag utama 0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Langkah 4: Mengisi Jurnal dan Checklist}
+
+Setelah praktikum, mahasiswa mengisi jurnal praktikum sesuai format
+Tabel~\ref{tab:format-jurnal}, lalu menandai butir Checklist
+Pencapaian Kompetensi pada akhir bab. Butir yang belum bertanda
+menjadi daftar tugas belajar sebelum kuis.
+
+\subsection{Langkah 5: Menghubungkan ke Asesmen}
+
+Bagian Evaluasi pada bab tersebut memuat kisi-kisi yang menautkan
+setiap soal ke indikator \SubCPMK{1.2}. Dengan membaca kisi-kisi itu
+sebelum mengerjakan, mahasiswa mengetahui bobot relatif antara
+kemampuan menghafal (\dec{15}\%) dan kemampuan menganalisis
+(\dec{85}\%). Informasi ini membantu mengarahkan usaha belajar pada
+kemampuan yang benar-benar dinilai.
+
+\begin{infobox}
+Perhatikan pola yang berulang: dimulai dari \emph{outcome}, diakhiri
+dengan \emph{asesmen}, dan seluruh kegiatan di antaranya adalah
+sarana. Pola inilah yang membedakan belajar dalam kerangka OBE dari
+belajar menghafal materi.
+\end{infobox}

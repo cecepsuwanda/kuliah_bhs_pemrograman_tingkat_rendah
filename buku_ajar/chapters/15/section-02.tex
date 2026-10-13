@@ -1,0 +1,346 @@
+\section{Menelusuri Program dengan Perintah DEBUG}
+\label{sec:perintah-debug}
+
+Bagian ini memakai program \file{bug-loop.asm} yang tersedia pada
+direktori \file{code/asm/} sebagai bahan latihan. Program tersebut
+\emph{memang sengaja dibuat salah}: maksudnya menjumlahkan bilangan 1
+sampai 5, tetapi program tidak pernah selesai. Tugas kita adalah
+menemukan penyebabnya melalui penelusuran.
+
+\subsection{Memuat dan Menulis Berkas}
+
+Sebelum program dapat ditelusuri, berkas harus dimuat ke memori lebih
+dahulu. Perintah \code{N} (\eng{name}) menetapkan nama berkas,
+\code{L} (\eng{load}) memuat isi berkas ke memori, dan \code{W}
+(\eng{write}) menulis kembali isi memori ke berkas. Perlu
+diperhatikan bahwa \code{L} \emph{tidak} menjalankan program; ia hanya
+memindahkan isi berkas ke memori dan menetapkan register segmen
+beserta titik masuknya.
+
+\subsection{Memeriksa Register dengan \code{R}}
+
+Perintah \code{R} (\eng{register}) menampilkan seluruh register
+umum, register segmen, dan seluruh \eng{flag} dalam satu layar. Baris
+kedua keluarannya juga menampilkan instruksi yang sedang ditunjuk oleh
+\reg{CS}:\reg{IP}, sehingga programmer langsung mengetahui posisi
+eksekusi. Perintah \code{R} dapat pula dipakai untuk \emph{mengubah}
+isi register, misalnya \code{R AX} atau \code{R IP}.
+
+Format keluarannya patut dipahami baris demi baris. Pada contoh
+berikut, \reg{AX} bernilai \hex{13A6}, \reg{SP} bernilai \hex{0100},
+\flag{ZF} bernilai nol (\code{NZ}), dan \flag{CF} juga bernilai nol
+(\code{NC}):
+
+\begin{session}[caption={Contoh keluaran perintah \code{R}.}]
+-r
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=1391  ES=1391  SS=13A7  CS=13A1  IP=0000   NV UP EI PL NZ NA PO NC
+13A1:0000 B8A613         MOV     AX,13A6
+\end{session}
+
+Delapan penanda \eng{flag} ditampilkan berpasangan dengan urutan yang
+selalu tetap: \flag{OF}, \flag{DF}, \flag{IF}, \flag{SF}, \flag{ZF},
+\flag{AF}, \flag{PF}, lalu \flag{CF}. Menghafal urutan ini sangat
+membantu ketika kita mengisi tabel \eng{trace} nanti.
+
+\subsection{Membongkar Kode Mesin dengan \code{U}}
+
+Perintah \code{U} (\eng{unassemble}) menerjemahkan kembali kode mesin
+menjadi mnemonic assembly. Perintah ini dipakai untuk memastikan
+bahwa kode yang dijalankan benar-benar sama dengan yang ditulis, dan
+untuk mengetahui di alamat berapa setiap instruksi berada.
+Pembahasan lebih dalam mengenai hubungan antara kode mesin dan hasil
+pembongkaran disajikan pada Bab~\ref{chap:disassembly}.
+
+\subsection{Penelusuran Satu Langkah dengan \code{T}}
+
+Perintah \code{T} (\eng{trace}) menjalankan \emph{tepat satu}
+instruksi, lalu menampilkan kembali seluruh register dan \eng{flag},
+serta mnemonic instruksi berikutnya. Inilah perintah terpenting pada
+bab ini, karena hanya dengan menjalankan program satu instruksi demi
+satu instruksi kita dapat melihat pada langkah berapa sebuah nilai
+mulai menyimpang.
+
+Sesi berikut memperlihatkan seluruh rangkaian: memuat program,
+membongkar kode mesin, memeriksa isi memori, lalu menelusuri program
+beberapa langkah.
+
+\begin{session}[caption={Sesi DEBUG lengkap pada \file{bug-loop.exe}:
+\code{R}, \code{U}, \code{D}, dan \code{T}.},
+label={lst:sesi-debug-lengkap}]
+C:\ASM>debug bug-loop.exe
+-n bug-loop.exe
+-l
+-r
+AX=0000  BX=0000  CX=00FF  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=1391  ES=1391  SS=13A7  CS=13A1  IP=0000   NV UP EI PL NZ NA PO NC
+13A1:0000 B8A613         MOV     AX,13A6
+
+-u 0000 001c
+13A1:0000 B8A613         MOV     AX,13A6
+13A1:0003 8ED8           MOV     DS,AX
+13A1:0005 31C0           XOR     AX,AX
+13A1:0007 B90500         MOV     CX,0005
+13A1:000A 01C8           ADD     AX,CX
+13A1:000C 41             INC     CX
+13A1:000D E2FB           LOOP    000A
+13A1:000F B409           MOV     AH,09
+13A1:0011 BA0000         MOV     DX,0000
+13A1:0014 CD21           INT     21
+13A1:0016 B44C           MOV     AH,4C
+13A1:0018 B000           MOV     AL,00
+13A1:001A CD21           INT     21
+
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=1391  ES=1391  SS=13A7  CS=13A1  IP=0003   NV UP EI PL NZ NA PO NC
+13A1:0003 8ED8           MOV     DS,AX
+
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0005   NV UP EI PL NZ NA PO NC
+13A1:0005 31C0           XOR     AX,AX
+
+-d ds:0
+13A6:0000 4A 75 6D 6C 61 68 20 31-2E 2E 35 20 3D 20 24 00  Jumlah 1..5 = $.
+
+-t
+AX=0000  BX=0000  CX=00FF  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0007   NV UP EI PL ZR NA PE NC
+13A1:0007 B90500         MOV     CX,0005
+
+-t
+AX=0000  BX=0000  CX=0005  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=000A   NV UP EI PL ZR NA PE NC
+13A1:000A 01C8           ADD     AX,CX
+
+-t
+AX=0005  BX=0000  CX=0005  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=000C   NV UP EI PL NZ NA PE NC
+13A1:000C 41             INC     CX
+
+-t
+AX=0005  BX=0000  CX=0006  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=000D   NV UP EI PL NZ NA PO NC
+13A1:000D E2FB           LOOP    000A
+
+-t
+AX=0005  BX=0000  CX=0005  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=000A   NV UP EI PL NZ NA PO NC
+13A1:000A 01C8           ADD     AX,CX
+
+-t
+AX=000A  BX=0000  CX=0005  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=000C   NV UP EI PL NZ NA PO NC
+13A1:000C 41             INC     CX
+\end{session}
+
+\begin{infobox}
+Nilai segmen pada contoh ini bergantung pada cara DOS memuat program
+dan pada isi memori saat itu. Yang perlu diperhatikan bukan angka
+persisnya, melainkan \emph{hubungan} antarregister: \reg{CS} menunjuk
+segmen kode, \reg{DS} harus diarahkan sendiri ke segmen data,
+sedangkan \reg{SS}:\reg{SP} sudah disiapkan DOS sesuai direktif
+\dir{.STACK}.
+\end{infobox}
+
+\subsection{Ringkasan Perintah DEBUG}
+
+Tabel~\ref{tab:perintah-debug} merangkum sebelas perintah DEBUG yang
+paling sering dipakai beserta contoh pemakaian dan keluarannya.
+
+\begin{table}[H]
+    \centering
+    \caption{Perintah DEBUG beserta kegunaan, contoh pemakaian, dan
+    keluarannya.}
+    \label{tab:perintah-debug}
+    \small
+    \begin{tabular}{@{}p{1.0cm}p{3.2cm}p{2.7cm}p{6.7cm}@{}}
+        \toprule
+        \textbf{Perintah} & \textbf{Kegunaan} &
+        \textbf{Contoh} & \textbf{Keluaran yang muncul} \\
+        \midrule
+        \code{R} & Menampilkan dan mengubah register serta
+        \eng{flag} & \code{R} atau \code{R AX} &
+        \code{AX=13A6 ... NV UP EI PL NZ NA PO NC} \\
+        \addlinespace
+        \code{U} & Membongkar kode mesin menjadi mnemonic &
+        \code{U 0000 001C} &
+        \code{13A1:0000 B8A613 MOV AX,13A6} \\
+        \addlinespace
+        \code{T} & Menjalankan satu instruksi, termasuk masuk ke
+        dalam \asm{CALL} & \code{T} &
+        Register baru, lalu mnemonic berikutnya \\
+        \addlinespace
+        \code{P} & Menjalankan sampai instruksi berikutnya,
+        melewati \asm{CALL}/\code{INT} & \code{P} &
+        Register baru setelah prosedur selesai \\
+        \addlinespace
+        \code{G} & Menjalankan sampai alamat tertentu
+        (\eng{breakpoint}) & \code{G 000A} &
+        Berhenti di \hex{000A} dan menampilkan register \\
+        \addlinespace
+        \code{D} & Menampilkan isi memori (\eng{dump}) &
+        \code{D DS:0} &
+        \code{13A6:0000 4A 75 6D 6C ... Jumlah 1..5 = \$.} \\
+        \addlinespace
+        \code{E} & Mengubah isi memori satu per satu &
+        \code{E DS:0 48 61 6C 6F 24} &
+        Memori pada \reg{DS}:\hex{0000} berubah menjadi
+        \code{Halo\$} \\
+        \addlinespace
+        \code{A} & Merakit instruksi langsung di memori &
+        \code{A 0100} &
+        \code{13A1:0100 MOV AH,02} (DEBUG meminta baris
+        berikutnya) \\
+        \addlinespace
+        \code{N} & Menetapkan nama berkas &
+        \code{N latihan.com} & Tidak ada keluaran \\
+        \addlinespace
+        \code{L} & Memuat berkas yang telah dinamai ke memori &
+        \code{L} & Tidak ada keluaran; register terisi \\
+        \addlinespace
+        \code{W} & Menulis isi memori ke berkas &
+        \code{W 0100} &
+        \code{Writing 0020 bytes} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{peringatanbox}
+Perintah \code{L} dan \code{W} bekerja pada berkas yang \emph{terakhir}
+ditetapkan oleh \code{N}. Bila urutannya terbalik --- misalnya
+\code{L} dijalankan sebelum \code{N} --- DEBUG akan memuat berkas
+sebelumnya atau menolak dengan pesan \file{File not found}. Urutan
+\code{N} lalu \code{L} harus selalu dijaga.
+\end{peringatanbox}
+
+\subsection{Perbedaan \code{T} dan \code{P}}
+
+Perintah \code{T} dan \code{P} sama-sama menjalankan program, tetapi
+keduanya berbeda dalam menyikapi instruksi yang memindahkan kendali.
+
+\begin{itemize}
+    \item \code{T} (\eng{trace}) menjalankan satu instruksi
+          \emph{apa pun}. Jika instruksi itu adalah \asm{CALL},
+          \code{T} \emph{masuk} ke dalam prosedur dan berhenti pada
+          instruksi pertamanya; jika \code{INT 21h}, \code{T} masuk
+          ke dalam rutin layanan DOS.
+
+    \item \code{P} (\eng{proceed}) menjalankan instruksi sampai
+          instruksi berikutnya pada level yang sama. Jika instruksi
+          itu \asm{CALL} atau \code{INT}, \code{P}
+          \emph{menjalankannya sampai selesai} dan berhenti pada
+          instruksi setelahnya.
+\end{itemize}
+
+Manfaat perbedaan ini sangat terasa pada praktik. Ketika kita
+mencurigai isi sebuah prosedur, \code{T} dipakai agar setiap langkah di
+dalamnya dapat diperiksa. Sebaliknya, ketika prosedur tersebut sudah
+teruji dan kita hanya ingin melanjutkan penelusuran pada program
+utama, \code{P} dipakai agar tidak terbuang waktu menelusuri
+\code{INT 21h} yang panjang.
+
+\begin{infobox}
+Kaidah praktis: pakai \code{P} untuk instruksi \code{INT 21h} dan
+untuk prosedur yang sudah diyakini benar; pakai \code{T} untuk
+prosedur yang sedang dicurigai. Perlu diingat bahwa \code{P}
+\emph{tidak memperbaiki} bug di dalam prosedur --- ia hanya
+menyembunyikan langkah-langkahnya. Bila prosedur itu sendiri rusak,
+misalnya karena \asm{RET} mengambil alamat yang salah, \code{P} justru
+melewati saat-saat terjadinya kesalahan.
+\end{infobox}
+
+\subsection{Breakpoint dengan Perintah \code{G}}
+
+Menelusuri program sepanjang ratusan instruksi dengan \code{T} jelas
+tidak efisien. Perintah \code{G} (\eng{go}) menjalankan program sampai
+alamat tertentu berhenti, sehingga programmer dapat langsung melompat
+ke bagian yang dicurigai. Perintah \code{G 000A} pada contoh di atas
+menjalankan instruksi dari \hex{0000} sampai \hex{000A} dan berhenti
+\emph{sebelum} instruksi pada alamat itu dieksekusi.
+
+Beberapa alamat dapat ditulis sekaligus, misalnya
+\code{G 000A 000F}; program akan berhenti pada alamat pertama yang
+tercapai. Dengan cara ini, sebuah titik di dalam perulangan dan titik
+setelah perulangan dapat diperiksa dalam satu kali jalan.
+\begin{peringatanbox}
+DEBUG klasik memiliki keterbatasan yang perlu diketahui. Pertama,
+jumlah \eng{breakpoint} yang dapat dipasang sekaligus terbatas
+(umumnya empat sampai sepuluh, bergantung versinya). Kedua,
+\eng{breakpoint} hanya dipasang pada \emph{alamat}, bukan pada baris
+sumber, nama variabel, atau kondisi tertentu seperti ``berhenti bila
+\reg{AX} bernilai nol''. Ketiga, DEBUG bekerja pada mode real 16-bit;
+program 32-bit tidak dapat ditelusuri dengannya.
+\end{peringatanbox}
+
+\subsection{Tabel Trace Register dan Flag}
+
+Bukti utama dalam \eng{debugging} level instruksi adalah tabel
+\eng{trace}. Tabel ini mencatat, untuk setiap langkah, alamat
+instruksi yang baru saja dijalankan dan nilai seluruh register serta
+\eng{flag} yang dipantau. Tabel~\ref{tab:trace-register} memuat
+sebelas langkah pertama eksekusi \file{bug-loop.asm}, yaitu isi sesi
+pada Kode~\ref{lst:sesi-debug-lengkap} yang dirapikan ke dalam bentuk
+tabel.
+
+\begin{table}[H]
+    \centering
+    \caption{Tabel \eng{trace} register dan \eng{flag} program
+    \file{bug-loop.asm}.}
+    \label{tab:trace-register}
+    \scriptsize
+    \setlength{\tabcolsep}{2.5pt}
+    \begin{tabular}{@{}rl l rrrr r ccc p{2.3cm}@{}}
+        \toprule
+        \textbf{L} & \textbf{Alamat} & \textbf{Instruksi} &
+        \textbf{AX} & \textbf{BX} & \textbf{CX} & \textbf{DX} &
+        \textbf{SP} & \textbf{ZF} & \textbf{CF} & \textbf{OF} &
+        \textbf{Keterangan} \\
+        \midrule
+        1 & 13A1:0000 & MOV AX,13A6 & 13A6 & 0000 & 0000 & 0000 & 0100
+        & 0 & 0 & 0 & Muat alamat segmen data \\
+        \addlinespace
+        2 & 13A1:0003 & MOV DS,AX & 13A6 & 0000 & 0000 & 0000 & 0100
+        & 0 & 0 & 0 & DS menunjuk segmen data \\
+        \addlinespace
+        3 & 13A1:0005 & XOR AX,AX & 0000 & 0000 & 0000 & 0000 & 0100
+        & 1 & 0 & 0 & Akumulator dinolkan \\
+        \addlinespace
+        4 & 13A1:0007 & MOV CX,0005 & 0000 & 0000 & 0005 & 0000 & 0100
+        & 1 & 0 & 0 & Penghitung diisi 5 \\
+        \addlinespace
+        5 & 13A1:000A & ADD AX,CX & 0005 & 0000 & 0005 & 0000 & 0100
+        & 0 & 0 & 0 & AX = 0 + 5 \\
+        \addlinespace
+        6 & 13A1:000C & INC CX & 0005 & 0000 & 0006 & 0000 & 0100
+        & 0 & 0 & 0 & Penghitung naik ke 6 \\
+        \addlinespace
+        7 & 13A1:000D & LOOP 000A & 0005 & 0000 & 0005 & 0000 & 0100
+        & 0 & 0 & 0 & CX = 5, lompat ke 000A \\
+        \addlinespace
+        8 & 13A1:000A & ADD AX,CX & 000A & 0000 & 0005 & 0000 & 0100
+        & 0 & 0 & 0 & AX = 5 + 5 \\
+        \addlinespace
+        9 & 13A1:000C & INC CX & 000A & 0000 & 0006 & 0000 & 0100
+        & 0 & 0 & 0 & Penghitung naik lagi \\
+        \addlinespace
+        10 & 13A1:000D & LOOP 000A & 000A & 0000 & 0005 & 0000 & 0100
+        & 0 & 0 & 0 & Lompat lagi ke 000A \\
+        \addlinespace
+        11 & 13A1:000A & ADD AX,CX & 000F & 0000 & 0005 & 0000 & 0100
+        & 0 & 0 & 0 & AX = 10 + 5 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Tabel~\ref{tab:trace-register} langsung memperlihatkan penyebab
+masalah. Pada langkah 6 penghitung \reg{CX} naik dari 5 menjadi 6,
+padahal instruksi \asm{LOOP} pada langkah 7 selalu \emph{mengurangi}
+\reg{CX} sebesar satu. Akibatnya \reg{CX} berayun pada nilai 5 dan 6
+dan tidak pernah mencapai nol, sehingga syarat berhenti perulangan
+tidak pernah terpenuhi. Perhatikan pula kolom \flag{ZF} pada langkah
+4: nilainya masih 1 karena \asm{MOV} \emph{tidak pernah} mengubah
+\eng{flag}. Keadaan \eng{flag} yang tertinggal dari instruksi
+sebelumnya sering menyesatkan pemula dan akan dibahas kembali pada
+studi kasus pertama di Bagian~\ref{sec:memori-stack-metodologi}.

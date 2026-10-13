@@ -1,0 +1,175 @@
+\section{Rantai Proses Pembuatan Program Assembly}
+\label{sec:toolchain}
+
+Program assembly tidak dapat langsung dijalankan. Ia harus melewati
+beberapa tahap pengolahan sampai menjadi berkas yang dapat dimuat
+oleh sistem operasi. Keseluruhan tahap ini disebut \term{rantai
+proses} (\eng{toolchain}).
+
+\subsection{Tahapan Rantai Proses}
+
+\begin{enumerate}
+    \item \textbf{Penyuntingan (\eng{editing}).} Programmer menulis
+          kode assembly dalam berkas teks berekstensi \file{.asm}
+          menggunakan penyunting teks biasa atau editor bawaan
+          Emu8086.
+
+    \item \textbf{Perakitan (\eng{assembling}).} Program
+          \term{assembler} (TASM atau MASM) menerjemahkan setiap
+          \eng{mnemonic} menjadi kode mesin, menyusun tabel simbol,
+          dan menghasilkan berkas objek \file{.obj}. Pada tahap ini
+          alamat akhir instruksi dan data \emph{belum} diketahui,
+          sehingga sebagian besar alamat masih berupa penanda yang
+          harus diselesaikan kemudian.
+
+    \item \textbf{Pengaitan (\eng{linking}).} Program \term{linker}
+          (TLINK) menggabungkan berkas objek dengan pustaka
+          (\eng{library}) yang diperlukan, menentukan alamat akhir
+          setiap segmen, dan menghasilkan berkas yang dapat
+          dijalankan \file{.exe} (atau \file{.com}).
+
+    \item \textbf{Pemuatan dan eksekusi.} Sistem operasi memuat
+          berkas tersebut ke memori melalui \eng{loader}, menetapkan
+          register segmen (CS, DS, SS), lalu menyerahkan kendali ke
+          instruksi pertama program.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        node distance=0.9cm,
+        tahap/.style={
+            draw=obeBlue,
+            line width=0.8pt,
+            fill=obeBlueLight,
+            rounded corners=3pt,
+            minimum width=2.9cm,
+            minimum height=1.15cm,
+            align=center,
+            font=\small\bfseries,
+            inner sep=4pt
+        },
+        alat/.style={
+            font=\scriptsize\itshape,
+            text=obeGray,
+            align=center
+        },
+        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt, obeTeal}
+    ]
+        \node[tahap] (a) {\file{.asm}\\{\normalfont\scriptsize kode sumber}};
+        \node[tahap, right=of a, fill=obeTealLight, draw=obeTeal] (b)
+            {\file{.obj}\\{\normalfont\scriptsize berkas objek}};
+        \node[tahap, right=of b, fill=obeTealLight, draw=obeTeal] (c)
+            {\file{.exe}\\{\normalfont\scriptsize dapat dijalankan}};
+        \node[tahap, right=of c, fill=obeAmberLight, draw=obeAmber] (d)
+            {Memori\\{\normalfont\scriptsize proses berjalan}};
+
+        \draw[panah] (a) -- (b);
+        \draw[panah] (b) -- (c);
+        \draw[panah] (c) -- (d);
+
+        \node[alat, below=0.12cm of a] {editor};
+        \node[alat, below=0.12cm of b] {assembler\\TASM / MASM};
+        \node[alat, below=0.12cm of c] {linker\\TLINK};
+        \node[alat, below=0.12cm of d] {loader\\DOS};
+    \end{tikzpicture}
+    \caption{Rantai proses pembuatan program assembly dari kode sumber
+    sampai berjalan di memori.}
+    \label{fig:toolchain}
+\end{figure}
+
+\subsection{Pengertian Assembler, Linker, dan Loader}
+
+\begin{description}
+    \item[Assembler] Menerjemahkan kode sumber assembly menjadi kode
+          mesin. Karena setiap instruksi assembly bersesuaian dengan
+          satu instruksi mesin, penerjemahan ini bukan kompilasi
+          penuh, melainkan penerjemahan satu-ke-satu ditambah
+          penanganan direktif dan simbol.
+
+    \item[Linker] Menyelesaikan rujukan antarberkas. Misalnya, bila
+          program memanggil prosedur yang berada di berkas lain atau
+          di pustaka, linker-lah yang menyambungkannya dan menetapkan
+          alamat akhir.
+
+    \item[Loader] Bagian sistem operasi yang memuat berkas
+          \file{.exe} ke memori, membuat \eng{Program Segment Prefix}
+          (PSP), menetapkan register segmen, dan melompat ke titik
+          masuk program.
+\end{description}
+
+\subsection{Perbedaan Berkas \file{.COM} dan \file{.EXE}}
+
+Pada lingkungan DOS dikenal dua bentuk berkas program, dan perbedaan
+keduanya penting dipahami sejak awal.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan bentuk program \file{.COM} dan \file{.EXE}.}
+    \label{tab:com-vs-exe}
+    \small
+    \begin{tabular}{@{}p{3.2cm}p{5.3cm}p{5.3cm}@{}}
+        \toprule
+        \textbf{Aspek} & \textbf{Program \file{.COM}} &
+        \textbf{Program \file{.EXE}} \\
+        \midrule
+        Ukuran maksimum & 64 KB dikurangi 256 byte & Tidak dibatasi
+        satu segmen \\
+        \addlinespace
+        Struktur segmen & Seluruhnya satu segmen (kode, data, stack
+        menyatu) & Terpisah: segmen kode, data, dan stack sendiri \\
+        \addlinespace
+        Titik awal & Wajib dimulai dengan \dir{ORG 100h} &
+        Alamat masuk dinyatakan oleh \dir{END} pada label awal \\
+        \addlinespace
+        Inisialisasi DS & Otomatis sudah benar & Harus dilakukan
+        sendiri: \lstasm|MOV AX, @DATA| dan \lstasm|MOV DS, AX| \\
+        \addlinespace
+        Cara keluar & \lstasm|INT 20h| &
+        \lstasm|MOV AH, 4Ch| lalu \lstasm|INT 21h| \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{peringatanbox}
+Kesalahan paling sering pada program \file{.EXE} adalah lupa
+menginisialisasi register \reg{DS}. Akibatnya instruksi yang mengakses
+variabel membaca alamat yang salah dan program mencetak karakter
+sampah. Pada program \file{.COM}, inisialisasi ini tidak diperlukan
+karena DOS menetapkan seluruh register segmen ke segmen program.
+\end{peringatanbox}
+
+\subsection{Membaca Pesan Kesalahan Assembler}
+
+Assembler melaporkan kesalahan beserta nomor barisnya. Tiga jenis
+pesan yang paling sering muncul dijelaskan pada
+Tabel~\ref{tab:error-assembler}.
+
+\begin{table}[H]
+    \centering
+    \caption{Pesan kesalahan assembler yang sering muncul.}
+    \label{tab:error-assembler}
+    \small
+    \begin{tabular}{@{}p{4.4cm}p{4.2cm}p{5.2cm}@{}}
+        \toprule
+        \textbf{Pesan} & \textbf{Penyebab umum} &
+        \textbf{Cara memperbaiki} \\
+        \midrule
+        \file{Undefined symbol} & Label atau variabel belum
+        didefinisikan & Periksa penulisan nama; pastikan label
+        didefinisikan sebelum atau sesudah pemakaian \\
+        \addlinespace
+        \file{Syntax error} & Salah tulis mnemonic atau operand &
+        Periksa ukuran operand dan tanda koma pemisah \\
+        \addlinespace
+        \file{Operand types do not match} & Ukuran operand tidak
+        sama, misalnya register 16-bit dengan memori 8-bit &
+        Samakan ukuran, atau gunakan \lstasm|BYTE PTR| /
+        \lstasm|WORD PTR| \\
+        \addlinespace
+        \file{Improper operand type} & Operasi memori-ke-memori
+        yang tidak diizinkan & Pindahkan salah satu operand ke
+        register terlebih dahulu \\
+        \bottomrule
+    \end{tabular}
+\end{table}

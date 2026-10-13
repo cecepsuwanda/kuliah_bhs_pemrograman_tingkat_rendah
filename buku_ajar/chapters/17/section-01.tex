@@ -1,0 +1,115 @@
+\section{Rekapitulasi Capaian dan Peta Kompetensi}
+\label{sec:rekap-capaian}
+
+Bab ini menutup perjalanan seluruh buku. Tujuannya bukan menambah
+materi baru, melainkan membantu mahasiswa melihat keseluruhan
+kompetensi yang telah dibangun dan mengukur seberapa jauh
+kompetensi itu telah dikuasai.
+
+\subsection{Perjalanan Kompetensi}
+
+Perjalanan belajar mata kuliah ini dapat dibaca sebagai satu alur
+tunggal. Pada Bab~\ref{chap:pengenalan} sampai
+Bab~\ref{chap:segmentasi}, mahasiswa membangun pemahaman tentang
+mesin: bagaimana prosesor bekerja, register apa yang tersedia, dan
+bagaimana memori diorganisasi. Pada Bab~\ref{chap:format-instruksi}
+sampai Bab~\ref{chap:translasi}, mahasiswa mempelajari bagaimana
+kehendak programmer diterjemahkan menjadi instruksi mesin. Pada
+Bab~\ref{chap:aritmatika} sampai Bab~\ref{chap:prosedur}, mahasiswa
+berlatih menulis program yang benar dan terstruktur. Pada
+Bab~\ref{chap:interupsi}, mahasiswa menghubungkan programnya dengan
+dunia luar. Akhirnya pada Bab~\ref{chap:debugging} dan
+Bab~\ref{chap:disassembly}, mahasiswa belajar memperbaiki dan
+mempertajam program yang telah ditulis.
+
+Peta ketercapaian lengkap disajikan pada
+Tabel~\ref{tab:peta-ketercapaian}.
+
+\begin{table}[H]
+    \centering
+    \caption{Peta ketercapaian Sub-CPMK beserta bukti belajar dan
+    asesmennya.}
+    \label{tab:peta-ketercapaian}
+    \footnotesize
+    \begin{tabular}{@{}p{1.1cm}p{4.4cm}p{4.2cm}p{3.5cm}@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Kompetensi} &
+        \textbf{Bukti belajar} & \textbf{Asesmen} \\
+        \midrule
+        1.1 & Arsitektur 8086 dan siklus instruksi &
+        Diagram alur, tabel pengamatan register & UTS, Tugas 1 \\
+        \addlinespace
+        1.2 & Register dan \eng{flag} &
+        Tabel pengamatan \eng{flag} & Kuis 1, UTS \\
+        \addlinespace
+        1.3 & Segmentasi dan alamat fisik &
+        Lembar perhitungan alamat & Kuis 1, UTS \\
+        \addlinespace
+        2.1 & Format instruksi mesin &
+        Lembar kerja \eng{opcode} & Tugas 2, UTS \\
+        \addlinespace
+        2.2 & Mode pengalamatan &
+        Tabel alamat efektif & Kuis 2, UTS \\
+        \addlinespace
+        2.3 & Direktif dan translasi &
+        Portofolio \file{.asm} $\rightarrow$ \file{.exe} &
+        Tugas 3, UTS \\
+        \addlinespace
+        2.4 & Interupsi BIOS/DOS &
+        Program masukan/keluaran & Tugas 7, UAS \\
+        \addlinespace
+        3.1 & Transfer data dan aritmatika &
+        Program kalkulator & Tugas 4, UAS \\
+        \addlinespace
+        3.2 & Logika, geser, rotasi &
+        Program manipulasi bit & Kuis 3, UAS \\
+        \addlinespace
+        3.3 & Struktur kontrol &
+        Program pencarian dan pengurutan & Tugas 5, UAS \\
+        \addlinespace
+        3.4 & Prosedur dan stack &
+        Prosedur berparameter & Tugas 6, UAS \\
+        \addlinespace
+        4.1 & Penelusuran level instruksi &
+        Tabel \eng{trace} & Laporan debugging \\
+        \addlinespace
+        4.2 & Analisis memori dan stack &
+        Laporan \eng{dump} dan temuan bug & Laporan debugging \\
+        \addlinespace
+        4.3 & Disassembly dan optimasi &
+        Perbandingan versi naif dan teroptimasi &
+        Proyek akhir \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Bukti Belajar yang Harus Dimiliki}
+
+Pada akhir semester, setiap mahasiswa harus dapat menunjukkan bukti
+belajar berikut. Bila salah satu belum ada, kompetensi yang
+bersangkutan belum dapat dinyatakan tercapai.
+
+\begin{checklistbox}
+\begin{itemize}
+    \item[\checkbox] Portofolio berisi minimal \dec{14} berkas
+          \file{.asm} yang dapat dirakit, tersusun menurut bab.
+    \item[\checkbox] Jurnal praktikum terisi untuk setiap sesi
+          praktikum sepanjang semester.
+    \item[\checkbox] Tujuh tugas (Tugas 1--7) terselesaikan dan
+          terdokumentasi.
+    \item[\checkbox] Laporan \eng{debugging} memuat tabel
+          \eng{trace}, temuan bug, dan bukti perbaikan.
+    \item[\checkbox] Laporan optimasi memuat perbandingan terukur
+          antara versi naif dan versi teroptimasi.
+    \item[\checkbox] Proyek akhir selesai, berjalan, dan
+          dipresentasikan.
+\end{itemize}
+\end{checklistbox}
+
+\begin{infobox}
+Bukti belajar pada daftar di atas bersifat kumulatif. Artinya, nilai
+akhir mata kuliah tidak ditentukan semata-mata oleh UTS dan UAS,
+tetapi oleh terpeliharanya bukti belajar sepanjang semester.
+Mahasiswa yang kehilangan portofolio atau jurnal akan kehilangan
+bukti utama untuk \CPMK{03} dan \CPMK{04}.
+\end{infobox}

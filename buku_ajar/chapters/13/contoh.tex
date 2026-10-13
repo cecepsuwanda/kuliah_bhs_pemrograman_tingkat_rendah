@@ -1,0 +1,82 @@
+\section{Contoh Program}
+\label{sec:contoh-bab13}
+
+Bagian ini menyajikan dua program utuh yang memakai prosedur
+berparameter dan mengembalikan nilainya melalui register \reg{AX}.
+Keduanya dapat dirakit dengan Emu8086, TASM, maupun MASM.
+
+\subsection{Contoh 1: Prosedur \code{HitungLuas}}
+
+Program pada Kode~\ref{lst:prosedur-luas} menghitung luas persegi
+panjang melalui prosedur \code{HitungLuas} yang menerima dua
+parameter melalui stack.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{prosedur-luas.asm}: prosedur berparameter
+    melalui stack dengan nilai balik di \reg{AX}.},
+    label={lst:prosedur-luas}
+]{\CodeDir/prosedur-luas.asm}
+
+Alur program ini mengikuti pola yang telah dibahas pada
+Subbab~\ref{sec:stack-frame}:
+
+\begin{enumerate}
+    \item Pemanggil mendorong \code{tinggi} lebih dahulu, lalu
+          \code{lebar}. Akibatnya \code{lebar} berada pada
+          \code{[BP+4]} dan \code{tinggi} pada \code{[BP+6]}.
+    \item \asm{CALL} \code{HitungLuas} menyimpan alamat kembali dan
+          melompat ke prosedur, yang membangun bingkainya melalui
+          \eng{prologue}.
+    \item \lstasm|MOV AX, [BP+4]| mengambil lebar, dan
+          \lstasm|MUL WORD PTR [BP+6]| mengalikannya dengan tinggi.
+          Hasil \dec{16} bit berada pada \reg{AX}.
+    \item \eng{Epilogue} memulihkan \reg{BP}, dan \asm{RET} \code{4}
+          kembali ke pemanggil sekaligus membuang kedua parameter.
+          Karena itu pemanggil \emph{tidak} perlu menambahkan
+          \lstasm|ADD SP, 4|.
+\end{enumerate}
+
+Hasil perhitungannya adalah $5 \times 10 = \dec{50}$, atau
+\hex{0032}. Prosedur ini sengaja hanya merusak \reg{AX}, sehingga
+\reg{BX}, \reg{CX}, \reg{DX}, \reg{SI}, dan \reg{DI} tetap utuh bagi
+pemanggilnya sesuai Tabel~\ref{tab:register-simpan}.
+
+\subsection{Contoh 2: Faktorial Rekursif}
+
+Program pada Kode~\ref{lst:faktorial} menghitung $5!$ secara
+rekursif. Program ini memperlihatkan bahwa rekursi pada assembly
+bukan fitur bahasa, melainkan akibat langsung dari penumpukan
+bingkai stack.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{faktorial.asm}: prosedur rekursif dengan
+    nilai balik pada \reg{AX}.},
+    label={lst:faktorial}
+]{\CodeDir/faktorial.asm}
+
+Hal penting yang perlu diperhatikan pada program ini:
+
+\begin{itemize}
+    \item Setiap pemanggilan \code{Faktorial} menambah satu bingkai
+          baru berukuran \dec{6} byte. Untuk $5!$ terbentuk lima
+          bingkai, sehingga total pemakaian stack sekitar
+          \dec{30} byte.
+    \item Kasus basis $n \le 1$ ditangani oleh label \code{basis}
+          yang mengembalikan nilai \dec{1}. Tanpa kasus basis,
+          rekursi tidak akan berhenti dan stack akan melampaui
+          batasnya.
+    \item Pada jalur rekursif dipakai \lstasm|ADD SP, 2| setelah
+          \asm{CALL}, sedangkan pemanggilan tingkat atas tidak
+          menambahkan apa pun karena prosedurnya memakai \asm{RET}
+          biasa. Kedua jalur tetap seimbang karena masing-masing
+          membuang argumen tepat satu kali.
+    \item Nilai balik selalu berada pada \reg{AX} saat \asm{RET}
+          dijalankan, baik pada jalur basis maupun jalur rekursif.
+\end{itemize}
+
+Bila pekerjaan yang sama ditulis secara iteratif, pemakaian stacknya
+tetap sebanyak satu bingkai saja, tanpa biaya \asm{CALL}, dan
+\eng{prologue} pada setiap tingkat. Karena itu rekursi baru dipakai
+bila persoalannya memang bercabang, misalnya penelusuran pohon.

@@ -1,0 +1,130 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab7}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Urutan field instruksi 8086 dari kiri ke kanan adalah
+          \dots
+          \begin{enumerate}
+              \item \eng{opcode}, awalan, ModR/M, \eng{immediate},
+                    \eng{displacement}
+              \item awalan, \eng{opcode}, ModR/M, \eng{displacement},
+                    \eng{immediate}
+              \item ModR/M, \eng{opcode}, awalan, \eng{displacement},
+                    \eng{immediate}
+              \item awalan, ModR/M, \eng{opcode}, \eng{immediate},
+                    \eng{displacement}
+          \end{enumerate}
+
+    \item Panjang maksimum sebuah instruksi 8086 adalah \dots
+          \begin{enumerate}
+              \item 2 byte \item 4 byte
+              \item 6 byte \item 8 byte
+          \end{enumerate}
+
+    \item Byte ModR/M \hex{D8} memiliki nilai \code{mod} sebesar
+          \dots
+          \begin{enumerate}
+              \item \bin{00}, operand memori tanpa \eng{displacement}
+              \item \bin{01}, operand memori dengan \eng{disp8}
+              \item \bin{10}, operand memori dengan \eng{disp16}
+              \item \bin{11}, operand berupa register
+          \end{enumerate}
+
+    \item Instruksi \lstasm|MOV AX, 1234h| dikodekan sebagai
+          \hex{B8 34 12} dan bukan \hex{B8 12 34} karena \dots
+          \begin{enumerate}
+              \item 8086 menyimpan nilai 16 bit secara
+                    \eng{little-endian}
+              \item opcode \hex{B8} hanya melayani nilai kecil
+              \item urutan byte ditentukan oleh mode pengalamatan
+              \item byte rendah disimpan pada \reg{AH}
+          \end{enumerate}
+
+    \item Field yang menyatakan nomor register operand kedua pada
+          sebagian besar instruksi 8086 adalah \dots
+          \begin{enumerate}
+              \item \code{mod} \item \code{reg/opcode}
+              \item \code{r/m} \item \eng{displacement}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Diberikan instruksi \lstasm|ADD AX, [SI+4]| dengan kode
+          mesin \hex{03 44 04}.
+          \begin{enumerate}
+              \item Uraikan byte ModR/M \hex{44} menjadi field
+                    \code{mod}, \code{reg}, dan \code{r/m}.
+              \item Jelaskan arti setiap field tersebut pada instruksi
+                    ini.
+              \item Tentukan field mana yang berisi nilai \hex{4} dan
+                    mengapa ukurannya satu byte.
+          \end{enumerate}
+
+    \item Lakukan \eng{encoding} manual untuk instruksi
+          \lstasm|MOV DX, 00FFh|. Tuliskan langkah-langkahnya secara
+          berurutan, mulai dari penentuan \eng{opcode} sampai
+          penulisan byte akhir. Sebutkan alasan setiap langkah.
+
+    \item Jelaskan bagaimana bentuk operand mempengaruhi ukuran kode
+          dan jumlah byte yang harus diambil prosesor. Sertakan
+          contoh perbandingan antara bentuk register, bentuk memori
+          \lstasm|[SI]|, dan bentuk memori \lstasm|[SI+4]|.
+
+    \item Hasil perintah \code{U} pada \file{DEBUG} memperlihatkan
+          sebuah instruksi \lstasm|MOV [BX+SI],CX| yang sebenarnya
+          tidak pernah ditulis programmer pada kode sumbernya.
+          Jelaskan dua kemungkinan penyebab munculnya baris tersebut
+          dan langkah pemeriksaan yang harus dilakukan.
+\end{enumerate}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:format-instruksi}.}
+    \label{tab:kisi-bab7}
+    \small
+    \begin{tabular}{@{}p{1.6cm}p{5.0cm}p{2.6cm}c@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
+        \textbf{Bentuk soal} & \textbf{Bobot} \\
+        \midrule
+        2.1 & Menjelaskan susunan field instruksi dan panjangnya &
+        Pilihan ganda 1, 2 & 15\% \\
+        \addlinespace
+        2.1 & Menguraikan byte ModR/M dan arti setiap field &
+        Pilihan ganda 3, 5; Uraian 1 & 30\% \\
+        \addlinespace
+        2.1 & Melakukan \eng{encoding} manual beserta urutan
+        \eng{little-endian} & Pilihan ganda 4; Uraian 2 & 25\% \\
+        \addlinespace
+        2.1 & Menganalisis pengaruh format terhadap ukuran dan
+        kecepatan eksekusi & Uraian 3 & 15\% \\
+        \addlinespace
+        2.1 & Menafsirkan hasil \eng{disassembly} secara kritis &
+        Uraian 4 & 15\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:format-instruksi}}
+
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 2.1 apabila:
+\begin{itemize}
+    \item[\checked] dapat menyebutkan kelima field instruksi 8086
+          beserta urutannya;
+    \item[\checked] dapat memecah byte ModR/M dan menentukan nomor
+          register pada field \code{reg} serta \code{r/m};
+    \item[\checked] dapat melakukan \eng{encoding} manual instruksi
+          sederhana dan menuliskan byte \eng{little-endian};
+    \item[\checked] dapat menjelaskan pengaruh bentuk operand
+          terhadap ukuran kode dan kecepatan eksekusi;
+    \item[\checked] dapat membaca hasil perintah \code{U} pada
+          \file{DEBUG} serta mengaitkannya dengan kode sumber.
+\end{itemize}
+\end{checklistbox}

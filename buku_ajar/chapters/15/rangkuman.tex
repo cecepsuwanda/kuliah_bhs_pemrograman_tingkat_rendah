@@ -1,0 +1,105 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab15}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item \eng{Debugging} adalah proses sistematis untuk menemukan
+          penyebab kesalahan melalui bukti pengamatan pada level
+          instruksi, bukan melalui perubahan kode secara acak.
+
+    \item Terdapat lima jenis kesalahan program. Kesalahan sintaks
+          ditolak assembler; kesalahan saat berjalan baru muncul ketika
+          program dijalankan; kesalahan logika membuat program selesai
+          dengan hasil yang salah; kesalahan segmentasi terjadi karena
+          alamat di luar segmen yang seharusnya; dan \eng{overflow}
+          terjadi pada aritmatika maupun pada \eng{stack}. Hanya
+          kesalahan sintaks yang dapat dideteksi tanpa
+          \eng{debugger}.
+
+    \item Tiga alat \eng{debugging} yang dipakai adalah MS-DEBUG di
+          DOSBox, \eng{debugger} terpadu GUI Turbo Assembler, dan
+          jendela \eng{debug} Emu8086. Ketiganya menampilkan informasi
+          yang sama, yaitu register, memori, \eng{flag}, dan
+          \eng{stack}.
+
+    \item Perintah DEBUG yang wajib dikuasai adalah \code{R}
+          (register), \code{U} (bongkar kode mesin), \code{T}
+          (\eng{trace} satu instruksi), \code{P} (\eng{proceed}),
+          \code{G} (\eng{go} sampai \eng{breakpoint}), \code{D}
+          (\eng{dump} memori), \code{E} (ubah memori), \code{A}
+          (rakit langsung), serta \code{N}, \code{L}, dan \code{W}
+          untuk nama, muat, dan tulis berkas. Perintah \code{T}
+          masuk ke dalam prosedur dan \code{INT}, sedangkan \code{P}
+          melewatinya; \code{P} dipakai untuk rutin yang sudah
+          diyakini benar, dan \code{T} untuk bagian yang dicurigai.
+
+    \item DEBUG klasik hanya menyediakan \eng{breakpoint} dalam jumlah
+          terbatas dan hanya pada alamat, bukan pada baris sumber atau
+          kondisi tertentu.
+
+    \item Bukti utama \eng{debugging} adalah tabel \eng{trace} yang
+          mencatat alamat, instruksi, nilai register, dan \eng{flag}
+          pada setiap langkah.
+
+    \item Keluaran \code{D} dibaca dalam tiga bagian: alamat, isi
+          memori dalam heksadesimal, dan kolom karakter ASCII. Bagian
+          \eng{stack} dibaca dari alamat terendah ke tertinggi: data
+          yang ditekan terakhir berada pada alamat terendah, sedangkan
+          alamat kembali berada di bawah seluruh data tersebut.
+
+    \item Metodologi \eng{debugging} sistematis terdiri atas enam
+          tahap: reproduksi, isolasi, hipotesis, pengujian hipotesis,
+          perbaikan, dan verifikasi. Perbaikan dilakukan satu hal pada
+          satu waktu, dan pengujian diulang pada seluruh kasus.
+
+    \item Tiga bug yang dibedah adalah perulangan tak berujung
+          (\reg{CX} yang tidak pernah nol), kesalahan
+          \eng{off-by-one} pada larik (penghitung melebihi jumlah
+          elemen), dan \eng{stack} tidak seimbang (jumlah \asm{PUSH}
+          tidak sama dengan jumlah \asm{POP} sehingga \asm{RET}
+          mengambil alamat yang salah).
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menyebutkan lima jenis kesalahan
+          program beserta gejalanya.
+    \item[\checkbox] Saya dapat memuat berkas ke DEBUG dengan
+          \code{N} dan \code{L}, lalu menampilkan register dengan
+          \code{R}.
+    \item[\checkbox] Saya dapat membongkar kode mesin dengan \code{U}
+          dan mencocokkannya dengan kode sumber.
+    \item[\checkbox] Saya dapat menjelaskan perbedaan \code{T} dan
+          \code{P} pada instruksi \asm{CALL} dan \code{INT}.
+    \item[\checkbox] Saya dapat memasang \eng{breakpoint} dengan
+          \code{G alamat} dan menyebutkan keterbatasan DEBUG klasik.
+    \item[\checkbox] Saya dapat mengisi tabel \eng{trace} register
+          dan \eng{flag} untuk sekurang-kurangnya sepuluh langkah.
+    \item[\checkbox] Saya dapat membaca keluaran \code{D} pada segmen
+          data dan menemukan variabel di dalamnya.
+    \item[\checkbox] Saya dapat membaca bingkai \eng{stack} dan
+          menentukan alamat yang akan diambil oleh \asm{RET}.
+    \item[\checkbox] Saya dapat menerapkan enam tahap metodologi
+          \eng{debugging} secara berurutan.
+    \item[\checkbox] Saya dapat memperbaiki perulangan tak berujung,
+          kesalahan \eng{off-by-one}, dan \eng{stack} tidak seimbang,
+          lalu memverifikasi hasilnya.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke bab berikutnya.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
+\cite{irvine1999} yang membahas pemakaian DEBUG langkah demi langkah,
+\cite{ebrahim2018} yang menyajikan eksplorasi mesin melalui DEBUG,
+\cite{bodur} yang memuat latihan laboratorium penelusuran program, dan
+\cite{emu8086help} yang menjelaskan jendela \eng{debug} Emu8086.
+Untuk melangkah ke analisis kode mesin hasil pembongkaran, lihat
+Bab~\ref{chap:disassembly}.
+\end{infobox}

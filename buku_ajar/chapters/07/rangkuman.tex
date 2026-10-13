@@ -1,0 +1,82 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab7}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item \eng{Mnemonic} assembly hanyalah simbol bagi kode mesin.
+          Satu mnemonic memiliki banyak bentuk \eng{encoding} karena
+          jenis operand, ukuran operand, arah perpindahan data, dan
+          mode pengalamatan.
+
+    \item Format instruksi 8086 tersusun dari lima field dengan urutan
+          tetap: byte awalan, \eng{opcode}, byte ModR/M,
+          \eng{displacement}, dan \eng{immediate}. Panjang totalnya
+          antara 1 sampai 6 byte.
+
+    \item Byte ModR/M terbagi menjadi field \code{mod} (2 bit),
+          \code{reg/opcode} (3 bit), dan \code{r/m} (3 bit). Nilai
+          \code{mod} menentukan letak operand dan panjang
+          \eng{displacement}.
+
+    \item Field \code{r/m} berperan ganda: nomor register ketika
+          \code{mod} = \bin{11}, dan penentu alamat efektif ketika
+          \code{mod} bernilai lain. Dua pengecualian harus diingat:
+          \code{mod} = \bin{00} dengan \code{r/m} = \bin{101} berarti
+          alamat langsung, sedangkan \code{r/m} = \bin{110} berarti
+          \lstasm|[BP]|.
+
+    \item \eng{Displacement} menggeser alamat efektif dan hanya
+          muncul pada operand memori; \eng{immediate} adalah nilai
+          konstanta yang menjadi operand langsung. Keduanya dapat
+          muncul bersamaan.
+
+    \item Setiap nilai 16 bit disimpan \eng{little-endian}, yaitu
+          byte bernilai rendah lebih dahulu.
+
+    \item Bentuk operand berpengaruh pada ukuran kode dan jumlah byte
+          yang diambil prosesor melalui antrean \eng{prefetch}
+          berukuran 6 byte.
+
+    \item \eng{Disassembler}, misalnya perintah \code{U} pada
+          \file{DEBUG}, membalik kode mesin menjadi mnemonic. Hasilnya
+          harus diperiksa terhadap titik masuk dan alur kendali
+          program, karena disassembler tidak membedakan kode dari
+          data.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menjelaskan hubungan mnemonic dan
+          \eng{opcode} beserta alasan satu mnemonic memiliki banyak
+          bentuk \eng{encoding}.
+    \item[\checkbox] Saya dapat menyebutkan urutan field instruksi
+          8086 dan memperkirakan panjang sebuah instruksi.
+    \item[\checkbox] Saya dapat memecah byte ModR/M dan menentukan
+          nomor register 8086 pada field \code{reg} serta
+          \code{r/m}.
+    \item[\checkbox] Saya dapat membedakan peran
+          \eng{displacement} dan \eng{immediate}.
+    \item[\checkbox] Saya dapat mengurutkan nilai 16 bit secara
+          \eng{little-endian}.
+    \item[\checkbox] Saya dapat melakukan \eng{encoding} manual
+          instruksi sederhana dan memeriksanya dengan perintah
+          \code{U}.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke bab berikutnya.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Uraian mengenai format instruksi, urutan
+register, dan batas panjang instruksi 8086 bersumber dari
+\cite{intel1979}. Penjelasan ringkas mengenai ModR/M dan \eng{opcode}
+kelompok tersedia pada \cite{carleton2011} dan \cite{evans2020}.
+Pembahasan keterbatasan hasil \eng{disassembly} dirujuk dari
+\cite{wikibooksdisasm}. Untuk penerapan lanjutan pada analisis kode,
+lihat Bab~\ref{chap:disassembly}.
+\end{infobox}

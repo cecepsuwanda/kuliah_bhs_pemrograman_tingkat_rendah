@@ -1,0 +1,250 @@
+\section{Peta Memori 1 MB dan Kasus Batas Alamat}
+\label{sec:peta-memori}
+
+Ruang alamat 1 MB yang dijangkau oleh 20 bit bus alamat bukanlah
+ruang kosong yang seluruhnya dapat dipakai program. Sejak
+dirancang, sebagian wilayahnya sudah dipesan untuk keperluan
+tertentu. Bagian ini memetakan wilayah-wilayah tersebut, lalu
+meninjau apa yang terjadi ketika sebuah perhitungan alamat
+melampaui batas 1 MB.
+
+\subsection{Pembagian Ruang Alamat 1 MB}
+
+Pembagian ruang alamat 8086 dirangkum pada
+Tabel~\ref{tab:peta-memori} dan digambarkan pada
+Gambar~\ref{fig:peta-memori-1mb}.
+
+\begin{table}[H]
+    \centering
+    \caption{Peta memori 1 MB pada sistem berbasis 8086.}
+    \label{tab:peta-memori}
+    \small
+    \begin{tabular}{@{}p{3.0cm}p{1.7cm}p{8.3cm}@{}}
+        \toprule
+        \textbf{Rentang alamat} & \textbf{Ukuran} &
+        \textbf{Isi dan kegunaan} \\
+        \midrule
+        \hex{00000}--\hex{003FF} & 1 KB &
+        Tabel vektor interupsi: 256 vektor, masing-masing 4 byte
+        berisi offset dan segmen rutin penanganan interupsi \\
+        \addlinespace
+        \hex{00400}--\hex{004FF} & \dec{256} byte &
+        Area data BIOS: status papan tombol, mode video aktif,
+        jumlah \eng{tick} pewaktu, dan status perangkat lain \\
+        \addlinespace
+        \hex{00500}--\hex{9FFFF} & $\approx$ 639 KB &
+        Sisa memori konvensional untuk program DOS dan
+        \eng{driver} yang menetap di memori \\
+        \addlinespace
+        \hex{A0000}--\hex{AFFFF} & 64 KB &
+        Buffer video grafis (EGA/VGA); pada mode grafis setiap
+        titik layar diwakili beberapa bit di sini \\
+        \addlinespace
+        \hex{B0000}--\hex{B7FFF} & 32 KB &
+        Buffer video teks monokrom (MDA): 80 kolom $\times$ 25
+        baris, satu karakter disimpan sebagai dua byte \\
+        \addlinespace
+        \hex{B8000}--\hex{BFFFF} & 32 KB &
+        Buffer video teks warna (CGA/EGA/VGA): 2.000 karakter
+        menempati 4.000 byte pertama \\
+        \addlinespace
+        \hex{C0000}--\hex{EFFFF} & 192 KB &
+        ROM adaptor, termasuk BIOS kartu video dan kartu
+        tambahan lain \\
+        \addlinespace
+        \hex{F0000}--\hex{FFFFF} & 64 KB &
+        ROM BIOS sistem; titik masuknya berada pada
+        \code{FFFFh:0000h} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        ket/.style={anchor=west, font=\scriptsize, align=left, inner sep=2pt},
+        alamat/.style={font=\scriptsize\ttfamily}
+    ]
+        \def\w{3.0}
+
+        \filldraw[fill=obeMaroonLight, draw=obeMaroon]
+            (0,0) rectangle (\w,0.62);
+        \node[alamat] at (\w/2,0.31) {\hex{00000}--\hex{003FF}};
+        \node[ket] at (\w+0.15,0.31)
+            {Tabel vektor interupsi (1 KB)};
+
+        \filldraw[fill=obeGrayLight, draw=obeGray]
+            (0,0.62) rectangle (\w,1.00);
+        \node[alamat] at (\w/2,0.81) {\hex{00400}--\hex{004FF}};
+        \node[ket] at (\w+0.15,0.81) {Area data BIOS (256 byte)};
+
+        \filldraw[fill=obeBlueLight, draw=obeBlue]
+            (0,1.00) rectangle (\w,3.60);
+        \node[alamat] at (\w/2,2.30) {\hex{00500}--\hex{9FFFF}};
+        \node[ket] at (\w+0.15,2.30)
+            {Sisa memori konvensional untuk program DOS\\
+             (seluruh memori konvensional mencakup \hex{00000}
+             sampai \hex{9FFFF} = 640 KB)};
+
+        \filldraw[fill=obeTealLight, draw=obeTeal]
+            (0,3.60) rectangle (\w,4.05);
+        \node[alamat] at (\w/2,3.82) {\hex{A0000}--\hex{AFFFF}};
+        \node[ket] at (\w+0.15,3.82) {Buffer video grafis (64 KB)};
+
+        \filldraw[fill=obeTealLight, draw=obeTeal]
+            (0,4.05) rectangle (\w,4.45);
+        \node[alamat] at (\w/2,4.25) {\hex{B0000}--\hex{B7FFF}};
+        \node[ket] at (\w+0.15,4.25) {Buffer video teks monokrom (32 KB)};
+
+        \filldraw[fill=obeAmberLight, draw=obeAmber]
+            (0,4.45) rectangle (\w,4.85);
+        \node[alamat] at (\w/2,4.65) {\hex{B8000}--\hex{BFFFF}};
+        \node[ket] at (\w+0.15,4.65) {Buffer video teks warna (32 KB)};
+
+        \filldraw[fill=obeGrayLight, draw=obeGray]
+            (0,4.85) rectangle (\w,5.90);
+        \node[alamat] at (\w/2,5.37) {\hex{C0000}--\hex{EFFFF}};
+        \node[ket] at (\w+0.15,5.37) {ROM adaptor (192 KB)};
+
+        \filldraw[fill=obeGreenLight, draw=obeGreen]
+            (0,5.90) rectangle (\w,7.10);
+        \node[alamat] at (\w/2,6.50) {\hex{F0000}--\hex{FFFFF}};
+        \node[ket] at (\w+0.15,6.50) {ROM BIOS sistem (64 KB)};
+
+        \draw[dashed, obeMaroon, line width=0.8pt, fill=obeMaroonLight]
+            (0,7.10) rectangle (\w,7.60);
+        \node[alamat] at (\w/2,7.35) {\hex{100000}--\hex{10FFEF}};
+        \node[ket] at (\w+0.15,7.35)
+            {Segmen tinggi (\eng{high memory area}), hanya ada pada
+             80286 ke atas};
+
+        \draw[-{Stealth[length=2.5mm]}, line width=0.8pt, obeGray]
+            (-0.55,0.02) -- (-0.55,7.60);
+        \node[font=\scriptsize, text=obeGray, rotate=90, anchor=south]
+            at (-0.78,3.9) {alamat naik};
+    \end{tikzpicture}
+    \caption{Peta memori 1 MB pada sistem 8086. Tinggi setiap blok
+    tidak digambar menurut skala sebenarnya.}
+    \label{fig:peta-memori-1mb}
+\end{figure}
+
+Dua hal penting perlu ditekankan dari peta tersebut. Pertama,
+\term{memori konvensional} adalah sebutan untuk 640 KB pertama,
+yaitu alamat \hex{00000} sampai \hex{9FFFF}. Wilayah ini dihuni
+tabel vektor interupsi, area data BIOS, dan sisanya dipakai
+program DOS. Pembagian tabel vektor interupsi secara rinci, beserta
+cara memakai vektornya, dibahas pada Bab~\ref{chap:interupsi}.
+
+Kedua, area video dimulai pada \hex{B8000} untuk mode teks warna.
+Alamat ini sering muncul pada program yang menulis langsung ke
+layar tanpa memanggil layanan DOS. Dengan
+$80 \times 25 = 2.000$ posisi karakter dan dua byte per karakter
+(satu byte kode ASCII dan satu byte atribut warna), seluruh layar
+teks menempati $2.000 \times 2 = 4.000$ byte, yaitu
+\hex{FA0} byte mulai dari \hex{B8000}. Karakter pertama pada baris
+pertama layar berada pada pasangan \code{B800h:0000h}, sedangkan
+karakter pertama pada baris kedua berada pada
+\code{B800h:00A0h}.
+
+\subsection{Kasus Batas: Alamat yang Melewati 1 MB}
+
+Rumus alamat fisik dapat menghasilkan nilai yang melampaui batas
+1 MB. Nilai terbesar yang mungkin diperoleh adalah
+$\hex{FFFF0} + \hex{FFFF} = \hex{10FFEF}$, sebuah bilangan 21 bit.
+Karena bus alamat 8086 hanya 20 bit, bit ke-21 tersebut tidak
+memiliki jalur keluaran dan otomatis dibuang. Perilaku ini disebut
+\term{wrap-around}: alamat ``berputar'' kembali ke awal ruang memori.
+Beberapa kasusnya ditampilkan pada Tabel~\ref{tab:kasus-batas}.
+
+\begin{table}[H]
+    \centering
+    \caption{Kasus batas perhitungan alamat yang melewati 1 MB.}
+    \label{tab:kasus-batas}
+    \small
+    \begin{tabular}{@{}cp{1.9cm}p{1.9cm}p{2.6cm}p{3.6cm}@{}}
+        \toprule
+        \textbf{No} & \textbf{Segmen} & \textbf{Offset} &
+        \textbf{Hasil 21-bit} & \textbf{Alamat fisik 8086} \\
+        \midrule
+        1 & \hex{FFFF} & \hex{000F} & \hex{FFFFF} &
+        \hex{FFFFF} (masih di dalam batas) \\
+        \addlinespace
+        2 & \hex{FFFF} & \hex{0010} & \hex{100000} &
+        \hex{00000} (berputar) \\
+        \addlinespace
+        3 & \hex{FFFF} & \hex{FFFF} & \hex{10FFEF} &
+        \hex{0FFEF} (berputar) \\
+        \addlinespace
+        4 & \hex{F000} & \hex{FFFF} & \hex{FFFFF} &
+        \hex{FFFFF} (masih di dalam batas) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Baris 2 pada Tabel~\ref{tab:kasus-batas} adalah kasus yang paling
+terkenal. Pasangan \code{FFFFh:0010h} menghasilkan \hex{100000},
+yaitu satu byte tepat di atas batas 1 MB. Pada 8086 nilai itu
+berputar menjadi \hex{00000}, sehingga alamat tersebut sebenarnya
+menunjuk awal tabel vektor interupsi. Baris 3 memperlihatkan kasus
+terjauh: hasil \hex{10FFEF} berputar menjadi \hex{0FFEF}.
+
+\begin{peringatanbox}
+\eng{Wrap-around} bukan fasilitas yang dapat diandalkan, melainkan
+akibat dari keterbatasan perangkat keras. Program yang secara tidak
+sengaja menghitung alamat di atas \hex{FFFFF} akan menulis ke
+lokasi memori yang sama sekali berbeda, misalnya menimpa tabel
+vektor interupsi. Karena itu, hindari pemakaian segmen yang sangat
+dekat dengan \hex{FFFF} kecuali memang disengaja, dan periksa
+setiap perhitungan yang menambahkan offset besar pada segmen besar.
+\end{peringatanbox}
+
+Pada prosesor 80286 dan sesudahnya, perilaku \eng{wrap-around} ini
+dapat dimatikan melalui jalur \eng{A20 gate}. Bila jalur tersebut
+diaktifkan, alamat \hex{100000} sampai \hex{10FFEF} benar-benar
+dapat dipakai dan dikenal sebagai \term{segmen tinggi} atau
+\eng{high memory area}. Fitur inilah yang memungkinkan sistem
+memori lama mengakses sedikit memori di atas 1 MB, dan
+alasan kompatibilitas itulah yang membuat jalur A20 masih dipertahankan
+pada prosesor modern.
+
+\subsection{Verifikasi Alamat dengan Debugger}
+
+Hasil perhitungan di atas perlu dibuktikan, dan buktinya dapat
+diperoleh dengan \eng{debugger}. Pada DEBUG yang disertakan DOS,
+perintah \lstasm|D| menampilkan isi memori sekitar alamat yang
+diberikan. Bentuk penulisannya adalah
+\lstasm|D segmen:offset| seperti tampak pada
+Kode~\ref{lst:sesi-debug}. Perintah \lstasm|D DS:0000| menampilkan
+memori pada alamat yang ditunjuk pasangan \reg{DS} dengan offset
+nol, sedangkan \lstasm|D 076A:0000 L 10| menampilkan 16 byte mulai
+dari alamat tersebut.
+
+\begin{session}[caption={Sesi DEBUG menampilkan isi memori pada
+beberapa pasangan alamat.}, label={lst:sesi-debug}]
+C:\>DEBUG hitung-alamat.exe
+-D 076A:0000
+076A:0000  CD 20 FF 9F 00 9A F0 FE-1D F0 4F 03 8E 0A A0 04   . ........O.....
+-D B800:0000
+B800:0000  48 07 61 07 6C 07 6F 07-2C 07 20 07 64 07 75 07   H.a.l.o.,. .d.u.
+-D FFFF:0000
+FFFF:0000  EA 5B E0 00 F0 30 36 2F-32 34 2F 39 39 00 FC 00   .[...06/24/99...
+-Q
+\end{session}
+
+Tiga hal dapat diamati dari sesi tersebut. Perintah
+\lstasm|D 076A:0000| menampilkan isi awal segmen data program, yang
+dimulai dengan blok \eng{Program Segment Prefix}. Perintah
+\lstasm|D B800:0000| menampilkan isi area video teks warna, yaitu
+kode ASCII setiap karakter berselang-seling dengan byte atributnya:
+\code{48 07} mewakili huruf \code{H}, \code{61 07} mewakili huruf
+\code{a}, dan seterusnya. Perintah \lstasm|D FFFF:0000| menampilkan
+awal ROM BIOS.
+
+Pada Emu8086, jendela \file{Memory} memberikan informasi yang sama,
+tetapi nilainya dapat diisi langsung melalui kotak pencarian alamat
+dengan penulisan \code{segmen:offset}. Emu8086 meniru perilaku
+8086 secara murni, sehingga perintah \lstasm|D FFFF:0010| akan
+menampilkan isi \hex{00000}, sedangkan pada mesin 80286 ke atas
+dengan A20 aktif alamat itu menunjuk \hex{100000}. Pembuktian
+kedua perilaku tersebut menjadi salah satu bagian praktikum pada
+Bagian~\ref{sec:praktikum-bab6}.

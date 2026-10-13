@@ -1,0 +1,118 @@
+\section{Evolusi Mikroprosesor dan Kedudukan 8086}
+\label{sec:evolusi-8086}
+
+Mikroprosesor adalah satu chip silikon yang memuat seluruh unit
+pengolah utama komputer. Seluruh program assembly yang ditulis pada
+mata kuliah ini pada akhirnya diterjemahkan menjadi deretan sinyal
+yang mengalir di dalam chip tersebut. Karena itu, memahami arsitektur
+mikroprosesor berarti memahami ``peta jalan'' yang dilalui setiap
+instruksi, sejak diambil dari memori sampai hasilnya ditulis kembali.
+
+\subsection{Dari 4004 ke 8086}
+
+Sejarah mikroprosesor dimulai pada awal dekade 1970-an. Setiap
+generasi menambah lebar kata (\eng{word}), lebar bus alamat, dan
+jumlah transistor, sehingga kemampuan pengalamatan memori meningkat
+pesat. Tabel~\ref{tab:evolusi} merangkum tonggak penting yang
+relevan bagi mata kuliah ini.
+
+\begin{table}[H]
+    \centering
+    \caption{Tonggak evolusi mikroprosesor menuju 8086.}
+    \label{tab:evolusi}
+    \small
+    \begin{tabular}{@{}clccp{4.0cm}@{}}
+        \toprule
+        \textbf{Tahun} & \textbf{Prosesor} & \textbf{Bus data} &
+        \textbf{Bus alamat} & \textbf{Catatan} \\
+        \midrule
+        1971 & Intel 4004 & 4 bit & 12 bit &
+        Mikroprosesor komersial pertama, untuk kalkulator \\
+        \addlinespace
+        1974 & Intel 8080 & 8 bit & 16 bit &
+        Ruang alamat 64 KB; dasar microcomputer awal \\
+        \addlinespace
+        1978 & Intel 8086 & 16 bit & 20 bit &
+        Ruang alamat 1 MB; dasar keluarga x86 \\
+        \addlinespace
+        1979 & Intel 8088 & 8 bit (luar) & 20 bit &
+        Inti 16-bit, bus luar 8-bit; dipakai IBM PC \\
+        \addlinespace
+        1982 & Intel 80286 & 16 bit & 24 bit &
+        Menambah \eng{protected mode} dan 16 MB alamat \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Dua hal penting terlihat dari Tabel~\ref{tab:evolusi}. Pertama,
+8086 muncul pada 1978 dengan bus data 16-bit dan bus alamat 20-bit.
+Kedua, varian 8088 yang dipakai IBM PC mempertahankan inti 16-bit
+yang sama, hanya menyempitkan bus luar menjadi 8-bit agar cocok
+dengan rangkaian pendukung yang sudah ada saat itu.
+
+\subsection{Mengapa 8086 Masih Dipelajari}
+
+Meskipun usianya sudah lebih dari empat dekade, 8086 tetap dipakai
+sebagai model pembelajaran karena tiga alasan
+\cite{intel1979,stallings2016}.
+
+\begin{enumerate}
+    \item \textbf{Sederhana namun lengkap.} 8086 sudah memiliki
+          seluruh konsep penting prosesor modern: register, bus,
+          \eng{flag}, segmentasi, dan \eng{pipeline} sederhana,
+          tanpa mekanisme yang rumit seperti \eng{cache} berlapis.
+
+    \item \textbf{Mudah diamati.} Emulator seperti Emu8086
+          memperlihatkan isi register, memori, dan \eng{flag} secara
+          langsung pada setiap langkah eksekusi, sehingga konsep
+          abstrak dapat diverifikasi sendiri oleh mahasiswa.
+
+    \item \textbf{Akar keluarga x86.} Seluruh prosesor x86 modern
+          tetap kompatibel ke belakang. Sebuah program 8086 mode real
+          masih dapat dijalankan pada prosesor masa kini melalui mode
+          kompatibilitas \cite{carleton2011}.
+\end{enumerate}
+
+\subsection{Arsitektur Internal dan Arsitektur Eksternal}
+
+Pembahasan arsitektur mikroprosesor dibedakan menjadi dua sudut
+pandang yang harus dipisahkan dengan jelas.
+
+\begin{definisi}[Arsitektur internal]
+\term{Arsitektur internal} (\eng{internal architecture}) adalah
+susunan unit fungsional di dalam chip, yaitu register, \eng{ALU},
+unit pengendali, dan saluran data internal. Arsitektur ini menjelaskan
+\emph{bagaimana} prosesor mengolah sebuah instruksi.
+\end{definisi}
+
+\begin{definisi}[Arsitektur eksternal]
+\term{Arsitektur eksternal} (\eng{external architecture}) adalah
+tampak luar chip, yaitu jumlah dan fungsi pin, kelompok bus, serta
+sinyal kendali yang menghubungkannya dengan memori dan perangkat
+I/O. Arsitektur ini menjelaskan \emph{bagaimana} prosesor berbicara
+dengan dunia luar.
+\end{definisi}
+
+Kedua sudut pandang tersebut saling melengkapi. Seorang programmer
+assembly lebih sering berhadapan dengan arsitektur internal karena
+ia menuliskan nama register. Sebaliknya, seorang perancang sistem
+digital lebih banyak bekerja pada arsitektur eksternal karena ia
+harus menyambungkan pin \reg{A0}--\reg{A19}, \reg{AD0}--\reg{AD15},
+dan sinyal kendali ke rangkaian lain.
+
+\begin{infobox}
+Kesalahan pemahaman yang sering muncul adalah menganggap register
+sebagai ``kotak di memori''. Register sebenarnya berada di dalam
+chip, bukan di memori, dan jumlahnya sangat sedikit. Bab ini membahas
+kedua sisi arsitektur tersebut secara berurutan: sisi internal pada
+Bagian~\ref{sec:biu-eu}, sisi eksternal pada Bagian~\ref{sec:bus-siklus}.
+\end{infobox}
+
+\subsection{Kotak Hitam: Cara Pandang Sederhana}
+
+Sebelum masuk ke diagram blok yang rinci, prosesor dapat dipandang
+sebagai sebuah kotak hitam. Ke luar, kotak itu hanya berhubungan
+melalui empat kelompok saluran: bus alamat 20-bit, bus data 16-bit,
+bus kontrol, dan sumber catuan serta pewaktu. Setiap instruksi yang
+dijalankan pasti melibatkan pertukaran informasi melalui saluran
+tersebut. Isi kotak itulah yang dibahas pada bagian berikutnya.

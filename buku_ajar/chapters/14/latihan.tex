@@ -1,0 +1,87 @@
+\section{Latihan}
+\label{sec:latihan-bab14}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan mengapa mekanisme interupsi
+          lebih efisien daripada \eng{polling}. Sertakan satu contoh
+          perangkat pada komputer yang lebih baik diperiksa dengan
+          interupsi.
+
+    \item \textbf{Konseptual.} Sebutkan tiga jenis interupsi pada
+          prosesor 8086. Untuk setiap jenis, berikan satu contoh
+          beserta nomor vektornya dan siapa yang memicunya.
+
+    \item \textbf{Perhitungan vektor.} Dengan memakai
+          Persamaan~\ref{eq:alamat-vektor}, tentukan alamat entri
+          vektor \hex{0A}, \hex{13}, dan \hex{21}. Sebutkan pula
+          alamat byte pertama (offset) dan byte ketiga (segmen) setiap
+          entri.
+
+    \item \textbf{Analisis stack.} Sebuah program sedang berjalan
+          dengan \reg{SP} = \hex{FF00} ketika instruksi
+          \lstasm|INT 21h| dijalankan.
+          \begin{enumerate}
+              \item Berapa nilai \reg{SP} sesudah ketiga penyimpanan
+                    pada mekanisme \asm{INT} selesai?
+              \item Nilai apa yang berada pada \reg{SS}:\reg{SP},
+                    \reg{SS}:\reg{SP}+2, dan \reg{SS}:\reg{SP}+4?
+              \item Mengapa \lstasm|RET| tidak dapat menggantikan
+                    \lstasm|IRET| pada rutin penangan interupsi?
+          \end{enumerate}
+
+    \item \textbf{Analisis BIOS.} Perhatikan dua potongan program
+          berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+; potongan A                       ; potongan B
+MOV AH, 09h                        MOV AH, 13h
+MOV AL, '*'
+MOV BH, 00h
+MOV BL, 0Ah
+MOV CX, 10
+INT 10h                            INT 10h
+\end{lstlisting}
+
+          \begin{enumerate}
+              \item Apa yang tercetak oleh potongan A dan pada warna
+                    apa karakter itu tampil?
+              \item Bagian mana pada potongan B yang belum lengkap?
+              \item Jelaskan satu perbedaan perilaku kursor antara
+                    fungsi \hex{09} dan \hex{13}.
+          \end{enumerate}
+
+    \item \textbf{Analisis atribut warna.} Tentukan warna huruf dan
+          warna latar untuk atribut \hex{1E}, \hex{4F}, dan \hex{07},
+          dengan menyebut nilai bit 3--0, bit 6--4, dan bit 7.
+
+    \item \textbf{Penulisan program.} Tulislah program lengkap yang
+          menampilkan kata \code{SELAMAT} pada baris 10, kolom 20,
+          dengan warna hijau terang pada latar hitam. Gunakan
+          \code{INT 10h} fungsi \hex{02} untuk menempatkan kursor dan
+          fungsi \hex{13} untuk menulis string. Sertakan inisialisasi
+          register segmen yang diperlukan.
+
+    \item \textbf{Analisis kesalahan.} Seorang mahasiswa memasang
+          penangan interupsi pada vektor \hex{60} dengan langkah
+          seperti pada Kode~\ref{lst:pasang-vektor}, tetapi program
+          selalu membeku ketika \lstasm|INT 60h| dijalankan. Setelah
+          diperiksa, rutin penangan yang ditulis diakhiri
+          \lstasm|RET| dan vektor lama tidak pernah dipulihkan.
+          \begin{enumerate}
+              \item Mengapa \lstasm|RET| menyebabkan program membeku?
+              \item Apa akibatnya bila vektor lama tidak dipulihkan?
+              \item Tuliskan perbaikan yang diperlukan.
+          \end{enumerate}
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Setelah melihat isi stack secara langsung pada penelusuran
+          DEBUG, apakah gambaran Anda tentang cara kerja
+          \lstasm|INT| berubah? Bagian mana yang paling mengejutkan?
+    \item Konsep mana pada bab ini yang masih terasa kabur, dan
+          rencana belajar apa yang akan Anda lakukan untuk
+          mengatasinya?
+\end{enumerate}
+\end{refleksibox}

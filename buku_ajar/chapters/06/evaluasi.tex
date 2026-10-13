@@ -1,0 +1,148 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab6}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Rumus yang benar untuk menghitung alamat fisik dari
+          pasangan \eng{segment:offset} adalah \dots
+          \begin{enumerate}
+              \item $\text{segmen} + \text{offset}$
+              \item $(\text{segmen} \times \hex{10}) +
+                    \text{offset}$
+              \item $(\text{segmen} \times \dec{20}) +
+                    \text{offset}$
+              \item $(\text{offset} \times \hex{10}) +
+                    \text{segmen}$
+          \end{enumerate}
+
+    \item Nilai segmen \hex{1234} menunjuk alamat dasar \dots
+          \begin{enumerate}
+              \item \hex{1234} \item \hex{12340}
+              \item \hex{01234} \item \hex{23400}
+          \end{enumerate}
+
+    \item Alamat fisik yang ditunjuk oleh pasangan
+          \code{B800h:0000h} adalah \dots
+          \begin{enumerate}
+              \item \hex{B800} \item \hex{0B800}
+              \item \hex{B8000} \item \hex{BB000}
+          \end{enumerate}
+
+    \item Satu paragraf pada skema pengalamatan 8086 berukuran
+          \dots
+          \begin{enumerate}
+              \item 16 byte \item 256 byte
+              \item 1 KB \item 64 KB
+          \end{enumerate}
+
+    \item Pada prosesor 8086, pasangan \code{FFFFh:0010h} secara
+          efektif mengakses alamat \dots
+          \begin{enumerate}
+              \item \hex{100000} \item \hex{00000}
+              \item \hex{FFFF0} \item \hex{10FFEF}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Jelaskan dengan kalimat Anda sendiri mengapa segmentasi
+          diperlukan pada 8086. Kaitkan penjelasan Anda dengan lebar
+          register segmen, lebar bus alamat, dan besar memori yang
+          ingin dijangkau. Sebutkan pula apa yang akan terjadi bila
+          prosesor itu hanya memakai alamat 16 bit.
+
+    \item Hitunglah alamat fisik dari keempat pasangan berikut dan
+          tuliskan setiap langkahnya.
+          \begin{enumerate}
+              \item \code{0000h:00A0h}
+              \item \code{2000h:0010h}
+              \item \code{9FFFh:0010h}
+              \item \code{FFFFh:0080h}
+          \end{enumerate}
+          Pada butir terakhir, jelaskan mengapa hasilnya tidak dapat
+          direpresentasikan sebagai alamat 20-bit yang biasa.
+
+    \item Jelaskan pengertian \eng{overlapping segment}. Hitunglah
+          banyaknya pasangan \eng{segment:offset} yang menunjuk
+          alamat fisik \hex{00040}, tuliskan seluruh pasangan
+          tersebut, dan jelaskan mengapa jumlah pasangan untuk satu
+          alamat tidak pernah melebihi 4096.
+
+    \item Gambarkan pembagian peta memori 1 MB dan jelaskan kegunaan
+          empat area berikut: tabel vektor interupsi, memori
+          konvensional, area video, dan ROM BIOS. Jelaskan pula
+          mengapa alamat \hex{B8000} sering muncul pada program yang
+          menulis langsung ke layar.
+\end{enumerate}
+
+\subsection{Kuis 1}
+
+\begin{asesmenbox}
+\textbf{Keterangan Kuis 1.} Kuis 1 dilaksanakan pada akhir
+pertemuan 4, yaitu pada pertemuan yang membahas bab ini, dan
+mencakup seluruh indikator Sub-CPMK 1.3:
+\begin{itemize}
+    \item menghitung alamat fisik 20-bit dari pasangan
+          \eng{segment:offset};
+    \item menjelaskan paragraf 16-byte dan struktur segmen 64 KB;
+    \item menganalisis \eng{overlapping segment} dan jumlah
+          pasangan yang mungkin;
+    \item menganalisis skema pengalamatan 1 MB beserta kasus batas
+          \eng{wrap-around}.
+\end{itemize}
+Bentuk soal kuis adalah perhitungan singkat dan uraian analisis
+dengan bobot 10\% dari komponen kuis. Seluruh jawaban dikumpulkan
+bersama laporan praktikum 4.
+\end{asesmenbox}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:segmentasi}.}
+    \label{tab:kisi-bab6}
+    \small
+    \begin{tabular}{@{}p{1.5cm}p{5.0cm}p{3.2cm}c@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
+        \textbf{Bentuk soal} & \textbf{Bobot} \\
+        \midrule
+        1.3 & Menjelaskan alasan segmentasi dan hubungan register
+        segmen dengan bus alamat & Pilihan ganda 1, 2; Uraian 1 &
+        25\% \\
+        \addlinespace
+        1.3 & Menghitung alamat fisik 20-bit secara bertingkat &
+        Pilihan ganda 3; Uraian 2; Latihan 2 & 30\% \\
+        \addlinespace
+        1.3 & Menganalisis paragraf 16-byte dan \eng{overlapping
+        segment} & Pilihan ganda 4; Uraian 3 & 25\% \\
+        \addlinespace
+        1.3 & Menganalisis peta memori 1 MB dan kasus batas
+        \eng{wrap-around} & Pilihan ganda 5; Uraian 4 & 20\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:segmentasi}}
+
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 1.3 apabila:
+\begin{itemize}
+    \item[\checked] dapat menjelaskan mengapa 8086 memakai pasangan
+          \eng{segment:offset} alih-alih satu alamat 20-bit;
+    \item[\checked] dapat menghitung alamat fisik dari pasangan
+          \eng{segment:offset} dengan menuliskan langkah
+          perhitungannya;
+    \item[\checked] dapat menghitung banyaknya pasangan yang
+          menunjuk satu alamat fisik dan menjelaskan sifat
+          \eng{overlapping};
+    \item[\checked] dapat menyebutkan pembagian peta memori 1 MB
+          beserta kegunaan setiap area;
+    \item[\checked] dapat menjelaskan \eng{wrap-around} pada alamat
+          di atas \hex{FFFFF};
+    \item[\checked] dapat memverifikasi perhitungan alamat dengan
+          DEBUG atau Emu8086 dan menafsirkan hasilnya dengan benar.
+\end{itemize}
+\end{checklistbox}

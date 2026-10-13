@@ -1,0 +1,134 @@
+\section{Contoh Program}
+\label{sec:contoh-program}
+
+Dua contoh berikut memperlihatkan bagaimana nilai segmen dan offset
+diperoleh dari dalam program, lalu bagaimana keduanya dipakai untuk
+menghitung alamat fisik. Keduanya memakai prosedur bantu
+\code{cetak\_hex} yang mencetak isi register \reg{AX} sebagai empat
+digit heksadesimal, sehingga mahasiswa dapat membaca nilai segmen
+dan offset yang sesungguhnya tanpa harus membuka emulator.
+
+\subsection{Contoh 1: Menampilkan Offset Variabel}
+
+Program pada Kode~\ref{lst:alamat-fisik} mendeklarasikan dua
+variabel pada segmen data, lalu menampilkan offset keduanya dengan
+operator \code{OFFSET}.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{alamat-fisik.asm} menampilkan offset
+    variabel pada segmen data.},
+    label={lst:alamat-fisik}
+]{\CodeDir/alamat-fisik.asm}
+
+Bagian yang perlu diperhatikan dari program tersebut adalah cara
+nilai offset diperoleh:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, OFFSET var_byte    ; AX = offset var_byte
+MOV AX, OFFSET var_word    ; AX = offset var_word
+\end{lstlisting}
+
+Operator \code{OFFSET} menghasilkan jarak variabel tersebut dari
+awal segmen data, bukan alamat fisiknya. Nilai inilah yang menjadi
+bagian kedua pada pasangan \eng{segment:offset}. Karena variabel
+\code{var\_byte} dideklarasikan lebih dahulu, offsetnya nol,
+sedangkan \code{var\_word} berada tepat sesudahnya dengan offset
+satu. Keluaran program tampak pada Kode~\ref{lst:keluaran-offset}.
+
+\begin{session}[caption={Keluaran program \file{alamat-fisik.asm}.},
+label={lst:keluaran-offset}]
+Offset var_byte = 0000
+Offset var_word = 0001
+\end{session}
+
+\begin{infobox}
+Nilai offset yang tampil dapat berbeda satu atau dua byte bila
+assembler yang dipakai menyelaraskan data ke alamat genap. Yang
+penting bukan angkanya, melainkan caranya membaca: angka yang tampil
+adalah offset, dan nomor segmennya harus dibaca terpisah dari
+register \reg{DS}.
+\end{infobox}
+
+Untuk memperoleh alamat fisik, mahasiswa harus mengetahui nilai
+\reg{DS} saat program berjalan. Misalkan pada Emu8086 atau DEBUG
+terbaca \reg{DS} $= \hex{076A}$, maka kedua alamat fisik tersebut
+dapat dihitung seperti pada Tabel~\ref{tab:analisis-offset}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perhitungan alamat fisik variabel pada program pertama
+    dengan asumsi \reg{DS} $= \hex{076A}$.}
+    \label{tab:analisis-offset}
+    \small
+    \begin{tabular}{@{}p{2.3cm}p{1.8cm}p{1.5cm}p{4.1cm}p{1.9cm}@{}}
+        \toprule
+        \textbf{Variabel} & \textbf{Offset} & \textbf{DS} &
+        \textbf{Perhitungan} & \textbf{Alamat fisik} \\
+        \midrule
+        \code{var\_byte} & \hex{0000} & \hex{076A} &
+        \hex{076A0} + \hex{0000} & \hex{076A0} \\
+        \addlinespace
+        \code{var\_word} & \hex{0001} & \hex{076A} &
+        \hex{076A0} + \hex{0001} & \hex{076A1} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Contoh 2: Membaca Nilai Segmen dan Menghitung Alamat}
+
+Program kedua, yang ditampilkan pada Kode~\ref{lst:hitung-alamat},
+melangkah lebih jauh: ia membaca nomor segmen dengan operator
+\code{seg}, membaca offset, lalu menghitung alamat fisiknya di dalam
+program.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{hitung-alamat.asm} menghitung alamat
+    fisik 20-bit dari pasangan segmen:offset.},
+    label={lst:hitung-alamat}
+]{\CodeDir/hitung-alamat.asm}
+
+Inti perhitungannya terletak pada empat instruksi berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, seg var_nilai      ; AX = nomor segmen var_nilai
+MOV DX, AX                 ; DX akan menerima bit 16..19
+MOV CL, 4
+SHR DX, CL                 ; DX = segmen / 16
+SHL AX, CL                 ; AX = segmen x 16
+ADD AX, BX                 ; AX = (segmen x 16) + offset
+ADC DX, 0                  ; tambahkan carry ke DX
+\end{lstlisting}
+
+Perhatikan bahwa pergeseran ke kiri empat bit (\lstasm|SHL AX, CL|)
+adalah bentuk lain dari perkalian dengan 16, dan pergeseran ke
+kanan empat bit (\lstasm|SHR DX, CL|) memindahkan bagian segmen yang
+melewati 16 bit ke register \reg{DX}. Karena hasil penjumlahan
+dapat mencapai 20 bit, alamat fisik disimpan pada pasangan register
+\reg{DX}:\reg{AX}, dengan \reg{DX} memuat bit 16 sampai 19 dan
+\reg{AX} memuat bit 0 sampai 15. Keluaran program tampak pada
+Kode~\ref{lst:keluaran-hitung}.
+
+\begin{session}[caption={Keluaran program \file{hitung-alamat.asm}.},
+label={lst:keluaran-hitung}]
+Segmen: 076A
+Offset: 0000
+Alamat fisik: 000076A0
+\end{session}
+
+Keluaran tersebut menunjukkan tiga nilai sekaligus: nomor segmen
+\hex{076A}, offset \hex{0000}, dan alamat fisik \hex{076A0} yang
+ditulis delapan digit karena menempati pasangan \reg{DX}:\reg{AX}.
+Mahasiswa dapat mengubah isi \reg{AX} sebelum perhitungan, memindahkan
+variabel \code{var\_nilai} ke posisi lain pada segmen data, atau
+mengganti segmen yang dipakai, lalu memeriksa apakah alamat fisik
+yang dihasilkan tetap sesuai dengan perhitungan manual.
+
+\begin{infobox}
+Operator \code{seg} hanya menghasilkan \emph{nomor} segmen, bukan
+alamat dasarnya. Pada contoh di atas, \lstasm|MOV AX, seg var_nilai|
+memberi \hex{076A}, sedangkan alamat dasar segmen tersebut adalah
+\hex{076A0}. Perbedaan satu digit nol inilah yang menjadi sumber
+kesalahan paling sering pada perhitungan alamat.
+\end{infobox}

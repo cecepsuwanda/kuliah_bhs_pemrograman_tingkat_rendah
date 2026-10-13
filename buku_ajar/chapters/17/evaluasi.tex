@@ -1,0 +1,119 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab17}
+
+Evaluasi pada bab ini berbentuk \textbf{ujian komprehensif}. Berbeda
+dari evaluasi bab lain yang mengukur satu Sub-CPMK, soal-soal di
+bawah ini sengaja menuntut penggabungan konsep dari beberapa bab
+sekaligus.
+
+\subsection{Soal Komprehensif}
+
+\begin{enumerate}
+    \item \textbf{Analisis terpadu.} Diberikan potongan program
+          berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+.MODEL SMALL
+.STACK 100h
+.DATA
+    data1 DW 0A000h
+    data2 DW 0004h
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    MOV AX, data1
+    MOV BX, data2
+    ADD AX, BX
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{lstlisting}
+
+          Jawab pertanyaan berikut.
+          \begin{enumerate}
+              \item Berapa nilai \reg{AX} setelah \asm{ADD AX, BX}?
+              \item Nyatakan nilai tersebut dalam heksadesimal dan
+                    dalam tafsiran bertanda.
+              \item Tentukan nilai \flag{CF}, \flag{ZF}, \flag{SF},
+                    dan \flag{OF} beserta alasannya.
+              \item Andaikan \code{data2} diubah menjadi \hex{C000},
+                    flag mana yang berubah dan mengapa?
+          \end{enumerate}
+
+    \item \textbf{Perancangan prosedur.} Rancang prosedur
+          \code{RataRata} yang menerima tiga bilangan 16-bit melalui
+          stack dan mengembalikan nilai rata-ratanya pada \reg{AX}.
+          Tuliskan: (a) gambar isi stack saat prosedur dipanggil;
+          (b) kode prosedur lengkap dengan \eng{prologue} dan
+          \eng{epilogue}; (c) cara pemanggilannya.
+
+    \item \textbf{Perbaikan bug.} Sebuah program bermaksud
+          menjumlahkan \dec{10} elemen array, tetapi hasilnya selalu
+          kurang satu elemen. Tuliskan langkah-langkah sistematis
+          untuk menemukan penyebabnya, dan sebutkan perintah
+          \eng{debugger} yang Anda pakai pada setiap langkah.
+
+    \item \textbf{Analisis \eng{disassembly}.} Diberikan dua versi
+          hasil \eng{disassembly} untuk pekerjaan yang sama: satu
+          versi memakai \asm{MUL} untuk mengalikan dengan 8, satu
+          versi memakai tiga kali \asm{SHL}. Bandingkan jumlah
+          instruksi, ukuran byte, dan perkiraan jumlah siklusnya.
+          Jelaskan dalam kondisi apa versi \asm{SHL} tidak dapat
+          dipakai.
+
+    \item \textbf{Interupsi.} Jelaskan urutan kejadian pada stack
+          ketika sebuah instruksi \code{INT 21h} dieksekusi, dan
+          urutan pengambilan kembali ketika \code{IRET} dijalankan.
+          Sertakan diagram stack.
+
+    \item \textbf{Perancangan.\allowbreak} Anda diminta membuat
+          program yang menampilkan isi sebuah array dalam bentuk
+          heksadesimal. Tuliskan rancangan berupa daftar prosedur
+          beserta masukan dan keluaran masing-masing, sebelum menulis
+          satu baris kode pun.
+\end{enumerate}
+
+\subsection{Kisi-kisi Ujian Komprehensif}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi ujian komprehensif Bab~\ref{chap:evaluasi-akhir}.}
+    \label{tab:kisi-bab17}
+    \small
+    \begin{tabular}{@{}p{4.0cm}p{5.4cm}c@{}}
+        \toprule
+        \textbf{Aspek yang diukur} & \textbf{Soal} & \textbf{Bobot} \\
+        \midrule
+        Integrasi arsitektur, representasi, dan \eng{flag} & Soal 1 &
+        20\% \\
+        \addlinespace
+        Perancangan dan penulisan prosedur & Soal 2, 6 & 25\% \\
+        \addlinespace
+        Metodologi \eng{debugging} & Soal 3 & 15\% \\
+        \addlinespace
+        Analisis \eng{disassembly} dan optimasi & Soal 4 & 20\% \\
+        \addlinespace
+        Mekanisme interupsi & Soal 5 & 20\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Kesiapan Menghadapi Ujian Akhir Semester}
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menulis program aritmatika dan
+          manipulasi bit tanpa melihat contoh.
+    \item[\checkbox] Saya dapat menerjemahkan pseudocode bercabang
+          dan berulang menjadi assembly.
+    \item[\checkbox] Saya dapat menggambar isi stack saat prosedur
+          dipanggil dan menghitung akses parameter melalui \reg{BP}.
+    \item[\checkbox] Saya dapat menelusuri program dengan
+          \eng{debugger} dan mengisi tabel \eng{trace}.
+    \item[\checkbox] Saya dapat membaca hasil \eng{disassembly} dan
+          mengusulkan perbaikan yang dapat diukur.
+    \item[\checkbox] Saya dapat menjelaskan mekanisme interupsi
+          beserta perubahannya pada stack.
+\end{itemize}
+\end{checklistbox}

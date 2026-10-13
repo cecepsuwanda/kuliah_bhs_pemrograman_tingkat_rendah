@@ -1,0 +1,105 @@
+\section{Praktikum}
+\label{sec:praktikum-bab3}
+
+\begin{praktikumbox}
+\textbf{Judul:} Pemasangan lingkungan kerja dan menjalankan program
+assembly pertama.\\[0.3em]
+\textbf{Sub-CPMK:} 1.1 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu memasang
+lingkungan kerja assembly dan menjalankan program pertama sampai
+menghasilkan keluaran yang benar.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan sistem operasi Windows.
+    \item Emu8086 (emulator dan editor).
+    \item GUI Turbo Assembler beserta TASM dan TLINK.
+    \item DOSBox.
+    \item Berkas contoh \file{hello.asm} dari \file{code/asm/}.
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Pemasangan Emu8086.}
+    \begin{enumerate}
+        \item Pasang Emu8086, lalu jalankan aplikasinya.
+        \item Buat berkas baru dan tuliskan program
+              \file{hello.asm} seperti pada Kode~\ref{lst:hello}.
+        \item Tekan tombol \file{Compile and Emulate}, lalu
+              \file{Run}.
+        \item Catat keluaran yang muncul pada jendela emulator.
+    \end{enumerate}
+
+    \item \textbf{Pengamatan register dan memori.}
+    \begin{enumerate}
+        \item Jalankan kembali program dengan tombol
+              \file{Single Step}.
+        \item Amati perubahan register \reg{AX}, \reg{DX}, dan
+              \reg{DS} pada setiap langkah.
+        \item Catat nilai ketiga register tersebut setelah instruksi
+              \lstasm|MOV AX, @DATA| dijalankan.
+        \item Amati jendela memori dan temukan lokasi string
+              \code{"Halo, dunia!"}.
+    \end{enumerate}
+
+    \item \textbf{Perakitan dengan TASM dan TLINK.}
+    \begin{enumerate}
+        \item Buka DOSBox, lalu lakukan \file{mount} ke direktori
+              kerja, misalnya \file{mount c: D:\textbackslash asm}.
+        \item Rakit program dengan perintah
+              \file{tasm hello.asm}.
+        \item GABUNGKAN dengan perintah \file{tlink hello.obj}.
+        \item Jalankan dengan perintah \file{hello}.
+        \item Catat keluaran yang muncul.
+    \end{enumerate}
+
+    \item \textbf{Modifikasi program.}
+    \begin{enumerate}
+        \item Ubah isi variabel \code{pesan} menjadi nama lengkap
+              mahasiswa.
+        \item Rakit ulang dan pastikan keluaran berubah.
+        \item Tambahkan satu baris teks kedua dengan menambahkan
+              layanan \code{INT 21h} fungsi \hex{09} sebelum program
+              keluar.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Berkas \file{hello.asm} versi modifikasi.
+    \item Tangkapan layar keluaran program pada Emu8086.
+    \item Tangkapan layar keluaran program pada DOSBox.
+    \item Tabel pengamatan nilai register \reg{AX}, \reg{DX},
+          \reg{DS} untuk setiap langkah eksekusi.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen praktikum 1 (bobot 5\% dari komponen praktikum).}
+
+\begin{tabular}{@{}p{6.2cm}cp{4.6cm}@{}}
+    \toprule
+    \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \midrule
+    Lingkungan kerja terpasang dan program berjalan & 30\% &
+    Program menghasilkan keluaran benar pada minimal dua alat \\
+    \addlinespace
+    Ketepatan tabel pengamatan register & 30\% &
+    Nilai register tercatat benar pada setiap langkah \\
+    \addlinespace
+    Modifikasi program berhasil & 25\% &
+    Keluaran berubah sesuai instruksi \\
+    \addlinespace
+    Kerapian dokumentasi dan jurnal & 15\% &
+    Langkah kerja terdokumentasi dan dapat diulang \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

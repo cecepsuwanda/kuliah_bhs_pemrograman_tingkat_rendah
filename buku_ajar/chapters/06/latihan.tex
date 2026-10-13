@@ -1,0 +1,98 @@
+\section{Latihan}
+\label{sec:latihan-bab6}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan mengapa prosesor 8086 yang
+          berbus alamat 20 bit tetap dirancang memakai register
+          segmen 16 bit. Sebutkan pula apa yang akan hilang bila
+          prosesor itu hanya memakai satu register 16-bit untuk
+          menunjuk alamat.
+
+    \item \textbf{Perhitungan.} Hitunglah alamat fisik dari kelima
+          pasangan berikut. Tuliskan langkah perhitungannya, bukan
+          hanya hasil akhirnya.
+          \begin{enumerate}
+              \item \code{0000h:1A00h}
+              \item \code{1500h:0100h}
+              \item \code{9FFFh:000Fh}
+              \item \code{B800h:0060h}
+              \item \code{ABCDh:1234h}
+          \end{enumerate}
+
+    \item \textbf{Overlapping.} Alamat fisik \hex{00080} dapat
+          dinyatakan oleh beberapa pasangan \eng{segment:offset}.
+          \begin{enumerate}
+              \item Tentukan banyaknya pasangan yang mungkin dengan
+                    memakai pola $\lfloor F/16 \rfloor + 1$.
+              \item Tuliskan seluruh pasangan tersebut.
+              \item Jelaskan mengapa jumlah pasangan untuk alamat
+                    \hex{00080} lebih banyak daripada jumlah pasangan
+                    untuk alamat \hex{00050}.
+          \end{enumerate}
+
+    \item \textbf{Kasus batas.} Sebuah program menghitung alamat
+          dengan pasangan \code{FFFFh:0020h}.
+          \begin{enumerate}
+              \item Berapa hasil penjumlahan sebelum pemotongan 20
+                    bit?
+              \item Berapa alamat fisik yang sesungguhnya diakses
+                    pada 8086?
+              \item Jelaskan mengapa hasilnya berubah, dan sebutkan
+                    bagian peta memori yang akhirnya tersentuh.
+          \end{enumerate}
+
+    \item \textbf{Peta memori.} Jawab pertanyaan berikut berdasarkan
+          Tabel~\ref{tab:peta-memori}.
+          \begin{enumerate}
+              \item Alamat \hex{B8000} berada pada area apa, dan apa
+                    isinya?
+              \item Berapa byte memori yang dipakai untuk seluruh
+                    layar teks 80 kolom $\times$ 25 baris?
+              \item Pada offset berapa karakter pertama baris ketiga
+                    layar tersebut berada? Nyatakan dalam pasangan
+                    \eng{segment:offset}.
+          \end{enumerate}
+
+    \item \textbf{Penulisan program.} Tulislah program lengkap yang
+          mendeklarasikan tiga variabel pada segmen data, lalu
+          menampilkan offset ketiganya dengan operator \code{OFFSET}.
+          Gunakan prosedur \code{cetak\_hex} pada
+          Kode~\ref{lst:alamat-fisik} sebagai acuan.
+
+    \item \textbf{Penulisan program.} Tulislah program yang
+          menghitung alamat fisik dari pasangan \code{1234h:5678h}
+          secara langsung, yaitu dengan memuat kedua nilai tersebut
+          sebagai konstanta ke dalam register, kemudian melakukan
+          pergeseran dan penjumlahan seperti pada
+          Kode~\ref{lst:hitung-alamat}. Program harus mencetak hasil
+          \hex{179B8}.
+
+    \item \textbf{Analisis kesalahan.} Seorang mahasiswa menghitung
+          alamat fisik pasangan \code{1234h:5678h} dan memperoleh
+          \hex{68AC}. Ia juga melaporkan bahwa DEBUG menampilkan
+          alamat \code{076A:0000} sehingga menurutnya alamat fisik
+          variabel tersebut adalah \hex{0000}.
+          \begin{enumerate}
+              \item Tunjukkan langkah mana yang salah pada
+                    perhitungan pertama, lalu hitung hasil yang benar.
+              \item Jelaskan kesalahan penalaran pada laporan kedua,
+                    dan tuliskan alamat fisik yang benar bila
+                    \reg{DS} bernilai \hex{076A}.
+              \item Sebutkan satu cara pemeriksaan untuk memastikan
+                    hasil perhitungan Anda benar.
+          \end{enumerate}
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Bagian mana dari bab ini yang paling sulit dipahami?
+          Apakah kesulitannya terletak pada aritmatika heksadesimal,
+          pada istilah baru, atau pada cara membaca peta memori?
+    \item Setelah membuktikan \eng{overlapping segment} dengan
+          DEBUG, bagaimana pandangan Anda tentang hubungan antara
+          alamat logis dan alamat fisik?
+    \item Konsep apa yang perlu Anda ulangi sebelum masuk ke bab
+          berikutnya? Tuliskan satu rencana belajar singkat.
+\end{enumerate}
+\end{refleksibox}

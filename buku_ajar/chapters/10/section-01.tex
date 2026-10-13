@@ -1,0 +1,278 @@
+\section{Instruksi Transfer Data}
+\label{sec:transfer-data}
+
+Bab sebelumnya telah membahas register (Bab~\ref{chap:register}) dan
+cara prosesor menetapkan alamat operand
+(Bab~\ref{chap:mode-pengalamatan}). Bab ini melanjutkan pembahasan
+tersebut dengan dua kelompok instruksi yang paling sering dipakai:
+instruksi transfer data dan instruksi aritmatika.
+
+Sebagian besar pekerjaan sebuah program sebenarnya hanyalah
+memindahkan data, sehingga instruksi transfer data menjadi fondasi
+seluruh program assembly.
+
+\subsection{Instruksi \asm{MOV} dan Aturan Legalitasnya}
+
+Instruksi \asm{MOV} menyalin data dari operand sumber ke operand
+tujuan dengan bentuk \lstasm|MOV tujuan, sumber|.
+
+\important{Instruksi \asm{MOV} tidak menghapus isi sumber.} Setelah
+\lstasm|MOV AX, BX| dijalankan, \reg{AX} dan \reg{BX} sama-sama
+berisi nilai yang sama. Kata ``pindah'' pada pembahasan sehari-hari
+sebenarnya berarti \eng{salin}.
+
+Prosesor 8086 menolak kombinasi operand yang tidak memenuhi tiga
+syarat berikut.
+
+\begin{enumerate}
+    \item \textbf{Ukuran kedua operand harus sama.} Instruksi
+          \lstasm|MOV AX, BL| tidak sah karena \reg{AX} berukuran
+          16 bit sedangkan \reg{BL} hanya 8 bit. Bila salah satu
+          operand berada di memori, ukurannya dinyatakan dengan
+          \lstasm|BYTE PTR| atau \lstasm|WORD PTR|.
+
+    \item \textbf{Tidak boleh memori ke memori.} Instruksi
+          \lstasm|MOV nilai2, nilai1| tidak sah karena 8086 tidak
+          memiliki jalur untuk menyalin langsung antarlokasi memori.
+
+    \item \textbf{Tidak boleh nilai segera ke register segmen.}
+          Instruksi \lstasm|MOV DS, 1000h| tidak sah. Pemindahan ke
+          register segmen hanya boleh berasal dari register umum,
+          sehingga inisialisasi segmen selalu ditulis
+          \lstasm|MOV AX, @DATA| lalu \lstasm|MOV DS, AX|.
+\end{enumerate}
+
+Tabel~\ref{tab:legalitas-mov} merangkum kombinasi operand yang
+diizinkan dan yang ditolak.
+
+\begin{table}[H]
+    \centering
+    \caption{Legalitas kombinasi operand pada instruksi \asm{MOV}.}
+    \label{tab:legalitas-mov}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{@{}p{4.4cm}p{3.5cm}p{1.5cm}p{4.4cm}@{}}
+        \toprule
+        \textbf{Bentuk pemindahan} & \textbf{Contoh} &
+        \textbf{Sah?} & \textbf{Keterangan} \\
+        \midrule
+        Register ke register & \lstasm|MOV AX, BX| & Ya &
+        Bentuk paling cepat, tanpa akses memori \\
+        \addlinespace
+        Nilai segera ke register & \lstasm|MOV AX, 5| & Ya &
+        Nilai segera muat 16 bit \\
+        \addlinespace
+        Memori ke register & \lstasm|MOV AX, nilai1| & Ya &
+        Satu operand di memori \\
+        \addlinespace
+        Register ke memori & \lstasm|MOV nilai1, AX| & Ya &
+        Hasil perhitungan disimpan kembali \\
+        \addlinespace
+        Nilai segera ke memori & \lstasm|MOV nilai1, 5| & Ya &
+        Ukuran diambil dari deklarasi \dir{DW} \\
+        \addlinespace
+        Register ke segmen & \lstasm|MOV DS, AX| & Ya &
+        Cara baku inisialisasi segmen \\
+        \addlinespace
+        Nilai segera ke segmen & \lstasm|MOV DS, 1000h| & Tidak &
+        Harus melalui register umum \\
+        \addlinespace
+        Memori ke memori & \lstasm|MOV nilai2, nilai1| & Tidak &
+        Pakai register perantara \\
+        \addlinespace
+        Segmen ke segmen & \lstasm|MOV DS, ES| & Tidak &
+        Pakai register umum \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Mengatasi Pemindahan yang Tidak Diizinkan}
+
+Ketika kombinasi operand ditolak, solusinya adalah menyisipkan
+register perantara. Pemindahan memori ke memori dilakukan dalam dua
+langkah, dan pemindahan nilai segera ke register segmen dilakukan
+melalui sebuah register umum.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    ; memori ke memori : dua langkah melalui AX
+    MOV AX, nilai1          ; muat isi memori ke AX
+    MOV nilai2, AX          ; simpan dari AX ke memori tujuan
+
+    ; nilai segera ke DS : dua langkah melalui AX
+    MOV AX, 1000h           ; muat nilai segera ke AX
+    MOV DS, AX              ; salin dari AX ke DS
+\end{lstlisting}
+
+\subsection{Instruksi \asm{XCHG}}
+
+Instruksi \asm{XCHG} menukar isi dua operand, sehingga keduanya
+berubah sekaligus. Aturannya lebih ketat daripada \asm{MOV}: salah
+satu operand wajib berada di register, keduanya harus berukuran sama,
+dan tidak ada operand yang boleh berupa nilai segera.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AX, 1234h           ; AX = 1234h
+    MOV BX, 5678h           ; BX = 5678h
+    XCHG AX, BX             ; AX = 5678h, BX = 1234h
+\end{lstlisting}
+
+Pemakaian lazimnya adalah menukar dua nilai sementara tanpa
+memerlukan register ketiga.
+
+\subsection{Perbedaan \asm{MOV} dan \asm{LEA}}
+
+Instruksi \asm{LEA} (\eng{Load Effective Address}) memuat
+\emph{alamat} sebuah operand ke register, bukan isi operand tersebut.
+Perbedaan ini adalah sumber kebingungan yang paling sering terjadi.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+pesan DB 'Halo$'
+
+    LEA BX, pesan           ; BX = alamat variabel pesan
+    MOV BX, OFFSET pesan    ; BX = alamat variabel pesan (sama)
+    MOV BX, pesan           ; BX = dua byte isi pesan, yaitu 'Ha'
+\end{lstlisting}
+
+Dua instruksi pertama menghasilkan nilai yang sama pada \reg{BX},
+sedangkan instruksi ketiga menghasilkan sesuatu yang sama sekali
+berbeda. Kesalahan seperti ini tidak dilaporkan assembler karena
+secara sintaksis ketiganya sah, tetapi program akan berperilaku
+salah.
+
+\asm{LEA} juga lebih tepat ketika alamat efektif harus dihitung saat
+program berjalan. Instruksi \lstasm|LEA SI, [BX+DI+4]| menghasilkan
+$BX + DI + 4$ pada \reg{SI} tanpa membaca memori sama sekali,
+sedangkan perhitungan yang sama dengan \asm{MOV} dan \asm{ADD}
+memerlukan tiga instruksi. Aturan pengalamatan yang dipakai \asm{LEA}
+sama dengan aturan pada Bab~\ref{chap:mode-pengalamatan}.
+
+\subsection{Instruksi \asm{PUSH} dan \asm{POP}}
+
+\eng{Stack} adalah daerah memori yang dikelola dengan pola
+\eng{last in first out} (LIFO). Instruksi \asm{PUSH} menaruh satu word
+ke puncak \eng{stack}, sedangkan \asm{POP} mengambilnya kembali.
+Keduanya memakai register \reg{SP} sebagai penunjuk puncak.
+Gambar~\ref{fig:stack-pushpop} memperlihatkan perubahan susunan
+\eng{stack} pada instruksi \asm{PUSH AX}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small,
+        sel/.style={draw=obeBlue, line width=0.7pt, minimum width=2.4cm,
+                    minimum height=0.6cm, align=center, inner sep=1pt},
+        isi/.style={sel, fill=obeBlueLight},
+        kosong/.style={sel, fill=obeGrayLight},
+        sp/.style={-{Stealth[length=2.2mm]}, line width=1pt, obeMaroon},
+        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt, obeTeal},
+        ket/.style={font=\bfseries\small, text=obeBlue}
+    ]
+        \node[ket] at (0, 2.35) {Sebelum PUSH};
+        \node[kosong] at (0, 0) {kosong};
+        \node[isi]    at (0, 0.62) {5678h};
+        \draw[sp] (1.35, 0.62) -- (1.05, 0.62);
+        \node[font=\scriptsize, text=obeMaroon, anchor=west]
+            at (1.4, 0.62) {SP};
+
+        \node[ket] at (5.4, 2.35) {Sesudah PUSH};
+        \node[sel, fill=obeAmberLight, draw=obeAmber] (ax) at (5.4, 1.55)
+            {AX = 1234h};
+        \node[isi] (kanan2) at (5.4, 0.62) {1234h};
+        \node[isi] at (5.4, 0) {5678h};
+        \draw[panah] (ax.south) -- (kanan2.north);
+        \draw[sp] (6.75, 0.62) -- (6.45, 0.62);
+        \node[font=\scriptsize, text=obeMaroon, anchor=west]
+            at (6.8, 0.62) {SP berkurang 2};
+
+        \draw[panah, obeGray] (2.9, 1.85) -- (2.9, 0.1);
+        \node[font=\scriptsize, text=obeGray, align=left, anchor=west]
+            at (3.02, 1.0) {stack tumbuh ke\\alamat rendah};
+    \end{tikzpicture}
+    \caption{Perubahan susunan \eng{stack} pada instruksi
+    \code{PUSH AX}.}
+    \label{fig:stack-pushpop}
+\end{figure}
+
+Beberapa aturan pemakaian \asm{PUSH} dan \asm{POP} adalah sebagai
+berikut.
+
+\begin{itemize}
+    \item Keduanya bekerja pada satuan word; pada 8086 tidak tersedia
+          bentuk \lstasm|PUSH AL|.
+    \item Operand berupa nilai segera tidak diizinkan.
+    \item \reg{CS} boleh di-\asm{PUSH}, tetapi tidak boleh menjadi
+          tujuan \asm{POP}.
+    \item Setiap \asm{PUSH} harus berpasangan dengan \asm{POP} yang
+          seimbang. Bila jumlahnya tidak seimbang, \reg{SP} tidak
+          kembali ke posisi semula dan program dapat berhenti secara
+          tidak terduga saat \asm{RET} dijalankan.
+\end{itemize}
+
+\begin{infobox}
+Pola \asm{PUSH} di awal dan \asm{POP} di akhir prosedur dibahas pada
+Bab~\ref{chap:prosedur}, sedangkan \asm{PUSHF} dan \asm{POPF} untuk
+menyelamatkan seluruh \eng{flag} dibahas pada Bab~\ref{chap:kontrol}.
+\end{infobox}
+
+\subsection{Instruksi \asm{LDS} dan \asm{LES}}
+
+Untuk mengakses data di luar segmen data, prosesor memerlukan
+\eng{pointer} jauh yang terdiri atas offset dan nomor segmen,
+masing-masing 16 bit. Instruksi \asm{LDS} dan \asm{LES} memuat
+keduanya sekaligus dari memori berukuran 32 bit, sehingga satu
+instruksi sudah cukup untuk menyiapkan penunjuk dan register
+segmennya. Pemakaian lanjutan instruksi ini termasuk materi pada
+Bab~\ref{chap:segmentasi}.
+
+Tabel~\ref{tab:transfer-data} merangkum seluruh instruksi transfer
+data yang dibahas pada bagian ini.
+
+\begin{table}[H]
+    \centering
+    \caption{Ringkasan instruksi transfer data 8086.}
+    \label{tab:transfer-data}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{@{}p{1.7cm}p{3.8cm}p{4.4cm}p{3.6cm}@{}}
+        \toprule
+        \textbf{Instruksi} & \textbf{Bentuk umum} &
+        \textbf{Kegunaan} & \textbf{Contoh} \\
+        \midrule
+        \asm{MOV} & \lstasm|MOV tujuan, sumber| &
+        Menyalin data; sumber tidak berubah &
+        \lstasm|MOV AX, BX| \\
+        \addlinespace
+        \asm{XCHG} & \lstasm|XCHG op1, op2| &
+        Menukar isi dua operand &
+        \lstasm|XCHG AX, BX| \\
+        \addlinespace
+        \asm{LEA} & \lstasm|LEA reg16, mem| &
+        Memuat alamat efektif, bukan isi memori &
+        \lstasm|LEA SI, pesan| \\
+        \addlinespace
+        \asm{LDS} & \lstasm|LDS reg16, mem32| &
+        Memuat offset ke register dan segmen ke \reg{DS} &
+        \lstasm|LDS SI, ptrJauh| \\
+        \addlinespace
+        \asm{LES} & \lstasm|LES reg16, mem32| &
+        Memuat offset ke register dan segmen ke \reg{ES} &
+        \lstasm|LES DI, ptrJauh| \\
+        \addlinespace
+        \asm{PUSH} & \lstasm|PUSH sumber| &
+        Menaruh satu word ke puncak \eng{stack} &
+        \lstasm|PUSH AX| \\
+        \addlinespace
+        \asm{POP} & \lstasm|POP tujuan| &
+        Mengambil satu word dari puncak \eng{stack} &
+        \lstasm|POP BX| \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{peringatanbox}
+Kesalahan yang sering terjadi adalah mencoba menambal penolakan
+\lstasm|MOV nilai2, nilai1| dengan \lstasm|WORD PTR|. Penambalan itu
+tidak menyelesaikan masalah, karena penyebabnya bukan ukuran operand
+melainkan jenis operandnya. Perbaikan yang benar adalah menyisipkan
+register perantara.
+\end{peringatanbox}

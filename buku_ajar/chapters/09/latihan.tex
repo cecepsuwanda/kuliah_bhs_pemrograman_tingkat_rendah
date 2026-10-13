@@ -1,0 +1,93 @@
+\section{Latihan}
+\label{sec:latihan-bab9}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan perbedaan instruksi mesin dan
+          direktif assembler, serta mengapa direktif disebut
+          \eng{pseudo-op}. Berikan dua contoh direktif yang mengisi
+          memori dan dua contoh yang tidak mempengaruhi isi berkas
+          \file{.exe}.
+
+    \item \textbf{Konseptual.} Sebutkan direktif data yang tepat
+          untuk setiap kebutuhan berikut, lalu tuliskan
+          deklarasinya: (a) satu nilai \hex{0A} untuk pindah baris;
+          (b) sebuah tabel berisi delapan nilai 16-bit untuk
+          \hex{0000}; (c) sebuah penampung 32 byte yang diisi saat
+          program berjalan; (d) sebuah string \code{'SEMARANG'}
+          yang siap dicetak dengan layanan DOS fungsi \hex{09}.
+
+    \item \textbf{Analisis.} Diberikan blok data berikut. Hitung
+          total byte yang disediakan dan tuliskan \eng{offset}
+          setiap label.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+.DATA
+    a   DB 'TEST'
+    b   DW 2 DUP(0)
+    c   DD 1, 2
+    d   DB 3 DUP(?)
+    e   DT 0
+\end{lstlisting}
+
+    \item \textbf{Analisis \eng{little-endian}.} Tuliskan urutan byte
+          di memori untuk deklarasi \lstasm|DW 0102h| dan
+          \lstasm|DD 03040506h|. Jelaskan mengapa urutannya
+          demikian, lalu tentukan nilai yang terbaca pada
+          \reg{AX} bila program menjalankan \lstasm|MOV AX, w|
+          dengan \lstasm|w DW 0102h|.
+
+    \item \textbf{Analisis kesalahan.} Perhatikan potongan berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+BARIS   EQU 25
+KOLOM   EQU 80
+BARIS   EQU 50
+\end{lstlisting}
+
+          \begin{enumerate}
+              \item Baris mana yang menimbulkan kesalahan, dan apa
+                    pesan yang dikeluarkan TASM?
+              \item Ubah potongan itu agar sah, tetapi tetap
+                    menghasilkan \code{BARIS} bernilai \dec{50}
+                    pada pemakaian terakhir.
+              \item Jelaskan mengapa pemakaian \code{=} tidak
+                    menimbulkan masalah pada kasus ini.
+          \end{enumerate}
+
+    \item \textbf{Analisis alur translasi.} Sebuah berkas sumber
+          berakhir dengan \lstasm|END| tanpa nama label.
+          \begin{enumerate}
+              \item Apakah TASM melaporkan kesalahan? Jelaskan.
+              \item Apakah TLINK melaporkan kesalahan? Jelaskan
+                    pesan yang muncul.
+              \item Bagaimana cara memperbaikinya?
+          \end{enumerate}
+
+    \item \textbf{Penulisan program.} Tulislah program lengkap yang
+          mendeklarasikan sebuah tabel berisi lima nilai
+          \hex{41}--\hex{45} dengan \dir{DB}, mencetaknya dengan
+          layanan DOS fungsi \hex{02} satu karakter per
+          pemanggilan, lalu keluar dengan fungsi \hex{4C}.
+
+    \item \textbf{Penulisan program dan pembacaan berkas hasil.}
+          Deklarasikan semua nomor fungsi DOS yang dipakai dengan
+          \dir{EQU}, lalu rakit dengan \file{tasm /l} dan
+          \file{tlink /m}. Salin tabel segmen dari berkas
+          \file{.map}, lalu jelaskan hubungan besar segmen
+          \file{\_DATA} dengan jumlah byte deklarasi data pada
+          program Anda.
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Direktif mana yang paling sering Anda lupakan fungsinya?
+          Bagaimana Anda mengingatnya kembali?
+    \item Setelah membaca berkas \file{.lst} dan \file{.map},
+          apakah gambaran Anda tentang kerja assembler dan linker
+          menjadi lebih jelas? Bagian mana yang paling menolong?
+    \item Kesalahan perakitan apa yang Anda temui pada latihan ini,
+          dan apa pelajaran yang Anda ambil dari kesalahan
+          tersebut?
+\end{enumerate}
+\end{refleksibox}

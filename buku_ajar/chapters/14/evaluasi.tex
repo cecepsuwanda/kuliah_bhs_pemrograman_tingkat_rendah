@@ -1,0 +1,120 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab14}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Setiap entri pada tabel vektor interupsi 8086 berukuran
+          \dots
+          \begin{enumerate}
+              \item 2 byte berisi offset penangan
+              \item 4 byte: 2 byte offset dan 2 byte segmen
+              \item 4 byte berisi nomor vektor
+              \item 8 byte: \reg{IP}, \reg{CS}, dan \reg{FLAGS}
+          \end{enumerate}
+
+    \item Alamat entri untuk vektor \hex{10} adalah \dots
+          \begin{enumerate}
+              \item \hex{0010} \item \hex{0040}
+              \item \hex{0100} \item \hex{0160}
+          \end{enumerate}
+
+    \item Urutan penyimpanan ke stack ketika instruksi
+          \lstasm|INT n| dijalankan adalah \dots
+          \begin{enumerate}
+              \item \reg{IP}, \reg{CS}, \reg{FLAGS}
+              \item \reg{CS}, \reg{IP}, \reg{FLAGS}
+              \item \reg{FLAGS}, \reg{CS}, \reg{IP}
+              \item \reg{FLAGS}, \reg{IP}, \reg{CS}
+          \end{enumerate}
+
+    \item Instruksi yang wajib mengakhiri sebuah rutin penangan
+          interupsi adalah \dots
+          \begin{enumerate}
+              \item \lstasm|RET| \item \lstasm|IRET|
+              \item \lstasm|HLT| \item \lstasm|POPF|
+          \end{enumerate}
+
+    \item Fungsi \code{INT 21h} yang dipakai untuk membaca string
+          yang diketik pengguna beserta penyangganya adalah \dots
+          \begin{enumerate}
+              \item \hex{01} \item \hex{02}
+              \item \hex{09} \item \hex{0A}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Jelaskan bagaimana prosesor menemukan rutin penangan ketika
+          instruksi \lstasm|INT 16h| dijalankan, lengkap dengan
+          perhitungan alamat entri vektornya.
+
+    \item Bandingkan \lstasm|INT 20h| dengan \code{INT 21h} fungsi
+          \hex{4C}. Sebutkan tiga perbedaan dan jelaskan kapan
+          masing-masing cara dipakai.
+
+    \item Jelaskan tata letak penyangga fungsi \hex{0A} dan tuliskan
+          potongan program yang menyisipkan tanda \code{'\$'} sesudah
+          karakter terakhir. Jelaskan pula akibatnya bila tanda
+          tersebut tidak disisipkan.
+
+    \item Tuliskan program lengkap yang meminta nama pengguna dengan
+          \code{INT 21h} fungsi \hex{0A}, lalu menampilkan
+          \code{Halo, <nama>} pada baris 12, kolom 15 dengan
+          \code{INT 10h} fungsi \hex{13} dan atribut kuning pada latar
+          hitam. Sertakan inisialisasi register segmen dan penulisan
+          tanda \code{'\$'} pada penyangga.
+\end{enumerate}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:interupsi}.}
+    \label{tab:kisi-bab14}
+    \small
+    \begin{tabular}{@{}p{1.7cm}p{5.4cm}p{3.6cm}c@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
+        \textbf{Bentuk soal} & \textbf{Bobot} \\
+        \midrule
+        2.4 & Menjelaskan konsep interupsi dan tabel vektor beserta
+        perhitungan alamatnya & Pilihan ganda 1, 2; Uraian 1 & 25\% \\
+        \addlinespace
+        2.4 & Menjelaskan mekanisme \asm{INT} dan \asm{IRET} pada
+        stack & Pilihan ganda 3, 4; Uraian 1 & 25\% \\
+        \addlinespace
+        2.4 & Menganalisis layanan BIOS dan DOS beserta penyangganya &
+        Pilihan ganda 5; Uraian 2, 3 & 25\% \\
+        \addlinespace
+        2.4 & Menulis program masukan/keluaran dengan \code{INT 21h}
+        dan \code{INT 10h} & Uraian 4 & 25\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:interupsi}}
+
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 2.4 apabila:
+\begin{itemize}
+    \item[\checked] dapat menjelaskan alasan diperlukannya interupsi
+          dan membedakan interupsi perangkat keras, perangkat lunak,
+          serta pengecualian;
+    \item[\checked] dapat menghitung alamat entri vektor ke-$n$ dan
+          menyebutkan vektor-vektor penting beserta kegunaannya;
+    \item[\checked] dapat menuliskan isi stack sesudah \asm{INT}
+          dijalankan dan menjelaskan urutan pengambilan oleh
+          \asm{IRET};
+    \item[\checked] dapat memakai layanan \code{INT 10h}, \code{INT
+          16h}, dan \code{INT 21h} dengan argumen register yang
+          benar;
+    \item[\checked] dapat menulis program masukan/keluaran lengkap
+          beserta penanganan penyangga fungsi \hex{0A};
+    \item[\checked] dapat memasang sebuah penangan interupsi
+          sederhana dan memulihkan vektor semula;
+    \item[\checked] dapat menjelaskan risiko penggantian vektor dan
+          cara menghindarinya.
+\end{itemize}
+\end{checklistbox}

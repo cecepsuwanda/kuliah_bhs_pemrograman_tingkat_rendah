@@ -1,0 +1,68 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Interupsi BIOS/DOS dan Operasi I/O}
+\label{chap:interupsi}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{2.4} --- Menjelaskan mekanisme interupsi dan layanan BIOS/DOS
+(\code{INT 10h}, \code{INT 21h}) sebagai jembatan antara instruksi mesin
+dan perangkat keras serta operasi masukan/keluaran.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{02} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan alasan diperlukannya interupsi dan membedakan
+          interupsi perangkat keras, perangkat lunak, serta
+          pengecualian prosesor;
+    \item menghitung alamat vektor interupsi ke-$n$ dan menyebutkan
+          vektor-vektor penting beserta kegunaannya;
+    \item menelusuri urutan penyimpanan \reg{FLAGS}, \reg{CS}, dan
+          \reg{IP} pada stack serta pengambilannya kembali oleh
+          \asm{IRET};
+    \item menggunakan layanan BIOS \code{INT 10h}, \code{INT 16h},
+          \code{INT 17h} serta layanan DOS \code{INT 21h};
+    \item memasang \eng{interrupt handler} sederhana dengan mengganti
+          isi sebuah vektor, lalu memulihkan vektor tersebut.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Konsep interupsi: perangkat keras, perangkat lunak, dan
+          pengecualian.
+    \item Tabel vektor interupsi pada alamat \hex{0000}--\hex{03FF}
+          dan cara menghitung alamat vektor ke-$n$.
+    \item Mekanisme \asm{INT} dan \asm{IRET} serta kaitannya dengan
+          \flag{TF} dan eksekusi satu langkah.
+    \item Layanan BIOS: \code{INT 10h}, \code{INT 16h}, dan
+          \code{INT 17h}.
+    \item Layanan DOS \code{INT 21h} beserta penyangga fungsi
+          \hex{0A} dan perbedaan \lstasm|INT 20h| dengan fungsi
+          \hex{4C}.
+    \item Penanganan interupsi buatan sendiri beserta risikonya, serta
+          studi kasus program sapaan dan teks berwarna.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

@@ -1,34 +1,120 @@
-\documentclass[12pt, a4paper]{book}
-\input{preamble}
+% =========================================================
+% main.tex
+% MASTER DOCUMENT BUKU AJAR
+% Pemrograman Bahasa Tingkat Rendah
+%
+% File ini TIDAK memuat materi pembelajaran.
+% Tugasnya: document class, konfigurasi, front matter,
+% seluruh bab, lampiran, dan bibliografi.
+% =========================================================
+
+\documentclass[
+    12pt,
+    a4paper,
+    oneside
+]{book}
+
+% ---------------------------------------------------------
+% Bootstrap path (lihat preamble.tex)
+% subfiles HARUS dimuat paling awal agar makro
+% \ifSubfilesClassLoaded tersedia.
+% ---------------------------------------------------------
+\usepackage{subfiles}
+
+\ifSubfilesClassLoaded{%
+    \def\BookRoot{../..}%
+}{%
+    \def\BookRoot{.}%
+}
+
+% =========================================================
+% GLOBAL CONFIGURATION
+% =========================================================
+
+\input{\BookRoot/preamble}
+\input{\BookRoot/metadata}
+
+% =========================================================
+% DOCUMENT
+% =========================================================
 
 \begin{document}
 
-\input{frontmatter}
+% =========================================================
+% FRONT MATTER
+% =========================================================
+
+\frontmatter
+
+\input{\BookRoot/frontmatter/cover}
+\input{\BookRoot/frontmatter/copyright}
+\input{\BookRoot/frontmatter/preface}
+\input{\BookRoot/frontmatter/acknowledgements}
+\input{\BookRoot/frontmatter/learning-outcomes}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+% =========================================================
+% MAIN MATTER
+% =========================================================
+
+% ---------------------------------------------------------
+% CATATAN ARSITEKTUR
+%
+% Bab dimuat dengan \subfile, bukan \include.
+%
+% Alasannya: package subfiles menetapkan direktori berkas yang
+% sedang dibaca (melalui \import@path). Dengan \include, direktori
+% itu tidak ditetapkan, sehingga \subfile{section-01} di dalam
+% chapter.tex akan dicari relatif terhadap direktori main.tex dan
+% gagal ditemukan. Dengan \subfile, seluruh rantai
+% chapter -> section -> input kecil dapat diselesaikan.
+%
+% Konsekuensi: fitur \includeonly tidak tersedia. Bila diperlukan,
+% kompilasi per bab tetap dapat dilakukan langsung dari direktori
+% bab (lihat scripts/build-chapter.bat).
+% ---------------------------------------------------------
 
 \mainmatter
 
-\subfile{bab/bab-01}
-\subfile{bab/bab-02}
-\subfile{bab/bab-03}
-\subfile{bab/bab-04}
-\subfile{bab/bab-05}
-\subfile{bab/bab-06}
-\subfile{bab/bab-07}
-\subfile{bab/bab-08}
-\subfile{bab/bab-09}
-\subfile{bab/bab-10}
-\subfile{bab/bab-11}
-\subfile{bab/bab-12}
-\subfile{bab/bab-13}
-\subfile{bab/bab-14}
+\subfile{chapters/01/chapter}
+\subfile{chapters/02/chapter}
+\subfile{chapters/03/chapter}
+\subfile{chapters/04/chapter}
+\subfile{chapters/05/chapter}
+\subfile{chapters/06/chapter}
+\subfile{chapters/07/chapter}
+\subfile{chapters/08/chapter}
+\subfile{chapters/09/chapter}
+\subfile{chapters/10/chapter}
+\subfile{chapters/11/chapter}
+\subfile{chapters/12/chapter}
+\subfile{chapters/13/chapter}
+\subfile{chapters/14/chapter}
+\subfile{chapters/15/chapter}
+\subfile{chapters/16/chapter}
+\subfile{chapters/17/chapter}
+
+% =========================================================
+% APPENDICES
+% =========================================================
+
+\appendix
+
+\input{\BookRoot/appendices/appendix-a}
+\input{\BookRoot/appendices/appendix-b}
+\input{\BookRoot/appendices/appendix-c}
+\input{\BookRoot/appendices/appendix-d}
+
+% =========================================================
+% BACK MATTER
+% =========================================================
 
 \backmatter
 
-% Lampiran
-\input{lampiran}
-
-% Daftar Pustaka
-\input{backmatter}
+\bibliographystyle{plainnat}
+\bibliography{\BibFile}
 
 \end{document}
-

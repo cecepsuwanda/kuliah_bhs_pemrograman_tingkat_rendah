@@ -1,0 +1,141 @@
+\section{Contoh Program}
+\label{sec:contoh-bab9}
+
+Bagian ini menyajikan dua program utuh. Program pertama memakai
+seluruh direktif data, sedangkan program kedua memakai \dir{EQU}
+sebagai konstanta sekaligus memperlihatkan apa yang terjadi bila
+direktif itu didefinisikan ulang.
+
+\subsection{Contoh 1: Mendemonstrasikan Semua Direktif Data}
+
+Program pada Kode~\ref{lst:direktif-data} memakai \dir{DB},
+\dir{DW}, \dir{DD}, \dir{DUP}, dan penanda \code{?}, lalu mencetak
+sebagian isi memori tersebut ke layar.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{direktif-data.asm}: direktif data dan
+    isi memorinya.},
+    label={lst:direktif-data}
+]{\CodeDir/direktif-data.asm}
+
+Bagian \dir{.DATA} pada program tersebut dapat dibaca sebagai
+berikut.
+
+\begin{itemize}
+    \item \lstasm|sapaan DB 'Halo, assembly!', 0Dh, 0Ah, '$'|
+          menyediakan \dec{18} byte: \dec{15} byte isi string,
+          satu byte \code{0Dh} dan satu byte \code{0Ah} untuk
+          pindah baris, serta \code{'\$'} sebagai penanda akhir
+          untuk layanan DOS fungsi \hex{09}.
+    \item \lstasm|panjang EQU $ - sapaan| meminta assembler
+          menghitung panjang itu sendiri. Nilainya terlihat pada
+          berkas \file{.lst} (Kode~\ref{lst:listing-lst}).
+    \item \lstasm|kata DW 4241h, 4443h| menyediakan empat byte.
+          Karena urutan \eng{little-endian}, byte yang tersimpan
+          berurutan \hex{41}, \hex{42}, \hex{43}, \hex{44}.
+    \item \lstasm|nilai DD 12345678h| menyediakan empat byte tanpa
+          dipakai program, tetapi tetap menggeser \eng{offset}
+          \code{bintang} dan \code{buffer}.
+    \item \lstasm|bintang DB 4 DUP('*')| menunjukkan \dir{DUP} yang
+          berisi nilai awal, sedangkan \lstasm|buffer DB 8 DUP(?)|
+          hanya menyediakan ruang kosong.
+\end{itemize}
+
+Bagian \dir{.CODE} mencetak sapaan, lalu membaca \code{kata}
+\emph{byte per byte} dengan \lstasm|BYTE PTR [kata+1]|. Cara
+pengalamatan bertanda kurung siku dibahas pada
+Bab~\ref{chap:mode-pengalamatan}.
+
+\begin{session}[caption={Keluaran program \file{direktif-data.asm}.}, label={lst:keluaran-direktif-data}]
+Halo, assembly!
+ABCD****
+\end{session}
+
+Baris kedua keluaran tersebut membuktikan urutan
+\eng{little-endian}: data \hex{4241} dan \hex{4443} terbaca di
+memori sebagai \code{ABCD}.
+
+\subsection{Contoh 2: Konstanta \dir{EQU}}
+
+Program pada Kode~\ref{lst:equ-konstanta} mengganti setiap nomor
+fungsi DOS dengan nama yang bermakna. Nilainya tidak berubah
+dibandingkan penulisan langsung; yang berubah hanyalah keterbacaan
+program.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{equ-konstanta.asm}: konstanta simbolik
+    dengan \dir{EQU}.},
+    label={lst:equ-konstanta}
+]{\CodeDir/equ-konstanta.asm}
+
+\begin{session}[caption={Keluaran program \file{equ-konstanta.asm}.}, label={lst:keluaran-equ-konstanta}]
+Konstanta EQU
+X = 7
+\end{session}
+
+\subsection{Definisi Ulang \dir{EQU} Dibandingkan dengan \code{=}}
+
+Kode~\ref{lst:equ-ulang-gagal} menimbulkan kesalahan perakitan yang
+sama seperti pada Kode~\ref{lst:equ-salah}.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Baris yang menimbulkan kesalahan perakitan.},
+    label={lst:equ-ulang-gagal}
+]
+NILAI   EQU 5           ; definisi pertama
+NILAI   EQU 9           ; gagal: Symbol already defined
+\end{lstlisting}
+
+Bila kata kunci \dir{EQU} diganti dengan \code{=}, kedua baris itu
+menjadi sah. Program berikut mencetak dua angka berbeda dari satu
+nama simbol.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={\code{=} boleh didefinisikan ulang; program mencetak
+    \code{59}.},
+    label={lst:sama-dengan-ulang}
+]
+.MODEL SMALL
+.STACK 100h
+
+.DATA
+    awalan  DB 'Nilai = ', '$'
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+
+    MOV AH, 09h             ; cetak awalan
+    LEA DX, awalan
+    INT 21h
+
+NILAI   = 5                 ; definisi pertama
+    MOV AH, 02h             ; cetak hasil '0' + 5 = '5'
+    MOV DL, '0' + NILAI
+    INT 21h
+
+NILAI   = 9                 ; definisi ulang: sah
+    MOV AH, 02h             ; cetak hasil '0' + 9 = '9'
+    MOV DL, '0' + NILAI
+    INT 21h
+
+    MOV AH, 4Ch
+    MOV AL, 00h
+    INT 21h
+
+END START
+\end{lstlisting}
+
+\begin{session}[caption={Keluaran program pada Kode~\ref{lst:sama-dengan-ulang}.}]
+Nilai = 59
+\end{session}
+
+Kesimpulannya sederhana: pakai \dir{EQU} untuk nilai yang
+\emph{tidak akan pernah berubah}, seperti nomor fungsi DOS dan
+ukuran tetap, dan pakai \code{=} untuk nilai yang memang harus
+diganti di tengah berkas.

@@ -1,0 +1,123 @@
+\section{Praktikum}
+\label{sec:praktikum-bab12}
+
+\begin{praktikumbox}
+\textbf{Judul:} Pencarian maksimum, pengurutan sederhana, dan
+penelusuran alur percabangan.\\[0.3em]
+\textbf{Sub-CPMK:} 3.3 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu \quad\textbullet\quad
+\textbf{Tugas 5 dikumpulkan pada praktikum ini}
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu memilih
+\asm{Jcc} yang benar untuk data bertanda dan tak bertanda, menyusun
+perulangan dengan \asm{LOOP} maupun \asm{DEC} dan \asm{JNZ}, serta
+menelusuri alur percabangan dengan \eng{Single Step} dan melaporkan
+keadaan \eng{flag} pada saat lompatan terjadi.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan Emu8086, GUI Turbo Assembler, dan DOSBox.
+    \item Berkas \file{loop-maksimum.asm} dan \file{bubble-sort.asm}
+          dari \file{code/asm/}.
+    \item Lembar kerja penelusuran (tabel keadaan register dan
+          \eng{flag}).
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Pencarian nilai maksimum.}
+    \begin{enumerate}
+        \item Rakit dan jalankan \file{loop-maksimum.asm}; catat
+              keluarannya.
+        \item Ubah larik \code{deret} menjadi
+              \code{5, 4, 3, 2, 1, 0, 0FFh, 1}, lalu tentukan nilai
+              maksimumnya sebagai bilangan tak bertanda.
+        \item Jalankan program dan bandingkan hasilnya dengan
+              perhitungan Anda. Jelaskan bila \asm{JAE} diganti
+              \asm{JGE}.
+        \item Ubah larik menjadi satu elemen sehingga \reg{CX}
+              bernilai nol saat \asm{LOOP} pertama dijalankan. Amati
+              bahwa perulangan tidak dijalankan dan jelaskan mengapa
+              hasilnya tetap benar.
+    \end{enumerate}
+
+    \item \textbf{Pengurutan gelembung.}
+    \begin{enumerate}
+        \item Rakit dan jalankan \file{bubble-sort.asm}. Catat
+              keluaran yang muncul.
+        \item Hapus baris \lstasm|PUSH CX| dan \lstasm|POP CX|,
+              rakit ulang, lalu catat keluaran yang berubah.
+              Jelaskan penyebabnya.
+        \item Ubah algoritme agar lintasan dalam berkurang satu
+              setiap lintasan luar, lalu buktikan keluarannya tetap
+              benar.
+    \end{enumerate}
+
+    \item \textbf{Penelusuran alur dengan Single Step.}
+    \begin{enumerate}
+        \item Muat kembali \file{loop-maksimum.asm} dan aktifkan
+              \eng{Single Step}.
+        \item Berhenti tepat pada instruksi \lstasm|CMP AX, [SI]|
+              pertama, lalu catat nilai \reg{AX}, isi memori yang
+              ditunjuk \reg{SI}, serta keadaan \flag{ZF}, \flag{CF},
+              \flag{SF}, dan \flag{OF} \emph{sebelum} instruksi
+              dijalankan.
+        \item Langkah satu kali, lalu catat keadaan \eng{flag}
+              \emph{sesudah} instruksi dijalankan.
+        \item Berhenti pada instruksi \asm{JAE}. Catat apakah
+              lompatan diambil, dan jelaskan jawabannya berdasarkan
+              keadaan \eng{flag} yang baru saja Anda catat.
+        \item Ulangi langkah (b) sampai (d) untuk seluruh delapan
+              elemen, lalu lengkapi lembar kerja penelusuran.
+    \end{enumerate}
+
+    \item \textbf{Perbandingan LOOP dan DEC--JNZ.}
+    \begin{enumerate}
+        \item Ganti \lstasm|LOOP CARI| menjadi
+              \lstasm|DEC CX| dan \lstasm|JNZ CARI|.
+        \item Rakit kedua versi dan bandingkan ukuran berkas
+              \file{.obj} yang dihasilkan.
+        \item Jelaskan perbedaan yang Anda temukan.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Hasil yang Dikumpulkan (Tugas 5)}
+
+\begin{enumerate}
+    \item Berkas \file{loop-maksimum.asm} dan \file{bubble-sort.asm}
+          versi modifikasi beserta tangkapan layar keluaran.
+    \item Lembar kerja penelusuran berisi keadaan register dan
+          \eng{flag} pada setiap lompatan bersyarat.
+    \item Jawaban tertulis atas pertanyaan pada langkah 1(c), 2(b),
+          3(d), dan 4(c), serta jurnal praktikum.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen praktikum 11 dan Tugas 5 (bobot 10\% dari komponen
+praktikum).}
+
+\begin{tabular}{@{}p{6.2cm}cp{4.6cm}@{}}
+    \toprule
+    \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \midrule
+    Ketepatan pemilihan \asm{Jcc} & 25\% &
+    Seluruh lompatan sesuai jenis data dan tidak ada keputusan yang
+    salah \\
+    \addlinespace
+    Kebenaran program hasil modifikasi & 25\% &
+    Kedua program dirakit tanpa kesalahan dan keluarannya benar \\
+    \addlinespace
+    Kelengkapan lembar penelusuran & 30\% &
+    Register dan \eng{flag} tercatat benar pada setiap lompatan \\
+    \addlinespace
+    Kualitas analisis dan jurnal & 20\% &
+    Penjelasan sebab-akibat tepat dan dokumentasi dapat diulang \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

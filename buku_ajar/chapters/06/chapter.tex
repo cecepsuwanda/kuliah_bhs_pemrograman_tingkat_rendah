@@ -1,0 +1,79 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Segmentasi Memori dan Alamat Fisik}
+\label{chap:segmentasi}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{1.3} --- Menerapkan konsep segmentasi memori: menghitung
+alamat fisik 20-bit dari pasangan \eng{segment:offset}, menjelaskan
+paragraf 16-byte, dan menganalisis skema pengalamatan 1 MB.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{01} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan mengapa prosesor 8086 yang berbus alamat 20 bit
+          tetap memakai register segmen 16 bit;
+    \item membedakan alamat logis (\eng{segment:offset}) dan alamat
+          fisik, serta menuliskan keduanya dengan notasi yang benar;
+    \item menghitung alamat fisik 20-bit dari pasangan
+          \eng{segment:offset} memakai rumus
+          $(\text{segmen} \times \hex{10}) + \text{offset}$;
+    \item menjelaskan makna paragraf 16-byte dan hubungannya dengan
+          ukuran segmen 64 KB;
+    \item menghitung banyaknya pasangan \eng{segment:offset} yang
+          menunjuk satu alamat fisik yang sama
+          (\eng{overlapping segment});
+    \item menyebutkan pembagian peta memori 1 MB beserta kegunaan
+          setiap area (vektor interupsi, memori konvensional, area
+          video, dan ROM BIOS);
+    \item menganalisis kasus batas perhitungan alamat yang melewati
+          batas 1 MB (\eng{wrap-around});
+    \item memverifikasi hasil perhitungan alamat dengan
+          \eng{debugger} Emu8086 atau DEBUG.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Masalah yang melahirkan segmentasi: register 16-bit
+          (maksimum 64 KB) berhadapan dengan bus alamat 20-bit
+          (1 MB).
+    \item Alamat logis (\eng{segment:offset}) dan alamat fisik;
+          notasi penulisan \code{1234h:5678h}.
+    \item Rumus alamat fisik
+          $(\text{segmen} \times \hex{10}) + \text{offset}$ dan
+          alasan penggunaan pengali 16.
+    \item Paragraf 16-byte dan struktur segmen 64 KB.
+    \item \eng{Overlapping segment}: banyak pasangan menunjuk satu
+          alamat fisik; cara menghitung jumlah kemungkinannya.
+    \item Peta memori 1 MB: tabel vektor interupsi, area data BIOS,
+          memori konvensional 640 KB, area video, dan ROM BIOS.
+    \item Kasus batas: alamat yang melewati batas 1 MB dan
+          \eng{wrap-around}.
+    \item Verifikasi alamat dengan DEBUG dan Emu8086
+          (\lstasm|D segmen:offset|).
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

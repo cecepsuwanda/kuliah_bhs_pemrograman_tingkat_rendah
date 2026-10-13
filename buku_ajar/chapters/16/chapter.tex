@@ -1,0 +1,86 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Analisis Kode Mesin, Disassembly, dan Optimasi}
+\label{chap:disassembly}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{4.3} --- Menganalisis kode mesin hasil \eng{disassembly} dan
+menerapkan strategi optimasi program pada level instruksi.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{04} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan pengertian \eng{disassembly} dan perbedaannya
+          dengan \eng{assembly};
+    \item memakai perintah \code{U} pada DEBUG serta perkakas
+          sejenis untuk mengubah kode mesin kembali menjadi
+          \eng{mnemonic};
+    \item menyebutkan keterbatasan \eng{disassembly}, khususnya
+          sulitnya membedakan kode dan data serta munculnya alamat
+          relatif;
+    \item mengenali pola hasil \eng{disassembly}: pembandingan dan
+          percabangan, perulangan, \eng{prologue}/\eng{epilogue}
+          prosedur, inisialisasi segmen, dan pemanggilan interupsi;
+    \item menghitung metrik optimasi (jumlah instruksi, perkiraan
+          siklus, ukuran byte, dan jumlah akses memori) serta
+          menjelaskan bahwa tanpa pengukuran optimasi hanyalah
+          dugaan;
+    \item menerapkan teknik optimasi level instruksi: memilih
+          register daripada memori, mengganti \asm{MUL}/\asm{DIV}
+          dengan pergeseran, memakai \asm{LEA}, mengurangi lompatan,
+          \eng{loop unrolling}, dan \lstasm|XOR reg, reg|;
+    \item menerapkan \eng{strength reduction} dan memilih di antara
+          optimasi ukuran atau optimasi kecepatan sesuai batasan
+          program;
+    \item merancang pengukuran yang adil untuk membandingkan versi
+          naif dan versi teroptimasi.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Pengertian \eng{disassembly}: mengembalikan kode mesin
+          menjadi \eng{mnemonic}; perintah \code{U} pada DEBUG dan
+          perkakas sejenis.
+    \item Keterbatasan \eng{disassembly}: kode dan data sulit
+          dibedakan serta munculnya alamat relatif dan displacement.
+    \item Pola hasil \eng{disassembly}: pembandingan dan percabangan,
+          perulangan, \eng{prologue}/\eng{epilogue} prosedur,
+          inisialisasi segmen, dan pemanggilan interupsi.
+    \item Metrik optimasi: jumlah instruksi, perkiraan jumlah siklus,
+          ukuran kode dalam byte, dan jumlah akses memori.
+    \item Teknik optimasi level instruksi: register daripada memori,
+          pergeseran pengganti \asm{MUL}/\asm{DIV}, \asm{LEA},
+          penyusunan ulang alur, \eng{loop unrolling}, dan
+          \lstasm|XOR reg, reg|.
+    \item \eng{Strength reduction} dan tabel penggantian operasi.
+    \item Trade-off optimasi ukuran dan optimasi kecepatan.
+    \item Pengukuran: penghitung iterasi, pencatatan waktu melalui
+          layanan sistem, dan perbandingan sebelum/sesudah.
+    \item Etika dan batas optimasi: keterbacaan, kemudahan
+          pemeliharaan, dan larangan optimasi dini.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

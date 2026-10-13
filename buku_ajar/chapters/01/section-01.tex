@@ -1,0 +1,90 @@
+\section{Tujuan Buku Ajar}
+\label{sec:tujuan-buku}
+
+Buku ajar ini disusun untuk satu tujuan yang jelas: membuat mahasiswa
+mampu \emph{bekerja} pada level instruksi mesin, bukan sekadar
+mengetahui bahwa level itu ada. Mata kuliah Pemrograman Bahasa
+Tingkat Rendah bukanlah mata kuliah hafalan mnemonic. Yang dinilai
+bukan seberapa banyak instruksi yang dapat diingat, melainkan
+seberapa mampu mahasiswa membaca sebuah persoalan, memilih
+instruksi yang tepat, menuliskannya menjadi program yang benar, dan
+memperbaiki program tersebut ketika hasilnya salah.
+
+\subsection{Learning Outcomes Buku}
+
+Pada akhir seluruh bab, mahasiswa diharapkan telah mencapai empat
+kemampuan utama berikut.
+
+\begin{enumerate}
+    \item \textbf{Menjelaskan cara kerja komputer pada level mesin.}
+          Mencakup arsitektur internal 8086, register, segmentasi
+          memori, dan siklus instruksi.
+
+    \item \textbf{Membaca dan menjelaskan hubungan instruksi mesin
+          dengan perangkat keras.} Mencakup format instruksi, mode
+          pengalamatan, direktif assembler, dan mekanisme interupsi.
+
+    \item \textbf{Menulis program assembly.} Mencakup operasi
+          transfer data, aritmatika, logika, struktur kontrol,
+          prosedur, dan operasi masukan/keluaran.
+
+    \item \textbf{Melakukan penelusuran dan perbaikan program pada
+          level instruksi.} Mencakup penggunaan \eng{debugger},
+          analisis memori dan stack, pembacaan hasil
+          \eng{disassembly}, serta optimasi.
+\end{enumerate}
+
+Keempat kemampuan tersebut bukan daftar topik yang berdiri sendiri.
+Kemampuan kedua bergantung pada kemampuan pertama; kemampuan ketiga
+memerlukan kedua kemampuan sebelumnya; dan kemampuan keempat baru
+bermakna setelah mahasiswa mampu menulis program. Karena itu urutan
+bab dalam buku ini disusun mengikuti ketergantungan tersebut dan
+tidak disarankan dilompati.
+
+\subsection{Kompetensi Akhir yang Diukur}
+
+Tabel~\ref{tab:outcome-buku} memetakan keempat kemampuan di atas
+kepada capaian pembelajaran yang ditetapkan pada mata kuliah.
+
+\begin{table}[H]
+    \centering
+    \caption{Pemetaan kemampuan akhir buku terhadap CPMK dan CPL.}
+    \label{tab:outcome-buku}
+    \small
+    \begin{tabular}{@{}p{4.6cm}p{1.9cm}p{1.9cm}p{4.3cm}@{}}
+        \toprule
+        \textbf{Kemampuan akhir buku} & \textbf{CPMK} &
+        \textbf{CPL} & \textbf{Bab utama} \\
+        \midrule
+        Menjelaskan arsitektur register dan manajemen memori &
+        \CPMK{01} & \CPL{02} & Bab~IV--VI \\
+        \addlinespace
+        Memahami hubungan instruksi mesin dengan perangkat keras &
+        \CPMK{02} & \CPL{02} & Bab~VII--IX, XIV \\
+        \addlinespace
+        Menulis kode assembly untuk operasi aritmatika dan logika &
+        \CPMK{03} & \CPL{03} & Bab~X--XIII \\
+        \addlinespace
+        Melakukan \eng{debugging} pada level instruksi memori &
+        \CPMK{04} & \CPL{03} & Bab~XV--XVI \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Apa yang Tidak Dicakup Buku Ini}
+
+Agar batas pembahasan jelas, buku ini \emph{tidak} membahas:
+pemrograman 32-bit maupun 64-bit secara rinci, sintaks NASM, arsitektur
+prosesor selain keluarga 8086, dan pemrograman sistem operasi modern.
+Pembahasan sengaja dibatasi pada 8086 karena prosesor inilah yang
+paling bersih untuk mempelajari konsep dasar: jumlah register
+terbatas, tanpa mode terproteksi, dan seluruh perilakunya dapat
+diamati dengan emulator sederhana. Konsep yang dipelajari di sini
+berlaku langsung pada keluarga x86 modern.
+
+\begin{infobox}
+Bila Anda menemukan istilah yang belum dikenal, Lampiran~C memuat
+glosarium Indonesia--Inggris. Setiap kemunculan pertama istilah asing
+pada bab-bab berikutnya juga ditandai dengan huruf miring, misalnya
+\eng{instruction queue}.
+\end{infobox}

@@ -1,0 +1,83 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab8}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item \term{Mode pengalamatan} adalah cara prosesor menyatakan
+          letak operand. Ia menjadi jembatan antara penulisan
+          simbolik programmer dan byte \eng{ModR/M} yang dihasilkan
+          assembler.
+
+    \item Tujuh mode pengalamatan 8086 adalah \eng{immediate},
+          \eng{register}, \eng{direct}, \eng{register indirect},
+          \eng{indexed}, \eng{base-relative}, dan
+          \eng{based-indexed}.
+
+    \item Mode \eng{immediate} dan \eng{register} tidak mengakses
+          memori sehingga paling cepat. Mode \eng{direct} memakai
+          offset tetap, sedangkan empat mode sisanya membentuk alamat
+          dari register penunjuk.
+
+    \item \term{Alamat efektif} dihitung sebagai jumlah basis,
+          indeks, dan perpindahan: \code{EA = base + index + disp}.
+          Alamat fisik kemudian dibentuk dengan menambahkan basis
+          segmen, yaitu \code{(segmen x 16) + EA}.
+
+    \item Hanya \reg{BX}, \reg{BP}, \reg{SI}, dan \reg{DI} yang boleh
+          menjadi penunjuk alamat. Kombinasi seperti \code{[AX]},
+          \code{[BX+BP]}, \code{[SI+DI]}, dan \code{[BX+SI+DI]}
+          ditolak karena perangkat keras tidak menyediakan
+          \eng{encoding}-nya.
+
+    \item Segmen \eng{default} bergantung pada register penunjuk:
+          kelompok \reg{DS} untuk \reg{BX}, \reg{SI}, dan \reg{DI};
+          kelompok \reg{SS} untuk \reg{BP}. \eng{Segment override
+          prefix} seperti \code{ES:} mengubah segmen yang dipakai
+          tanpa mengubah nilai offsetnya.
+
+    \item Efisiensi menurun seiring bertambahnya komponen alamat.
+          Mode \eng{register} memerlukan dua siklus, sedangkan mode
+          \eng{based-indexed} memerlukan sekitar sembilan belas
+          siklus untuk instruksi yang sama panjangnya.
+
+    \item Mode \eng{indexed} dipakai untuk menelusuri elemen array,
+          sedangkan mode \eng{base-relative} dipakai untuk membaca
+          medan \eng{record} dan parameter prosedur melalui
+          \code{[BP+disp]}.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menyebutkan tujuh mode pengalamatan
+          8086 beserta contoh penulisannya.
+    \item[\checkbox] Saya dapat menentukan mode pengalamatan hanya
+          dari penulisan operandnya.
+    \item[\checkbox] Saya dapat menghitung alamat efektif dan alamat
+          fisik suatu operand.
+    \item[\checkbox] Saya dapat menjelaskan mengapa \code{[AX]} dan
+          \code{[SI+DI]} tidak diperbolehkan.
+    \item[\checkbox] Saya dapat menentukan segmen \eng{default} dan
+          menuliskan \eng{segment override prefix} dengan benar.
+    \item[\checkbox] Saya dapat memilih mode yang paling efisien untuk
+          mengakses elemen array dan medan \eng{record}.
+    \item[\checkbox] Saya berhasil menelusuri alamat efektif dengan
+          \eng{debugger} dan memverifikasinya pada jendela memori.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke Bab~\ref{chap:translasi}.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
+\cite{intel1979} untuk daftar \eng{encoding} dan waktu siklus,
+\cite{kader2014} untuk pengelompokan mode pengalamatan,
+\cite{evans2020} untuk aturan segmen \eng{default} dan
+\eng{override}, serta \cite{uva2024} untuk latihan penelusuran alamat
+efektif. Untuk pembahasan segmen secara lebih mendalam, lihat
+Bab~\ref{chap:segmentasi}.
+\end{infobox}

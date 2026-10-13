@@ -1,0 +1,105 @@
+\section{Contoh Program}
+\label{sec:contoh-bab14}
+
+Dua contoh berikut memperlihatkan dua sisi bab ini: contoh pertama
+memakai layanan DOS, contoh kedua memakai layanan BIOS.
+
+\subsection{Contoh 1: Menyapa Pengguna dengan \code{INT 21h}}
+
+Program pada Kode~\ref{lst:input-nama} meminta nama pengguna, membaca
+jawabannya dengan fungsi \hex{0A}, lalu menyapa pengguna dengan nama
+tersebut.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{input-nama.asm} meminta nama lalu menyapa
+    pengguna.},
+    label={lst:input-nama}
+]{\CodeDir/input-nama.asm}
+
+Alur program ini terdiri atas enam tahap.
+
+\begin{enumerate}
+    \item \textbf{Inisialisasi \reg{DS}.} Karena program berbentuk
+          \file{.EXE}, \reg{DS} harus diarahkan ke segmen data.
+
+    \item \textbf{Pertanyaan dan masukan.} Fungsi \hex{09} mencetak
+          string \code{tanya}, lalu fungsi \hex{0A} membaca jawaban
+          pengguna. DOS menyimpan jumlah karakter pada \code{nama+1}
+          dan isi nama mulai \code{nama+2}.
+
+    \item \textbf{Penyisipan tanda \code{'\$'}.} Instruksi
+          \lstasm|MOV BL, [SI+1]| mengambil jumlah karakter, lalu
+          \lstasm|ADD SI, BX| menggeser \reg{SI} ke posisi sesudah
+          karakter terakhir. \code{0Dh} yang ditulis DOS pada posisi
+          itu digantikan tanda \code{'\$'}.
+
+    \item \textbf{Pencetakan sapaan dan terminasi.} Tiga pemanggilan
+          fungsi \hex{09} mencetak kata ``Halo, '', isi penyangga, dan
+          kalimat penutup; fungsi \hex{4C} mengakhiri program.
+\end{enumerate}
+
+\begin{session}[caption={Contoh keluaran program \file{input-nama.asm}.},
+label={lst:keluaran-input-nama}]
+Siapa nama Anda? Andi
+Halo, Andi! Selamat belajar assembly.
+\end{session}
+
+Program tidak perlu mencetak sendiri karakter yang diketik pengguna:
+fungsi \hex{0A} sudah menampilkannya (\eng{echo}) sambil menyimpannya
+ke penyangga.
+
+\subsection{Contoh 2: Teks Berwarna dengan \code{INT 10h}}
+
+Program pada Kode~\ref{lst:warna-layar} menampilkan judul berwarna
+kuning dan sebuah garis merah dengan layanan video BIOS. Tidak satu
+pun layanan DOS dipakai untuk mencetak.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{warna-layar.asm} menampilkan teks berwarna
+    dengan layanan video BIOS.},
+    label={lst:warna-layar}
+]{\CodeDir/warna-layar.asm}
+
+Hal-hal penting pada program ini adalah sebagai berikut.
+
+\begin{itemize}
+    \item \lstasm|MOV ES, AX| menyalin segmen data ke \reg{ES}, karena
+          fungsi \hex{13} membaca alamat string dari
+          \reg{ES}:\reg{BP}.
+
+    \item Fungsi \hex{13} dengan \reg{AL} = \hex{01} menulis seluruh
+          string pada posisi \reg{DH}, \reg{DL} dan memindahkan kursor
+          ke akhir string. Warna ditentukan \reg{BL} = \hex{0E}, yaitu
+          \bin{00001110}: bit 3--0 bernilai \hex{E} (kuning terang) dan
+          bit 6--4 bernilai \hex{0} (latar hitam).
+
+    \item Fungsi \hex{02} memindahkan kursor ke baris 7 tanpa mencetak
+          apa pun, sehingga garis merah tercetak di bawah judul.
+
+    \item Fungsi \hex{09} menulis karakter \code{'='} sebanyak
+          \reg{CX} kali dengan satu pemanggilan. Karena kursor tidak
+          bergeser, garis terbentuk pada posisi yang disiapkan fungsi
+          \hex{02}.
+\end{itemize}
+
+\begin{session}[caption={Gambaran keluaran program \file{warna-layar.asm}
+pada layar teks. Judul tercetak kuning dan garis tercetak merah.},
+label={lst:keluaran-warna-layar}]
+          Bahasa Assembly - Interupsi BIOS/DOS
+          ===================================
+\end{session}
+
+\begin{studikasusbox}
+\textbf{Studi kasus 1: sapaan pribadi.} Program \file{input-nama.asm}
+adalah pola baku setiap program dialog: cetak pertanyaan, baca
+masukan, cetak tanggapan. Pola ini dipakai ulang pada Tugas 7.
+
+\textbf{Studi kasus 2: tampilan berwarna.} Karena yang memindahkan
+kursor pada \file{warna-layar.asm} adalah BIOS, DOS tidak mengetahui
+posisi kursor yang sesungguhnya. Bila program kembali memakai fungsi
+\hex{09}, keluarannya muncul pada posisi yang dilacak DOS. Kedua cara
+pencetakan sebaiknya tidak dicampur tanpa mengatur ulang kursor
+dengan fungsi \hex{02}.
+\end{studikasusbox}

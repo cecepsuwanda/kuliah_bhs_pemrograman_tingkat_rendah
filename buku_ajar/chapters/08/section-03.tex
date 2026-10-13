@@ -1,0 +1,214 @@
+\section{Perbandingan Efisiensi dan Studi Kasus}
+\label{sec:efisiensi-studi-kasus}
+
+Setelah seluruh mode pengalamatan dikenal, pertanyaan berikutnya
+adalah mode mana yang sebaiknya dipakai. Jawabannya bergantung pada
+jenis data yang diakses dan biaya yang bersedia dibayar dalam bentuk
+ukuran kode serta waktu eksekusi.
+
+\subsection{Ringkasan Tujuh Mode Pengalamatan}
+
+Tabel~\ref{tab:tujuh-mode} merangkum ketujuh mode pengalamatan 8086.
+Jumlah byte pada kolom terakhir dihitung untuk instruksi
+\reg{AX} sebagai tujuan, dengan perpindahan 8 bit bila ada.
+
+\begin{table}[H]
+    \centering
+    \caption{Tujuh mode pengalamatan 8086, segmen \eng{default}, dan
+    jumlah byte instruksi contohnya.}
+    \label{tab:tujuh-mode}
+    \footnotesize
+    \begin{tabular}{@{}p{1.8cm}p{2.8cm}p{3.6cm}p{2.1cm}p{1.5cm}@{}}
+        \toprule
+        \textbf{Mode} & \textbf{Bentuk penulisan} &
+        \textbf{Contoh} & \textbf{Segmen default} &
+        \textbf{Jumlah byte} \\
+        \midrule
+        Immediate & nilai konstan &
+        \lstasm|MOV AX, 1234h| & tidak ada & 3 \\
+        \addlinespace
+        Register & register &
+        \lstasm|MOV AX, BX| & tidak ada & 2 \\
+        \addlinespace
+        Direct & \code{[disp16]} atau nama variabel &
+        \lstasm|MOV AX, [1234h]| & \reg{DS} & 3 \\
+        \addlinespace
+        Register indirect & \code{[BX]}, \code{[SI]}, \code{[DI]},
+        \code{[BP]} & \lstasm|MOV AX, [BX]| &
+        \reg{DS} (\reg{BP}: \reg{SS}) & 2 \\
+        \addlinespace
+        Indexed & \code{[SI+disp]}, \code{[DI+disp]} &
+        \lstasm|MOV AX, [SI+8]| & \reg{DS} & 3 \\
+        \addlinespace
+        Base-relative & \code{[BX+disp]}, \code{[BP+disp]} &
+        \lstasm|MOV AX, [BX+8]| &
+        \reg{DS} (\reg{BP}: \reg{SS}) & 3 \\
+        \addlinespace
+        Based-indexed & \code{[BX+SI+disp]} dan tiga kombinasi lain &
+        \lstasm|MOV AX, [BX+SI+8]| &
+        \reg{DS} (\reg{BP}: \reg{SS}) & 3 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Jumlah byte tersebut adalah opcode ditambah byte \eng{ModR/M}
+ditambah perpindahan. Bila perpindahannya 16 bit, mode indexed,
+base-relative, dan based-indexed bertambah satu byte; bila
+\eng{segment override prefix} dipakai, satu byte lagi ditambahkan.
+Susunan byte ini diuraikan pada Bab~\ref{chap:format-instruksi}.
+\end{infobox}
+
+\subsection{Jumlah Byte dan Siklus Relatif}
+
+Semakin banyak komponen alamat yang harus dijumlahkan, semakin lama
+alamat efektif terbentuk. Tabel~\ref{tab:efisiensi-mode}
+membandingkan ukuran kode dan waktu eksekusi setiap mode. Angka
+siklus diambil dari tabel waktu Intel 8086 \cite{intel1979} dan
+bersifat perkiraan karena eksekusi sesungguhnya juga dipengaruhi
+antrean instruksi (\eng{instruction queue}) \cite{uva2024}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan efisiensi mode pengalamatan pada 8086.}
+    \label{tab:efisiensi-mode}
+    \footnotesize
+    \begin{tabular}{@{}p{2.7cm}p{3.5cm}cp{1.6cm}p{4.4cm}@{}}
+        \toprule
+        \textbf{Mode} & \textbf{Contoh} & \textbf{Byte} &
+        \textbf{Siklus} & \textbf{Paling cocok untuk} \\
+        \midrule
+        Register & \lstasm|MOV AX, BX| & 2 & 2 &
+        data kerja yang paling sering \\
+        \addlinespace
+        Immediate & \lstasm|MOV AX, 1234h| & 3 & 4 &
+        nilai awal dan tetapan \\
+        \addlinespace
+        Direct & \lstasm|MOV AX, [1234h]| & 3 & 10 &
+        variabel tunggal ber-alamat tetap \\
+        \addlinespace
+        Register indirect & \lstasm|MOV AX, [BX]| & 2 & 13 &
+        penelusuran \eng{pointer} \\
+        \addlinespace
+        Indexed & \lstasm|MOV AX, [SI+8]| & 3 & 17 &
+        elemen array berindeks \\
+        \addlinespace
+        Base-relative & \lstasm|MOV AX, [BX+8]| & 3 & 17 &
+        medan \eng{record} dan \code{[BP+disp]} \\
+        \addlinespace
+        Based-indexed & \lstasm|MOV AX, [BX+SI+8]| & 3 & 19 &
+        matriks dan array di dalam \eng{record} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Pertambahan kemampuan selalu dibayar dengan pertambahan waktu: mode
+register selesai dalam dua siklus, sedangkan based-indexed hampir
+sepuluh kali lipatnya. Karena itu, variabel yang paling sering dipakai
+sebaiknya ditempatkan di register, dan mode berpenunjuk hanya dipakai
+ketika alamat memang harus dihitung.
+
+\subsection{Satu Operasi dalam Enam Mode Berbeda}
+
+Kode~\ref{lst:satu-operasi-enam-mode} menuliskan satu operasi yang
+sama dalam tujuh mode: menyalin elemen berindeks 2 array
+\code{data1}, yaitu nilai \hex{1E}, ke register \reg{AX}.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Satu operasi yang sama dituliskan dalam tujuh mode
+    pengalamatan berbeda.},
+    label={lst:satu-operasi-enam-mode}
+]
+.DATA
+    data1   DW  10, 20, 30, 40, 50   ; array, elemen ke-2 = 30 (1Eh)
+
+.CODE
+    ; 1. immediate        : nilainya sudah diketahui saat menulis kode
+    MOV AX, 30                       ; AX = 1Eh
+
+    ; 2. register         : nilainya sudah ada di register lain
+    MOV BX, 30
+    MOV AX, BX                       ; AX = 1Eh
+
+    ; 3. direct           : alamat ditulis apa adanya
+    MOV AX, data1+4                  ; AX = DS:(data1 + 4)
+
+    ; 4. register indirect: offset disimpan di register penunjuk
+    MOV BX, OFFSET data1
+    ADD BX, 4
+    MOV AX, [BX]                     ; AX = DS:BX
+
+    ; 5. indexed          : [SI + perpindahan]
+    MOV SI, 4
+    MOV AX, data1[SI]                ; AX = DS:(data1 + SI)
+
+    ; 6. base-relative    : [BX + perpindahan]
+    MOV BX, OFFSET data1
+    MOV AX, [BX+4]                   ; AX = DS:(BX + 4)
+
+    ; 7. based-indexed    : [BX + SI + perpindahan]
+    MOV BX, OFFSET data1
+    MOV SI, 4
+    MOV AX, [BX+SI]                  ; AX = DS:(BX + SI)
+\end{lstlisting}
+
+Ketujuh potongan itu menghasilkan nilai yang sama pada \reg{AX},
+tetapi berbeda panjang kode dan jumlah siklusnya. Cara 4 sampai 7
+lebih menguntungkan bila indeks berubah saat program berjalan, karena
+hanya isi register yang perlu diubah.
+
+\subsection{Studi Kasus: Elemen Array Satu Dimensi}
+
+Array satu dimensi disimpan berurutan. Untuk array \code{word} 8086,
+elemen ke-$i$ berada pada offset awal array ditambah $2i$, sehingga
+seluruh array dapat ditelusuri dengan satu instruksi tetap.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV BX, OFFSET data1     ; BX = basis, awal array
+    XOR SI, SI               ; SI = 0, indeks elemen pertama
+    MOV CX, 5                ; banyaknya elemen
+ULANG:
+    MOV AX, [BX+SI]          ; AX <- data1[i]
+    ; ... olah nilai AX di sini ...
+    ADD SI, 2                ; maju ke elemen berikutnya (2i + 2)
+    LOOP ULANG               ; ulangi sampai CX = 0
+\end{lstlisting}
+
+Bila elemen array berukuran satu byte, langkahnya cukup
+\lstasm|INC SI|; bila empat byte, digunakan \lstasm|ADD SI, 4|. Pola
+yang berubah hanyalah besarnya langkah, bukan bentuk pengalamatannya.
+Pola inilah yang dipakai pada \file{mode-array.asm} di
+Bagian~\ref{sec:contoh-bab8}.
+
+\subsection{Studi Kasus: Medan Record dengan Base-Relative}
+
+\eng{Record} menyatukan beberapa medan bertipe berbeda dalam satu
+blok memori. Karena panjang medannya tetap, offsetnya pun tetap:
+register basis menunjuk awal \eng{record}, perpindahan memilih
+medannya.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+.DATA
+    mhs1    DB  '2210'       ; medan NIM   : offset 0 sampai 3
+    nilai1  DW  85           ; medan nilai : offset 4 sampai 5
+.CODE
+    MOV BX, OFFSET mhs1      ; basis = awal record
+    MOV AX, [BX+4]           ; AX <- medan nilai (85)
+\end{lstlisting}
+
+Bentuk yang sama dengan register \reg{BP} dipakai untuk membaca
+parameter prosedur karena \code{[BP+disp]} menunjuk segmen stack
+secara bawaan (Bagian~\ref{sec:contoh-bab8} dan
+Bab~\ref{chap:prosedur}).
+
+\begin{studikasusbox}
+Sebuah program menyimpan nilai mahasiswa dalam array \eng{record}
+enam byte: empat byte NIM dan dua byte nilai. Alamat medan nilai
+mahasiswa ke-$i$ dibentuk dengan \lstasm|[BX+SI+4]|, dengan \reg{BX}
+menunjuk awal array dan \reg{SI} bernilai $6i$. Penulisan ini hanya
+dua instruksi lebih panjang daripada \lstasm|MOV AX, [BX]|, tetapi
+mampu menelusuri seluruh tabel tanpa mengubah instruksinya.
+Perhatikan bahwa \reg{BX} menunjuk \reg{DS}, sehingga array nilai
+harus berada pada segmen data, bukan segmen stack.
+\end{studikasusbox}

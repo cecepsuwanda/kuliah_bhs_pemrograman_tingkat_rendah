@@ -1,0 +1,181 @@
+\section{Studi Kasus Manipulasi Bit}
+\label{sec:manipulasi-bit}
+
+Tiga persoalan berikut memperlihatkan bagaimana operasi logika,
+pergeseran, dan rotasi dipakai bersama untuk menyelesaikan masalah
+nyata yang tidak dapat dikerjakan oleh instruksi aritmatika biasa.
+
+\subsection{Memeriksa Paritas Sebuah Byte}
+
+\term{Paritas} menyatakan apakah cacah bit 1 sebuah byte genap atau
+ganjil. Pemeriksaan paritas dipakai pada transmisi data untuk mendeteksi
+satu bit yang berubah karena gangguan; prosesor 8086 menyediakan
+\flag{PF} untuk keperluan ini.
+
+Cara pertama: jalankan \lstasm|TEST AL, AL| agar \eng{flag} disetel
+menurut isi \reg{AL} tanpa mengubahnya, lalu periksa \flag{PF}.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AL, nilai       ; byte yang diperiksa
+    TEST AL, AL         ; setel PF menurut cacah bit 1 pada AL
+    JP  CETAK_GENAP     ; PF = 1 -> cacah bit 1 genap
+    ; jatuh ke sini bila cacah bit 1 ganjil
+\end{lstlisting}
+
+Cara kedua tidak bergantung pada \flag{PF}: lipat (\eng{fold}) byte
+menjadi setengah lebarnya dengan \asm{XOR}, lalu ulangi sampai tersisa
+satu bit.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AL, nilai       ; byte yang diperiksa
+    MOV AH, AL
+    SHR AH, 4
+    XOR AL, AH          ; lipat nibble tinggi ke nibble rendah
+    MOV AH, AL
+    SHR AH, 2
+    XOR AL, AH
+    MOV AH, AL
+    SHR AH, 1
+    XOR AL, AH
+    AND AL, 1           ; AL = 1 bila cacah bit 1 ganjil, 0 bila genap
+\end{lstlisting}
+
+Cara ketiga dipakai pada program \file{paritas.asm} di Bagian~Contoh
+Program: geser byte satu bit demi satu bit dengan \asm{SHR}, lalu
+jumlahkan bit yang keluar dari \flag{CF} memakai \asm{ADC}. Cara ini
+paling gamblang karena setiap langkahnya tampak langsung, meskipun
+biaya waktunya lebih besar. Perbandingan ketiga cara dirangkum pada
+Tabel~\ref{tab:paritas}.
+
+\begin{table}[H]
+    \centering
+    \caption{Tiga cara pemeriksaan paritas sebuah byte.}
+    \label{tab:paritas}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabular}{@{}p{2.6cm}p{4.2cm}p{6.2cm}@{}}
+        \toprule
+        \textbf{Cara} & \textbf{Instruksi kunci} & \textbf{Catatan} \\
+        \midrule
+        Flag \flag{PF} & \lstasm|TEST AL, AL| lalu \lstasm|JP| &
+        Paling singkat; hanya berlaku untuk byte rendah hasil operasi \\
+        \addlinespace
+        Pelipatan XOR & \lstasm|XOR AL, AH| tiga kali &
+        Tidak bergantung pada \flag{PF}; mudah diperluas ke word dan
+        dword \\
+        \addlinespace
+        Pergeseran dan \asm{ADC} & \lstasm|SHR AL, 1| lalu
+        \lstasm|ADC BL, 0| & Paling gamblang; jumlah iterasi sama dengan
+        cacah bit operand \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{\eng{Packing} dan \eng{Unpacking} Dua Digit BCD}
+
+\term{BCD} (\eng{Binary Coded Decimal}) menyimpan bilangan desimal
+dengan empat bit per digit. Satu byte menampung dua digit: puluhan pada
+nibble tinggi dan satuan pada nibble rendah, yang disebut
+\eng{packed BCD}.
+
+Menyusun dua digit menjadi satu byte disebut \eng{packing}, sedangkan
+memisahkannya kembali disebut \eng{unpacking}. Keduanya hanya
+memerlukan pergeseran dan operasi logika, seperti tampak pada
+Tabel~\ref{tab:bcd-packing}.
+
+\begin{table}[H]
+    \centering
+    \caption{\eng{Packing} dan \eng{unpacking} BCD dengan contoh
+    puluhan $= 7$ dan satuan $= 5$.}
+    \label{tab:bcd-packing}
+    \small
+    \setlength{\tabcolsep}{5pt}
+    \begin{tabular}{@{}p{3.4cm}p{6.0cm}p{4.0cm}@{}}
+        \toprule
+        \textbf{Operasi} & \textbf{Instruksi} & \textbf{Hasil} \\
+        \midrule
+        \eng{Packing} & \lstasm|MOV AL, puluhan| lalu
+        \lstasm|SHL AL, CL| (CL = 4) lalu \lstasm|OR AL, satuan| &
+        \bin{0111 0101} = \hex{75} \\
+        \addlinespace
+        Ambil satuan & \lstasm|AND AL, 0Fh| &
+        \bin{0000 0101} = \hex{05} \\
+        \addlinespace
+        Ambil puluhan & \lstasm|SHR AL, CL| dengan CL = 4 &
+        \bin{0000 0111} = \hex{07} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Bentuk programnya adalah sebagai berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    ; --- packing: susun 75 menjadi satu byte BCD ---
+    MOV AL, 7           ; digit puluhan
+    MOV CL, 4
+    SHL AL, CL          ; AL = 70h (0111 0000b)
+    OR  AL, 5           ; AL = 75h (0111 0101b) -> 75 dalam BCD
+
+    ; --- unpacking: pisahkan kembali ---
+    MOV AH, AL
+    AND AH, 0Fh         ; AH = 05h (digit satuan)
+    SHR AL, CL          ; AL = 07h (digit puluhan)
+\end{lstlisting}
+
+Penyesuaian BCD setelah operasi aritmatika dikerjakan oleh \asm{DAA} dan
+\asm{AAM} pada Bab~\ref{chap:aritmatika}. Bentuk BCD juga menguntungkan
+saat dicetak: byte \hex{75} tampil sebagai ``75''.
+
+\subsection{\eng{XOR Cipher} Sederhana}
+
+Bila sebuah nilai $A$ di-XOR dengan kunci $K$, hasilnya $B = A \oplus K$.
+Nilai $A$ dapat dipulihkan dengan meng-XOR-kan $B$ sekali lagi dengan
+kunci yang sama:
+
+\begin{equation}
+B \oplus K = (A \oplus K) \oplus K = A \oplus (K \oplus K) = A
+\oplus 0 = A
+\label{eq:xor-balik}
+\end{equation}
+
+Sifat pada Persamaan~\eqref{eq:xor-balik} berarti satu operasi yang sama
+dapat dipakai untuk enkripsi dan dekripsi. Inilah bentuk penyandian data
+paling sederhana, yang disebut \eng{XOR cipher}.
+
+\begin{studikasusbox}
+Sebuah perusahaan menyandikan berkas konfigurasi berisi kata sandi
+dengan meng-XOR setiap byte terhadap sebuah kunci tetap. Saat berkas
+dibaca kembali, setiap byte di-XOR dengan kunci yang sama sehingga isi
+aslinya pulih. Cara ini menyembunyikan teks dari pengamatan sekilas,
+tetapi \emph{bukan} pengamanan yang sungguh-sungguh: bila sebagian teks
+dapat ditebak, kuncinya terhitung dengan satu operasi \asm{XOR}. Untuk
+keperluan nyata diperlukan kunci beruntun (\eng{key stream}) sepanjang
+pesannya.
+\end{studikasusbox}
+
+Program lengkapnya disajikan pada Bagian~Contoh Program sebagai
+\file{xor-cipher.asm}. Kerangka intinya adalah perulangan yang
+meng-XOR setiap byte sampai ditemukan penanda akhir string.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    LEA SI, pesan       ; SI menunjuk awal string
+ULANG:
+    MOV AL, [SI]        ; ambil satu byte
+    CMP AL, '$'         ; penanda akhir string tercapai?
+    JE  SELESAI
+    XOR AL, kunci       ; sandikan byte dengan kunci
+    MOV [SI], AL        ; tulis kembali di tempat yang sama
+    INC SI
+    JMP ULANG
+SELESAI:
+\end{lstlisting}
+
+\begin{infobox}
+Operasi \asm{XOR} punya kebiasaan khas pada kode hasil kompilator:
+\lstasm|XOR AX, AX| dipakai untuk mengosongkan \reg{AX}. Instruksi ini
+hanya dua byte dan selalu menyetel \flag{ZF}, sedangkan
+\lstasm|MOV AX, 0| memerlukan tiga byte. Pola ini sering muncul pada
+hasil \eng{disassembly} (Bab~\ref{chap:disassembly}) dan kadang
+membingungkan pembaca yang mengira ada operasi logika yang sedang
+dilakukan.
+\end{infobox}

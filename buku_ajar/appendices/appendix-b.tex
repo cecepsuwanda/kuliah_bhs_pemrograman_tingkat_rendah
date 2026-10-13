@@ -1,0 +1,178 @@
+\chapter{Contoh Tugas, Portofolio, dan Rubrik Refleksi}
+\label{app:contoh-tugas}
+
+Lampiran ini menyediakan contoh instrumen yang dipakai sepanjang
+semester: ringkasan tugas, kerangka portofolio, kerangka jurnal, dan
+rubrik penilaian refleksi.
+
+\section{Ringkasan Tugas Individu}
+
+\begin{table}[H]
+    \centering
+    \caption{Ringkasan tujuh tugas individu dan Sub-CPMK yang
+    diukurnya.}
+    \label{tab:app-daftar-tugas}
+    \footnotesize
+    \begin{tabular}{@{}cp{3.0cm}p{5.4cm}p{2.2cm}@{}}
+        \toprule
+        \textbf{Tugas} & \textbf{Bab} & \textbf{Bentuk pekerjaan} &
+        \textbf{Sub-CPMK} \\
+        \midrule
+        Tugas 1 & Bab~\ref{chap:register} &
+        Laporan observasi register dan \eng{flag} dengan tabel
+        pengamatan & 1.2 \\
+        \addlinespace
+        Tugas 2 & Bab~\ref{chap:format-instruksi} &
+        Lembar kerja \eng{encoding} dan \eng{decoding} instruksi &
+        2.1 \\
+        \addlinespace
+        Tugas 3 & Bab~\ref{chap:translasi} &
+        Portofolio perakitan \file{.asm} $\rightarrow$
+        \file{.obj} $\rightarrow$ \file{.exe} &
+        2.3 \\
+        \addlinespace
+        Tugas 4 & Bab~\ref{chap:aritmatika} &
+        Program kalkulator sederhana dengan penanganan
+        \eng{overflow} & 3.1 \\
+        \addlinespace
+        Tugas 5 & Bab~\ref{chap:kontrol} &
+        Program pencarian nilai maksimum dan pengurutan &
+        3.3 \\
+        \addlinespace
+        Tugas 6 & Bab~\ref{chap:prosedur} &
+        Prosedur berparameter melalui stack beserta gambar
+        \eng{stack frame} & 3.4 \\
+        \addlinespace
+        Tugas 7 & Bab~\ref{chap:interupsi} &
+        Program masukan/keluaran dengan \code{INT 21h} &
+        2.4 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Contoh Lembar Tugas}
+
+Format lembar tugas yang dikumpulkan mahasiswa adalah sebagai
+berikut.
+
+\begin{infobox}
+\textbf{Lembar Tugas \dots}\\[0.3em]
+\textbf{Nama / NIM:} \dots\\
+\textbf{Bab:} \dots \quad \textbf{Sub-CPMK:} \dots\\
+\textbf{Tujuan tugas:} \dots\\
+\textbf{Langkah kerja:} (daftar bernomor)\\
+\textbf{Kendala yang dihadapi:} \dots\\
+\textbf{Cara mengatasi:} \dots\\
+\textbf{Kesimpulan:} apa yang dipahami setelah mengerjakan tugas
+ini\\
+\textbf{Lampiran:} berkas \file{.asm}, tangkapan layar keluaran,
+tabel pengamatan
+\end{infobox}
+
+\section{Kerangka Portofolio Program}
+
+Portofolio disusun menurut bab dan memuat berkas berikut untuk
+setiap bab.
+
+\begin{table}[H]
+    \centering
+    \caption{Kerangka isi portofolio program.}
+    \label{tab:app-portofolio}
+    \small
+    \begin{tabular}{@{}p{3.4cm}p{10.0cm}@{}}
+        \toprule
+        \textbf{Berkas} & \textbf{Isi} \\
+        \midrule
+        \file{babNN/} & Direktori per bab \\
+        \addlinespace
+        \file{*.asm} & Seluruh program yang ditulis, termasuk versi
+        yang belum berhasil (diberi akhiran \file{\_gagal} pada
+        komentar, bukan pada nama berkas) \\
+        \addlinespace
+        \file{catatan-babNN.md} & Catatan singkat: tujuan setiap
+        program, kesalahan yang ditemukan, dan cara memperbaikinya \\
+        \addlinespace
+        \file{bukti/} & Tangkapan layar keluaran program dan tabel
+        pengamatan register \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Versi program yang gagal tetap disimpan. Justru versi gagal inilah
+yang menunjukkan proses belajar Anda, dan menjadi bahan penilaian
+\CPMK{04}. Menghapus versi gagal membuat riwayat perbaikan Anda
+hilang.
+\end{infobox}
+
+\section{Kerangka Jurnal Refleksi Mingguan}
+
+Setiap sesi praktikum ditutup dengan satu entri jurnal yang memuat
+empat kalimat wajib berikut.
+
+\begin{enumerate}
+    \item \textbf{Apa yang saya kerjakan.} Ringkasan tindakan pada
+          sesi ini.
+    \item \textbf{Apa yang menghambat.} Kendala teknis atau konseptual
+          yang muncul.
+    \item \textbf{Bagaimana saya mengatasinya.} Cara mengatasi beserta
+          alasan mengapa cara itu benar.
+    \item \textbf{Apa yang saya pahami sekarang.} Satu pemahaman baru
+          yang diperoleh, dinyatakan dengan kalimat sendiri.
+\end{enumerate}
+
+\section{Rubrik Penilaian Refleksi}
+
+\begin{table}[H]
+    \centering
+    \caption{Rubrik penilaian jurnal refleksi.}
+    \label{tab:app-rubrik-refleksi}
+    \footnotesize
+    \begin{tabular}{@{}p{3.0cm}p{3.4cm}p{3.4cm}p{3.4cm}@{}}
+        \toprule
+        \textbf{Kriteria} & \textbf{4 -- Sangat baik} &
+        \textbf{3 -- Baik} & \textbf{2 -- Cukup} \\
+        \midrule
+        Kedalaman analisis & Menemukan penyebab akar masalah, bukan
+        hanya gejalanya & Menjelaskan penyebab dengan cukup &
+        Menyebutkan gejala tanpa analisis \\
+        \addlinespace
+        Kejujuran & Menuliskan kegagalan dan kesalahpahaman secara
+        terbuka & Menuliskan sebagian kendala & Hanya menuliskan
+        keberhasilan \\
+        \addlinespace
+        Keterhubungan & Mengaitkan pengalaman dengan konsep pada bab
+        yang relevan & Mengaitkan secara umum & Tidak mengaitkan \\
+        \addlinespace
+        Rencana tindak lanjut & Menyusun langkah perbaikan yang
+        konkret dan terukur & Menyusun langkah umum & Tidak
+        menyusun rencana \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Rubrik Penilaian Presentasi}
+
+\begin{table}[H]
+    \centering
+    \caption{Rubrik penilaian presentasi proyek akhir.}
+    \label{tab:app-rubrik-presentasi}
+    \footnotesize
+    \begin{tabular}{@{}p{3.0cm}p{3.4cm}p{3.4cm}p{3.4cm}@{}}
+        \toprule
+        \textbf{Kriteria} & \textbf{4 -- Sangat baik} &
+        \textbf{3 -- Baik} & \textbf{2 -- Cukup} \\
+        \midrule
+        Kejelasan penyampaian & Alur runtut, waktu terjaga, istilah
+        tepat & Alur cukup runtut & Alur melompat-lompat \\
+        \addlinespace
+        Penguasaan materi & Menjawab pertanyaan dengan menunjuk kode
+        secara langsung & Menjawab sebagian besar pertanyaan &
+        Menjawab dengan ragu \\
+        \addlinespace
+        Kualitas demonstrasi & Program berjalan lancar, kasus salah
+        diperlihatkan & Program berjalan lancar & Program berjalan
+        setelah dicoba ulang \\
+        \bottomrule
+    \end{tabular}
+\end{table}

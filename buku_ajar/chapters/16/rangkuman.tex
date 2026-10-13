@@ -1,0 +1,94 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab16}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item \eng{Disassembly} adalah pekerjaan mengubah kode mesin
+          kembali menjadi \eng{mnemonic}. Pekerjaan ini searah dan
+          tidak dapat membalikkan \eng{assembly} sepenuhnya, karena
+          nama simbolik, komentar, dan batas data hilang saat
+          perakitan.
+
+    \item Perintah \code{U} pada DEBUG menampilkan alamat, byte
+          mesin, dan \eng{mnemonic} sekaligus. Perkakas lain yang
+          sejenis adalah \eng{disassembler} Emu8086, GUI Turbo
+          Assembler, \code{ndisasm}, dan \code{objdump}.
+
+    \item Keterbatasan utama \eng{disassembly} adalah sulitnya
+          membedakan kode dan data, munculnya alamat relatif dan
+          \eng{displacement} menggantikan nama variabel, serta
+          hilangnya semua penanda yang berguna bagi manusia.
+
+    \item Pola hasil \eng{disassembly} dapat dikenali: pembandingan
+          dan percabangan, perulangan, \eng{prologue} dan
+          \eng{epilogue} prosedur, inisialisasi segmen, serta
+          pemanggilan interupsi.
+
+    \item Empat metrik optimasi adalah jumlah instruksi yang
+          dieksekusi, perkiraan jumlah siklus, ukuran kode dalam
+          byte, dan jumlah akses memori. Tanpa pengukuran, optimasi
+          hanyalah dugaan yang belum terbukti.
+
+    \item Teknik optimasi level instruksi meliputi: memilih register
+          daripada memori, mengganti \asm{MUL}/\asm{DIV} dengan
+          pergeseran, memakai \asm{LEA} untuk aritmatika yang tidak
+          boleh mengubah \eng{flag}, mengurangi lompatan,
+          \eng{loop unrolling}, dan \lstasm|XOR reg, reg| sebagai
+          pengganti \lstasm|MOV reg, 0|.
+
+    \item \eng{Strength reduction} menggantikan operasi mahal dengan
+          operasi murah, tetapi hanya sahih bila syaratnya dipenuhi,
+          misalnya pengali harus pangkat dua dan nilai harus tak
+          bertanda.
+
+    \item Optimasi ukuran dan optimasi kecepatan sering bertentangan.
+          Pilihan ditentukan oleh batasan proyek, bukan oleh selera.
+
+    \item Pengukuran yang adil menuntut masukan sama, jumlah iterasi
+          sama, batas pengukuran yang sama, dan pengulangan beberapa
+          kali.
+
+    \item Batas etika optimasi adalah kebenaran lebih dahulu,
+          larangan optimasi dini, serta kewajiban menjaga
+          keterbacaan dan dokumentasi.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menjelaskan perbedaan
+          \eng{assembly} dan \eng{disassembly} beserta keterbatasan
+          \eng{disassembly}.
+    \item[\checkbox] Saya dapat membongkar program dengan perintah
+          \code{U} dan membaca keluaran alamat, byte, serta
+          \eng{mnemonic}.
+    \item[\checkbox] Saya dapat mengenali pola perulangan,
+          percabangan, \eng{prologue} prosedur, dan pemanggilan
+          interupsi pada hasil \eng{disassembly}.
+    \item[\checkbox] Saya dapat menghitung jumlah instruksi yang
+          dieksekusi, ukuran byte, perkiraan siklus, dan jumlah akses
+          memori.
+    \item[\checkbox] Saya dapat menerapkan minimal empat teknik
+          optimasi level instruksi beserta syarat berlakunya.
+    \item[\checkbox] Saya dapat menjelaskan trade-off antara optimasi
+          ukuran dan optimasi kecepatan.
+    \item[\checkbox] Saya dapat merancang pengukuran yang adil dan
+          mencatat waktu dengan \code{INT 1Ah}.
+    \item[\checkbox] Saya dapat menjelaskan alasan mengapa optimasi
+          dini harus dihindari.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum mengerjakan evaluasi.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
+\cite{wikibooksdisasm}, \cite{bartlett2023}, dan \cite{nasm2024}.
+Untuk pembahasan yang lebih mendalam mengenai keterbatasan
+\eng{disassembly} dan cara menafsirkan keluaran perkakas pembongkar,
+lihat \cite{hyde2010}.
+\end{infobox}

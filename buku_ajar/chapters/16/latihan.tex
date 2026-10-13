@@ -1,0 +1,101 @@
+\section{Latihan}
+\label{sec:latihan-bab16}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan mengapa \eng{disassembly}
+          tidak dapat mengembalikan kode sumber asli, walaupun
+          \eng{assembly} dan kode mesin bersifat satu-ke-satu.
+          Sebutkan tiga informasi yang hilang selama perakitan dan
+          jelaskan mengapa informasi itu tidak tersimpan di dalam
+          berkas \file{.exe}.
+
+    \item \textbf{Konseptual.} Byte \hex{48} dapat berarti instruksi
+          \asm{DEC AX} atau karakter \code{'H'}. Jelaskan bagaimana
+          keadaan ini menyulitkan \eng{disassembly}, lalu sebutkan
+          dua cara praktis untuk menentukan batas antara daerah kode
+          dan daerah data pada sebuah program.
+
+    \item \textbf{Analisis hasil disassembly.} Perhatikan potongan
+          berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+1D2F:0200 B90A00    MOV  CX,000A
+1D2F:0203 31DB      XOR  BX,BX
+1D2F:0205 0304      ADD  AX,[SI]
+1D2F:0207 83C602    ADD  SI,+02
+1D2F:020A E2F9      LOOP 0205
+1D2F:020C 8906F401  MOV  [01F4],AX
+\end{lstlisting}
+
+          \begin{enumerate}
+              \item Pola apa yang tampak pada potongan tersebut?
+              \item Berapa kali instruksi \lstasm|ADD AX, [SI]|
+                    dieksekusi? Jelaskan cara Anda memperolehnya.
+              \item Berapa jarak relatif yang disimpan pada byte
+                    \hex{E2 F9}, dan mengapa \eng{disassembler} dapat
+                    menampilkan alamat \hex{0205}?
+          \end{enumerate}
+
+    \item \textbf{Analisis metrik.} Sebuah program memuat perulangan
+          yang dijalankan 20 kali dengan isi
+          \lstasm|ADD AX, [SI]|, \lstasm|ADD SI, 2|, dan
+          \lstasm|LOOP|. Hitung perkiraan jumlah siklus seluruh
+          perulangan dengan memakai Tabel~\ref{tab:siklus-8086-perkiraan}.
+          Tuliskan rincian perhitungan Anda, dan sebutkan dua alasan
+          mengapa angka hasil hitungan belum tentu sama dengan waktu
+          sesungguhnya.
+
+    \item \textbf{\eng{Strength reduction}.} Tuliskan hasil
+          penggantian untuk potongan berikut, lalu sebutkan syarat
+          yang harus dipenuhi agar penggantian itu sahih.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AX, 0
+    ADD AX, nilai
+    MOV BX, 16
+    MUL BX
+    CMP AX, 0
+    JE  kosong
+\end{lstlisting}
+
+    \item \textbf{Optimasi dan trade-off.} Diberikan dua varian
+          pengalian dengan empat: (a) \lstasm|MOV CL, 2| diikuti
+          \lstasm|SHL AX, CL|, dan (b) dua kali \lstasm|SHL AX, 1|.
+          Hitung ukuran byte dan perkiraan siklus keduanya. Varian
+          mana yang Anda pilih bila program harus muat pada memori
+          64 byte? Varian mana yang Anda pilih bila program berjalan
+          di dalam perulangan seribu kali? Jelaskan alasan tiap
+          jawaban.
+
+    \item \textbf{Pengukuran.} Rancang pengukuran untuk
+          membandingkan dua versi program yang mengerjakan pekerjaan
+          sama. Sebutkan minimal empat syarat agar perbandingan itu
+          adil, lalu tuliskan potongan kode yang mencatat waktu mulai
+          dan waktu berhenti dengan \code{INT 1Ah} fungsi \hex{00}.
+          Jelaskan mengapa percobaan pertama biasanya dibuang.
+
+    \item \textbf{Penulisan program.} Tulislah program lengkap yang
+          mengalikan setiap elemen larik \code{DW 3, 5, 7, 9, 11}
+          dengan empat, lalu menjumlahkan seluruh hasil perkaliannya
+          ke dalam \reg{DX}. Gunakan \asm{SHL}, bukan \asm{MUL}.
+          Sertakan penghitung iterasi pada variabel tersendiri agar
+          jumlah iterasi dapat diverifikasi, lalu periksa kebenaran
+          hasilnya secara manual.
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Sebelum praktikum ini, apakah Anda pernah merasa yakin
+          bahwa sebuah perubahan pasti mempercepat program? Setelah
+          mengukur, apakah dugaan Anda terbukti? Bagian mana yang
+          paling berbeda dari dugaan?
+    \item Teknik optimasi mana yang paling sulit Anda terapkan
+          dengan benar, dan kesalahan seperti apa yang pernah Anda
+          buat saat menerapkannya?
+    \item Menurut Anda, pada situasi seperti apa sebuah program
+          sebaiknya dibiarkan dalam bentuk naif saja? Kaitkan
+          jawaban Anda dengan nilai keterbacaan dan kemudahan
+          pemeliharaan.
+\end{enumerate}
+\end{refleksibox}

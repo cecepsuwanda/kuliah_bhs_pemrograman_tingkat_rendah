@@ -1,0 +1,130 @@
+\chapter{Referensi Tambahan dan Sumber Belajar Eksternal}
+\label{app:referensi-tambahan}
+
+Lampiran ini memuat sumber belajar tambahan yang dapat diakses
+secara bebas. Seluruh tautan telah diperiksa pada saat penyusunan
+buku ini. Sumber utama yang disitasi pada bab-bab dicantumkan pada
+Daftar Pustaka; lampiran ini melengkapinya dengan sumber yang
+bersifat praktis dan rujukan lanjutan.
+
+\section{Manual dan Spesifikasi Resmi}
+
+\begin{itemize}
+    \item \textbf{The 8086 Family User's Manual} \cite{intel1979} ---
+          rujukan utama perilaku 8086: register, instruksi, sinyal,
+          dan pengalamatan. Tersedia dalam bentuk PDF.
+    \item \textbf{Intel 64 and IA-32 Architectures Software
+          Developer's Manual} \cite{intel2024} --- rujukan resmi
+          keluarga x86 modern; berguna sebagai rujukan lanjutan
+          setelah menguasai 8086.
+    \item \textbf{Ralf Brown's Interrupt List} \cite{brown2000} ---
+          daftar lengkap layanan interupsi BIOS dan DOS; rujukan
+          wajib ketika memakai \code{INT 10h} dan \code{INT 21h}.
+\end{itemize}
+
+\section{Buku Teks dan Modul Pembelajaran}
+
+\begin{itemize}
+    \item \textbf{The Art of Assembly Language} \cite{hyde2010} ---
+          pembahasan mendalam sintaks dan teknik assembly.
+    \item \textbf{Programming from the Ground Up}
+          \cite{bartlett2004} --- pengantar assembly dengan
+          pendekatan praktik.
+    \item \textbf{x86 Assembly from the Ground Up using NASM}
+          \cite{bartlett2023} --- pengantar sintaks NASM untuk
+          pembaca yang ingin berpindah dari MASM.
+    \item \textbf{Assembly Language for x86 Processors}
+          \cite{irvine2011} --- buku teks lengkap dengan banyak
+          contoh terstruktur.
+    \item \textbf{Microprocessors Lab Manual (CMPE323)}
+          \cite{bodur} --- kumpulan latihan laboratorium
+          mikroprosesor.
+\end{itemize}
+
+\section{Panduan Praktis dan Tutorial}
+
+\begin{itemize}
+    \item \textbf{Help for Emu8086: Tutorial and Reference}
+          \cite{emu8086help} --- panduan memakai emulator Emu8086.
+    \item \textbf{Using the DEBUG Program} \cite{irvine1999} ---
+          panduan ringkas perintah \file{DEBUG}.
+    \item \textbf{Hands-on Introduction to Computers and Programming
+          using DEBUG} \cite{ebrahim2018} --- penelusuran kode mesin
+          dengan DEBUG.
+    \item \textbf{x86 Assembly Guide} \cite{evans2020} --- ringkasan
+          mode pengalamatan dan sintaks.
+    \item \textbf{Laboratory 8: x86 Assembly Language}
+          \cite{uva2024} --- contoh lembar kerja laboratorium
+          assembly.
+\end{itemize}
+
+\section{Dokumentasi Perangkat Lunak}
+
+\begin{itemize}
+    \item \textbf{GUI Turbo Assembler (TASM)}
+          \cite{guitasm} --- antarmuka grafis untuk TASM dan TLINK
+          beserta \eng{debugger} terpadu.
+    \item \textbf{emu8086} \cite{emu8086site} --- emulator dan
+          assembler dengan tampilan register serta memori.
+    \item \textbf{DOSBox} \cite{dosbox} --- emulator lingkungan DOS
+          untuk menjalankan DEBUG, TASM, dan TLINK.
+    \item \textbf{NASM Documentation} \cite{nasm2024} ---
+          dokumentasi resmi assembler NASM.
+\end{itemize}
+
+\section{Rujukan Lanjutan Organisasi Komputer}
+
+\begin{itemize}
+    \item \textbf{Computer Organization and Architecture}
+          \cite{stallings2016} --- dasar organisasi komputer dan
+          kinerja.
+    \item \textbf{Structured Computer Organization}
+          \cite{tanenbaum2013} --- pendekatan berlapis dalam
+          memahami mesin.
+    \item \textbf{The Intel Microprocessors} \cite{brey2009} ---
+          arsitektur, pemrograman, dan antarmuka mikroprosesor Intel.
+\end{itemize}
+
+\section{Sumber Belajar Daring}
+
+\begin{itemize}
+    \item \textbf{Wikibooks: x86 Assembly} \cite{wikibooksx86} ---
+          rujukan daring yang terus diperbarui mengenai sintaks dan
+          instruksi x86.
+    \item \textbf{Wikibooks: X86 Disassembly}
+          \cite{wikibooksdisasm} --- pengantar membaca hasil
+          \eng{disassembly}, termasuk pembahasan teknik pencarian
+          batas fungsi.
+    \item \textbf{Slide kuliah Intel 8086} \cite{courses2103},
+          \cite{carleton2011} dan \textbf{8086 Addressing Modes}
+          \cite{kader2014} --- bahan ajar yang ringkas dan mudah
+          diikuti untuk arsitektur serta mode pengalamatan.
+\end{itemize}
+
+\begin{infobox}
+\textbf{Catatan hak cipta.} Sebagian dokumen pada lampiran ini
+(misalnya manual Intel dan buku teks komersial) tersedia bebas untuk
+keperluan pendidikan, tetapi tetap tunduk pada hak cipta
+penerbitnya. Sumber berlisensi terbuka (GNU FDL, CC BY-SA) ditandai
+secara eksplisit pada Daftar Pustaka.
+\end{infobox}
+
+\section{Cara Menggunakan Lampiran Ini}
+
+Untuk belajar mandiri, urutan pemanfaatan sumber di atas adalah
+sebagai berikut.
+
+\begin{enumerate}
+    \item Gunakan buku ini sebagai kerangka utama dan penentu urutan
+          belajar.
+    \item Ketika menemukan istilah yang belum jelas, buka
+          Lampiran~\ref{app:glosarium}.
+    \item Ketika memerlukan detail teknis sebuah instruksi atau
+          layanan interupsi, buka \cite{intel1979} atau
+          \cite{brown2000}.
+    \item Ketika memerlukan latihan tambahan, gunakan
+          \cite{bodur} dan \cite{uva2024}.
+    \item Setelah menyelesaikan seluruh bab, pilih satu jalur
+          lanjutan pada Tabel~\ref{tab:tindak-lanjut} dan gunakan
+          sumber yang bersesuaian pada lampiran ini.
+\end{enumerate}

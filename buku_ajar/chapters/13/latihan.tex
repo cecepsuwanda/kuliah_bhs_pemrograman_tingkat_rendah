@@ -1,0 +1,98 @@
+\section{Latihan}
+\label{sec:latihan-bab13}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Sebutkan tiga alasan mengapa program
+          sebaiknya dipecah menjadi prosedur. Jelaskan pula mengapa
+          pemakaian prosedur tidak selalu membuat program menjadi
+          lebih cepat, dan kapan prosedur sebaiknya dihindari.
+
+    \item \textbf{Konseptual.} Jelaskan apa yang dikerjakan
+          instruksi \asm{CALL} dan \asm{RET}. Mengapa \asm{JMP}
+          tidak dapat dipakai sebagai pengganti \asm{CALL}?
+
+    \item \textbf{Analisis stack.} Diketahui \reg{SS} $=$ \hex{2000}
+          dan \reg{SP} $=$ \hex{FFFC}. Tentukan alamat fisik sel
+          teratas stack. Kemudian tentukan nilai \reg{SP} dan isi
+          sel tersebut setelah urutan instruksi berikut dijalankan:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    MOV AX, 1234h
+    PUSH AX
+    PUSH BX
+    POP  CX
+\end{lstlisting}
+
+          \begin{enumerate}
+              \item Berapa byte data yang masih tertinggal di stack
+                    setelah instruksi terakhir?
+              \item Apakah nilai \reg{BX} masih tersimpan di memori
+                    stack? Jelaskan.
+          \end{enumerate}
+
+    \item \textbf{Analisis \eng{stack frame}.} Perhatikan potongan
+          prosedur berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+Jumlah PROC
+    PUSH BP
+    MOV  BP, SP
+    MOV  AX, [BP+4]
+    ADD  AX, [BP+6]
+    POP  BP
+    RET  4
+Jumlah ENDP
+\end{lstlisting}
+
+          \begin{enumerate}
+              \item Tuliskan urutan instruksi pemanggil yang tepat
+                    agar prosedur ini menghasilkan nilai benar.
+              \item Nilai apa yang berada pada \code{[BP+8]} saat
+                    prosedur berjalan?
+              \item Mengapa pemanggil tidak boleh menambahkan
+                    \lstasm|ADD SP, 4| setelah \asm{CALL}?
+          \end{enumerate}
+
+    \item \textbf{Analisis kesalahan.} Sebuah prosedur memakai
+          register \reg{SI} dan \reg{DI} untuk mengolah data, tetapi
+          hanya menyimpan \reg{BP} pada \eng{prologue}-nya. Setelah
+          prosedur dipanggil, program pemanggil menghasilkan keluaran
+          yang salah. Jelaskan penyebabnya dan tuliskan perbaikan
+          yang diperlukan, dengan mengacu pada
+          Tabel~\ref{tab:register-simpan}.
+
+    \item \textbf{Penulisan program.} Tulislah prosedur
+          \code{HitungRataRata} yang menerima dua parameter 16-bit
+          melalui stack dan mengembalikan hasil bagi keduanya
+          (dibulatkan ke bawah) pada register \reg{AX}. Sertakan
+          \eng{prologue}, \eng{epilogue}, dan potongan program
+          pemanggilnya.
+
+    \item \textbf{Penulisan program.} Tulislah prosedur rekursif
+          \code{Pangkat} yang menghitung $a^b$ untuk $b \ge 0$,
+          dengan parameter $a$ dan $b$ dikirim melalui stack serta
+          hasil dikembalikan pada \reg{AX}. Tentukan pula kasus
+          basisnya dan jelaskan mengapa kasus basis itu diperlukan.
+
+    \item \textbf{Perbandingan.} Bandingkan pemakaian stack pada
+          prosedur faktorial rekursif dan faktorial iteratif untuk
+          $n = \dec{10}$. Hitung perkiraan jumlah byte stack yang
+          dipakai masing-masing versi, lalu simpulkan versi mana yang
+          lebih tepat dipakai dan pada keadaan apa rekursi tetap
+          bermanfaat.
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Bagian mana dari bab ini yang paling sulit dipahami:
+          arah tumbuh stack, susunan \eng{stack frame}, atau konvensi
+          pemanggilan? Apa yang Anda lakukan untuk mengatasinya?
+    \item Setelah memeriksa isi stack pada \eng{debugger}, apakah
+          gambaran Anda tentang ``pemanggilan prosedur'' berubah?
+          Jelaskan bagian mana yang paling mengejutkan.
+    \item Konsep apa yang masih perlu Anda latih sebelum masuk ke
+          Bab~\ref{chap:interupsi}, yang juga memakai stack untuk
+          menyimpan \reg{CS}, \reg{IP}, dan \reg{FLAGS}?
+\end{enumerate}
+\end{refleksibox}

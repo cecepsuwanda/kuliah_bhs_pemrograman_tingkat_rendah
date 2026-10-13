@@ -1,0 +1,194 @@
+% =========================================================
+% config/environments.tex
+% Environment khusus buku ajar berbasis OBE.
+% =========================================================
+
+% ---------------------------------------------------------
+% Penambal kompatibilitas: enumitem + tcolorbox breakable.
+%
+% Package enumitem menetapkan \enit@after secara LOKAL pada saat
+% \begin{enumerate}. Bila sebuah daftar berada di dalam tcolorbox
+% yang terpotong antar halaman, tcolorbox menyusun kedua potongan
+% di dalam grup yang berbeda, sehingga \end{enumerate} pada
+% potongan kedua menemukan \enit@after dalam keadaan tak
+% terdefinisi dan perakitan gagal.
+%
+% Menetapkan nilai baku secara global menghilangkan kegagalan itu
+% tanpa mengubah perilaku daftar, karena \@empty memang nilai baku
+% \enit@after.
+% ---------------------------------------------------------
+\makeatletter
+\AtBeginDocument{%
+    \@ifundefined{enit@after}{\let\enit@after\@empty}{}%
+}
+\makeatother
+
+% ---------------------------------------------------------
+% Teorema-seperti (amsthm)
+% ---------------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{definisi}{Definisi}[chapter]
+\newtheorem{contoh}{Contoh}[chapter]
+\newtheorem{prosedur}{Prosedur}[chapter]
+
+\theoremstyle{plain}
+\newtheorem{teorema}{Teorema}[chapter]
+\newtheorem{lemma}{Lemma}[chapter]
+
+\theoremstyle{remark}
+\newtheorem{catatan}{Catatan}[chapter]
+
+% Catatan: palet warna buku didefinisikan di config/styles.tex,
+% yang dimuat lebih dahulu melalui preamble.tex.
+
+% ---------------------------------------------------------
+% Kotak OBE
+% Semua kotak dapat terpotong antar halaman (breakable).
+% ---------------------------------------------------------
+\tcbset{
+    obe box/.style={
+        breakable,
+        enhanced,
+        sharp corners,
+        boxrule=0pt,
+        leftrule=3pt,
+        left=6pt,
+        right=6pt,
+        top=6pt,
+        bottom=6pt,
+        fonttitle=\bfseries,
+        coltitle=white,
+        attach boxed title to top left={
+            xshift=6pt,
+            yshift=-\tcboxedtitleheight/2
+        },
+        boxed title style={
+            sharp corners,
+            boxrule=0pt,
+            left=5pt,
+            right=5pt,
+            top=2pt,
+            bottom=2pt
+        }
+    }
+}
+
+% --- Sub-CPMK bab ---
+\newtcolorbox{subcpmkbox}[1][]{
+    obe box,
+    colback=obeBlueLight,
+    colframe=obeBlue,
+    colbacktitle=obeBlue,
+    title={Outcome Pembelajaran Khusus Bab (Sub-CPMK)},
+    #1
+}
+
+% --- Tujuan pembelajaran ---
+\newtcolorbox{tujuanbox}[1][]{
+    obe box,
+    colback=obeBlueLight,
+    colframe=obeBlue,
+    colbacktitle=obeBlue,
+    title={Tujuan Pembelajaran},
+    #1
+}
+
+% --- Materi pokok ringkas ---
+\newtcolorbox{materibox}[1][]{
+    obe box,
+    colback=obeGrayLight,
+    colframe=obeGray,
+    colbacktitle=obeGray,
+    title={Materi Pokok},
+    #1
+}
+
+% --- Aktivitas pembelajaran ---
+\newtcolorbox{aktivitasbox}[1][]{
+    obe box,
+    colback=obeTealLight,
+    colframe=obeTeal,
+    colbacktitle=obeTeal,
+    title={Aktivitas Pembelajaran yang Direkomendasikan},
+    #1
+}
+
+% --- Praktikum ---
+\newtcolorbox{praktikumbox}[1][]{
+    obe box,
+    colback=obeTealLight,
+    colframe=obeTeal,
+    colbacktitle=obeTeal,
+    title={Praktikum},
+    #1
+}
+
+% --- Asesmen ---
+\newtcolorbox{asesmenbox}[1][]{
+    obe box,
+    colback=obeAmberLight,
+    colframe=obeAmber,
+    colbacktitle=obeAmber,
+    title={Asesmen (Evaluasi Kinerja)},
+    #1
+}
+
+% --- Checklist kompetensi ---
+\newtcolorbox{checklistbox}[1][]{
+    obe box,
+    colback=obeGreenLight,
+    colframe=obeGreen,
+    colbacktitle=obeGreen,
+    title={Checklist Pencapaian Kompetensi},
+    #1
+}
+
+% --- Refleksi ---
+\newtcolorbox{refleksibox}[1][]{
+    obe box,
+    colback=obeGreenLight,
+    colframe=obeGreen,
+    colbacktitle=obeGreen,
+    title={Refleksi},
+    #1
+}
+
+% --- Studi kasus ---
+\newtcolorbox{studikasusbox}[1][]{
+    obe box,
+    colback=obeMaroonLight,
+    colframe=obeMaroon,
+    colbacktitle=obeMaroon,
+    title={Studi Kasus},
+    #1
+}
+
+% --- Peringatan / kesalahan umum ---
+\newtcolorbox{peringatanbox}[1][]{
+    obe box,
+    colback=obeMaroonLight,
+    colframe=obeMaroon,
+    colbacktitle=obeMaroon,
+    title={Kesalahan yang Sering Terjadi},
+    #1
+}
+
+% --- Catatan tambahan ---
+\newtcolorbox{infobox}[1][]{
+    obe box,
+    colback=obeGrayLight,
+    colframe=obeGray,
+    colbacktitle=obeGray,
+    title={Catatan},
+    #1
+}
+
+% --- Ringkasan instruksi ---
+\newtcolorbox{instruksibox}[1][]{
+    obe box,
+    colback=obeBlueLight,
+    colframe=obeBlue,
+    colbacktitle=obeBlue,
+    title={Ringkasan Instruksi},
+    #1
+}

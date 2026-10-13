@@ -1,0 +1,157 @@
+\section{Contoh Program}
+\label{sec:contoh-bab7}
+
+Dua contoh berikut memperlihatkan cara kerja format instruksi pada
+program nyata: membongkar program dengan \eng{disassembler}, lalu
+membandingkan jumlah byte dua bentuk penulisan yang setara.
+
+\subsection{Contoh 1: Membongkar Program dengan Perintah \code{U}}
+
+Program pada Kode~\ref{lst:opcode-demo} sengaja memuat lima
+instruksi dengan bentuk operand berbeda, sehingga hasil bongkarnya
+dapat dibandingkan dengan kode sumbernya baris demi baris.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{opcode-demo.asm} untuk latihan
+    \eng{disassembly}.},
+    label={lst:opcode-demo}
+]{\CodeDir/opcode-demo.asm}
+
+Setelah program dirakit dan dijalankan sekali, program tersebut
+dibongkar dengan \file{DEBUG}. Perintah \code{U} dimulai pada alamat
+titik masuk program. Hasilnya ditampilkan pada
+Kode~\ref{lst:bongkar-opcode-demo}.
+
+\begin{session}[caption={Hasil perintah \code{U} pada
+\file{opcode-demo.exe}.}, label={lst:bongkar-opcode-demo}]
+-u
+0B2A:0000 B82A0B        MOV     AX,0B2A
+0B2A:0003 8ED8          MOV     DS,AX
+0B2A:0005 B80500        MOV     AX,0005
+0B2A:0008 BB0100        MOV     BX,0001
+0B2A:000B 03C3          ADD     AX,BX
+0B2A:000D 89C1          MOV     CX,AX
+0B2A:000F 2D0200        SUB     AX,0002
+0B2A:0012 B409          MOV     AH,09
+0B2A:0014 8D160000      LEA     DX,[0000]
+0B2A:0018 CD21          INT     21
+0B2A:001A B44C          MOV     AH,4C
+0B2A:001C B000          MOV     AL,00
+0B2A:001E CD21          INT     21
+\end{session}
+
+Perbandingan kode sumber dan hasil bongkar tersebut dirangkum pada
+Tabel~\ref{tab:banding-sumber-bongkar}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan kode sumber dan hasil \eng{disassembly}
+    pada Kode~\ref{lst:bongkar-opcode-demo}.}
+    \label{tab:banding-sumber-bongkar}
+    \small
+    \begin{tabular}{@{}p{3.6cm}p{2.2cm}cp{4.0cm}@{}}
+        \toprule
+        \textbf{Kode sumber} & \textbf{Kode mesin} &
+        \textbf{Byte} & \textbf{Field yang tampak} \\
+        \midrule
+        \lstasm|MOV AX, 0005h| & \hex{B8 05 00} & 3 &
+        Opcode penambah register, immediate 16 bit \\
+        \addlinespace
+        \lstasm|MOV BX, 0001h| & \hex{BB 01 00} & 3 &
+        Nomor register \reg{BX} = \dec{3}, jadi \hex{B8} $+$ \dec{3} \\
+        \addlinespace
+        \lstasm|ADD AX, BX| & \hex{03 C3} & 2 &
+        ModR/M \bin{11 000 011}: \code{reg} = \reg{AX},
+        \code{r/m} = \reg{BX} \\
+        \addlinespace
+        \lstasm|MOV CX, AX| & \hex{89 C1} & 2 &
+        Opcode \hex{89} arah \code{r/m} $\leftarrow$ \code{reg};
+        \code{reg} = \reg{AX}, \code{r/m} = \reg{CX} \\
+        \addlinespace
+        \lstasm|SUB AX, 0002h| & \hex{2D 02 00} & 3 &
+        Opcode khusus \reg{AX} dengan immediate 16 bit \\
+        \addlinespace
+        \lstasm|LEA DX, pesan| & \hex{8D 16 xx xx} & 4 &
+        ModR/M \hex{16}: \code{mod} = \bin{00},
+        \code{r/m} = \bin{110} (alamat langsung 16 bit) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Instruksi \lstasm|LEA DX, pesan| tertulis sebagai
+\lstasm|LEA DX,[0000]|. Disassembler menampilkan \eng{displacement}
+apa adanya, tanpa mengetahui nama simbol \code{pesan}. Nama simbol
+hanya hidup di tabel simbol assembler dan hilang seluruhnya pada kode
+mesin (Bab~\ref{chap:translasi}).
+\end{infobox}
+
+\subsection{Contoh 2: Dua Bentuk Penulisan, Ukuran Berbeda}
+
+Contoh kedua memperlihatkan bahwa dua penulisan yang menghasilkan
+keadaan register sama dapat menempati jumlah byte berbeda. Program
+pada Kode~\ref{lst:ukuran-instruksi} memuat kedua bentuk tersebut
+secara berdampingan dalam satu program \file{.COM}.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{ukuran-instruksi.asm} membandingkan dua
+    bentuk penulisan.},
+    label={lst:ukuran-instruksi}
+]{\CodeDir/ukuran-instruksi.asm}
+
+Hasil bongkar kedua bentuk tersebut ditampilkan pada
+Kode~\ref{lst:bongkar-ukuran}. Karena program berbentuk \file{.COM},
+seluruh instruksi dimulai pada offset \hex{100}.
+
+\begin{session}[caption={Hasil perintah \code{U} pada
+\file{ukuran-instruksi.com}, hanya bagian kedua bentuk.},
+label={lst:bongkar-ukuran}]
+-u 100 10A
+13F2:0100 B80100        MOV     AX,0001     ; bentuk A, 3 byte
+13F2:0103 BB0100        MOV     BX,0001     ; bentuk A, 3 byte
+13F2:0106 BB0100        MOV     BX,0001     ; bentuk B, 3 byte
+13F2:0109 89D8          MOV     AX,BX       ; bentuk B, 2 byte
+\end{session}
+
+Bentuk A menempati alamat \hex{100} sampai \hex{105}, yaitu enam
+byte. Bentuk B menempati alamat \hex{106} sampai \hex{10A}, yaitu
+lima byte. Keduanya berakhir dengan \reg{AX} = \dec{1} dan
+\reg{BX} = \dec{1}, sehingga hasil akhirnya identik. Selisih satu
+byte berasal dari \eng{immediate} 16 bit kedua yang tidak lagi
+diperlukan. Rincian selisih tersebut diberikan pada
+Tabel~\ref{tab:dua-bentuk}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan jumlah byte dua bentuk penulisan yang
+    setara.}
+    \label{tab:dua-bentuk}
+    \small
+    \begin{tabular}{@{}p{2.0cm}p{4.6cm}p{3.0cm}c@{}}
+        \toprule
+        \textbf{Bentuk} & \textbf{Instruksi} &
+        \textbf{Kode mesin} & \textbf{Byte} \\
+        \midrule
+        A & \lstasm|MOV AX, 0001h| & \hex{B8 01 00} & 3 \\
+        \addlinespace
+        A & \lstasm|MOV BX, 0001h| & \hex{BB 01 00} & 3 \\
+        \addlinespace
+        \multicolumn{3}{@{}l}{\textbf{Jumlah bentuk A}} & \textbf{6} \\
+        \midrule
+        B & \lstasm|MOV BX, 0001h| & \hex{BB 01 00} & 3 \\
+        \addlinespace
+        B & \lstasm|MOV AX, BX| & \hex{89 D8} & 2 \\
+        \addlinespace
+        \multicolumn{3}{@{}l}{\textbf{Jumlah bentuk B}} & \textbf{5} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Bentuk B belum tentu lebih baik dalam segala hal. Ia lebih hemat satu
+byte, tetapi bergantung pada nilai register lain dan lebih sulit
+dibaca. Selisih kecil seperti ini baru menjadi berarti pada rutin
+yang dipanggil ribuan kali atau pada memori yang sangat terbatas.
+\end{infobox}

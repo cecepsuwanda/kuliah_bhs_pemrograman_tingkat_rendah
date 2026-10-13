@@ -1,0 +1,81 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Direktif Assembler dan Alur Translasi Program}
+\label{chap:translasi}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{2.3} --- Menggunakan direktif assembler (\dir{DB},
+\dir{DW}, \dir{DD}, \dir{EQU}, \dir{ORG}, \dir{SEGMENT}) dan
+menjelaskan alur translasi \eng{source} $\rightarrow$
+\eng{object} $\rightarrow$ \eng{executable} oleh assembler dan
+linker.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{02} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item membedakan instruksi mesin dan direktif assembler serta
+          menjelaskan mengapa direktif tidak menghasilkan kode
+          mesin;
+    \item menggunakan direktif data \dir{DB}, \dir{DW}, \dir{DD},
+          dan \dir{DT} beserta literal string, operator \dir{DUP},
+          penanda \code{?}, dan pengaruh urutan \eng{little-endian};
+    \item membedakan direktif \dir{EQU} dan \code{=} beserta
+          akibatnya bila simbol didefinisikan ulang;
+    \item menggunakan direktif lokasi dan struktur \dir{ORG},
+          \dir{SEGMENT}/\dir{ENDS}, \dir{ASSUME}, dan \dir{END}
+          sesuai bentuk program \file{.COM} maupun \file{.EXE};
+    \item memilih model memori \dir{.MODEL} yang tepat dan
+          menjelaskan pengaruhnya pada jumlah segmen;
+    \item menjelaskan tugas assembler (tabel simbol dan
+          penghitungan \eng{offset}) serta tugas linker
+          (\eng{relocation} dan resolusi simbol eksternal);
+    \item menelusuri alur \file{.asm} $\rightarrow$ \file{.obj}
+          $\rightarrow$ \file{.exe} dengan perintah TASM dan TLINK
+          yang konkret, serta memperbaiki kesalahan perakitan yang
+          umum terjadi.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Perbedaan mendasar instruksi mesin dan direktif assembler.
+    \item Direktif data: \dir{DB}, \dir{DW}, \dir{DD}, \dir{DT};
+          literal string; operator \dir{DUP}; penanda \code{?};
+          tabel dan \eng{array}; urutan \eng{little-endian}.
+    \item Direktif simbol dan konstanta: \dir{EQU} dan \code{=}.
+    \item Direktif lokasi dan struktur: \dir{ORG},
+          \dir{SEGMENT}/\dir{ENDS}, \dir{ASSUME}, \dir{END}.
+    \item Model memori \dir{.MODEL} dan direktif \dir{PROC}/
+          \dir{ENDP} dasar.
+    \item Peran assembler: tabel simbol, penghitungan \eng{offset},
+          penanganan direktif; berkas \file{.lst}.
+    \item Peran linker: resolusi simbol eksternal,
+          \eng{relocation}, alamat akhir, penggabungan objek dan
+          pustaka; berkas \file{.map}.
+    \item Alur lengkap perakitan dan pengaitan dengan TASM dan
+          TLINK; kesalahan umum.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

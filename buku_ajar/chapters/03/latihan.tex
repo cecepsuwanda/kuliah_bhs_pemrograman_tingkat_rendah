@@ -1,0 +1,77 @@
+\section{Latihan}
+\label{sec:latihan-bab3}
+
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan dengan kalimat Anda sendiri
+          perbedaan antara bahasa mesin, bahasa assembly, dan bahasa
+          tingkat tinggi. Sertakan satu contoh penulisan operasi yang
+          sama pada ketiga tingkat tersebut.
+
+    \item \textbf{Konseptual.} Mengapa hubungan antara bahasa assembly
+          dan bahasa mesin disebut \eng{one-to-one}, sedangkan
+          hubungan bahasa tingkat tinggi dengan bahasa mesin tidak
+          demikian?
+
+    \item \textbf{Rantai proses.} Sebuah berkas \file{program.asm}
+          harus melalui tahapan apa saja sampai dapat dijalankan?
+          Jelaskan apa yang dikerjakan assembler dan apa yang
+          dikerjakan linker.
+
+    \item \textbf{Perbandingan bentuk program.} Sebutkan tiga
+          perbedaan penting antara program \file{.COM} dan
+          \file{.EXE}. Mengapa program \file{.COM} tidak memerlukan
+          instruksi \lstasm|MOV AX, @DATA|?
+
+    \item \textbf{Analisis kode.} Perhatikan potongan program berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+.MODEL SMALL
+.STACK 100h
+.DATA
+    nilai DW 1234h
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    MOV AX, nilai
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{lstlisting}
+
+          \begin{enumerate}
+              \item Apakah program ini akan berjalan dengan benar?
+              \item Nilai apa yang berada pada \reg{AX} setelah
+                    instruksi \lstasm|MOV AX, nilai|?
+              \item Apa yang terjadi bila baris \lstasm|MOV DS, AX|
+                    dihapus? Jelaskan alasannya.
+          \end{enumerate}
+
+    \item \textbf{Penulisan program.} Tulislah program lengkap yang
+          mencetak tiga baris teks berturut-turut dengan layanan DOS
+          \code{INT 21h} fungsi \hex{09}. Setiap baris diakhiri
+          pindah baris.
+
+    \item \textbf{Penulisan program.} Tulislah program yang mencetak
+          inisial nama Anda menggunakan layanan \code{INT 21h}
+          fungsi \hex{02} (satu karakter per pemanggilan).
+
+    \item \textbf{Analisis kesalahan.} Diberikan pesan assembler
+          \file{Undefined symbol: PESAN} pada program yang
+          sebenarnya sudah mendeklarasikan \code{pesan DB 'Halo\$'}.
+          Sebutkan dua kemungkinan penyebabnya dan cara
+          memeriksanya.
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Bagian mana dari bab ini yang paling sulit dipahami?
+          Apa yang Anda lakukan untuk mengatasinya?
+    \item Setelah menjalankan program pertama, apakah pemahaman Anda
+          tentang ``cara kerja komputer'' berubah? Jelaskan bagian
+          mana yang paling mengejutkan.
+    \item Konsep apa yang Anda rasa masih perlu dijelaskan ulang
+          sebelum masuk ke bab berikutnya?
+\end{enumerate}
+\end{refleksibox}

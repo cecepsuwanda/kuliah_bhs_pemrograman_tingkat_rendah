@@ -1,0 +1,130 @@
+\section{Contoh Program}
+\label{sec:contoh-bab11}
+
+Bagian ini menyajikan dua program utuh yang memperlihatkan pemakaian
+operasi logika dan pergeseran. Keduanya tersedia pada
+\file{code/asm/} dan dapat dirakit memakai TASM, MASM, atau Emu8086.
+
+\subsection{Contoh 1: Memeriksa Paritas Byte}
+
+Program \file{paritas.asm} pada Kode~\ref{lst:paritas} menghitung cacah
+bit 1 sebuah byte, lalu mencetak \code{GENAP} atau \code{GANJIL}.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{paritas.asm} memeriksa paritas sebuah byte.},
+    label={lst:paritas}
+]{\CodeDir/paritas.asm}
+
+Penjelasan bagian penting program tersebut:
+
+\begin{itemize}
+    \item \lstasm|MOV BL, 0| menyiapkan penghitung cacah bit 1, dan
+          \lstasm|MOV CX, 8| menetapkan pemeriksaan dilakukan delapan
+          kali, sebanyak cacah bit pada satu byte.
+
+    \item \lstasm|SHR AL, 1| menggeser \reg{AL} satu bit ke kanan; bit
+          yang terdesak keluar ditampung pada \flag{CF}.
+
+    \item \lstasm|ADC BL, 0| menjumlahkan penghitung dengan \flag{CF}.
+          Instruksi ini semula dipakai untuk aritmatika bertingkat
+          (Bab~\ref{chap:aritmatika}); di sini pemakaiannya berbeda,
+          yaitu mengambil nilai \flag{CF}.
+
+    \item \lstasm|LOOP ULANG| mengulangi blok di atas sampai \reg{CX}
+          habis, sehingga seluruh delapan bit diperiksa.
+
+    \item \lstasm|TEST BL, 1| menguji bit terendah cacah bit 1. Bila
+          bit itu bernilai 1, cacahnya ganjil sehingga \flag{ZF} = 0
+          dan \asm{JNZ} diambil.
+\end{itemize}
+
+Byte uji \bin{1011 0110} memiliki bit 1 pada posisi 7, 5, 4, 2, dan 1,
+yaitu lima bit. Karena lima ganjil, program mencetak \code{GANJIL}
+(Kode~\ref{lst:keluaran-paritas}).
+
+\begin{session}[caption={Keluaran program \file{paritas.asm}.}, label={lst:keluaran-paritas}]
+Byte 10110110b berparitas: GANJIL
+\end{session}
+
+\begin{infobox}
+Bila byte uji diganti \bin{1011 0111}, cacah bit 1 menjadi enam dan
+program mencetak \code{GENAP}.
+\end{infobox}
+
+\subsection{Contoh 2: Enkripsi dan Dekripsi dengan \eng{XOR Cipher}}
+
+Program \file{xor-cipher.asm} pada Kode~\ref{lst:xor-cipher}
+menyandikan sebuah string dengan meng-XOR setiap byte terhadap sebuah
+kunci, lalu mengembalikannya ke bentuk asli memakai kunci yang sama
+(Persamaan~\eqref{eq:xor-balik}).
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{xor-cipher.asm} mengenkripsi dan mendekripsi
+    string dengan \asm{XOR}.},
+    label={lst:xor-cipher}
+]{\CodeDir/xor-cipher.asm}
+
+Perhatikan tiga hal berikut.
+
+\begin{enumerate}
+    \item \textbf{Penanda akhir string.} Perulangan berhenti ketika
+          ditemukan karakter \code{'\$'}, penanda yang sama dengan
+          layanan DOS fungsi \hex{09}; panjang string tidak perlu
+          dihitung lebih dahulu.
+
+    \item \textbf{Pemakaian \asm{XOR} dua kali.} Pada \file{ENKRIPSI},
+          setiap byte di-XOR dengan kunci dan disimpan pada
+          \code{buffer}. Pada \file{DEKRIPSI}, byte itu di-XOR ulang
+          dengan kunci yang sama dan ditulis kembali di tempat yang
+          sama, sehingga teks asli pulih.
+
+    \item \textbf{Pemilihan kunci.} Kunci \hex{20} dipilih agar hasil
+          enkripsi tetap terbaca, yaitu dengan membalik besar-kecil
+          huruf. Kunci seperti \hex{5A} akan menghasilkan byte di luar
+          rentang karakter cetak, sehingga keluarannya tampak sebagai
+          deretan simbol aneh.
+\end{enumerate}
+
+\begin{session}[caption={Keluaran program \file{xor-cipher.asm}.}, label={lst:keluaran-cipher}]
+Teks asli    : BELAJARASM
+Terenkripsi  : belajarasm
+Terdekripsi  : BELAJARASM
+\end{session}
+
+\subsection{Contoh 3: Memanipulasi Bidang Bit Status}
+
+Program pendek pada Kode~\ref{lst:status-bit} memperlihatkan
+\eng{masking} untuk menyimpan beberapa keadaan dalam satu byte: bit 0
+menandai lampu menyala, bit 3 pintu terbuka, dan bit 5 alarm aktif.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Manipulasi bidang bit status dengan \asm{OR}, \asm{AND},
+    dan \asm{XOR}.},
+    label={lst:status-bit}
+]
+.DATA
+    status  DB 00000000b        ; semula seluruh bit padam
+
+.CODE
+    ; nyalakan lampu (bit 0) dan aktifkan alarm (bit 5)
+    OR  status, 00100001b       ; status = 0010 0001b
+
+    ; padamkan alarm tanpa mengubah bit lain
+    AND status, 11011111b       ; status = 0000 0001b
+
+    ; balikkan keadaan pintu (bit 3) dua kali
+    XOR status, 00001000b       ; status = 0000 1001b (pintu terbuka)
+    XOR status, 00001000b       ; status = 0000 0001b (pintu tertutup)
+
+    ; uji apakah pintu sedang terbuka
+    TEST status, 00001000b      ; ZF = 1 -> pintu tertutup
+    JZ  PINTU_TERTUTUP
+\end{lstlisting}
+
+Pola ini jauh lebih hemat daripada menyediakan satu variabel untuk
+setiap keadaan. Satu byte menampung delapan keadaan dan pemeriksaannya
+hanya memerlukan satu \asm{TEST} diikuti lompatan bersyarat. Teknik yang
+sama dipakai sistem operasi untuk menyimpan hak akses berkas.

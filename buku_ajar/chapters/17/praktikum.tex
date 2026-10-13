@@ -1,0 +1,122 @@
+\section{Pelaksanaan Proyek Akhir}
+\label{sec:praktikum-bab17}
+
+\begin{praktikumbox}
+\textbf{Judul:} Proyek akhir pemrograman assembly 8086.\\[0.3em]
+\textbf{CPMK:} \CPMK{03} dan \CPMK{04} \quad\textbullet\quad
+\textbf{Alokasi waktu:} 3 minggu (minggu 13--15) \quad\textbullet\quad
+\textbf{Bentuk:} individu atau berpasangan
+\end{praktikumbox}
+
+\subsection{Tujuan}
+
+Menghasilkan satu program assembly yang utuh, benar, teruji, dan
+dapat dipertanggungjawabkan, sebagai bukti pencapaian \CPMK{03} dan
+\CPMK{04}.
+
+\subsection{Tahapan Pengerjaan}
+
+\begin{enumerate}
+    \item \textbf{Minggu 13 --- perencanaan.}
+    \begin{enumerate}
+        \item Pilih salah satu dari empat pilihan proyek pada
+              Bagian~\ref{sec:asesmen-akhir}.
+        \item Tuliskan rancangan dalam satu halaman: tujuan program,
+              daftar prosedur, masukan dan keluaran, serta kasus
+              salah yang harus ditangani.
+        \item Kumpulkan rancangan kepada dosen untuk memperoleh
+              persetujuan.
+    \end{enumerate}
+
+    \item \textbf{Minggu 14 --- implementasi dan pengujian.}
+    \begin{enumerate}
+        \item Implementasikan prosedur satu per satu. Uji setiap
+              prosedur segera setelah selesai ditulis; jangan
+              menunggu seluruh program selesai.
+        \item Untuk setiap prosedur, siapkan minimal dua kasus uji:
+              satu masukan benar dan satu masukan salah.
+        \item Catat setiap bug yang ditemukan beserta cara
+              menemukannya. Catatan ini menjadi bukti
+              \CPMK{04}.
+        \item Simpan setiap versi berkas \file{.asm} yang berfungsi.
+              Jangan menimpa versi yang sudah bekerja.
+    \end{enumerate}
+
+    \item \textbf{Minggu 15 --- penyelesaian dan presentasi.}
+    \begin{enumerate}
+        \item Lengkapi komentar pada kode.
+        \item Susun laporan singkat: tujuan, rancangan, kendala, dan
+              hasil pengujian.
+        \item Siapkan demonstrasi maksimal \dec{10} menit:
+              tunjukkan program berjalan, tunjukkan satu kasus salah
+              yang ditangani, dan jelaskan satu keputusan teknis
+              yang Anda ambil.
+        \item Jawab pertanyaan penguji dengan menunjuk bagian kode
+              yang bersangkutan.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Kasus Uji yang Wajib Disiapkan}
+
+Terlepas dari pilihan proyek, siapkan minimal kasus uji berikut.
+
+\begin{table}[H]
+    \centering
+    \caption{Kasus uji minimum yang wajib disiapkan.}
+    \label{tab:kasus-uji}
+    \small
+    \begin{tabular}{@{}p{3.6cm}p{5.0cm}p{4.6cm}@{}}
+        \toprule
+        \textbf{Jenis kasus} & \textbf{Contoh} &
+        \textbf{Perilaku yang diharapkan} \\
+        \midrule
+        Masukan normal & Nilai dalam rentang wajar &
+        Program menghasilkan keluaran benar \\
+        \addlinespace
+        Masukan batas & Nilai terbesar atau terkecil yang
+        diizinkan & Program tetap benar tanpa \eng{overflow} \\
+        \addlinespace
+        Masukan salah & Huruf pada tempat angka, atau pembagi nol &
+        Program menolak dengan pesan jelas dan tidak berhenti
+        mendadak \\
+        \addlinespace
+        Masukan kosong & Pengguna langsung menekan Enter &
+        Program tidak membaca sampah dari penyangga \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Berkas \file{.asm} proyek akhir yang dapat dirakit tanpa
+          kesalahan.
+    \item Laporan singkat (2--4 halaman).
+    \item Catatan pengujian berisi tabel kasus uji dan hasilnya.
+    \item Catatan \eng{debugging} berisi daftar bug dan cara
+          penemuannya.
+    \item Bahan presentasi.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen proyek akhir (bobot 15\% dari nilai mata kuliah).}
+Penilaian memakai rubrik pada Tabel~\ref{tab:rubrik-proyek}.
+Contoh penerapannya dapat dilihat pada
+Bagian~\ref{sec:contoh-bab17}.
+
+\begin{tabular}{@{}p{7.4cm}p{5.8cm}@{}}
+    \toprule
+    \textbf{Kriteria} & \textbf{Bobot terhadap nilai proyek} \\
+    \midrule
+    Kebenaran fungsi (\CPMK{03}) & 1/5 \\
+    \addlinespace
+    Kualitas kode (\CPMK{03}) & 1/5 \\
+    \addlinespace
+    Penggunaan instruksi (\CPMK{02}) & 1/5 \\
+    \addlinespace
+    Pengujian dan \eng{debugging} (\CPMK{04}) & 1/5 \\
+    \addlinespace
+    Laporan dan presentasi & 1/5 \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

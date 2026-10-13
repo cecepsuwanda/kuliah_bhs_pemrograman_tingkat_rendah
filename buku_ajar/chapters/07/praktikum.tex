@@ -1,0 +1,181 @@
+\section{Praktikum}
+\label{sec:praktikum-bab7}
+
+\begin{praktikumbox}
+\textbf{Judul:} Analisis opcode manual dan dengan
+\eng{disassembler}.\\[0.3em]
+\textbf{Sub-CPMK:} 2.1 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu \quad\textbullet\quad
+\textbf{Tugas 2} dikumpulkan pada akhir praktikum ini.
+\end{praktikumbox}
+
+\subsection{Tujuan Praktikum}
+
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menguraikan byte
+kode mesin sebuah instruksi 8086 secara manual, membandingkan hasil
+\eng{encoding} manual dengan kode mesin yang dihasilkan assembler,
+serta membaca hasil \eng{disassembly} pada \file{DEBUG}.
+
+\subsection{Alat dan Bahan}
+
+\begin{itemize}
+    \item Komputer dengan sistem operasi Windows.
+    \item Emu8086, GUI Turbo Assembler (TASM dan TLINK), atau DOSBox
+          dengan \file{DEBUG}.
+    \item Berkas \file{opcode-demo.asm} dan
+          \file{ukuran-instruksi.asm} dari \file{code/asm/}.
+    \item Lembar kerja \eng{encoding} (Tabel~\ref{tab:lembar-kerja})
+          dan tabel \eng{opcode} acuan (Tabel~\ref{tab:opcode-umum}).
+\end{itemize}
+
+\subsection{Langkah Kerja}
+
+\begin{enumerate}
+    \item \textbf{Pengisian lembar kerja secara manual.}
+    \begin{enumerate}
+        \item Salin Tabel~\ref{tab:lembar-kerja} ke lembar kerja
+              Anda.
+        \item Tentukan \eng{opcode} dasar setiap instruksi dengan
+              bantuan Tabel~\ref{tab:opcode-umum}.
+        \item Susun field \code{mod}, \code{reg}, dan \code{r/m}
+              menjadi byte ModR/M, lalu tuliskan bentuk binernya.
+        \item Tentukan \eng{displacement} atau \eng{immediate} bila
+              diperlukan, dan tuliskan \eng{little-endian}.
+        \item Simpulkan byte lengkap setiap instruksi beserta
+              panjangnya.
+    \end{enumerate}
+
+    \item \textbf{Perakitan dan pembongkaran program pertama.}
+    \begin{enumerate}
+        \item Rakit \file{opcode-demo.asm} dengan TASM dan TLINK,
+              atau buka pada Emu8086 dan tekan
+              \file{Compile and Emulate}.
+        \item Buka program hasil rakitan dengan \file{DEBUG},
+              misalnya \file{DEBUG opcode-demo.exe}.
+        \item Jalankan perintah \code{U} pada alamat titik masuk
+              program, lalu salin keluarannya ke jurnal.
+        \item Cocokkan setiap baris hasil bongkar dengan kode sumber,
+              lalu tandai instruksi yang byte-nya tidak Anda duga.
+    \end{enumerate}
+
+    \item \textbf{Pengujian hasil \eng{encoding} manual.}
+    \begin{enumerate}
+        \item Bandingkan byte pada lembar kerja dengan byte hasil
+              perintah \code{U}.
+        \item Untuk setiap selisih, periksa kembali nilai \code{mod},
+              nomor register pada \code{reg} atau \code{r/m}, dan
+              urutan \eng{little-endian}.
+        \item Catat instruksi mana yang paling sulit dikodekan secara
+              manual dan mengapa.
+    \end{enumerate}
+
+    \item \textbf{Perbandingan ukuran dua bentuk penulisan.}
+    \begin{enumerate}
+        \item Rakit \file{ukuran-instruksi.asm} menjadi program
+              \file{.COM}.
+        \item Bongkar program tersebut dengan perintah
+              \code{U 100 110}.
+        \item Hitung jumlah byte bentuk A dan bentuk B, lalu
+              tuliskan hasilnya pada Tabel~\ref{tab:dua-bentuk}
+              versi jurnal Anda.
+        \item Jelaskan mengapa kedua bentuk menghasilkan keadaan
+              register yang sama tetapi panjang kode berbeda.
+    \end{enumerate}
+
+    \item \textbf{Penelusuran nilai \eng{immediate}.}
+    \begin{enumerate}
+        \item Ubah \lstasm|MOV AX, 1234h| menjadi
+              \lstasm|MOV AX, 3412h|, rakit ulang, lalu bongkar
+              kembali.
+        \item Jelaskan urutan \eng{little-endian} pada kedua hasil
+              tersebut dan tunjukkan byte mana yang tersimpan lebih
+              dahulu.
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{Lembar Kerja Encoding}
+
+Isilah kolom yang kosong pada Tabel~\ref{tab:lembar-kerja} sebelum
+memeriksa hasilnya dengan \eng{disassembler}.
+
+\begin{table}[H]
+    \centering
+    \caption{Lembar kerja \eng{encoding} manual yang harus diisi
+    mahasiswa.}
+    \label{tab:lembar-kerja}
+    \small
+    \begin{tabular}{@{}p{3.4cm}p{2.0cm}p{1.9cm}p{2.2cm}c@{}}
+        \toprule
+        \textbf{Instruksi} & \textbf{Opcode} &
+        \textbf{ModR/M (biner)} & \textbf{Disp./Imm.} &
+        \textbf{Byte} \\
+        \midrule
+        \lstasm|MOV AX, BX| & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        \lstasm|MOV AL, 5| & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        \lstasm|MOV AX, 1234h| & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        \lstasm|ADD AX, [SI+4]| & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        \lstasm|SUB CX, DX| & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        \lstasm|MOV [BX], AL| & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        \lstasm|INT 21h| & \dots & \dots & \dots & \dots \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Untuk instruksi \lstasm|SUB CX, DX| dan \lstasm|MOV [BX], AL|,
+carilah terlebih dahulu \eng{opcode} kelompok yang sesuai pada
+Tabel~\ref{tab:opcode-umum}. Setelah itu tentukan nomor register
+\reg{CX}, \reg{DX}, \reg{AL}, dan \reg{BX} pada urutan register 8086,
+lalu susun byte ModR/M dari nomor-nomor tersebut.
+\end{infobox}
+
+\subsection{Hasil yang Dikumpulkan}
+
+\begin{enumerate}
+    \item Lembar kerja \eng{encoding} terisi lengkap beserta
+          perhitungan setiap field.
+    \item Salinan keluaran perintah \code{U} pada
+          \file{opcode-demo.exe} beserta tabel perbandingannya dengan
+          kode sumber.
+    \item Perhitungan jumlah byte bentuk A dan bentuk B pada
+          \file{ukuran-instruksi.com}.
+    \item Jawaban tertulis untuk langkah penelusuran nilai
+          \eng{immediate}.
+    \item Jurnal praktikum yang memuat kendala dan cara
+          mengatasinya.
+\end{enumerate}
+
+\begin{asesmenbox}
+\textbf{Asesmen praktikum --- Tugas 2 (bobot 10\% dari komponen
+praktikum).}
+
+\begin{tabular}{@{}p{6.0cm}cp{4.8cm}@{}}
+    \toprule
+    \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \midrule
+    Ketepatan \eng{encoding} manual & 35\% &
+    Seluruh byte benar, termasuk urutan \eng{little-endian} dan
+    penyusunan ModR/M \\
+    \addlinespace
+    Ketepatan pembacaan hasil \eng{disassembly} & 25\% &
+    Setiap baris hasil \code{U} dipadankan dengan benar terhadap
+    kode sumber \\
+    \addlinespace
+    Analisis perbedaan ukuran instruksi & 20\% &
+    Selisih byte dijelaskan dengan menyebut field penyebabnya \\
+    \addlinespace
+    Kelengkapan lembar kerja dan jurnal & 10\% &
+    Semua kolom terisi dan perhitungan ditulis lengkap \\
+    \addlinespace
+    Kerapian penyajian dan kebenaran simpulan & 10\% &
+    Laporan mudah diikuti dan simpulan sesuai data \\
+    \bottomrule
+\end{tabular}
+\end{asesmenbox}

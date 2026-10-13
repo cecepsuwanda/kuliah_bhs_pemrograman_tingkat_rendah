@@ -1,0 +1,251 @@
+\section{Flag sebagai Dasar Pengambilan Keputusan}
+\label{sec:flag-keputusan}
+
+Sampai bab ini, seluruh program yang dibahas dieksekusi secara
+berurutan (\eng{sequential execution}): unit kendali menjalankan
+instruksi pada alamat \reg{CS}:\reg{IP}, lalu memajukan \reg{IP} ke
+instruksi berikutnya. Program yang berguna hampir selalu membutuhkan
+lebih dari itu: memilih di antara beberapa tindakan, mengulang
+pekerjaan, dan berhenti ketika suatu syarat terpenuhi.
+
+\subsection{Mengapa Prosesor Membutuhkan Flag}
+
+Prosesor 8086 tidak memiliki instruksi ``jika'' seperti pada bahasa
+tingkat tinggi, melainkan sekumpulan \term{flag}---bit penanda
+keadaan pada \reg{FLAGS}---dan instruksi lompatan yang memeriksanya.
+Pengambilan keputusan pun selalu berlangsung dalam dua langkah: satu
+instruksi mengubah keadaan \eng{flag} sesuai hasil operasi, lalu satu
+instruksi lompatan bersyarat memutuskan apakah alamat eksekusi
+dipindahkan.
+
+Langkah kedua tidak menghitung apa pun: bila tidak ada instruksi yang
+menyiapkan \eng{flag} sebelumnya, lompatan bersyarat akan memakai
+\eng{flag} sisa dari operasi yang jauh di belakang. Register
+\reg{FLAGS} beserta makna setiap bitnya telah dibahas pada
+Bab~\ref{chap:register}; lima \eng{flag} yang paling sering dipakai
+untuk percabangan dirangkum pada Tabel~\ref{tab:flag-keputusan}.
+
+\begin{table}[H]
+    \centering
+    \caption{Lima flag utama pada pengambilan keputusan.}
+    \label{tab:flag-keputusan}
+    \small
+    \begin{tabular}{@{}p{1.4cm}p{5.0cm}p{7.0cm}@{}}
+        \toprule
+        \textbf{Flag} & \textbf{Makna} & \textbf{Dipakai oleh} \\
+        \midrule
+        \flag{ZF} & Bernilai 1 bila hasil operasi sama dengan nol &
+        \asm{JE}, \asm{JNE}, \asm{JG}, \asm{JL}, \asm{LOOPE} \\
+        \addlinespace
+        \flag{CF} & Bernilai 1 bila terjadi pinjaman atau limpahan
+        pada operasi tak bertanda &
+        \asm{JB}, \asm{JAE}, \asm{JC}, \asm{JNC} \\
+        \addlinespace
+        \flag{SF} & Menyalin bit paling kiri (bit tanda) hasil operasi &
+        \asm{JS}, \asm{JNS}, serta lompatan bertanda \\
+        \addlinespace
+        \flag{OF} & Bernilai 1 bila hasil melampaui jangkauan bilangan
+        bertanda &
+        \asm{JO}, \asm{JNO}, \asm{JG}, \asm{JL} \\
+        \addlinespace
+        \flag{PF} & Menyatakan kegenapan banyak bit 1 pada byte hasil &
+        \asm{JP}, \asm{JNP} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\important{Lompatan bersyarat tidak membandingkan dua bilangan. Ia
+hanya membaca \eng{flag}. Karena itu, instruksi penyiap \eng{flag}
+harus ditulis tepat sebelum lompatan.}
+
+\subsection{Instruksi CMP: Menyiapkan Flag melalui Pengurangan}
+
+Instruksi \asm{CMP} (\eng{compare}) melakukan pengurangan antara
+operand pertama dan operand kedua, tetapi \emph{tidak menyimpan}
+hasilnya; yang tersimpan hanyalah perubahan pada \eng{flag}. Bentuk
+dan aturan operandnya sama persis dengan \asm{SUB} yang dibahas pada
+Bab~\ref{chap:aritmatika}.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, 0005h       ; AX = 5
+MOV BX, 0003h       ; BX = 3
+CMP AX, BX          ; hitung 5 - 3 = 2, hasil dibuang
+; keadaan flag: ZF = 0, SF = 0, CF = 0, OF = 0
+JG  LEBIH_BESAR     ; lompat karena 5 > 3 (bertanda)
+\end{lstlisting}
+
+Setelah \lstasm|CMP AX, BX| dijalankan, isi \reg{AX} dan \reg{BX} tidak
+berubah; yang berubah hanya \reg{FLAGS}. Inilah sebabnya \asm{CMP}
+disebut instruksi \term{penyiap flag}. Bila kedua operand sama,
+\flag{ZF} bernilai 1; bila operand pertama lebih kecil secara tak
+bertanda, terjadi pinjaman sehingga \flag{CF} bernilai 1. Perilaku
+inilah yang menjadi dasar seluruh tabel lompatan pada
+Subbab~\ref{sec:jcc-loop}.
+
+\subsection{Instruksi TEST: Menyiapkan Flag melalui AND}
+
+Instruksi \asm{TEST} melakukan operasi \asm{AND} bit demi bit, lalu
+membuang hasilnya dan hanya menyimpan \eng{flag}. Berbeda dari
+\asm{CMP}, \asm{TEST} tidak melakukan pengurangan; ia
+\emph{menyaring} bit.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+TEST AL, 01h        ; uji bit ke-0 dari AL
+JZ   GENAP          ; ZF = 1 berarti bit ke-0 nol, bilangan genap
+
+TEST AL, AL         ; uji apakah AL sama dengan nol
+JZ   NOL
+\end{lstlisting}
+
+Pemakaian \lstasm|TEST AL, AL| adalah idiom yang sering muncul:
+operand dibandingkan dengan dirinya sendiri sehingga \flag{ZF} dan
+\flag{SF} mengikuti nilai operand, tanpa mengubah isi \reg{AL}.
+Perbedaan kedua instruksi penyiap \eng{flag} ini dirangkum pada
+Tabel~\ref{tab:cmp-test}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbedaan \asm{CMP} dan \asm{TEST}.}
+    \label{tab:cmp-test}
+    \small
+    \begin{tabular}{@{}p{3.0cm}p{5.6cm}p{5.8cm}@{}}
+        \toprule
+        \textbf{Aspek} & \textbf{\asm{CMP}} & \textbf{\asm{TEST}} \\
+        \midrule
+        Operasi dasar & Pengurangan
+        (\eng{dst} $-$ \eng{src}) & \asm{AND} bit demi bit
+        (\eng{dst} \& \eng{src}) \\
+        \addlinespace
+        Hasil disimpan & Tidak; hanya \eng{flag} &
+        Tidak; hanya \eng{flag} \\
+        \addlinespace
+        Flag utama yang disiapkan & \flag{ZF}, \flag{CF},
+        \flag{SF}, \flag{OF}, \flag{AF}, \flag{PF} &
+        \flag{ZF}, \flag{SF}, \flag{PF}; \flag{CF} dan \flag{OF}
+        selalu 0 \\
+        \addlinespace
+        Kegunaan khas & Membandingkan dua nilai, menentukan urutan &
+        Menguji bit, memeriksa nol atau tanda \\
+        \addlinespace
+        Contoh & \code{CMP AX, BX} & \code{TEST AL, 80h} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{peringatanbox}
+Memakai \asm{TEST} untuk membandingkan dua bilangan adalah kekeliruan
+yang sering terjadi. \lstasm|TEST AX, BX| tidak memberi tahu apakah
+\reg{AX} lebih besar dari \reg{BX}; ia hanya memberi tahu apakah
+\emph{ada} bit yang bernilai 1 pada kedua operand secara bersamaan.
+Untuk membandingkan nilai, gunakan \asm{CMP}.
+\end{peringatanbox}
+
+\subsection{Lompatan Tak Bersyarat JMP dan Jarak Lompatan}
+
+Instruksi \asm{JMP} memindahkan kendali tanpa syarat, misalnya
+\lstasm|JMP HITUNG|. Prosesor 8086 tidak menyimpan alamat mutlak
+tujuan, melainkan \term{perpindahan} (\eng{displacement}) relatif
+terhadap instruksi berikutnya; besar perpindahan inilah yang
+menentukan \term{jarak lompatan}.
+
+\begin{enumerate}
+    \item \term{Short jump} menyimpan perpindahan dalam satu byte
+          bertanda, sehingga jangkauannya hanya \dec{127} byte ke
+          depan dan \dec{128} byte ke belakang.
+
+    \item \term{Near jump} menyimpan perpindahan dalam 16 bit,
+          sehingga tujuan dapat berada di mana saja dalam segmen kode
+          yang sama. Instruksi ini berukuran tiga byte.
+
+    \item \term{Far jump} menyatakan alamat tujuan secara lengkap
+          sebagai pasangan \reg{CS}:\reg{IP}, sehingga tujuan dapat
+          berada pada segmen kode yang berbeda. Instruksi ini
+          berukuran lima byte.
+\end{enumerate}
+
+Ketiga jangkauan tersebut dilukiskan pada Gambar~\ref{fig:jarak-lompatan}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[font=\small]
+        % bingkai segmen kode
+        \draw[draw=obeGray, line width=0.7pt, fill=obeGrayLight]
+            (0,0) rectangle (2.6,-7.0);
+        \node[font=\scriptsize\bfseries, text=obeGray] at (1.3,-0.35)
+            {segmen kode};
+
+        % pita jangkauan short
+        \fill[obeTealLight] (0,-3.0) rectangle (2.6,-4.0);
+        \draw[draw=obeTeal, line width=0.6pt] (0,-3.0) rectangle (2.6,-4.0);
+
+        % titik asal
+        \fill[obeMaroon] (2.6,-3.5) circle (2.4pt);
+
+        % keterangan jangkauan short
+        \node[anchor=east, font=\scriptsize, text=obeTeal, align=right]
+            at (-0.2,-3.5) {jangkauan\\\textbf{short}\\$\pm$ 127 byte};
+
+        % kotak tujuan
+        \node[draw=obeTeal, fill=obeTealLight, rounded corners=2pt,
+              font=\scriptsize, align=center, inner sep=4pt]
+            (ts) at (5.6,-3.5) {tujuan \textbf{short}\\(1 byte perpindahan)};
+        \node[draw=obeBlue, fill=obeBlueLight, rounded corners=2pt,
+              font=\scriptsize, align=center, inner sep=4pt]
+            (tn) at (5.6,-6.1) {tujuan \textbf{near}\\(16 bit, segmen sama)};
+        \node[draw=obeAmber, fill=obeAmberLight, rounded corners=2pt,
+              font=\scriptsize, align=center, inner sep=4pt]
+            (tf) at (5.6,-0.9) {tujuan \textbf{far}\\(segmen kode lain)};
+
+        \draw[-{Stealth[length=2.2mm]}, obeTeal, line width=0.9pt]
+            (2.6,-3.5) -- (ts.west);
+        \draw[-{Stealth[length=2.2mm]}, obeBlue, line width=0.9pt]
+            (2.6,-3.5) -- (tn.west);
+        \draw[-{Stealth[length=2.2mm]}, obeAmber, line width=0.9pt]
+            (2.6,-3.5) to[out=60, in=180] (tf.west);
+
+        \node[anchor=west, font=\scriptsize, text=obeMaroon]
+            at (2.75,-3.5) {\asm{JMP} di sini};
+    \end{tikzpicture}
+    \caption{Tiga jenis jarak lompatan pada instruksi \asm{JMP} dan
+    jangkauan masing-masing.}
+    \label{fig:jarak-lompatan}
+\end{figure}
+
+Perbedaan ketiganya memengaruhi jumlah byte yang dipakai, seperti
+ditunjukkan pada Tabel~\ref{tab:jarak-lompatan}; ukuran ini penting
+ketika program harus muat dalam memori terbatas.
+
+\begin{table}[H]
+    \centering
+    \caption{Jenis jarak lompatan dan pengaruhnya pada ukuran kode.}
+    \label{tab:jarak-lompatan}
+    \small
+    \begin{tabular}{@{}p{1.7cm}p{3.6cm}p{3.0cm}p{2.4cm}p{2.6cm}@{}}
+        \toprule
+        \textbf{Jenis} & \textbf{Jangkauan} &
+        \textbf{Perpindahan} & \textbf{Ukuran} & \textbf{Penulisan} \\
+        \midrule
+        \eng{short} & $\pm$ 127 byte dari instruksi berikutnya &
+        1 byte bertanda & 2 byte & \code{JMP SHORT L1} \\
+        \addlinespace
+        \eng{near} & Seluruh segmen kode (64 KB) &
+        16 bit & 3 byte & \code{JMP L1} \\
+        \addlinespace
+        \eng{far} & Segmen kode mana pun &
+        \reg{CS}:\reg{IP} lengkap & 5 byte &
+        \code{JMP FAR PTR L1} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Assembler memilih jarak lompatan secara otomatis; operator
+\code{SHORT} atau \code{FAR PTR} memaksa bentuk tertentu. Bila
+programmer memaksa \code{SHORT} padahal jaraknya terlalu jauh,
+assembler melaporkan kesalahan \file{Relative jump out of range}.
+
+\begin{infobox}
+Pada program besar---misalnya rutin BIOS yang harus muat dalam
+64 KB---pemilihan jarak lompatan dapat menghemat ribuan byte. Inilah
+contoh nyata bahwa pemrograman tingkat rendah memberi kendali yang
+tidak tersedia pada bahasa tingkat tinggi \cite{bartlett2004}.
+\end{infobox}

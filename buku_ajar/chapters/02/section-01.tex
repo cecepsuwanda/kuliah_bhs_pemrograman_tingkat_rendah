@@ -1,0 +1,145 @@
+\section{Model Mesin dan Kedudukan Bahasa Assembly}
+\label{sec:model-mesin}
+
+Sebelum menulis satu instruksi pun, mahasiswa perlu memiliki gambar
+mental tentang apa yang sebenarnya terjadi di dalam komputer.
+Bagian ini membangun gambar mental tersebut.
+
+\subsection{Model Mesin von Neumann}
+
+Hampir seluruh komputer modern mengikuti model yang dirumuskan John
+von Neumann pada tahun 1945. Model ini memiliki empat komponen
+utama.
+
+\begin{enumerate}
+    \item \term{Unit pemroses} (\eng{central processing unit}, CPU)
+          yang menjalankan instruksi.
+    \item \term{Memori} yang menyimpan baik instruksi maupun data.
+    \item \term{Unit masukan} yang membawa data dari dunia luar.
+    \item \term{Unit keluaran} yang menyampaikan hasil kembali ke
+          dunia luar.
+\end{enumerate}
+
+Ciri pembeda model von Neumann adalah \term{prinsip
+stored-program}: instruksi dan data disimpan bersama-sama di memori
+yang sama, tanpa pemisahan jenis. Akibatnya, sebuah program dapat
+memperlakukan instruksi sebagai data dan sebaliknya. Sifat inilah
+yang membuat program dapat dimuat dari cakram ke memori lalu
+dijalankan, dan sekaligus menjadi dasar teknik lanjutan seperti
+\eng{self-modifying code} serta sebagian besar teknik eksploitasi
+perangkat lunak.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        blok/.style={
+            draw=obeBlue, line width=0.9pt, fill=obeBlueLight,
+            rounded corners=3pt, minimum height=1.25cm,
+            align=center, font=\small\bfseries, inner sep=6pt
+        },
+        panah/.style={-{Stealth[length=2.5mm]}, line width=1pt, obeTeal}
+    ]
+        \node[blok, minimum width=3.4cm] (cpu) at (0,0)
+            {CPU\\{\normalfont\scriptsize unit pemroses}};
+        \node[blok, minimum width=3.4cm, fill=obeAmberLight,
+              draw=obeAmber] (mem) at (6.4,0)
+            {Memori\\{\normalfont\scriptsize instruksi + data}};
+        \node[blok, minimum width=2.8cm, fill=obeTealLight,
+              draw=obeTeal] (in) at (-4.6,1.5)
+            {Masukan};
+        \node[blok, minimum width=2.8cm, fill=obeTealLight,
+              draw=obeTeal] (out) at (-4.6,-1.5)
+            {Keluaran};
+
+        \draw[panah] (cpu) -- node[above, font=\scriptsize]
+            {bus alamat} node[below, font=\scriptsize] {bus data}
+            (mem);
+        \draw[panah] (in) -- (cpu);
+        \draw[panah] (cpu) -- (out);
+    \end{tikzpicture}
+    \caption{Model mesin von Neumann: CPU, memori bersama untuk
+    instruksi dan data, serta unit masukan dan keluaran.}
+    \label{fig:von-neumann}
+\end{figure}
+
+\subsection{Siklus Instruksi}
+
+CPU bekerja dengan mengulang tiga langkah yang sama tanpa henti.
+
+\begin{enumerate}
+    \item \term{Fetch} (\eng{pengambilan}) --- CPU mengambil
+          instruksi berikutnya dari memori. Alamat instruksi
+          ditunjuk oleh register \reg{IP} pada 8086.
+    \item \term{Decode} (\eng{penerjemahan}) --- CPU menentukan
+          instruksi apa yang harus dikerjakan dan operand apa yang
+          diperlukan.
+    \item \term{Execute} (\eng{pelaksanaan}) --- CPU menjalankan
+          operasinya, misalnya menjumlahkan dua bilangan atau
+          memindahkan data.
+\end{enumerate}
+
+Pada 8086 terdapat langkah tambahan yaitu \eng{store}
+(\eng{write-back}), ketika hasil eksekusi ditulis kembali ke register
+atau memori. Siklus ini dibahas lebih rinci pada
+Bab~\ref{chap:arsitektur-8086}.
+
+\begin{infobox}
+Perhatikan bahwa \emph{data} juga harus diambil dari memori, bukan
+hanya instruksi. Karena itu satu instruksi seperti
+\asm{ADD AX, [BX]} menimbulkan lebih dari satu akses memori: satu
+untuk mengambil instruksi, satu atau lebih untuk mengambil data.
+Jumlah akses memori inilah yang menjadi salah satu ukuran biaya
+sebuah instruksi.
+\end{infobox}
+
+\subsection{Kedudukan Bahasa Assembly}
+
+Bahasa assembly adalah representasi tekstual dari bahasa mesin.
+Ketika Anda menulis:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, 0005h
+\end{lstlisting}
+
+assembler menerjemahkannya menjadi deretan byte tertentu, misalnya
+\hex{B8 05 00}. Ketika Anda menulis \asm{ADD AX, BX}, assembler
+menghasilkan \hex{03 C3}. Setiap mnemonic dapat dipetakan ke satu
+pola bit yang pasti.
+
+\begin{table}[H]
+    \centering
+    \caption{Tiga baris assembly dan padanan kode mesinnya.}
+    \label{tab:mnemonic-opcode}
+    \small
+    \begin{tabular}{@{}llp{5.6cm}@{}}
+        \toprule
+        \textbf{Assembly} & \textbf{Kode mesin} &
+        \textbf{Keterangan} \\
+        \midrule
+        \asm{MOV AX, 0005h} & \hex{B8 05 00} &
+        Nilai segera 16-bit disimpan \eng{little-endian}: byte rendah
+        lebih dahulu \\
+        \addlinespace
+        \asm{ADD AX, BX} & \hex{03 C3} &
+        Satu byte \eng{opcode} ditambah satu byte ModR/M \\
+        \addlinespace
+        \asm{INT 21h} & \hex{CD 21} &
+        Instruksi interupsi dengan nomor vektor sebagai operand \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Karena hubungannya yang satu-ke-satu inilah bahasa assembly disebut
+\term{mnemonic} untuk bahasa mesin: ia tidak menambah kemampuan
+baru, hanya membuat kode mesin dapat dibaca manusia. Assembler
+modern menyediakan bantuan seperti makro dan direktif, tetapi
+kemampuan inti yang ada di dalamnya tetap sama.
+
+\begin{infobox}
+Urutan byte pada \hex{B8 05 00} mengikuti konvensi
+\term{little-endian}: byte yang paling tidak bermakna disimpan pada
+alamat terendah. Nilai \hex{0005} karena itu tersimpan sebagai
+\hex{05} lalu \hex{00}. Konvensi ini berlaku untuk seluruh data
+16-bit dan 32-bit pada keluarga x86 dan akan sering muncul pada
+Bab~\ref{chap:segmentasi} serta Bab~\ref{chap:format-instruksi}.
+\end{infobox}

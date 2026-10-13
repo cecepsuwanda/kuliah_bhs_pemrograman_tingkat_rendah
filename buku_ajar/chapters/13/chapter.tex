@@ -1,0 +1,78 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Prosedur dan Manajemen Stack}
+\label{chap:prosedur}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{3.4} --- Mengembangkan prosedur/subrutin dengan mekanisme
+pengiriman parameter (\eng{parameter passing}) dan mengelola
+\eng{stack frame} melalui instruksi \asm{PUSH} dan \asm{POP},
+register \reg{BP}, serta konvensi pemanggilan yang benar.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{03} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan alasan pemakaian prosedur: modularitas,
+          penggunaan ulang, dan abstraksi, beserta biaya
+          pemanggilannya;
+    \item menjelaskan kerja instruksi \asm{CALL} dan \asm{RET} serta
+          membedakan pemanggilan \eng{near} dan \eng{far};
+    \item menelusuri isi stack sel per sel pada setiap operasi
+          \asm{PUSH}, \asm{POP}, dan \asm{CALL};
+    \item membangun \eng{stack frame} standar melalui \eng{prologue}
+          dan \eng{epilogue} yang benar;
+    \item mengirim parameter melalui register, melalui stack, dan
+          melalui variabel global beserta kelebihan serta kekurangan
+          masing-masing cara;
+    \item mengembalikan nilai prosedur melalui register \reg{AX} dan
+          register \reg{DX}:\reg{AX} serta menjelaskan peran
+          \asm{RET} \code{n};
+    \item menulis prosedur rekursif untuk faktorial dan Fibonacci
+          serta menjelaskan risiko \eng{stack overflow};
+    \item mengenali dan memperbaiki kesalahan pengelolaan stack yang
+          umum terjadi.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Alasan prosedur: modularitas, penggunaan ulang, abstraksi,
+          dan biaya pemanggilan prosedur.
+    \item Instruksi \asm{CALL} dan \asm{RET}; alamat kembali
+          \reg{CS}:\reg{IP}; pemanggilan \eng{near} dan \eng{far}.
+    \item Operasi stack: \asm{PUSH}, \asm{POP}, \asm{PUSHF},
+          \asm{POPF}; register \reg{SP} dan \reg{BP}; arah tumbuh
+          stack ke alamat rendah.
+    \item \eng{Stack frame} standar: \eng{prologue}, akses parameter
+          dengan \code{[BP+4]} dan \code{[BP+6]}, serta
+          \eng{epilogue}.
+    \item Konvensi pemanggilan dan tanggung jawab pembersihan stack.
+    \item Nilai balik prosedur dan peran \asm{RET} \code{n}.
+    \item Rekursi pada assembly: faktorial dan Fibonacci; kedalaman
+          stack dan risiko \eng{stack overflow}.
+    \item Kesalahan umum pengelolaan stack.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

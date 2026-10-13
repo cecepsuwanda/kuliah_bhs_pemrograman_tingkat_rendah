@@ -1,0 +1,132 @@
+\chapter{Glosarium}
+\label{app:glosarium}
+
+Glosarium ini memuat istilah yang dipakai sepanjang buku beserta
+padanan bahasa Inggrisnya dan penjelasan singkat. Istilah disusun
+menurut abjad Indonesia.
+
+\begingroup
+\footnotesize
+\begin{longtable}{@{}p{3.4cm}p{3.4cm}p{6.6cm}@{}}
+\toprule
+\textbf{Istilah} & \textbf{Padanan} & \textbf{Penjelasan} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Istilah} & \textbf{Padanan} & \textbf{Penjelasan} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+Alamat efektif & \eng{effective address} & Alamat yang dihasilkan
+dari perhitungan base + index + displacement pada mode pengalamatan
+tertentu. \\
+\addlinespace
+Alamat fisik & \eng{physical address} & Alamat 20-bit yang benar-benar
+dikirim ke bus alamat, hasil perhitungan segmen dan offset. \\
+\addlinespace
+Assembler & \eng{assembler} & Program yang menerjemahkan kode sumber
+assembly menjadi kode mesin dan berkas objek. \\
+\addlinespace
+Bilangan bertanda & \eng{signed number} & Bilangan yang dapat bernilai
+negatif, disandikan dengan \eng{two's complement} pada x86. \\
+\addlinespace
+Digit biner & \eng{bit} & Satuan informasi terkecil, bernilai 0 atau 1. \\
+\addlinespace
+Instruksi mesin & \eng{machine instruction} & Instruksi dalam bentuk
+deretan bit yang langsung dikenali prosesor. \\
+\addlinespace
+Interupsi & \eng{interrupt} & Mekanisme penghentian sementara alur
+program untuk menjalankan layanan sistem. \\
+\addlinespace
+Kode mesin & \eng{machine code} & Program dalam bentuk deretan bit. \\
+\addlinespace
+Kode sumber & \eng{source code} & Program dalam bentuk teks yang
+ditulis programmer. \\
+\addlinespace
+Lompatan bersyarat & \eng{conditional jump} & Instruksi lompatan yang
+hanya dijalankan bila kondisi flag tertentu terpenuhi. \\
+\addlinespace
+Memori konvensional & \eng{conventional memory} & 640 KB pertama
+ruang memori yang dapat dipakai program DOS. \\
+\addlinespace
+Mode pengalamatan & \eng{addressing mode} & Cara penulisan operand
+yang menentukan bagaimana alamat operand dihitung. \\
+\addlinespace
+Mnemonic & \eng{mnemonic} & Nama pendek yang mewakili sebuah opcode
+dalam bahasa assembly, misalnya \asm{MOV}. \\
+\addlinespace
+Nibble & \eng{nibble} & Kelompok empat bit, setara dengan satu digit
+heksadesimal. \\
+\addlinespace
+Opcode & \eng{opcode} & Bagian instruksi yang menyatakan operasi yang
+harus dilakukan. \\
+\addlinespace
+Operand & \eng{operand} & Bagian instruksi yang menyatakan data yang
+dikenai operasi. \\
+\addlinespace
+Overflow & \eng{overflow} & Kelebihan hasil pada operasi bilangan
+bertanda; ditandai flag \flag{OF}. \\
+\addlinespace
+Paragraf & \eng{paragraph} & Satuan 16 byte, yaitu kelipatan terkecil
+yang dapat ditunjuk sebuah segmen. \\
+\addlinespace
+Penyangga & \eng{buffer} & Area memori sementara untuk menampung data
+masukan atau keluaran. \\
+\addlinespace
+Perakitan & \eng{assembling} & Proses menerjemahkan kode sumber
+assembly menjadi berkas objek. \\
+\addlinespace
+Pergeseran aritmetika & \eng{arithmetic shift} & Pergeseran yang
+mempertahankan bit tanda pada bilangan bertanda. \\
+\addlinespace
+Pergeseran logis & \eng{logical shift} & Pergeseran yang mengisi bit
+kosong dengan nol. \\
+\addlinespace
+Pipelining & \eng{pipelining} & Teknik menjalankan tahapan instruksi
+berbeda secara tumpang tindih untuk menaikkan kinerja. \\
+\addlinespace
+Port I/O & \eng{port I/O} & Akses perangkat melalui ruang alamat
+terpisah memakai instruksi \asm{IN} dan \asm{OUT}. \\
+\addlinespace
+Register & \eng{register} & Penyimpan kecil berkecepatan tinggi di
+dalam prosesor. \\
+\addlinespace
+Register flag & \eng{flag register} & Register yang menampung bit-bit
+status hasil operasi sebelumnya. \\
+\addlinespace
+Rekursi & \eng{recursion} & Prosedur yang memanggil dirinya sendiri. \\
+\addlinespace
+Rotasi & \eng{rotate} & Pergeseran yang memindahkan bit yang keluar
+kembali ke ujung yang lain. \\
+\addlinespace
+Segmen & \eng{segment} & Blok memori berukuran maksimum 64 KB yang
+ditunjuk sebuah register segmen. \\
+\addlinespace
+Siklus instruksi & \eng{instruction cycle} & Rangkaian
+\eng{fetch}, \eng{decode}, dan \eng{execute} untuk satu instruksi. \\
+\addlinespace
+Siklus mesin & \eng{machine cycle} & Satu kali pengaksesan bus oleh
+prosesor. \\
+\addlinespace
+Simbol & \eng{symbol} & Nama yang ditetapkan assembler untuk sebuah
+label, variabel, atau konstanta. \\
+\addlinespace
+Stack & \eng{stack} & Area memori yang dikelola secara
+\eng{LIFO} untuk menyimpan alamat kembali dan data sementara. \\
+\addlinespace
+Stack frame & \eng{stack frame} & Susunan data di stack selama satu
+pemanggilan prosedur, biasanya ditunjuk register \reg{BP}. \\
+\addlinespace
+Tabel vektor interupsi & \eng{interrupt vector table} & Tabel pada
+alamat 0000h--03FFh yang memuat alamat setiap penangan interupsi. \\
+\addlinespace
+Tabel simbol & \eng{symbol table} & Daftar nama simbol beserta
+alamatnya, dihasilkan assembler. \\
+\addlinespace
+Two's complement & \eng{two's complement} & Penyandian bilangan
+bertanda dengan membalik bit lalu menambahkan satu. \\
+\addlinespace
+\end{longtable}
+\endgroup

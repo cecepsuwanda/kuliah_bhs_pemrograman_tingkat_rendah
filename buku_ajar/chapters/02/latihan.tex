@@ -1,0 +1,61 @@
+\section{Latihan}
+\label{sec:latihan-bab2}
+
+\begin{enumerate}
+    \item \textbf{Konversi dasar.} Konversi bilangan berikut tanpa
+          alat bantu: (a) \dec{173} ke biner dan heksadesimal;
+          (b) \hex{5C} ke biner dan desimal; (c) \bin{1101\,0011} ke
+          heksadesimal dan desimal.
+
+    \item \textbf{\eng{Two's complement}.} Nyatakan bilangan berikut
+          dalam 8-bit \eng{two's complement}: (a) \dec{-1};
+          (b) \dec{-16}; (c) \dec{-100}. Tunjukkan langkah pembalikan
+          bit dan penambahan satu untuk setiap soal.
+
+    \item \textbf{Rentang nilai.} Berapa nilai terbesar dan terkecil
+          yang dapat dinyatakan dalam 8 bit secara bertanda? Bagaimana
+          bila dinyatakan secara tak bertanda? Jelaskan mengapa
+          rentangnya berbeda.
+
+    \item \textbf{Analisis flag.} Diberikan \reg{AL} = \hex{7F} dan
+          instruksi \asm{ADD AL, 01h}. Tentukan hasil di \reg{AL}
+          serta nilai \flag{CF}, \flag{ZF}, \flag{SF}, dan
+          \flag{OF}. Jelaskan mengapa \flag{OF} bernilai 1 sementara
+          \flag{CF} bernilai 0.
+
+    \item \textbf{Analisis flag.} Ulangi soal 4 dengan \reg{AL} =
+          \hex{FF}. Tentukan hasil dan seluruh flag, lalu jelaskan
+          mengapa kali ini \flag{CF} bernilai 1 tetapi \flag{OF}
+          bernilai 0.
+
+    \item \textbf{Penyandian.} Sebuah variabel dideklarasikan sebagai
+          \code{DB '5'}. Berapa nilai byte yang tersimpan? Berapa
+          nilainya bila dideklarasikan sebagai \code{DB 5}? Jelaskan
+          perbedaan dan akibatnya bila variabel itu dicetak dengan
+          layanan DOS fungsi \hex{02}.
+
+    \item \textbf{\eng{Little-endian}.} Sebuah variabel
+          dideklarasikan \code{DW 0ABCDh}. Tuliskan urutan byte yang
+          tersimpan di memori dari alamat terendah ke tertinggi, lalu
+          jelaskan mengapa urutannya demikian.
+
+    \item \textbf{Kaitan ke bab berikutnya.} Berdasarkan
+          Gambar~\ref{fig:peta-konsep}, jelaskan mengapa
+          Bab~\ref{chap:segmentasi} harus dipelajari sebelum
+          Bab~\ref{chap:mode-pengalamatan}. Kaitkan jawaban Anda
+          dengan konsep alamat efektif.
+\end{enumerate}
+
+\begin{refleksibox}
+Jawab pertanyaan berikut pada jurnal praktikum Anda.
+\begin{enumerate}
+    \item Bagian mana dari representasi data yang paling menantang
+          bagi Anda: konversi bilangan, \eng{two's complement}, atau
+          pembedaan \eng{carry} dan \eng{overflow}? Mengapa?
+    \item Setelah melihat isi memori secara langsung, apakah
+          pemahaman Anda tentang ``penyimpanan data'' berubah?
+          Bagian mana yang paling mengejutkan?
+    \item Konsep apa pada bab ini yang Anda rasa akan paling sering
+          Anda pakai pada bab-bab berikutnya?
+\end{enumerate}
+\end{refleksibox}

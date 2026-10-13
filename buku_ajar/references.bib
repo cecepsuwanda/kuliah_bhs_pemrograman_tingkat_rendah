@@ -1,251 +1,239 @@
-@book{ref1,
-  author = {Barry, Paul},
-  title = {The Intel 8086/8088 Family: Design, Programming, and Interfacing},
-  edition = {3rd},
-  publisher = {Prentice Hall},
-  year = {1995}
-}
-@book{ref2,
-  author = {Mazidi, Muhammad Ali and Mazidi, Janice Gillispie},
-  title = {The 80x86 IBM PC and Compatible Computers: Assembly Language, Design, and Interfacing},
-  edition = {5th},
-  publisher = {Prentice Hall},
-  year = {2007}
-}
-@book{ref3,
-  author = {Brey, Barry B.},
-  title = {The Intel Microprocessors: 8086/8088, 80186/80188, 80286, 80386, 80486, Pentium, and Pentium Pro Processor Architecture, Programming, and Interfacing},
-  edition = {8th},
-  publisher = {Prentice Hall},
-  year = {2015}
-}
-@book{ref4,
-  author = {Patterson, David A. and Hennessy, John L.},
-  title = {Computer Organization and Design: The Hardware/Software Interface},
-  edition = {5th},
-  publisher = {Morgan Kaufmann},
-  year = {2013}
-}
-@book{ref5,
-  author = {Tanenbaum, Andrew S.},
-  title = {Structured Computer Organization},
-  edition = {6th},
-  publisher = {Prentice Hall},
-  year = {2013}
-}
-@book{ref6,
-  author = {Norton, Peter and Socha, John},
-  title = {Peter Norton's Assembly Language Book for the IBM PC},
-  publisher = {Brady/Simon \& Schuster},
-  year = {1986}
-}
-@misc{ref7,
-  author = {Intel Corporation},
-  title = {Intel 8086 Family User's Manual},
-  year = {1979},
-  howpublished = {\url{https://www.intel.com/content/www/us/en/docs/8086/8086-family-users-manual/1979/}}
-}
-@book{ref8,
-  author = {Duncan, Ray},
-  title = {Advanced MS-DOS Programming: The Microsoft Guide for Assembly Language and C Programmers},
-  edition = {2nd},
-  publisher = {Microsoft Press},
-  year = {1988}
-}
-@book{irvine2019,
-  author = {Irvine, K. R.},
-  title = {Assembly Language for x86 Processors},
-  edition = {8th},
-  publisher = {Pearson},
-  year = {2019}
-}
-@book{abel2015,
-  author = {Abel, Peter},
-  title = {IBM PC Assembly Language and Programming},
-  edition = {5th},
-  publisher = {Pearson},
-  year = {2015}
-}
-@manual{borland1992,
-  author = {Borland International},
-  title = {Turbo Assembler User's Guide},
-  organization = {Borland International},
-  year = {1992}
-}
-@misc{jones2020,
-  author = {Jones, W.},
-  title = {GUI Turbo Assembler (TASM) Tutorial},
-  year = {2020},
-  howpublished = {\url{https://github.com/ljnath/GUI-Turbo-Assembler}}
-}
-@misc{etsu2024,
-  author = {ETSU},
-  title = {CSCI 2150 -- Turbo Assembler Laboratory},
-  year = {2024},
-  howpublished = {\url{https://faculty.etsu.edu/TARNOFF/labs2150/tasm/tasm.htm}}
-}
-@misc{github8086,
-  author = {GitHub Repository},
-  title = {8086 Assembly Language Programs},
-  year = {2024},
-  howpublished = {\url{https://github.com/Amey-Thakur/8086-ASSEMBLY-LANGUAGE-PROGRAMS}}
+% =========================================================
+% references.bib
+% Bibliografi bersama seluruh bab.
+% Penomoran [1]..[21] mengikuti Daftar Referensi pada RPS.
+% =========================================================
+
+% ---------------------------------------------------------
+% A. Arsitektur prosesor dan set instruksi
+% ---------------------------------------------------------
+
+@manual{intel1979,
+    author       = {{Intel Corporation}},
+    title        = {The 8086 Family User's Manual},
+    organization = {Intel Corporation},
+    address      = {Santa Clara, CA},
+    number       = {Order No. 9800722-03},
+    year         = {1979},
+    url          = {https://ardent-tool.com/CPU/docs/Intel/808x/manuals/9800722-03.pdf}
 }
 
-% --- Referensi dari buku2 ---
-@book{hyde2010art,
-  title={The Art of Assembly Language},
-  author={Hyde, Randall},
-  year={2010},
-  edition={2nd},
-  publisher={No Starch Press},
-  address={San Francisco, CA},
-  isbn={978-1593272074}
+@manual{intel2024,
+    author       = {{Intel Corporation}},
+    title        = {Intel 64 and IA-32 Architectures Software Developer's Manual},
+    organization = {Intel Corporation},
+    year         = {2024},
+    url          = {https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html}
 }
 
-@book{susanto1995belajar,
-  title={Belajar Pemrograman Bahasa Assembly},
-  author={Susanto},
-  year={1995},
-  publisher={Elex Media Komputindo},
-  address={Jakarta},
-  language={Indonesian}
+@book{bartlett2004,
+    author    = {Bartlett, Jonathan},
+    title     = {Programming from the Ground Up},
+    publisher = {GNU Free Documentation License},
+    address   = {Savannah},
+    year      = {2004},
+    url       = {https://savannah.nongnu.org/projects/pgubook/}
 }
 
-@book{brey1986mikroprosesor,
-  title={Mikroprosesor Intel 8086/8088 dsb},
-  author={Brey, Barry B},
-  publisher={Penerbit Informatika},
-  year={1986},
-  address={Bandung},
-  language={Indonesian}
+@book{bartlett2023,
+    author    = {Bartlett, Jonathan and Eagle, Chris},
+    title     = {x86 Assembly from the Ground Up using NASM},
+    publisher = {United States Naval Academy},
+    address   = {Annapolis, MD},
+    year      = {2023},
+    url       = {https://www.usna.edu/Users/cs/norine/spring24/SI459/resources/X86NasmBook.pdf}
 }
 
-@book{nopi2003tutorial,
-  title={Tutorial Bahasa Assembly (x86)},
-  author={Nopi, Arif},
-  publisher={Jasakom},
-  year={2003},
-  address={Jakarta},
-  language={Indonesian}
+@book{hyde2010,
+    author    = {Hyde, Randall},
+    title     = {The Art of Assembly Language},
+    edition   = {2},
+    publisher = {No Starch Press},
+    address   = {San Francisco},
+    year      = {2010},
+    url       = {https://repository.root-me.org/Programmation/ASM/EN%20-%20The%20Art%20Of%20Assembly%20Language.pdf}
 }
 
-@book{partoharsojo2003tuntunan,
-  title={Tuntunan Praktis Pemrograman Assembly},
-  author={Partoharsojo, Hartono},
-  publisher={Penerbit Informatika},
-  year={2003},
-  address={Bandung},
-  language={Indonesian}
+@misc{wikibooksx86,
+    author       = {{Wikibooks contributors}},
+    title        = {x86 Assembly},
+    howpublished = {Wikibooks},
+    year         = {2024},
+    note         = {CC BY-SA 3.0},
+    url          = {https://en.wikibooks.org/wiki/X86_Assembly}
 }
 
-@manual{intel2019manual32,
-  title={Intel 64 and IA-32 Architectures Software Developer's Manual},
-  author={{Intel Corporation}},
-  year={2019},
-  organization={Intel Corporation}
+@misc{wikibooksdisasm,
+    author       = {{Wikibooks contributors}},
+    title        = {X86 Disassembly},
+    howpublished = {Wikibooks},
+    year         = {2024},
+    note         = {CC BY-SA 3.0},
+    url          = {https://en.wikibooks.org/wiki/File:X86_Disassembly.pdf}
 }
 
-@techreport{borland1990tasm,
-  title={Turbo Assembler (TASM) User's Guide},
-  author={{Borland International}},
-  year={1990},
-  institution={Borland International}
+% ---------------------------------------------------------
+% B. Modul, slide kuliah, dan bahan ajar
+% ---------------------------------------------------------
+
+@misc{brown2000,
+    author       = {Brown, Ralf},
+    title        = {Ralf Brown's Interrupt List (RBIL), Release 61},
+    howpublished = {Carnegie Mellon University},
+    address      = {Pittsburgh},
+    year         = {2000},
+    url          = {https://www.cs.cmu.edu/~ralf/files.html}
 }
 
-@misc{wiki_8086,
-  title={Intel 8086},
-  author={{Wikipedia contributors}},
-  year={2025},
-  howpublished={\url{https://en.wikipedia.org/wiki/Intel_8086}}
+@manual{bodur,
+    author       = {Bodur, Mehmet},
+    title        = {Microprocessors Lab Manual (CMPE323)},
+    organization = {Eastern Mediterranean University},
+    address      = {Famagusta},
+    url          = {https://staff.emu.edu.tr/hasankomurcugil/Documents/cmpe323/Microprocessor%20lab.pdf}
 }
 
-@misc{wiki_two_complement,
-  title={Two's complement},
-  author={{Wikipedia contributors}},
-  year={2025},
-  howpublished={\url{https://en.wikipedia.org/wiki/Two's_complement}}
+@misc{ebrahim2018,
+    author       = {Ebrahim, Ahmed},
+    title        = {Hands-on Introduction to Computers and Programming using DEBUG and the 8086 Microprocessor},
+    year         = {2018},
+    url          = {https://www.mathscitech.org/papers/ebrahim-2018-ms-debug_HandsOnExploration_MachineCode_x86_Assembly.pdf}
 }
 
-@misc{wiki_endianness,
-  title={Endianness},
-  author={{Wikipedia contributors}},
-  year={2025},
-  howpublished={\url{https://en.wikipedia.org/wiki/Endianness}}
+@misc{irvine1999,
+    author       = {Irvine, Kip R.},
+    title        = {Using the DEBUG Program},
+    year         = {1999},
+    url          = {https://asmirvine.com/debug/Debug_Tutorial.pdf}
 }
 
-@misc{rbil,
-  title={Ralf Brown's Interrupt List},
-  author={Brown, Ralf},
-  howpublished={\url{http://www.ctyme.com/rbrown.htm}}
+@manual{emu8086help,
+    author       = {{emu8086}},
+    title        = {Help for Emu8086: Tutorial and Reference},
+    url          = {https://www.philadelphia.edu.jo/academics/qhamarsheh/uploads/emu8086.pdf}
 }
 
-@misc{wiki_assembly_language,
-  title={Assembly Language},
-  author={{Wikipedia contributors}},
-  year={2025},
-  howpublished={\url{https://en.wikipedia.org/wiki/Assembly_language}}
+@misc{kader2014,
+    author       = {Kader, Md. Abdul},
+    title        = {8086 Addressing Modes},
+    howpublished = {Handout kuliah},
+    year         = {2014},
+    url          = {https://kader05cuet.wordpress.com/wp-content/uploads/2014/09/8086-addressing-modes1.pdf}
 }
 
-@misc{wiki_binary_number,
-  title={Binary number},
-  author={{Wikipedia contributors}},
-  year={2025},
-  howpublished={\url{https://en.wikipedia.org/wiki/Binary_number}}
+@misc{courses2103,
+    author       = {{CO 2103 Course Team}},
+    title        = {Introduction to Assembly Language: Intel 8086},
+    howpublished = {Slide kuliah},
+    url          = {https://ailab.space/wp-content/uploads/co-2103-introduction-to-assembly-language/C02103-03-8086.pdf}
 }
 
-@misc{wiki_positional_numeral_system,
-  title={Positional numeral system},
-  author={{Wikipedia contributors}},
-  year={2025},
-  howpublished={\url{https://en.wikipedia.org/wiki/Positional_numeral_system}}
+@misc{carleton2011,
+    author       = {{Carleton University}},
+    title        = {SYSC-3006: The Intel 80x86},
+    howpublished = {Slide kuliah},
+    year         = {2011},
+    url          = {http://www.sce.carleton.ca/courses/sysc-3006/f11/Part5-8086.pdf}
 }
 
-@misc{wiki_hexadecimal,
-  title={Hexadecimal},
-  author={{Wikipedia contributors}},
-  year={2025},
-  howpublished={\url{https://en.wikipedia.org/wiki/Hexadecimal}}
+@misc{evans2020,
+    author       = {Evans, David},
+    title        = {x86 Assembly Guide},
+    howpublished = {University of Virginia, CS216},
+    address      = {Charlottesville},
+    year         = {2020},
+    url          = {https://www.cs.virginia.edu/~evans/cs216/guides/x86.html}
 }
 
-@misc{computer_organization_design,
-  title={Computer Organization and Design: The Hardware/Software Interface},
-  author={Patterson, David A. and Hennessy, John L.},
-  year={2014},
-  edition={5th},
-  publisher={Morgan Kaufmann}
+@misc{uva2024,
+    author       = {{University of Virginia}},
+    title        = {Laboratory 8: x86 Assembly Language (PDR/CS2150)},
+    year         = {2024},
+    url          = {https://uva-cs.github.io/pdr/labs/lab08-32bit/index.html}
 }
 
-@book{intel_8086_user_manual,
-  title={Intel 8086 Family User's Manual},
-  author={{Intel Corporation}},
-  year={1979},
-  publisher={Intel Corporation},
-  address={Santa Clara, CA}
+@manual{nasm2024,
+    author       = {{NASM Development Team}},
+    title        = {NASM --- The Netwide Assembler Documentation},
+    year         = {2024},
+    url          = {https://nasm.us/doc/nasmdoc0.html}
 }
 
-@misc{8086_instruction_set_reference,
-  title={8086 Instruction Set Reference},
-  author={{Various Contributors}},
-  howpublished={\url{https://www.felixcloutier.com/x86/}}
+% ---------------------------------------------------------
+% C. Perangkat lunak pendukung (open source)
+% ---------------------------------------------------------
+
+@misc{guitasm,
+    author       = {Nath, L. J.},
+    title        = {GUI Turbo Assembler (TASM)},
+    year         = {2024},
+    url          = {https://sourceforge.net/projects/guitasm8086/}
 }
 
-@misc{assembly_language_programming_guide,
-  title={Assembly Language Programming Guide},
-  author={{Various Authors}},
-  howpublished={\url{https://www.cs.virginia.edu/~evans/cs216/guides/x86.html}}
+@misc{emu8086site,
+    author       = {{emu8086}},
+    title        = {emu8086 --- Microprocessor Emulator and Assembler},
+    year         = {2024},
+    url          = {http://www.emu8086.com/}
 }
 
-@misc{tutorials_point_assembly,
-  title={Assembly Programming Tutorial},
-  author={{Tutorials Point}},
-  year={2024},
-  howpublished={\url{https://www.tutorialspoint.com/assembly_programming/}}
+@misc{dosbox,
+    author       = {{DOSBox Team}},
+    title        = {DOSBox --- x86 Emulator for DOS},
+    year         = {2024},
+    url          = {https://www.dosbox.com/}
 }
 
-@misc{electronics_hub_8086_addressing,
-  title={Addressing Modes in 8086 Microprocessor},
-  author={{Electronics Hub}},
-  year={2021},
-  howpublished={\url{https://www.electronicshub.org/addressing-modes-in-8086-microprocessor/}},
-  note={Tutorial komprehensif tentang mode pengalamatan Intel 8086 dengan contoh praktis}
+% ---------------------------------------------------------
+% D. Referensi tambahan (buku teks dan rujukan lanjutan)
+% ---------------------------------------------------------
+
+@book{irvine2011,
+    author    = {Irvine, Kip R.},
+    title     = {Assembly Language for x86 Processors},
+    edition   = {6},
+    publisher = {Prentice Hall},
+    address   = {Upper Saddle River, NJ},
+    year      = {2011}
+}
+
+@book{stallings2016,
+    author    = {Stallings, William},
+    title     = {Computer Organization and Architecture: Designing for Performance},
+    edition   = {10},
+    publisher = {Pearson},
+    address   = {Boston},
+    year      = {2016}
+}
+
+@book{tanenbaum2013,
+    author    = {Tanenbaum, Andrew S. and Austin, Todd},
+    title     = {Structured Computer Organization},
+    edition   = {6},
+    publisher = {Pearson},
+    address   = {Boston},
+    year      = {2013}
+}
+
+@book{brey2009,
+    author    = {Brey, Barry B.},
+    title     = {The Intel Microprocessors: Architecture, Programming, and Interfacing},
+    edition   = {8},
+    publisher = {Pearson},
+    address   = {Upper Saddle River, NJ},
+    year      = {2009}
+}
+
+@book{abdelghany2020,
+    author    = {Abdelghany, Mohamed A.},
+    title     = {Computer Organization and Design Fundamentals},
+    publisher = {Lulu Press},
+    year      = {2020}
+}
+
+@misc{gunawan2023,
+    author       = {Gunawan, Indra},
+    title        = {Pemrograman Assembly Mikroprosesor 8086},
+    howpublished = {Buku ajar},
+    year         = {2023}
 }

@@ -1,0 +1,142 @@
+\section{Contoh Program}
+\label{sec:contoh-bab10}
+
+Bagian ini menyajikan tiga contoh program yang memadukan seluruh
+materi pada bab ini. Contoh~1 dan Contoh~2 berupa program utuh di
+direktori \file{code/asm/} yang dapat langsung dirakit, sedangkan
+Contoh~3 berupa potongan pendek untuk memperlihatkan aritmatika
+bertingkat.
+
+\subsection{Contoh 1: Kalkulator Penjumlahan dan Pengurangan}
+
+Program pada Kode~\ref{lst:aritmatika} menerima dua bilangan satu
+digit dari pengguna, lalu menampilkan hasil penjumlahan dan
+pengurangannya.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{aritmatika.asm}: kalkulator penjumlahan dan pengurangan.},
+    label={lst:aritmatika}
+]{\CodeDir/aritmatika.asm}
+
+Alur program dapat dibagi menjadi empat bagian.
+
+\begin{enumerate}
+    \item \textbf{Masukan.} Layanan fungsi \hex{09} mencetak
+          pertanyaan, lalu fungsi \hex{01} membaca satu karakter.
+          Instruksi \lstasm|SUB AL, 30h| mengubah kode ASCII menjadi
+          nilai $0$--$9$, dan \lstasm|XOR AH, AH| membersihkan
+          register sebelum nilainya disimpan.
+    \item \textbf{Penjumlahan.} Kedua bilangan dijumlahkan dengan
+          \asm{ADD}. Hasilnya disimpan sementara di \reg{BX} karena
+          \reg{AX} akan dipakai lagi oleh prosedur pencetakan.
+    \item \textbf{Pengurangan.} Hasilnya diperiksa tandanya dengan
+          \asm{JNS}. Bila negatif, tanda minus dicetak lebih dahulu,
+          lalu \asm{NEG} mengubah nilainya menjadi mutlak.
+    \item \textbf{Pencetakan.} Prosedur \code{CETAK\_AX} menerapkan
+          pembagian berulang sepuluh seperti pada
+          Kode~\ref{lst:konversi-desimal}, dengan sisa pembagian
+          disimpan pada \eng{stack} agar urutan cetaknya benar.
+\end{enumerate}
+
+\begin{session}[caption={Keluaran program \file{aritmatika.asm}.}, label={lst:keluaran-aritmatika}]
+Masukkan angka pertama (0-9): 3
+Masukkan angka kedua   (0-9): 8
+Hasil tambah : 11
+Hasil kurang : -5
+\end{session}
+
+\begin{infobox}
+Perulangan \code{BAGI\_DIGIT} berhenti ketika hasil bagi bernilai nol,
+sehingga \code{CETAK\_AX} tetap benar untuk bilangan tiga sampai lima
+digit. Register yang dipakai diselamatkan dengan \asm{PUSH} di awal
+dan dipulihkan dengan \asm{POP} di akhir.
+\end{infobox}
+
+\subsection{Contoh 2: Perkalian, Pembagian, dan \eng{Divide Overflow}}
+
+Program pada Kode~\ref{lst:kali-bagi} memperlihatkan keempat instruksi
+perkalian dan pembagian beserta penanganan kesalahan pembagian.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{kali-bagi.asm}: perkalian, pembagian, dan penanganan \eng{divide overflow}.},
+    label={lst:kali-bagi}
+]{\CodeDir/kali-bagi.asm}
+
+Tiga hal penting yang diperlihatkan program ini adalah sebagai
+berikut.
+
+\begin{enumerate}
+    \item \textbf{\asm{MUL} selalu aman.} Perkalian $25 \times 4$
+          menghasilkan \hex{0064} pada \reg{AX}. Karena hasilnya
+          berukuran 16 bit, tidak ada luapan yang mungkin terjadi.
+    \item \textbf{\asm{IMUL} bekerja pada bilangan bertanda.}
+          Operand \hex{FD} ditafsirkan sebagai $-3$, sehingga hasilnya
+          $-15$. Pencetakannya memerlukan prosedur \code{CETAK\_AKS}
+          yang memeriksa tanda dan mencetak karakter minus bila perlu.
+    \item \textbf{Pemeriksaan sebelum \asm{DIV}.} Instruksi
+          \lstasm|CMP AH, BL| membandingkan separuh tinggi bilangan
+          yang dibagi dengan pembaginya. Bila \reg{AH} tidak lebih
+          kecil daripada \reg{BL}, hasil bagi dipastikan tidak muat
+          pada \reg{AL}. Program melaporkannya dengan pesan yang
+          jelas, bukan berhenti mendadak.
+\end{enumerate}
+
+\begin{session}[caption={Keluaran program \file{kali-bagi.asm}.}, label={lst:keluaran-kali-bagi}]
+MUL  : 25 x 4   = 100
+IMUL : -3 x 5   = -15
+DIV  : 1000 / 7 = 142  sisa 6
+DIV  : 1000 / 3 = divide overflow: hasil bagi tidak muat pada AL
+\end{session}
+
+\begin{peringatanbox}
+Bila pemeriksaan pada Kode~\ref{lst:kali-bagi} dihapus, program akan
+mencoba menghitung $1000 \div 3$ dengan \lstasm|DIV BL|. Hasil bagi
+$333$ tidak muat pada \reg{AL} yang hanya mampu menampung $0$--$255$,
+sehingga prosesor membangkitkan kesalahan pembagian dan eksekusi
+program terputus. Kesalahan ini tidak terdeteksi saat perakitan.
+\end{peringatanbox}
+
+\subsection{Contoh 3: Penjumlahan 32 Bit dengan \asm{ADC}}
+
+Potongan pada Kode~\ref{lst:adc-32bit} adalah penerapan langsung dari
+Tabel~\ref{tab:penjumlahan-32bit}.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Penjumlahan 32 bit dengan \asm{ADD} dan \asm{ADC}.},
+    label={lst:adc-32bit}
+]
+.DATA
+    rendahA DW 0CDEFh       ; word rendah bilangan A
+    tinggiA DW 89ABh        ; word tinggi bilangan A
+    rendahB DW 4567h        ; word rendah bilangan B
+    tinggiB DW 0123h        ; word tinggi bilangan B
+    hasilL  DW ?            ; penampung word rendah hasil
+    hasilT  DW ?            ; penampung word tinggi hasil
+
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+
+    MOV AX, rendahA         ; AX = CDEFh
+    ADD AX, rendahB         ; AX = 1356h, CF = 1
+    MOV hasilL, AX          ; simpan word rendah hasil
+
+    MOV AX, tinggiA         ; AX = 89ABh
+    ADC AX, tinggiB         ; AX = 8ACFh (carry ikut dijumlahkan)
+    MOV hasilT, AX          ; simpan word tinggi hasil
+
+    MOV AH, 4Ch
+    MOV AL, 00h
+    INT 21h
+
+END START
+\end{lstlisting}
+
+Instruksi \asm{ADD} pada tahap pertama menghasilkan word rendah
+sekaligus meninggalkan \flag{CF} bernilai 1. Nilai inilah yang
+``dibawa'' ke tahap kedua oleh \asm{ADC}. Pola yang sama berlaku
+untuk pengurangan 32 bit dengan pasangan \asm{SUB} dan \asm{SBB}.

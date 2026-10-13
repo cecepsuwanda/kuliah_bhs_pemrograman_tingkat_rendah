@@ -1,0 +1,77 @@
+% =========================================================
+% frontmatter/cover.tex
+% Halaman judul buku.
+% =========================================================
+
+\begin{titlepage}
+\centering
+\thispagestyle{empty}
+
+\begin{tikzpicture}[remember picture, overlay]
+    % Bingkai luar
+    \draw[obeBlue, line width=2pt]
+        ([xshift=1.2cm,yshift=-1.2cm]current page.north west)
+        rectangle
+        ([xshift=-1.2cm,yshift=1.2cm]current page.south east);
+    \draw[obeBlue, line width=0.6pt]
+        ([xshift=1.45cm,yshift=-1.45cm]current page.north west)
+        rectangle
+        ([xshift=-1.45cm,yshift=1.45cm]current page.south east);
+
+    % Pita atas
+    \fill[obeBlue]
+        ([xshift=1.2cm,yshift=-1.2cm]current page.north west)
+        rectangle
+        ([xshift=-1.2cm,yshift=-3.6cm]current page.north east);
+\end{tikzpicture}
+
+\vspace*{1.0cm}
+
+{\sffamily\large\bfseries\color{white}\BookProgram}\\[0.2cm]
+{\sffamily\large\bfseries\color{white}\BookFaculty}\\[0.2cm]
+{\sffamily\large\bfseries\color{white}\BookInstitution}
+
+\vspace{3.2cm}
+
+{\sffamily\Huge\bfseries\color{obeBlue}\BookTitle\par}
+
+\vspace{0.8cm}
+
+{\Large\itshape\color{obeGray}
+\begin{tabular}{c}
+\BookSubtitle
+\end{tabular}\par}
+
+\vspace{2.2cm}
+
+\begin{tikzpicture}
+    \node[
+        draw=obeTeal,
+        line width=1pt,
+        fill=obeTealLight,
+        rounded corners=6pt,
+        inner sep=14pt,
+        text width=0.72\textwidth,
+        align=center
+    ] {
+        \sffamily\large Buku Ajar Berbasis\\
+        \textbf{\large Outcome-Based Education (OBE)}\\[0.35cm]
+        \small Mata Kuliah \BookCourse\ (\BookCourseCode)\\
+        \BookSKS\ \textbullet\ \BookSemester
+    };
+\end{tikzpicture}
+
+\vfill
+
+{\large\bfseries\BookAuthor\par}
+
+\vspace{0.6cm}
+
+{\large\BookEdition\par}
+{\large\BookYear\par}
+
+\vspace{1.6cm}
+
+\end{titlepage}
+
+\clearpage

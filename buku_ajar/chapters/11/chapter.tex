@@ -1,0 +1,74 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Operasi Logika, Pergeseran, dan Rotasi}
+\label{chap:logika}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{3.2} --- Menerapkan operasi logika \eng{bitwise} serta operasi
+pergeseran dan rotasi (\asm{AND}, \asm{OR}, \asm{XOR}, \asm{NOT},
+\asm{TEST}, \asm{SHL}, \asm{SHR}, \asm{SAL}, \asm{SAR}, \asm{ROL},
+\asm{ROR}) untuk manipulasi bit.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{03} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan cara kerja \asm{AND}, \asm{OR}, \asm{XOR}, dan
+          \asm{NOT} beserta tabel kebenarannya;
+    \item menjelaskan pengaruh operasi logika terhadap \flag{CF},
+          \flag{OF}, \flag{ZF}, \flag{SF}, dan \flag{PF};
+    \item membedakan \asm{TEST} dan \asm{CMP} serta memilih yang tepat;
+    \item menerapkan \eng{masking}, penyalakan, pemadaman, dan
+          pembalikan bit ke-$n$ pada sebuah byte;
+    \item membedakan pergeseran logis (\asm{SHL}/\asm{SHR}) dan
+          pergeseran aritmetika (\asm{SAL}/\asm{SAR}) pada bilangan
+          bertanda;
+    \item menggunakan rotasi \asm{ROL}, \asm{ROR}, \asm{RCL}, dan
+          \asm{RCR} beserta peran \flag{CF};
+    \item menggantikan perkalian dan pembagian dengan pangkat dua
+          memakai pergeseran;
+    \item menyusun program manipulasi bit: paritas,
+          \eng{packing}/\eng{unpacking} BCD, dan \eng{XOR cipher}.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Operasi logika \asm{AND}, \asm{OR}, \asm{XOR}, \asm{NOT}
+          pada level bit dan tabel kebenarannya.
+    \item Pengaruh operasi logika terhadap \eng{flag}: \flag{CF} dan
+          \flag{OF} selalu nol, \flag{ZF}, \flag{SF}, dan \flag{PF}
+          mengikuti hasil.
+    \item Penerapan praktis: \eng{masking}, penyalakan, pemadaman, dan
+          pembalikan bit ke-$n$.
+    \item Perbandingan \asm{TEST} dengan \asm{CMP}.
+    \item Pergeseran logis \asm{SHL}/\asm{SHR} dan pergeseran
+          aritmetika \asm{SAL}/\asm{SAR}.
+    \item Rotasi \asm{ROL}, \asm{ROR}, \asm{RCL}, dan \asm{RCR}.
+    \item Perkalian dan pembagian cepat dengan pergeseran.
+    \item Studi kasus: pemeriksaan paritas, \eng{packing} BCD, dan
+          \eng{XOR cipher} sederhana.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

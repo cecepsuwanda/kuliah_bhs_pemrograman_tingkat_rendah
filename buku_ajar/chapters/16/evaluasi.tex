@@ -1,0 +1,154 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab16}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Perintah pada MS-DEBUG yang dipakai untuk membongkar kode
+          mesin menjadi \eng{mnemonic} adalah \dots
+          \begin{enumerate}
+              \item \code{T} \item \code{U}
+              \item \code{D} \item \code{G}
+          \end{enumerate}
+
+    \item Nama variabel \code{larik} tidak muncul pada hasil
+          \eng{disassembly}, melainkan berubah menjadi
+          \lstasm|[SI+01F4]|. Penyebabnya adalah \dots
+          \begin{enumerate}
+              \item nama simbolik tidak disimpan di dalam berkas biner
+              \item DEBUG selalu menghapus nama simbolik
+              \item linker mengubah nama simbolik menjadi alamat
+                    relatif
+              \item disassembler hanya mampu membaca register
+          \end{enumerate}
+
+    \item Instruksi tunggal yang tepat menggantikan
+          \lstasm|MUL BX| untuk mengalikan \reg{AX} (tak bertanda)
+          dengan delapan adalah \dots
+          \begin{enumerate}
+              \item \lstasm|SHR AX, 3| \item \lstasm|SHL AX, 3|
+              \item \lstasm|SAR AX, 3| \item \lstasm|DIV AX, 8|
+          \end{enumerate}
+
+    \item Ciri paling dapat diandalkan bahwa suatu blok pada hasil
+          \eng{disassembly} adalah perulangan adalah \dots
+          \begin{enumerate}
+              \item adanya instruksi \asm{INT 21h}
+              \item lompatan mundur ke alamat yang lebih kecil
+              \item adanya \lstasm|MOV AX, @DATA|
+              \item lompatan maju yang jauh
+          \end{enumerate}
+
+    \item Keunggulan \lstasm|XOR AX, AX| dibandingkan
+          \lstasm|MOV AX, 0| untuk mengosongkan register adalah \dots
+          \begin{enumerate}
+              \item hasilnya selalu nol pada semua kondisi
+              \item lebih pendek satu byte dan lebih cepat satu
+                    siklus
+              \item aman dipakai di antara \asm{CMP} dan lompatan
+                    bersyarat
+              \item sekaligus mengosongkan \reg{DX}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Jelaskan tiga keterbatasan \eng{disassembly}. Untuk
+          masing-masing keterbatasan, berikan satu contoh potongan
+          byte atau instruksi yang memperlihatkan mengapa
+          \eng{disassembly} sulit ditafsirkan.
+
+    \item Perhatikan potongan hasil \eng{disassembly} berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+1D2F:0100 B90A00    MOV  CX,000A
+1D2F:0103 B80000    MOV  AX,0000
+1D2F:0106 0304      ADD  AX,[SI]
+1D2F:0108 83C602    ADD  SI,+02
+1D2F:010B E2F9      LOOP 0106
+1D2F:010D D1E0      SHL  AX,1
+1D2F:010F D1E0      SHL  AX,1
+1D2F:0111 D1E0      SHL  AX,1
+1D2F:0113 8906F401  MOV  [01F4],AX
+\end{lstlisting}
+
+          \begin{enumerate}
+              \item Sebutkan pola yang tampak dan tunjukkan buktinya.
+              \item Hitung jumlah instruksi yang dieksekusi untuk
+                    seluruh program tersebut.
+              \item Hitung perkiraan jumlah siklusnya, lalu
+                    sebutkan satu perubahan pada potongan itu yang
+                    masih dapat menghemat siklus.
+          \end{enumerate}
+
+    \item Diberikan program naif berikut: akumulator di memori,
+          pengali 16 dimuat ke \reg{BX} setiap iterasi, perkalian
+          memakai \asm{MUL}, dan penghitung perulangan memakai
+          \asm{DEC} diikuti \asm{JNZ}. Tuliskan versi teroptimasi
+          lengkap untuk program tersebut, sebutkan nama setiap
+          teknik yang Anda pakai, dan jelaskan syarat berlaku
+          masing-masing. Sebutkan pula metrik yang Anda pakai untuk
+          membuktikan perbaikannya.
+
+    \item Seorang mahasiswa mengganti sebuah \asm{MUL} dengan
+          pergeseran, lalu melaporkan bahwa programnya menjadi dua
+          kali lebih cepat. Rancang langkah-langkah pengukuran yang
+          harus ia lakukan agar klaim tersebut dapat dipercaya,
+          kemudian jelaskan alasan mengapa optimasi dini justru
+          lebih sering merugikan daripada menguntungkan.
+\end{enumerate}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:disassembly}.}
+    \label{tab:kisi-bab16}
+    \small
+    \begin{tabular}{@{}p{1.5cm}p{5.0cm}p{2.6cm}c@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
+        \textbf{Bentuk soal} & \textbf{Bobot} \\
+        \midrule
+        4.3 & Membaca hasil \eng{disassembly} dan mengenali polanya &
+        Pilihan ganda 1, 2, 4; Uraian 1, 2 & 30\% \\
+        \addlinespace
+        4.3 & Menjelaskan keterbatasan \eng{disassembly} &
+        Pilihan ganda 2; Uraian 1 & 15\% \\
+        \addlinespace
+        4.3 & Menghitung metrik optimasi &
+        Uraian 2 bagian b dan c & 20\% \\
+        \addlinespace
+        4.3 & Menerapkan teknik optimasi level instruksi &
+        Pilihan ganda 3, 5; Uraian 3 & 25\% \\
+        \addlinespace
+        4.3 & Merancang pengukuran dan memahami batas optimasi &
+        Uraian 4 & 10\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:disassembly}}
+
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 4.3 apabila:
+\begin{itemize}
+    \item[\checked] dapat membongkar program dengan perintah
+          \code{U} serta membaca alamat, byte mesin, dan
+          \eng{mnemonic} dengan benar;
+    \item[\checked] dapat menyebutkan keterbatasan \eng{disassembly}
+          dan menjelaskan mengapa kode serta data sulit dibedakan;
+    \item[\checked] dapat mengenali minimal lima pola hasil
+          \eng{disassembly} beserta cirinya;
+    \item[\checked] dapat menghitung empat metrik optimasi dan
+          menjelaskan bahwa tanpa pengukuran optimasi hanyalah
+          dugaan;
+    \item[\checked] dapat menerapkan minimal tiga teknik optimasi
+          level instruksi beserta syarat berlakunya;
+    \item[\checked] dapat menjelaskan trade-off ukuran dan kecepatan
+          serta memilih dengan alasan;
+    \item[\checked] berhasil membuktikan perbaikan program melalui
+          pengukuran yang adil.
+\end{itemize}
+\end{checklistbox}

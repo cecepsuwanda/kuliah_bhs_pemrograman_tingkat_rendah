@@ -1,0 +1,131 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab10}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Instruksi berikut yang \emph{tidak} sah pada prosesor 8086
+          adalah \dots
+          \begin{enumerate}
+              \item \lstasm|MOV AX, BX|
+              \item \lstasm|MOV AX, nilai1|
+              \item \lstasm|MOV nilai1, nilai2|
+              \item \lstasm|MOV nilai1, AX|
+          \end{enumerate}
+
+    \item Bila register \reg{BX} berisi \hex{0200} dan variabel
+          \code{pesan} terletak pada offset \hex{0200}, maka
+          instruksi \lstasm|MOV BX, pesan| akan membuat \reg{BX}
+          berisi \dots
+          \begin{enumerate}
+              \item alamat variabel \code{pesan}
+              \item dua byte pertama isi variabel \code{pesan}
+              \item panjang variabel \code{pesan}
+              \item seluruh isi variabel \code{pesan}
+          \end{enumerate}
+
+    \item Instruksi \lstasm|MUL BL| dengan \reg{AL} = \hex{10} dan
+          \reg{BL} = \hex{10} menghasilkan \dots
+          \begin{enumerate}
+              \item \reg{AL} = \hex{00} dan \reg{AH} = \hex{01}
+              \item \reg{AX} = \hex{0100}
+              \item \reg{AX} = \hex{0010}
+              \item \reg{DX}:\reg{AX} = \hex{0000}:\hex{0100}
+          \end{enumerate}
+
+    \item Instruksi yang tidak mengubah nilai \flag{CF} adalah \dots
+          \begin{enumerate}
+              \item \lstasm|ADD AX, BX|
+              \item \lstasm|SUB AX, BX|
+              \item \lstasm|INC AX|
+              \item \lstasm|NEG AX|
+          \end{enumerate}
+
+    \item Kesalahan \eng{divide overflow} pada \lstasm|DIV BL| dapat
+          dicegah dengan memeriksa \dots
+          \begin{enumerate}
+              \item apakah \reg{AL} bernilai nol
+              \item apakah \reg{AH} lebih kecil daripada \reg{BL}
+              \item apakah \flag{ZF} bernilai satu
+              \item apakah \reg{BL} lebih kecil daripada \reg{AL}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Jelaskan tiga aturan legalitas instruksi \asm{MOV}.
+          Untuk setiap aturan, tuliskan satu contoh yang sah, satu
+          contoh yang ditolak assembler, dan cara memperbaikinya
+          dengan register perantara.
+
+    \item Jelaskan perbedaan antara \asm{MOV} dan \asm{LEA} beserta
+          satu contoh program yang memperlihatkan bahwa keduanya
+          dapat menghasilkan nilai berbeda pada register tujuan.
+
+    \item Diberikan dua bilangan 32 bit: $A = \hex{FFFFFFFF}$
+          dan $B = \hex{00000001}$. Uraikan penjumlahan
+          keduanya dengan \asm{ADD} dan \asm{ADC} langkah demi
+          langkah. Tunjukkan nilai word rendah, word tinggi, dan
+          \flag{CF} pada setiap tahap, lalu jelaskan apa yang terjadi
+          pada hasil akhir.
+
+    \item Tuliskan program lengkap yang menerima dua bilangan satu
+          digit dari pengguna, mengalikannya dengan \asm{MUL}, lalu
+          mencetak hasilnya sebagai bilangan desimal. Sertakan
+          prosedur konversi desimal dan jelaskan mengapa hasil
+          perkalian tidak boleh dicetak langsung dari \reg{AL}.
+\end{enumerate}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:aritmatika}.}
+    \label{tab:kisi-bab10}
+    \small
+    \begin{tabular}{@{}p{1.5cm}p{4.9cm}p{2.7cm}c@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
+        \textbf{Bentuk soal} & \textbf{Bobot} \\
+        \midrule
+        3.1 & Menerapkan aturan legalitas \asm{MOV} dan register
+        perantara & Pilihan ganda 1; Uraian 1 & 20\% \\
+        \addlinespace
+        3.1 & Membedakan nilai data dan alamat pada \asm{MOV} dan
+        \asm{LEA} & Pilihan ganda 2; Uraian 2 & 15\% \\
+        \addlinespace
+        3.1 & Menjelaskan pengaruh instruksi aritmatika pada \eng{flag}
+        & Pilihan ganda 4; Uraian 3 & 20\% \\
+        \addlinespace
+        3.1 & Menerapkan operand implisit \asm{MUL} dan \asm{DIV}
+        & Pilihan ganda 3, 5 & 20\% \\
+        \addlinespace
+        3.1 & Menulis program aritmatika lengkap dengan pencetakan
+        desimal & Uraian 4 & 25\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:aritmatika}}
+
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 3.1 apabila:
+\begin{itemize}
+    \item[\checked] dapat menuliskan pemindahan data yang sah dan
+          memperbaiki pemindahan yang ditolak assembler;
+    \item[\checked] dapat memilih antara \asm{MOV}, \asm{LEA},
+          \asm{XCHG}, dan \asm{PUSH}/\asm{POP} sesuai kebutuhan;
+    \item[\checked] dapat menjelaskan pengaruh \asm{ADD}, \asm{SUB},
+          \asm{INC}, \asm{DEC}, dan \asm{CMP} terhadap keenam
+          \eng{flag} aritmatika;
+    \item[\checked] dapat menuliskan perkalian dan pembagian dengan
+          operand implisit yang benar;
+    \item[\checked] dapat memeriksa dan menangani \eng{divide
+          overflow} maupun pembagi nol;
+    \item[\checked] dapat menyusun penjumlahan dan pengurangan lebih
+          dari 16 bit dengan \asm{ADC} dan \asm{SBB};
+    \item[\checked] berhasil membangun kalkulator empat operasi pada
+          Tugas~4 dengan keluaran yang benar.
+\end{itemize}
+\end{checklistbox}

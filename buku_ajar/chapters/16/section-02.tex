@@ -1,0 +1,208 @@
+\section{Mengenali Pola Hasil Disassembly dan Metrik Optimasi}
+\label{sec:pola-disassembly}
+
+Hasil \eng{disassembly} pada awalnya tampak seperti deretan instruksi
+yang tidak berhubungan. Setelah beberapa kali berlatih, mahasiswa
+akan menyadari bahwa kompilator dan programmer menghasilkan pola yang
+berulang. Mengenali pola tersebut memungkinkan seseorang membaca
+program tanpa kode sumber: struktur perulangan, pemilihan,
+pemanggilan prosedur, dan interaksi dengan sistem operasi dapat
+ditebak dari bentuk instruksinya.
+
+\subsection{Pola-Pola yang Sering Dijumpai}
+
+Tabel~\ref{tab:pola-disassembly} merangkum sembilan pola yang paling
+sering muncul, lengkap dengan bentuk hasil \eng{disassembly} dan
+cara mengenalinya. Kolom ketiga sengaja memusatkan perhatian pada
+\emph{ciri} yang membedakan pola tersebut dari pola lain, karena
+itulah yang dipakai saat membaca program yang belum dikenal.
+
+\begin{table}[H]
+    \centering
+    \caption{Pola kode sumber dan bentuknya pada hasil
+    \eng{disassembly}.}
+    \label{tab:pola-disassembly}
+    \small
+    \begin{tabular}{@{}p{2.7cm}p{4.9cm}p{6.9cm}@{}}
+        \toprule
+        \textbf{Pola kode sumber} & \textbf{Bentuk hasil
+        \eng{disassembly}} & \textbf{Cara mengenalinya} \\
+        \midrule
+        Pembandingan dan percabangan & \lstasm|CMP AX,0064h| +
+        \lstasm|JE 0140h| & \asm{CMP} atau \asm{TEST} selalu diikuti
+        lompatan bersyarat \\
+        \addlinespace
+        Perulangan berpenghitung & \lstasm|LOOP 0109h| atau
+        \lstasm|DEC CX| + \lstasm|JNZ| & Lompatan mundur yang
+        dikendalikan \reg{CX} \\
+        \addlinespace
+        Perulangan uji-di-akhir & \lstasm|CMP SI,0014h| +
+        \lstasm|JB 0100h| & Lompatan mundur setelah pembandingan
+        batas \\
+        \addlinespace
+        \eng{Prologue} prosedur & \lstasm|PUSH BP| +
+        \lstasm|MOV BP,SP| & Menyimpan bingkai \eng{stack} lama lalu
+        menyediakan variabel lokal \\
+        \addlinespace
+        \eng{Epilogue} prosedur & \lstasm|POP BP| + \lstasm|RET| &
+        \asm{RET} selalu menjadi instruksi terakhir \\
+        \addlinespace
+        Inisialisasi segmen & \lstasm|MOV AX,1D2Fh| +
+        \lstasm|MOV DS,AX| & Pemindahan ke register segmen selalu
+        melalui register umum \\
+        \addlinespace
+        Pemanggilan interupsi & \lstasm|MOV AH,09h| +
+        \lstasm|INT 21h| & Nomor fungsi dimuat ke \reg{AH} tepat
+        sebelum \asm{INT} \\
+        \addlinespace
+        Perkalian pangkat dua & \lstasm|SHL AX,1| atau
+        \lstasm|SHL AX,CL| & Pergeseran menggantikan \asm{MUL}; tidak
+        ada operand pengali \\
+        \addlinespace
+        Pengosongan register & \lstasm|XOR AX,AX| & Kedua operand
+        sama; hasilnya selalu nol \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Hubungan pola-pola tersebut dengan materi bab sebelumnya dapat
+ditelusuri kembali: pembandingan dan percabangan pada
+Bab~\ref{chap:kontrol}, inisialisasi segmen pada
+Bab~\ref{chap:segmentasi}, serta \eng{prologue} dan \eng{epilogue}
+prosedur pada Bab~\ref{chap:prosedur}.
+
+Kode~\ref{lst:pola-bongkar} memperlihatkan potongan hasil
+\eng{disassembly} yang memuat tiga pola sekaligus: inisialisasi
+segmen, perulangan dengan penghitung, dan pemanggilan interupsi.
+
+\begin{session}[caption={Tiga pola dalam satu potongan hasil
+\eng{disassembly}.}, label={lst:pola-bongkar}]
+1D2F:0100 B82F1D          MOV     AX,1D2F
+1D2F:0103 8ED8            MOV     DS,AX
+1D2F:0105 B90A00          MOV     CX,000A
+1D2F:0108 0304            ADD     AX,[SI]
+1D2F:010A 83C602          ADD     SI,+02
+1D2F:010D E2F9            LOOP    0108
+1D2F:010F B409            MOV     AH,09
+1D2F:0111 BA1001          MOV     DX,0110
+1D2F:0114 CD21            INT     21
+\end{session}
+
+Perhatikan bahwa perintah \code{LOOP 0108} menunjuk ke alamat
+\hex{0108}, yaitu alamat yang lebih kecil daripada dirinya sendiri
+(\hex{010D}). Lompatan mundur semacam ini adalah tanda perulangan
+yang paling dapat diandalkan. Sebaliknya, lompatan maju yang jauh
+biasanya menandai percabangan pemilihan.
+
+\subsection{Metrik Optimasi}
+
+Sebelum memperbaiki sesuatu, ukuran keberhasilan harus ditetapkan.
+Empat metrik berikut dipakai sepanjang bab ini.
+
+\begin{enumerate}
+    \item \textbf{Jumlah instruksi.} Banyaknya instruksi yang
+          \emph{dieksekusi} (bukan yang tertulis di kode). Metrik ini
+          diperoleh dengan menghitung iterasi.
+    \item \textbf{Perkiraan jumlah siklus.} Jumlah siklus \eng{clock}
+          yang dibutuhkan. Nilainya dihitung dari tabel siklus tiap
+          instruksi, bukan diukur langsung.
+    \item \textbf{Ukuran kode dalam byte.} Panjang kode mesin yang
+          dihasilkan. Metrik ini penting pada sistem tertanam dengan
+          memori terbatas.
+    \item \textbf{Jumlah akses memori.} Banyaknya pembacaan dan
+          penulisan ke memori. Akses memori jauh lebih mahal daripada
+          akses register, sehingga pengurangan satu akses saja sudah
+          berarti.
+\end{enumerate}
+
+Tabel~\ref{tab:siklus-8086-perkiraan} memuat perkiraan siklus
+beberapa instruksi 8086 yang paling sering muncul. Angka-angka ini
+berasal dari lembar data Intel dan berlaku untuk kondisi ideal: tanpa
+\eng{wait state}, operand di register, dan \eng{prefetch queue} tidak
+pernah kosong.
+
+\begin{table}[H]
+    \centering
+    \caption{Perkiraan siklus instruksi 8086 yang sering dipakai.}
+    \label{tab:siklus-8086-perkiraan}
+    \small
+    \begin{tabular}{@{}p{4.6cm}p{1.7cm}p{2.4cm}p{4.2cm}@{}}
+        \toprule
+        \textbf{Instruksi} & \textbf{Byte} &
+        \textbf{Siklus (perkiraan)} & \textbf{Keterangan} \\
+        \midrule
+        \lstasm|MOV reg, reg| & 2 & 2 & Paling murah \\
+        \addlinespace
+        \lstasm|MOV reg, imm16| & 3 & 4 & Memuat konstanta \\
+        \addlinespace
+        \lstasm|ADD reg, reg| & 2 & 3 & Aritmatika register \\
+        \addlinespace
+        \lstasm|XOR reg, reg| & 2 & 3 & Sama dengan \asm{MOV reg,0}
+        tetapi lebih pendek \\
+        \addlinespace
+        \lstasm|ADD AX, [SI]| & 2 & 9 + 5 = 14 & EA \lstasm|[SI]| = 5
+        siklus \\
+        \addlinespace
+        \lstasm|ADD AX, [SI+2]| & 3 & 9 + 8 = 17 & EA dengan
+        \eng{displacement} lebih mahal \\
+        \addlinespace
+        \lstasm|MOV mem, reg| & 4 & 9 + 6 = 15 & Alamat langsung \\
+        \addlinespace
+        \lstasm|SHL reg, 1| & 2 & 2 & Pergeseran satu bit \\
+        \addlinespace
+        \lstasm|SHL reg, CL| & 2 & 8 + 4$\cdot$CL & Naik seiring
+        nilai \reg{CL} \\
+        \addlinespace
+        \lstasm|MUL reg16| & 2 & 118--133 & Sangat mahal \\
+        \addlinespace
+        \lstasm|DIV reg16| & 2 & $\approx$150 & Paling mahal \\
+        \addlinespace
+        \lstasm|LOOP label| & 2 & 17 (lompat) / 5 (berhenti) &
+        Overhead perulangan \\
+        \addlinespace
+        \lstasm|PUSH reg| & 1 & 11 & Akses \eng{stack} \\
+        \addlinespace
+        \lstasm|LEA reg, [SI+2]| & 3 & 2 + 8 = 10 & Tidak mengubah
+        \eng{flag}; lebih ringkas daripada \asm{MOV} + \asm{ADD} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+Angka pada Tabel~\ref{tab:siklus-8086-perkiraan} hanya berlaku bila
+operand memang berada di register atau memori seperti tertulis.
+Penambahan \eng{wait state}, kegagalan \eng{prefetch}, dan akses ke
+memori yang lambat dapat menggandakan waktu sesungguhnya. Itulah
+sebabnya satu-satunya bukti optimasi yang sah adalah pengukuran pada
+mesin yang dipakai, bukan perhitungan di atas kertas. Hal ini sejalan
+dengan prosedur pengukuran pada Bab~\ref{chap:debugging}.
+\end{infobox}
+
+\subsection{Tanpa Pengukuran, Optimasi Hanyalah Dugaan}
+
+Seorang programmer sering merasa yakin bahwa perubahan tertentu pasti
+mempercepat program, misalnya mengganti sebuah \asm{MUL} dengan
+pergeseran. Keyakinan itu belum tentu salah, tetapi belum terbukti.
+Tiga hal membuat dugaan mudah meleset.
+
+\begin{itemize}
+    \item \textbf{Hambatan yang berbeda.} Perbaikan hanya berguna bila
+          menyerang bagian yang benar-benar paling banyak dieksekusi.
+          Mempercepat instruksi yang dijalankan seratus kali tidak
+          berarti apa-apa bila ada perulangan yang berjalan sejuta
+          kali.
+    \item \textbf{Metrik yang bertentangan.} Suatu perubahan dapat
+          mempercepat program tetapi memperbesar kode. Bila target
+          program adalah ukuran, perubahan tersebut justru merugikan.
+    \item \textbf{Lingkungan yang berbeda.} Hasil yang cepat pada
+          emulator belum tentu cepat pada perangkat keras
+          sesungguhnya, dan sebaliknya.
+\end{itemize}
+
+\begin{aktivitasbox}
+Ambil satu program yang telah Anda tulis pada bab sebelumnya. Tuliskan
+dugaan Anda tentang bagian mana yang paling lambat, lengkap dengan
+alasannya. Setelah itu, bongkar program tersebut dengan perintah
+\code{U}, lalu bandingkan dugaan Anda dengan kenyataan. Catat pada
+jurnal praktikum: berapa kali dugaan Anda benar?
+\end{aktivitasbox}

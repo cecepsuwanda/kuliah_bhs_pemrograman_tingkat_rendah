@@ -1,0 +1,68 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab3}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item Bahasa pemrograman dibedakan menurut tingkat abstraksinya:
+          bahasa mesin, bahasa assembly, dan bahasa tingkat tinggi.
+          Bahasa assembly berada tepat di atas bahasa mesin dan
+          bersifat \eng{one-to-one} terhadapnya.
+
+    \item Pemrograman tingkat rendah dipakai ketika dibutuhkan
+          kendali penuh atas perangkat keras, ukuran dan kecepatan
+          kode yang optimal, serta pemahaman mendalam untuk analisis
+          dan keamanan.
+
+    \item Rantai proses program assembly terdiri atas penyuntingan
+          (\file{.asm}), perakitan oleh assembler (menjadi
+          \file{.obj}), pengaitan oleh linker (menjadi \file{.exe}),
+          lalu pemuatan oleh \eng{loader} ke memori.
+
+    \item Lingkungan kerja yang dipakai adalah Emu8086, GUI Turbo
+          Assembler, dan DOSBox. Ketiganya tersedia bebas dan
+          memiliki kelebihan masing-masing.
+
+    \item Struktur program assembly minimal memuat \dir{.MODEL},
+          \dir{.STACK}, \dir{.DATA}, \dir{.CODE}, label titik masuk,
+          dan \dir{END}.
+
+    \item Program \file{.EXE} wajib menginisialisasi register
+          \reg{DS} melalui \lstasm|MOV AX, @DATA| dan
+          \lstasm|MOV DS, AX|, sedangkan program \file{.COM} tidak.
+
+    \item Pola dasar interaksi dengan sistem operasi adalah:
+          siapkan argumen pada register, panggil layanan melalui
+          \code{INT 21h}, lalu akhiri program dengan fungsi
+          \hex{4C}.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menjelaskan perbedaan bahasa tingkat
+          tinggi dan tingkat rendah beserta contohnya.
+    \item[\checkbox] Saya dapat menjelaskan peran assembler, linker,
+          dan \eng{loader} dalam rantai proses.
+    \item[\checkbox] Saya dapat menyebutkan perbedaan program
+          \file{.COM} dan \file{.EXE}.
+    \item[\checkbox] Lingkungan kerja (Emu8086, GUI TASM, DOSBox)
+          sudah terpasang dan dapat dijalankan.
+    \item[\checkbox] Saya dapat menulis, merakit, dan menjalankan
+          program yang mencetak teks ke layar.
+    \item[\checkbox] Saya dapat menjelaskan mengapa \reg{DS} harus
+          diinisialisasi pada program \file{.EXE}.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke bab berikutnya.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
+\cite{intel1979}, \cite{courses2103}, \cite{carleton2011}, dan
+\cite{emu8086help}. Untuk penelusuran lebih dalam mengenai struktur
+program \file{.COM} dan \file{.EXE}, lihat \cite{hyde2010}.
+\end{infobox}

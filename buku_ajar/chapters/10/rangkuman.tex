@@ -1,0 +1,92 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab10}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item Instruksi \asm{MOV} menyalin data tanpa menghapus sumber.
+          Legalitasnya dibatasi tiga aturan: ukuran operand harus
+          sama, tidak boleh memori ke memori, dan tidak boleh nilai
+          segera langsung ke register segmen.
+
+    \item Pemindahan yang ditolak assembler diatasi dengan register
+          perantara, bukan dengan menambahkan \lstasm|WORD PTR|.
+
+    \item \asm{XCHG} menukar isi dua operand dan mensyaratkan
+          minimal satu operand berada di register.
+
+    \item \asm{MOV} memindahkan \emph{isi} memori, sedangkan
+          \asm{LEA} memindahkan \emph{alamat} memori. Bila alamat
+          efektif harus dihitung saat program berjalan, \asm{LEA}
+          lebih ringkas dan tidak menyentuh memori.
+
+    \item \asm{PUSH} dan \asm{POP} bekerja pada satuan word, tidak
+          menerima nilai segera, dan harus berpasangan seimbang agar
+          \reg{SP} kembali ke posisi semula.
+
+    \item Instruksi aritmatika dasar adalah \asm{ADD}, \asm{ADC},
+          \asm{SUB}, \asm{SBB}, \asm{INC}, \asm{DEC}, \asm{NEG}, dan
+          \asm{CMP}. Hasil setiap instruksi meninggalkan jejak pada
+          \eng{flag}, kecuali \flag{CF} yang tidak disentuh
+          \asm{INC} dan \asm{DEC}.
+
+    \item \flag{CF} dipakai untuk operasi tak bertanda, sedangkan
+          \flag{OF} dipakai untuk operasi bertanda. Pilihan
+          instruksi dan lompatan bersyarat harus mengikuti tafsiran
+          yang dipilih.
+
+    \item \asm{MUL} dan \asm{IMUL} memakai operand implisit
+          \reg{AL} atau \reg{AX} dan menghasilkan bilangan berukuran
+          dua kali operand pada \reg{AX} atau \reg{DX}:\reg{AX}.
+
+    \item \asm{DIV} dan \asm{IDIV} membagi \reg{AX} atau
+          \reg{DX}:\reg{AX}. Hasil bagi yang tidak muat pada register
+          tujuan menimbulkan kesalahan \eng{divide overflow}, sehingga
+          pemeriksaan \lstasm|CMP AH, BL| perlu dilakukan lebih
+          dahulu.
+
+    \item Aritmatika bertingkat disusun dengan \asm{ADC} dan
+          \asm{SBB} agar \eng{carry} dan pinjaman diteruskan dari
+          word rendah ke word tinggi.
+
+    \item Bilangan biner diubah menjadi digit desimal dengan
+          pembagian berulang sepuluh, lalu digit-digitnya dicetak
+          dengan \code{INT 21h} fungsi \hex{02}.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menyebutkan tiga aturan legalitas
+          \asm{MOV} beserta contoh yang sah dan yang ditolak.
+    \item[\checkbox] Saya dapat menjelaskan perbedaan \asm{MOV} dan
+          \asm{LEA} serta memilih yang tepat sesuai kebutuhan.
+    \item[\checkbox] Saya dapat memakai \asm{PUSH} dan \asm{POP}
+          dengan jumlah yang seimbang.
+    \item[\checkbox] Saya dapat menyebutkan \eng{flag} yang
+          terpengaruh oleh setiap instruksi aritmatika dasar.
+    \item[\checkbox] Saya dapat menuliskan perkalian dan pembagian
+          dengan operand implisit yang benar.
+    \item[\checkbox] Saya dapat memeriksa dan menangani kesalahan
+          \eng{divide overflow}.
+    \item[\checkbox] Saya dapat menyusun penjumlahan 32 bit dengan
+          \asm{ADD} dan \asm{ADC}.
+    \item[\checkbox] Saya dapat mengubah nilai register menjadi
+          deretan digit desimal dan mencetaknya.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke bab berikutnya.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Pembahasan operand implisit dan pengaruh
+\eng{flag} pada bab ini diperkuat oleh \cite{bartlett2004} dan
+\cite{brey2009}. Rincian aturan perakitan dan penanganan kesalahan
+\eng{divide overflow} dapat ditelusuri pada \cite{hyde2010}. Contoh
+penerapan aritmatika pada program lengkap dibahas oleh
+\cite{uva2024}. Aturan \eng{flag} secara rinci tercantum pada
+\cite{intel1979}.
+\end{infobox}

@@ -1,0 +1,94 @@
+\section{Contoh Program}
+\label{sec:contoh-bab8}
+
+Dua program berikut dirakit dan dijalankan dengan Emu8086 atau
+TASM/TLINK. Keduanya memperlihatkan bahwa mode pengalamatan langsung
+menentukan bentuk kode dan alamat yang dibaca prosesor.
+
+\subsection{Contoh 1: Membandingkan Tiga Mode pada Array}
+
+Program \file{mode-array.asm} menjumlahkan lima elemen array yang
+sama dengan tiga mode pengalamatan berbeda, lalu membandingkan ketiga
+hasilnya. Kode lengkapnya tampak pada Kode~\ref{lst:mode-array}.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{mode-array.asm}: tiga mode pengalamatan
+    untuk satu array.},
+    label={lst:mode-array}
+]{\CodeDir/mode-array.asm}
+
+Cara kerja program dijelaskan sebagai berikut.
+
+\begin{itemize}
+    \item \textbf{Cara 1 --- mode direct.} Elemen dibaca dengan offset
+          tetap, \lstasm|data1+0| sampai \lstasm|data1+8|. Mudah
+          dibaca, tetapi tidak praktis untuk array panjang.
+    \item \textbf{Cara 2 --- mode indexed.} \reg{SI} menjadi indeks
+          yang bertambah dua setiap putaran; \lstasm|data1[SI]|
+          setara dengan \lstasm|[data1+SI]| pada segmen \reg{DS}.
+    \item \textbf{Cara 3 --- mode base-relative.} \reg{BX} diisi
+          \lstasm|LEA BX, data1| sebagai basis, lalu elemen dibaca
+          dengan \lstasm|[BX+SI]|; basis dan indeks terpisah sehingga
+          mudah dipakai ulang.
+    \item \textbf{Pembandingan hasil.} \asm{CMP} dan \asm{JNE}
+          membandingkan \code{jumlah1} dengan \code{jumlah2}, lalu
+          \code{jumlah2} dengan \code{jumlah3}. Struktur kontrol ini
+          dibahas pada Bab~\ref{chap:kontrol} dan operasi
+          aritmatikanya pada Bab~\ref{chap:aritmatika}.
+\end{itemize}
+
+Ketiga cara menghasilkan jumlah yang identik, yaitu
+$10 + 20 + 30 + 40 + 50 = 150$ atau \hex{96}.
+
+\begin{session}[caption={Keluaran program \file{mode-array.asm}.}, label={lst:keluaran-mode-array}]
+Perbandingan tiga mode pengalamatan
+Ketiga hasil identik.
+\end{session}
+
+\begin{infobox}
+Bila hasil ketiga cara berbeda, kesalahan yang paling sering terjadi
+adalah keliru memakai \reg{BP} sebagai basis. Bentuk \lstasm|[BP+SI]|
+membaca segmen \reg{SS}, bukan \reg{DS}, sehingga data yang diambil
+adalah isi stack, bukan isi array.
+\end{infobox}
+
+\subsection{Contoh 2: Membaca Parameter dengan \code{[BP+disp]}}
+
+Program \file{param-bp.asm} memperlihatkan pemakaian mode
+base-relative dengan register \reg{BP} untuk membaca dua nilai yang
+diletakkan pada stack. Kode lengkapnya tampak pada
+Kode~\ref{lst:param-bp}.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{param-bp.asm}: membaca parameter melalui
+    \code{[BP+disp]}.},
+    label={lst:param-bp}
+]{\CodeDir/param-bp.asm}
+
+Poin penting program ini adalah sebagai berikut.
+
+\begin{enumerate}
+    \item Nilai 2 dan 1 diletakkan pada stack melalui \asm{PUSH}.
+          Prosesor 8086 tidak memiliki \lstasm|PUSH 2| untuk nilai
+          segera, sehingga nilainya dimuat ke \reg{AX} terlebih
+          dahulu.
+    \item Setelah \lstasm|MOV BP, SP|, \reg{BP} menunjuk puncak
+          stack. \lstasm|MOV AX, [BP+0]| mengambil parameter pertama
+          dan \lstasm|MOV BX, [BP+2]| mengambil parameter kedua.
+    \item Keduanya memakai segmen \reg{SS} secara bawaan. Bila
+          penulisannya diubah menjadi \lstasm|[BX+2]| tanpa
+          menyiapkan \reg{BX}, program akan membaca lokasi yang
+          berbeda pada segmen \reg{DS}.
+    \item Hasil penjumlahan bernilai 3 dan dicetak sebagai karakter
+          melalui layanan DOS fungsi \hex{02}; konversi bilangan
+          dibahas pada Bab~\ref{chap:aritmatika}.
+    \item Dua instruksi \asm{POP} mengembalikan \reg{SP} ke posisi
+          semula, kebiasaan yang akan dipakai secara baku pada
+          Bab~\ref{chap:prosedur}.
+\end{enumerate}
+
+\begin{session}[caption={Keluaran program \file{param-bp.asm}.}, label={lst:keluaran-param-bp}]
+1 + 2 = 3
+\end{session}

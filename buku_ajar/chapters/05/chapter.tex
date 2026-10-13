@@ -1,0 +1,74 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Register 8086 dan Register Flag}
+\label{chap:register}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{1.2} --- Mengidentifikasi fungsi register umum (\reg{AX},
+\reg{BX}, \reg{CX}, \reg{DX}), register segmen (\reg{CS}, \reg{DS},
+\reg{SS}, \reg{ES}), register \eng{pointer}/\eng{index} (\reg{SP},
+\reg{BP}, \reg{SI}, \reg{DI}), dan register \eng{flag} beserta
+pengaruhnya terhadap eksekusi program.
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{01} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menyebutkan register umum 8086 beserta akses byte rendah
+          dan byte tingginya;
+    \item menjelaskan peran khas setiap register umum dan alasan
+          historis di balik peran tersebut;
+    \item menjelaskan fungsi register segmen dalam pengalamatan
+          memori;
+    \item menjelaskan peran register \eng{pointer} dan \eng{index}
+          serta register \reg{IP};
+    \item mengidentifikasi sembilan \eng{flag} pada register
+          \reg{FLAGS}, menyebutkan posisi bitnya, dan menjelaskan
+          kapan setiap \eng{flag} bernilai 1;
+    \item memprediksi perubahan \eng{flag} akibat operasi aritmatika
+          dan menjelaskan akibatnya bagi alur program;
+    \item menjelaskan mengapa register \reg{CS}, \reg{IP}, \reg{SS},
+          dan \reg{SP} tidak boleh diubah sembarangan.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Register umum \reg{AX}, \reg{BX}, \reg{CX}, \reg{DX} dan
+          akses byte rendah/tinggi (\reg{AL}/\reg{AH},
+          \reg{BL}/\reg{BH}, \reg{CL}/\reg{CH}, \reg{DL}/\reg{DH}).
+    \item Register segmen \reg{CS}, \reg{DS}, \reg{SS}, \reg{ES} dan
+          perannya pada pengalamatan memori.
+    \item Register \eng{pointer} dan \eng{index}: \reg{SP}, \reg{BP},
+          \reg{SI}, \reg{DI}, serta register \reg{IP}.
+    \item Register \eng{flag} 16-bit: \flag{CF}, \flag{PF},
+          \flag{AF}, \flag{ZF}, \flag{SF}, \flag{TF}, \flag{IF},
+          \flag{DF}, \flag{OF} beserta posisi bitnya.
+    \item Pengaruh \eng{flag} terhadap keputusan program melalui
+          lompatan bersyarat.
+    \item Register yang tidak boleh diubah sembarangan dan
+          akibatnya.
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}

@@ -36,6 +36,12 @@
 output/
 buku2/output/
 
+# Hasil kompilasi per bab (buku_ajar/chapters/NN/chapter.pdf)
+buku_ajar/chapters/*/chapter.pdf
+
+# Materi rujukan pihak ketiga tidak disertakan ke repositori
+referensi/
+
 # ============================================================
 # Operating system files
 # ============================================================

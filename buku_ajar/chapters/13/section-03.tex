@@ -1,0 +1,248 @@
+\section{Stack Frame, Konvensi Pemanggilan, dan Rekursi}
+\label{sec:stack-frame}
+
+Tabel~\ref{tab:trace-stack} memperlihatkan bahwa prosedur selalu
+mengerjakan empat hal: membangun bingkai, mengakses parameter,
+menghasilkan nilai balik, lalu membongkar bingkai. Pola bakunya
+disebut \term{stack frame} standar \cite{bartlett2004}.
+
+\subsection{\eng{Prologue} dan \eng{Epilogue}}
+
+Bagian pembuka prosedur, atau \term{prologue}, terdiri atas dua
+instruksi; bagian penutupnya, atau \term{epilogue}, juga dua
+instruksi.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Kerangka baku \eng{prologue} dan \eng{epilogue} prosedur
+    \eng{near}.},
+    label={lst:prologue-epilogue}
+]
+HitungLuas PROC
+    PUSH BP                 ; prologue : simpan BP pemanggil
+    MOV  BP, SP             ; prologue : BP <- titik acuan bingkai
+
+    ; --- badan prosedur ---
+    ; parameter diakses sebagai [BP+4], [BP+6], ...
+
+    POP  BP                 ; epilogue : pulihkan BP pemanggil
+    RET                     ; epilogue : kembali ke pemanggil
+HitungLuas ENDP
+\end{lstlisting}
+
+Instruksi \lstasm|PUSH BP| wajib ada karena \reg{BP} hanya ada satu
+buah; tanpa menyimpannya, prosedur akan menimpa \reg{BP} milik
+pemanggil sehingga akses parameter pemanggil menjadi salah.
+Pasangan \lstasm|PUSH BP| dan \lstasm|POP BP| harus seimbang pada
+setiap jalur keluar prosedur.
+
+\subsection{Mengakses Parameter dan Variabel Lokal}
+
+Setelah \lstasm|MOV BP, SP|, susunan bingkai selalu sama dengan
+Gambar~\ref{fig:isi-stack-call}, sehingga jarak setiap isi dari
+\reg{BP} bersifat tetap:
+
+\begin{itemize}
+    \item \code{[BP+0]} --- nilai \reg{BP} milik pemanggil;
+    \item \code{[BP+2]} --- alamat kembali (\reg{IP});
+    \item \code{[BP+4]} --- parameter pertama (yang didorong terakhir);
+    \item \code{[BP+6]} --- parameter kedua;
+    \item \code{[BP+8]} --- parameter ketiga, dan seterusnya.
+\end{itemize}
+
+Karena pemanggil mendorong parameter kedua lebih dahulu, parameter
+pertama-lah yang berada pada \code{[BP+4]}. Bila urutan \asm{PUSH}
+dibalik tanpa mengubah badan prosedur, kedua nilai akan tertukar
+tanpa pesan kesalahan apa pun.
+
+Variabel lokal disimpan di bawah \reg{BP}, misalnya pada
+\code{[BP-2]}, dengan mengurangi \reg{SP} pada akhir
+\eng{prologue} dan memulihkannya pada awal \eng{epilogue}:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+    PUSH BP                 ; prologue
+    MOV  BP, SP
+    SUB  SP, 4              ; sediakan dua variabel lokal 16-bit
+
+    MOV  WORD PTR [BP-2], 0 ; variabel lokal pertama
+    MOV  WORD PTR [BP-4], 0 ; variabel lokal kedua
+
+    MOV  SP, BP             ; epilogue : buang variabel lokal
+    POP  BP
+    RET
+\end{lstlisting}
+
+\subsection{Konvensi Pemanggilan}
+
+\term{Konvensi pemanggilan} (\eng{calling convention}) adalah
+kesepakatan antara pemanggil dan prosedur mengenai tiga hal: letak
+parameter, letak nilai balik, dan siapa yang membersihkan stack.
+Tanpa kesepakatan ini, prosedur yang ditulis satu orang tidak dapat
+dipakai oleh program orang lain \cite{uva2024}. Tiga cara pengiriman
+parameter yang lazim dipakai dirangkum pada Tabel~\ref{tab:konvensi}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan cara pengiriman parameter kepada prosedur.}
+    \label{tab:konvensi}
+    \small
+    \begin{tabular}{@{}p{2.4cm}p{3.6cm}p{3.7cm}p{3.5cm}@{}}
+        \toprule
+        \textbf{Cara} & \textbf{Kelebihan} &
+        \textbf{Kekurangan} & \textbf{Contoh} \\
+        \midrule
+        Melalui register & Tidak ada akses memori; paling cepat dan
+        paling ringkas & Jumlah parameter terbatas oleh jumlah
+        register; prosedur menjadi kurang umum &
+        \lstasm|MOV AX, 5| lalu \lstasm|CALL Tulis| \\
+        \addlinespace
+        Melalui stack & Jumlah parameter tidak terbatas; pemanggil
+        tidak perlu tahu register mana yang dipakai prosedur &
+        Lebih lambat karena setiap parameter menimbulkan akses
+        memori; rawan stack tidak seimbang &
+        \lstasm|PUSH 5| lalu \lstasm|CALL HitungLuas| \\
+        \addlinespace
+        Melalui variabel global & Prosedur sangat sederhana; tidak
+        ada instruksi tambahan sebelum pemanggilan & Prosedur tidak
+        dapat dipakai ulang; sulit ditelusuri saat kesalahan terjadi
+        & \lstasm|MOV lebar, 5| lalu \lstasm|CALL HitungLuas| \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Siapa yang membersihkan stack dari parameter? Bila prosedur yang
+membersihkannya, \eng{epilogue} berakhir dengan \asm{RET} \code{n}
+yang mengambil \reg{IP} lalu menambahkan \code{n} pada \reg{SP}
+sekaligus. Bila pemanggil yang membersihkannya, prosedur memakai
+\asm{RET} biasa dan pemanggil menambahkan \lstasm|ADD SP, 4|
+setelah \asm{CALL}. Keduanya tidak boleh dipakai bersama-sama:
+\asm{RET} \code{4} yang disusul \lstasm|ADD SP, 4| membuat \reg{SP}
+naik \dec{8} byte padahal hanya \dec{4} byte yang perlu dibuang.
+
+Pertanyaan ketiga menyangkut register. Pada 8086 tidak ada aturan
+perangkat keras yang memaksa, sehingga kesepakatan dibuat di tingkat
+program; pembagian yang lazim mengikuti Microsoft C untuk 8086
+dirangkum pada Tabel~\ref{tab:register-simpan}.
+
+\begin{table}[H]
+    \centering
+    \caption{Pembagian tanggung jawab penyimpanan register pada
+    konvensi pemanggilan 8086.}
+    \label{tab:register-simpan}
+    \small
+    \begin{tabular}{@{}p{3.3cm}p{2.6cm}p{3.5cm}p{3.8cm}@{}}
+        \toprule
+        \textbf{Golongan} & \textbf{Register} &
+        \textbf{Tanggung jawab} & \textbf{Akibat bila dilanggar} \\
+        \midrule
+        Boleh dirusak (\eng{caller-saved}) & \reg{AX}, \reg{BX},
+        \reg{CX}, \reg{DX}, \reg{ES} & Pemanggil menyimpan sendiri
+        bila nilainya masih diperlukan setelah pemanggilan &
+        Pemanggil memakai nilai yang sudah berubah \\
+        \addlinespace
+        Wajib dipulihkan (\eng{callee-saved}) & \reg{BP}, \reg{SI},
+        \reg{DI}, \reg{DS}, \reg{SS} & Prosedur menyimpan pada
+        \eng{prologue} dan memulihkan pada \eng{epilogue} &
+        Pemanggil kehilangan nilai lama; akses data dapat salah
+        alamat \\
+        \addlinespace
+        Selalu dipulihkan & \reg{SP} & Stack harus seimbang saat
+        \asm{RET} dijalankan & \asm{RET} mengambil alamat yang salah;
+        program berhenti tak terkendali \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Nilai Balik Prosedur}
+
+Nilai balik dikembalikan melalui register, bukan melalui stack:
+hasil \dec{8} bit pada \reg{AL}, hasil \dec{16} bit pada \reg{AX},
+dan hasil \dec{32} bit pada pasangan \reg{DX}:\reg{AX}. Pola
+\reg{DX}:\reg{AX} muncul secara alami karena \asm{MUL} dan
+\asm{IMUL} memang menyimpan hasil kalinya pada kedua register itu
+(Bab~\ref{chap:aritmatika}). \reg{AX} termasuk register yang boleh
+dirusak, sehingga prosedur tidak wajib memulihkannya.
+
+\subsection{Rekursi pada Assembly}
+
+\term{Rekursi} adalah pemanggilan prosedur oleh dirinya sendiri.
+Pada bahasa tingkat tinggi rekursi tampak sebagai fitur bahasa; pada
+assembly rekursi tampak jelas sebagai penumpukan bingkai stack.
+Setiap pemanggilan menambah satu bingkai baru yang berisi parameter,
+alamat kembali, dan \reg{BP} sendiri.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Prosedur faktorial rekursif (bagian inti).},
+    label={lst:faktorial-inti}
+]
+Faktorial PROC
+    PUSH BP                 ; prologue
+    MOV  BP, SP
+
+    MOV  AX, [BP+4]         ; AX <- n
+    CMP  AX, 1              ; apakah n <= 1 ?
+    JBE  basis              ; ya -> kasus basis
+
+    DEC  AX                 ; AX <- n - 1
+    PUSH AX                 ; dorong argumen (n-1)
+    CALL Faktorial          ; rekursi : AX <- (n-1)!
+    ADD  SP, 2              ; bersihkan argumen rekursif
+
+    MUL  WORD PTR [BP+4]    ; DX:AX <- (n-1)! * n
+
+    POP  BP                 ; epilogue
+    RET
+
+basis:
+    MOV  AX, 1              ; 0! = 1! = 1
+    POP  BP                 ; epilogue
+    RET
+Faktorial ENDP
+\end{lstlisting}
+
+Setiap bingkai rekursif memerlukan \dec{6} byte stack: \dec{2} byte
+parameter, \dec{2} byte alamat kembali, dan \dec{2} byte \reg{BP}
+lama. Untuk menghitung $5!$ diperlukan lima bingkai, yaitu sekitar
+\dec{30} byte, sehingga kebutuhan stack tumbuh sebanding dengan
+kedalaman rekursi atau setara $O(n)$.
+
+Fibonacci rekursif $F(n) = F(n-1) + F(n-2)$ jauh lebih berat karena
+setiap tingkat memanggil dirinya dua kali. Untuk $n = \dec{20}$ saja
+jumlah pemanggilannya melebihi \dec{10.000}, sedangkan versi
+iteratifnya cukup memakai satu perulangan dengan stack tetap. Karena
+itu Fibonacci jauh lebih baik ditulis secara iteratif pada assembly.
+
+\begin{peringatanbox}
+Bahaya terbesar rekursi pada 8086 adalah \term{stack overflow}.
+Prosesor 8086 tidak memiliki pengaman batas stack. Bila rekursi
+terlalu dalam atau kasus basis tidak pernah tercapai, \reg{SP} akan
+terus turun melewati batas bawah ruang \dir{.STACK}, lalu mulai
+menimpa segmen data atau segmen kode. Kerusakannya terjadi tanpa
+pesan kesalahan, dan program berhenti dengan perilaku yang sulit
+ditelusuri. Pemeriksaan isi stack dengan \eng{debugger} dibahas pada
+Bab~\ref{chap:debugging}.
+\end{peringatanbox}
+
+\subsection{Kesalahan Umum Pengelolaan Stack}
+
+Empat kesalahan berikut paling sering dijumpai.
+
+\begin{enumerate}
+    \item \textbf{Stack tidak seimbang.} Jumlah \asm{PUSH} tidak
+          sama dengan jumlah \asm{POP} pada setiap jalur eksekusi,
+          sehingga \asm{RET} mengambil alamat yang salah.
+
+    \item \textbf{\asm{RET} ke alamat yang salah.} Pemanggilan
+          \eng{near} ditutup dengan \asm{RETF} atau sebaliknya,
+          sehingga jumlah byte yang diambil dari stack tidak cocok.
+
+    \item \textbf{Lupa menyimpan register yang dipakai.} Prosedur
+          memakai \reg{SI} atau \reg{DI} tanpa menyimpannya,
+          sehingga pemanggil kehilangan nilai lama register itu.
+
+    \item \textbf{Kerusakan \eng{stack frame}.} \reg{BP} diubah di
+          tengah prosedur, atau jalur keluar prosedur melompati
+          \lstasm|POP BP|, sehingga epilogue memulihkan nilai yang
+          salah.
+\end{enumerate}

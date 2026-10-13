@@ -1,0 +1,79 @@
+\section{Rangkuman}
+\label{sec:rangkuman-bab2}
+
+Pada bab ini telah dibahas:
+
+\begin{itemize}
+    \item Model mesin von Neumann terdiri atas unit pemroses, memori,
+          unit masukan, dan unit keluaran. Ciri utamanya adalah
+          prinsip \eng{stored-program}: instruksi dan data disimpan
+          di memori yang sama.
+
+    \item Siklus instruksi terdiri atas \eng{fetch}, \eng{decode},
+          dan \eng{execute}, dengan \eng{store} sebagai langkah
+          tambahan pada 8086. Satu instruksi dapat memerlukan
+          beberapa siklus mesin.
+
+    \item ISA adalah kontrak instruksi antara perangkat lunak dan
+          perangkat keras. Kompatibilitas ISA membuat program 8086
+          masih dapat dijalankan pada prosesor x86 modern.
+
+    \item \eng{Opcode} menyatakan operasi, \eng{operand} menyatakan
+          data, dan \eng{mnemonic} adalah nama pendek opcode dalam
+          bahasa assembly.
+
+    \item Register adalah penyimpan kecil di dalam prosesor dengan
+          akses jauh lebih cepat daripada memori. Jumlahnya terbatas,
+          sehingga harus dikelola secara sadar.
+
+    \item Penyandian data di level mesin meliputi biner,
+          heksadesimal, \eng{two's complement}, BCD, dan ASCII.
+          Representasi yang sama dapat memiliki tafsiran berbeda
+          bergantung pada apakah bilangan diperlakukan bertanda atau
+          tak bertanda.
+
+    \item \eng{Carry} (\flag{CF}) menandakan kelebihan pada operasi
+          tak bertanda, sedangkan \eng{overflow} (\flag{OF})
+          menandakan kelebihan pada operasi bertanda. Keduanya harus
+          dibedakan.
+
+    \item Peta konsep buku menunjukkan empat klaster kompetensi yang
+          saling bergantung, dan urutan bab mengikuti
+          ketergantungan tersebut.
+\end{itemize}
+
+\begin{checklistbox}
+Tandai setiap butir yang sudah Anda kuasai.
+
+\begin{itemize}
+    \item[\checkbox] Saya dapat menjelaskan model von Neumann dan
+          prinsip \eng{stored-program}.
+    \item[\checkbox] Saya dapat menjelaskan tahapan siklus instruksi.
+    \item[\checkbox] Saya dapat mendefinisikan ISA, \eng{opcode},
+          \eng{operand}, \eng{mnemonic}, dan register dengan kalimat
+          saya sendiri.
+    \item[\checkbox] Saya dapat mengonversi bilangan antara biner,
+          heksadesimal, dan desimal tanpa alat bantu.
+    \item[\checkbox] Saya dapat menyatakan bilangan negatif dalam
+          \eng{two's complement} dan memverifikasinya.
+    \item[\checkbox] Saya dapat membedakan \eng{carry} dan
+          \eng{overflow} beserta flag yang menandainya.
+    \item[\checkbox] Saya dapat menjelaskan penyandian BCD dan ASCII
+          serta perbedaan nilai dengan sandian karakter.
+    \item[\checkbox] Saya dapat membaca peta konsep buku dan
+          menjelaskan urutan ketergantungan antarbab.
+\end{itemize}
+
+\vspace{0.4em}
+Bila masih ada butir yang belum bertanda, ulangi bagian yang
+bersesuaian sebelum melanjutkan ke Bab~\ref{chap:pengenalan}.
+\end{checklistbox}
+
+\begin{infobox}
+\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
+\cite{tanenbaum2013}, \cite{stallings2016}, dan \cite{brey2009}
+untuk organisasi komputer dan representasi data. Untuk gambaran
+teknis 8086 yang lebih rinci, lihat \cite{intel1979}. Pembahasan
+\eng{two's complement} dan operasi bertanda pada bahasa assembly
+dapat dilihat pada \cite{hyde2010}.
+\end{infobox}

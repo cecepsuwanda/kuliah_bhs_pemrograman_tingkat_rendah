@@ -1,0 +1,119 @@
+\section{Evaluasi}
+\label{sec:evaluasi-bab3}
+
+\subsection{Soal Pilihan Ganda}
+
+\begin{enumerate}
+    \item Hubungan antara satu instruksi assembly dan instruksi mesin
+          yang dihasilkannya adalah \dots
+          \begin{enumerate}
+              \item satu instruksi assembly dapat menghasilkan banyak
+                    instruksi mesin
+              \item satu instruksi assembly menghasilkan tepat satu
+                    instruksi mesin
+              \item banyak instruksi assembly menghasilkan satu
+                    instruksi mesin
+              \item tidak ada hubungan tetap di antara keduanya
+          \end{enumerate}
+
+    \item Berkas keluaran yang dihasilkan langsung oleh assembler
+          TASM adalah \dots
+          \begin{enumerate}
+              \item \file{.asm} \item \file{.obj}
+              \item \file{.exe} \item \file{.lst}
+          \end{enumerate}
+
+    \item Pada program \file{.COM}, direktif yang wajib ditulis di
+          awal segmen kode adalah \dots
+          \begin{enumerate}
+              \item \dir{.MODEL SMALL} \item \dir{ORG 100h}
+              \item \dir{.STACK 100h} \item \dir{ASSUME CS:CODE}
+          \end{enumerate}
+
+    \item Instruksi \lstasm|MOV AX, @DATA| diikuti
+          \lstasm|MOV DS, AX| diperlukan karena \dots
+          \begin{enumerate}
+              \item 8086 tidak mengizinkan nilai segera langsung ke
+                    register segmen
+              \item \reg{AX} adalah satu-satunya register yang boleh
+                    menampung alamat
+              \item DOS selalu mengosongkan \reg{DS} saat program
+                    dimuat
+              \item linker memerlukan nilai pada \reg{AX}
+          \end{enumerate}
+
+    \item Fungsi layanan DOS untuk mengakhiri program adalah \dots
+          \begin{enumerate}
+              \item \hex{09} \item \hex{02}
+              \item \hex{4C} \item \hex{01}
+          \end{enumerate}
+\end{enumerate}
+
+\subsection{Soal Uraian}
+
+\begin{enumerate}
+    \item Gambarkan diagram rantai proses dari berkas \file{.asm}
+          sampai program berjalan di memori. Jelaskan tugas setiap
+          tahap dan sebutkan perangkat lunak yang berperan pada
+          masing-masing tahap.
+
+    \item Jelaskan mengapa program \file{.COM} tidak memerlukan
+          inisialisasi \reg{DS}, sedangkan program \file{.EXE}
+          memerlukannya. Kaitkan jawaban Anda dengan cara DOS
+          memuat kedua bentuk program tersebut.
+
+    \item Sebuah program \file{.EXE} dirakit tanpa kesalahan, tetapi
+          saat dijalankan hanya menampilkan karakter sampah.
+          Sebutkan tiga kemungkinan penyebab dan langkah pemeriksaan
+          untuk masing-masing penyebab.
+
+    \item Tuliskan program lengkap yang mencetak dua baris teks:
+          nama Anda pada baris pertama dan NIM Anda pada baris kedua.
+          Gunakan layanan DOS \code{INT 21h} fungsi \hex{09}.
+\end{enumerate}
+
+\subsection{Kisi-kisi Penilaian}
+
+\begin{table}[H]
+    \centering
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:pengenalan}.}
+    \label{tab:kisi-bab3}
+    \small
+    \begin{tabular}{@{}p{1.5cm}p{5.0cm}p{2.6cm}c@{}}
+        \toprule
+        \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
+        \textbf{Bentuk soal} & \textbf{Bobot} \\
+        \midrule
+        1.1 & Menjelaskan tingkat abstraksi bahasa dan peran assembly &
+        Pilihan ganda 1, 2 & 15\% \\
+        \addlinespace
+        1.1 & Menjelaskan rantai proses dan tugas assembler/linker &
+        Uraian 1 & 25\% \\
+        \addlinespace
+        1.1 & Menganalisis struktur program dan inisialisasi segmen &
+        Pilihan ganda 3, 4; Uraian 2 & 30\% \\
+        \addlinespace
+        1.1 & Menulis dan menelusuri kesalahan program sederhana &
+        Uraian 3, 4; Pilihan ganda 5 & 30\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{checklistbox}
+\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:pengenalan}}
+
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 1.1 apabila:
+\begin{itemize}
+    \item[\checked] dapat menjelaskan kedudukan bahasa assembly di
+          antara bahasa mesin dan bahasa tingkat tinggi;
+    \item[\checked] dapat menguraikan tahapan \file{.asm} $\rightarrow$
+          \file{.obj} $\rightarrow$ \file{.exe} beserta peran setiap
+          perangkat lunak;
+    \item[\checked] dapat menuliskan kerangka program assembly
+          minimal beserta alasan setiap direktifnya;
+    \item[\checked] berhasil merakit dan menjalankan program pertama
+          dengan keluaran yang benar;
+    \item[\checked] dapat menjelaskan peran inisialisasi \reg{DS} dan
+          akibat bila dihilangkan.
+\end{itemize}
+\end{checklistbox}

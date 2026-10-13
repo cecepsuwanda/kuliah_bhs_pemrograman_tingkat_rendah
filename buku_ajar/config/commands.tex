@@ -1,0 +1,55 @@
+% =========================================================
+% config/commands.tex
+% Custom command bersama seluruh buku.
+% Jangan mendefinisikan command yang sudah ada di sini
+% (lihat Aturan 2 pada Arsitektur_Buku_Ajar.md).
+% =========================================================
+
+% ---------------------------------------------------------
+% Penanda istilah teknis
+% ---------------------------------------------------------
+\newcommand{\code}[1]{\texttt{#1}}          % kode / sintaks umum
+\newcommand{\asm}[1]{\texttt{#1}}           % mnemonic instruksi assembly
+\newcommand{\reg}[1]{\texttt{#1}}           % nama register
+\newcommand{\flag}[1]{\texttt{#1}}          % nama flag
+\newcommand{\dir}[1]{\texttt{#1}}           % direktif assembler
+\newcommand{\file}[1]{\texttt{#1}}          % nama berkas
+\newcommand{\eng}[1]{\textit{#1}}           % istilah asing
+
+% ---------------------------------------------------------
+% Bilangan
+% ---------------------------------------------------------
+\newcommand{\hex}[1]{\texttt{#1h}}          % heksadesimal: \hex{1234} -> 1234h
+\newcommand{\bin}[1]{\texttt{#1b}}          % biner
+\newcommand{\dec}[1]{\texttt{#1}}           % desimal
+
+% ---------------------------------------------------------
+% Penekanan
+% ---------------------------------------------------------
+\newcommand{\important}[1]{\textbf{Penting:} #1}
+\newcommand{\note}[1]{\textbf{Catatan:} #1}
+\newcommand{\term}[1]{\textbf{#1}}          % istilah yang didefinisikan
+
+% ---------------------------------------------------------
+% Singkatan OBE
+% ---------------------------------------------------------
+\newcommand{\CPL}[1]{\textbf{CPL#1}}
+\newcommand{\CPMK}[1]{\textbf{CPMK#1}}
+\newcommand{\SubCPMK}[1]{\textbf{Sub-CPMK #1}}
+
+% ---------------------------------------------------------
+% Tanda checklist
+% ---------------------------------------------------------
+\newcommand{\checkbox}{\ding{113}\hspace{0.35em}}
+\newcommand{\checked}{\ding{51}\hspace{0.35em}}
+\newcommand{\crossed}{\ding{55}\hspace{0.35em}}
+
+% ---------------------------------------------------------
+% Penanda revisi / TODO (jangan dipakai pada naskah final)
+% ---------------------------------------------------------
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+
+% ---------------------------------------------------------
+% Arah panah pada diagram
+% ---------------------------------------------------------
+\newcommand{\flowarrow}{\ensuremath{\rightarrow}}

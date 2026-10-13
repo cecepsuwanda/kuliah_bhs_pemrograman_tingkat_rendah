@@ -1,0 +1,190 @@
+\section{Contoh Program}
+\label{sec:contoh-bab16}
+
+Bagian ini menyajikan tiga program yang mengerjakan pekerjaan
+\emph{sama persis}, yaitu menjumlahkan sepuluh elemen larik lalu
+mengalikan jumlahnya dengan delapan. Larik berisi
+$10, 20, \dots, 100$, sehingga jumlahnya $550$ dan hasil akhirnya
+$4400$ atau \hex{1130}. Ketiga program dibedakan hanya oleh cara
+mengerjakannya, sehingga keduanya dapat dibandingkan secara adil.
+
+\subsection{Contoh 1: Versi Naif}
+
+Kode~\ref{lst:program-naif} adalah versi yang ditulis tanpa
+memikirkan efisiensi. Program ini benar dan mudah dibaca, tetapi
+memuat beberapa pemborosan.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Versi naif: \file{naif.asm}.},
+    label={lst:program-naif}
+]{\CodeDir/naif.asm}
+
+Empat inefisiensi dapat ditemukan pada program tersebut.
+
+\begin{enumerate}
+    \item Instruksi \lstasm|ADD AX, larik[SI]| memakai pengalamatan
+          langsung berindeks, sehingga alamat efektifnya memerlukan
+          8 siklus, bukan 5 siklus seperti \lstasm|[SI]|.
+    \item \lstasm|MOV AX, 0| berukuran tiga byte, padahal ada cara
+          yang hanya dua byte.
+    \item Hasil akhir ditulis ke memori (\code{jumlah}) lalu dibaca
+          kembali, padahal nilainya sudah ada di \reg{AX}. Ini
+          menambah dua akses memori yang tidak perlu.
+    \item \lstasm|MUL BX| untuk mengalikan dengan delapan adalah
+          pilihan paling mahal di seluruh program: 118--133 siklus
+          untuk pekerjaan yang dapat diselesaikan dalam enam siklus.
+\end{enumerate}
+
+\subsection{Contoh 2: Versi Teroptimasi}
+
+Kode~\ref{lst:program-teroptimasi} memperbaiki keempat hal tersebut
+tanpa mengubah hasil akhir.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Versi teroptimasi: \file{teroptimasi.asm}.},
+    label={lst:program-teroptimasi}
+]{\CodeDir/teroptimasi.asm}
+
+Empat perbaikan yang diterapkan adalah sebagai berikut.
+
+\begin{itemize}
+    \item \lstasm|MOV SI, OFFSET larik| membuat \reg{SI} menunjuk
+          langsung ke data, sehingga pengalamatan
+          \lstasm|ADD AX, [SI]| hanya memerlukan 5 siklus alamat
+          efektif.
+    \item \lstasm|XOR AX, AX| mengosongkan akumulator dalam dua byte
+          dan tiga siklus.
+    \item Nilai antara tidak lagi bolak-balik ke memori; \reg{AX}
+          langsung dipakai sebagai akumulator sampai akhir.
+    \item \lstasm|MUL BX| diganti tiga kali \lstasm|SHL AX, 1|.
+          Totalnya enam siklus, yaitu sekitar dua puluh kali lebih
+          cepat daripada satu instruksi \asm{MUL}.
+\end{itemize}
+
+\subsection{Contoh 3: Versi Teroptimasi dengan \eng{Loop Unrolling}}
+
+Kode~\ref{lst:program-unroll} menambahkan satu teknik lagi:
+isi perulangan digandakan sehingga satu iterasi mengerjakan dua
+elemen. Jumlah iterasi turun dari sepuluh menjadi lima.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Versi teroptimasi dengan \eng{unrolling}:
+    \file{teroptimasi-unroll.asm}.},
+    label={lst:program-unroll}
+]{\CodeDir/teroptimasi-unroll.asm}
+
+\subsection{Perbandingan Hasil Disassembly}
+
+Gambar~\ref{fig:disasm-bandingan} menampilkan potongan hasil
+\eng{disassembly} kedua versi utama secara berdampingan. Keduanya
+dibongkar dengan asumsi program dimuat pada alamat
+\hex{1D2F:0100}, larik berada pada offset \hex{01F4}, variabel
+\code{jumlah} pada offset \hex{0208}, dan variabel \code{hasil} pada
+offset \hex{020A}.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \textbf{Versi naif}\\[0.3em]
+        \begin{lstlisting}[language=MASM, numbers=none, aboveskip=0pt]
+1D2F:0100 B90A00   MOV  CX,000A
+1D2F:0103 BE0000   MOV  SI,0000
+1D2F:0106 B80000   MOV  AX,0000
+1D2F:0109 0384F401 ADD  AX,[SI+01F4]
+1D2F:010D 83C602   ADD  SI,+02
+1D2F:0110 E2F7     LOOP 0109
+1D2F:0112 89060802 MOV  [0208],AX
+1D2F:0116 8B060802 MOV  AX,[0208]
+1D2F:011A BB0800   MOV  BX,0008
+1D2F:011D F7E3     MUL  BX
+1D2F:011F 89060A02 MOV  [020A],AX
+        \end{lstlisting}
+        {\scriptsize 11 instruksi, 35 byte}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \textbf{Versi teroptimasi}\\[0.3em]
+        \begin{lstlisting}[language=MASM, numbers=none, aboveskip=0pt]
+1D2F:0100 B90A00   MOV  CX,000A
+1D2F:0103 BEF401   MOV  SI,01F4
+1D2F:0106 31C0     XOR  AX,AX
+1D2F:0108 0304     ADD  AX,[SI]
+1D2F:010A 83C602   ADD  SI,+02
+1D2F:010D E2F9     LOOP 0108
+1D2F:010F D1E0     SHL  AX,1
+1D2F:0111 D1E0     SHL  AX,1
+1D2F:0113 D1E0     SHL  AX,1
+1D2F:0115 89060A02 MOV  [020A],AX
+        \end{lstlisting}
+        {\scriptsize 10 instruksi, 25 byte}
+    \end{minipage}
+    \caption{Perbandingan hasil \eng{disassembly} versi naif dan
+    versi teroptimasi.}
+    \label{fig:disasm-bandingan}
+\end{figure}
+
+Tiga perbedaan penting tampak pada kedua kolom tersebut.
+
+\begin{itemize}
+    \item \lstasm|ADD AX, [SI+01F4]| pada versi naif mengandung
+          \eng{displacement} \hex{01F4}: nama simbolik \code{larik}
+          hilang dan berubah menjadi angka. Versi teroptimasi
+          menghasilkan \lstasm|ADD AX, [SI]| yang lebih pendek dua
+          byte.
+    \item \lstasm|MOV AX, 0000| (3 byte) digantikan
+          \lstasm|XOR AX, AX| (2 byte).
+    \item Urutan \lstasm|MOV [0208],AX|, \lstasm|MOV AX,[0208]|,
+          \lstasm|MOV BX,0008|, \lstasm|MUL BX| digantikan oleh tiga
+          \lstasm|SHL AX, 1|. Perhatikan bahwa hasil
+          \eng{disassembly} sama sekali tidak memberi tahu mengapa
+          perubahan itu dilakukan; penjelasannya hanya ada pada
+          perbandingan metrik.
+\end{itemize}
+
+\subsection{Perbandingan Hasil Pengukuran}
+
+Tabel~\ref{tab:hasil-pengukuran-16} merangkum perbandingan ketiga
+versi. Angka siklus dihitung memakai perkiraan pada
+Tabel~\ref{tab:siklus-8086-perkiraan} dengan asumsi tanpa
+\eng{wait state} dan \eng{prefetch queue} selalu terisi. Bagian yang
+diukur adalah bagian yang ditandai komentar pada ketiga berkas.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan hasil pengukuran versi naif dan versi
+    teroptimasi.}
+    \label{tab:hasil-pengukuran-16}
+    \small
+    \begin{tabular}{@{}p{3.6cm}cccc@{}}
+        \toprule
+        \textbf{Versi} & \textbf{Instruksi} & \textbf{Ukuran} &
+        \textbf{Perkiraan} & \textbf{Akses} \\
+        & \textbf{dieksekusi} & \textbf{kode} &
+        \textbf{siklus} & \textbf{memori} \\
+        \midrule
+        Naif & 38 & 35 byte & $\approx$546 & 13 \\
+        \addlinespace
+        Teroptimasi & 37 & 25 byte & $\approx$370 & 11 \\
+        \addlinespace
+        Teroptimasi + \eng{unrolling} & 27 & 28 byte & $\approx$280
+        & 11 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Tabel~\ref{tab:hasil-pengukuran-16} menyimpan pelajaran penting.
+Pertama, jumlah instruksi yang dieksekusi hampir tidak berubah
+antara versi naif dan versi teroptimasi (38 berbanding 37), padahal
+perkiraan siklusnya turun sekitar 32 persen. Artinya, \important{jumlah
+instruksi saja adalah metrik yang menyesatkan}; yang menentukan
+adalah \emph{jenis} instruksi dan banyaknya akses memori. Kedua,
+versi \eng{unrolling} paling cepat tetapi ukurannya bertambah tiga
+byte dibandingkan versi teroptimasi; inilah trade-off yang dibahas
+pada Subbab~\ref{sec:optimasi-instruksi}. Ketiga, angka-angka ini
+baru perkiraan. Pembuktiannya tetap memerlukan pengukuran waktu pada
+mesin, seperti yang akan dikerjakan pada praktikum.

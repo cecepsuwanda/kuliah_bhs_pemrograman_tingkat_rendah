@@ -1,0 +1,183 @@
+\section{Representasi Data pada Level Mesin}
+\label{sec:representasi-data}
+
+Prosesor tidak mengenal huruf, tanda minus, maupun angka desimal. Ia
+hanya mengenal tegangan tinggi dan rendah, yang dimodelkan sebagai
+bit bernilai 1 dan 0. Karena itu seluruh data --- bilangan, huruf,
+warna, bahkan instruksi --- harus disandikan menjadi deretan bit.
+Bagian ini membahas penyandian yang paling sering dipakai.
+
+\subsection{Sistem Bilangan Biner, Heksadesimal, dan Desimal}
+
+Satu byte terdiri atas delapan bit dan dapat menyatakan
+\dec{256} nilai berbeda, yaitu \dec{0} sampai \dec{255}. Angka
+heksadesimal dipakai sebagai singkatan karena satu digit
+heksadesimal tepat mewakili empat bit (satu \eng{nibble}).
+
+\begin{table}[H]
+    \centering
+    \caption{Kesetaraan empat bit, digit heksadesimal, dan desimal.}
+    \label{tab:hex-digit}
+    \small
+    \begin{tabular}{@{}cccc@{}}
+        \toprule
+        \textbf{Biner} & \textbf{Heksadesimal} & \textbf{Desimal} &
+        \textbf{Bobot posisi} \\
+        \midrule
+        \bin{0000} & \hex{0} & 0 & $2^0 = 1$ \\
+        \addlinespace
+        \bin{0001} & \hex{1} & 1 & $2^1 = 2$ \\
+        \addlinespace
+        \bin{0010} & \hex{2} & 2 & $2^2 = 4$ \\
+        \addlinespace
+        \bin{0100} & \hex{4} & 4 & $2^3 = 8$ \\
+        \addlinespace
+        \bin{1000} & \hex{8} & 8 & \\
+        \addlinespace
+        \bin{1010} & \hex{A} & 10 & \\
+        \addlinespace
+        \bin{1111} & \hex{F} & 15 & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Konversi biner ke heksadesimal dilakukan dengan mengelompokkan bit
+per empat dari kanan. Konversi ke desimal dilakukan dengan
+menjumlahkan bobot posisi setiap bit yang bernilai 1. Contoh:
+
+\begin{align*}
+    \bin{1011\,0110} &= \hex{B6} \\
+    &= 11 \times 16 + 6 = 176 + 6 = 182
+\end{align*}
+
+Sebaliknya, konversi desimal ke heksadesimal dilakukan dengan
+pembagian berulang oleh \dec{16} dan mencatat sisanya dari bawah ke
+atas.
+
+\subsection{Bilangan Bertanda dan \eng{Two's Complement}}
+
+Bilangan biner di atas belum memiliki tanda. Untuk menyatakan
+bilangan negatif, 8086 memakai representasi \term{two's complement}.
+Aturannya sederhana: bilangan paling kiri (bit paling bermakna)
+menjadi bit tanda. Nilai 0 berarti positif, nilai 1 berarti negatif.
+
+\begin{definisi}[Two's complement]
+Untuk mencari bentuk \eng{two's complement} dari sebuah bilangan,
+balikkan seluruh bitnya (satu menjadi nol dan sebaliknya), lalu
+tambahkan satu.
+\end{definisi}
+
+\begin{table}[H]
+    \centering
+    \caption{Representasi 8-bit: tak bertanda dan bertanda.}
+    \label{tab:twos-complement}
+    \small
+    \begin{tabular}{@{}cccc@{}}
+        \toprule
+        \textbf{Biner} & \textbf{Tak bertanda} &
+        \textbf{Bertanda (two's complement)} & \textbf{Keterangan} \\
+        \midrule
+        \bin{0000\,0000} & 0 & 0 & nol \\
+        \addlinespace
+        \bin{0111\,1111} & 127 & +127 & maksimum positif \\
+        \addlinespace
+        \bin{1000\,0000} & 128 & $-128$ & minimum negatif \\
+        \addlinespace
+        \bin{1111\,1111} & 255 & $-1$ & komplemen dari 1 \\
+        \addlinespace
+        \bin{1111\,0110} & 246 & $-10$ & komplemen dari 10 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Rentang nilai yang dapat dinyatakan berbeda antara kedua tafsiran:
+tak bertanda \dec{0} sampai \dec{255}, bertanda $-128$ sampai
+$+127$. \important{Ketika menjumlahkan dua bilangan bertanda,
+hasilnya bisa \emph{melampaui} rentang yang tersedia. Peristiwa ini
+disebut \eng{overflow} dan ditandai oleh flag \flag{OF}.} Perhatikan
+bahwa \eng{overflow} berbeda dari \eng{carry}: \eng{carry}
+(\flag{CF}) menandakan kelebihan pada penjumlahan \emph{tak
+bertanda}, sedangkan \eng{overflow} (\flag{OF}) menandakan kelebihan
+pada penjumlahan \emph{bertanda}. Pembedaan ini dibahas tuntas pada
+Bab~\ref{chap:register}.
+
+\subsection{BCD dan ASCII}
+
+Dua penyandian lain perlu dikenal karena erat kaitannya dengan
+operasi masukan/keluaran pada 8086.
+
+\begin{description}
+    \item[BCD (\eng{Binary Coded Decimal})] Setiap digit desimal
+          disandikan dalam empat bit. Angka \dec{47} menjadi
+          \bin{0100\,0111}, bukan \bin{0010\,1111}. Penyandian ini
+          memudahkan pengubahan ke tampilan desimal, dan operasi
+          koreksinya disediakan oleh instruksi \asm{DAA} dan
+          \asm{DAS}.
+
+    \item[ASCII] Setiap karakter disandikan dalam tujuh atau delapan
+          bit. Huruf \code{A} adalah \hex{41}, huruf \code{a} adalah
+          \hex{61}, dan digit \code{7} adalah \hex{37}. Perhatikan
+          bahwa digit karakter tidak sama dengan nilai bilangannya;
+          konversi antara keduanya memerlukan penambahan atau
+          pengurangan \hex{30}.
+\end{description}
+
+\begin{infobox}
+Perbedaan antara nilai dan sandian karakter adalah sumber kesalahan
+yang sangat sering terjadi pada pemrograman assembly. Menulis
+\code{'7'} berarti menyimpan \hex{37}, sedangkan menulis \dec{7}
+berarti menyimpan \hex{07}. Untuk mencetak sebuah bilangan,
+program harus lebih dahulu mengubah nilai biner menjadi deretan
+sandian karakter. Algoritmanya dibahas pada
+Bab~\ref{chap:aritmatika}.
+\end{infobox}
+
+\subsection{Peta Konsep Buku}
+
+Gambar~\ref{fig:peta-konsep} memperlihatkan bagaimana bab-bab buku
+ini saling bergantung. Bab~III--VI membangun pemahaman tentang
+mesin, Bab~VII--IX menjelaskan bagaimana instruksi berhubungan
+dengan perangkat keras, Bab~X--XIII melatih penulisan program,
+Bab~XIV melengkapi dengan operasi masukan/keluaran, dan
+Bab~XV--XVI menutup dengan kemampuan analisis serta perbaikan.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        klaster/.style={
+            draw=obeBlue, line width=0.9pt, rounded corners=4pt,
+            inner sep=7pt, align=center, text width=3.7cm
+        },
+        hub/.style={-{Stealth[length=2.5mm]}, line width=1pt, obeTeal,
+                    dashed}
+    ]
+        \node[klaster, fill=obeBlueLight] (k1) {
+            {\small\bfseries CPMK01 --- Mesin}\\[0.3em]
+            {\scriptsize Bab III--VI\\arsitektur, register,\\segmentasi memori}
+        };
+        \node[klaster, fill=obeAmberLight, draw=obeAmber,
+              right=0.5cm of k1] (k2) {
+            {\small\bfseries CPMK02 --- Instruksi}\\[0.3em]
+            {\scriptsize Bab VII--IX, XIV\\format instruksi, mode\\pengalamatan, interupsi}
+        };
+        \node[klaster, fill=obeTealLight, draw=obeTeal,
+              below=0.6cm of k1] (k3) {
+            {\small\bfseries CPMK03 --- Menulis}\\[0.3em]
+            {\scriptsize Bab X--XIII\\aritmatika, logika,\\kontrol, prosedur}
+        };
+        \node[klaster, fill=obeGreenLight, draw=obeGreen,
+              right=0.5cm of k3] (k4) {
+            {\small\bfseries CPMK04 --- Perbaikan}\\[0.3em]
+            {\scriptsize Bab XV--XVI\\debugging, disassembly,\\optimasi}
+        };
+
+        \draw[hub] (k1) -- (k2);
+        \draw[hub] (k1) -- (k3);
+        \draw[hub] (k3) -- (k4);
+        \draw[hub] (k3) -- (k2);
+    \end{tikzpicture}
+    \caption{Peta konsep buku: empat klaster kompetensi dan bab-bab
+    yang menopangnya. Garis putus-putus menunjukkan ketergantungan
+    materi.}
+    \label{fig:peta-konsep}
+\end{figure}

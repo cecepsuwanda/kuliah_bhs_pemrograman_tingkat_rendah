@@ -1,0 +1,187 @@
+\section{Direktif Simbol, Lokasi, dan Struktur Program}
+\label{sec:direktif-simbol-struktur}
+
+Selain mengisi data, direktif juga dipakai untuk memberi nama pada
+nilai dan untuk menata letak bagian-bagian program. Keduanya
+menentukan bagaimana assembler menafsirkan berkas sumber.
+
+\subsection{Konstanta Simbolik: \dir{EQU} dan \code{=}}
+
+Direktif \dir{EQU} memberi nama pada sebuah nilai agar program lebih
+mudah dibaca. Setelah \lstasm|KELUAR EQU 4Ch| ditulis, setiap
+kemunculan \code{KELUAR} digantikan \hex{4C} saat perakitan. Nama
+semacam ini disebut \term{konstanta simbolik}.
+
+Direktif \code{=} memiliki bentuk penulisan serupa, yaitu
+\lstasm|URUTAN = 10|, tetapi sifatnya berbeda.
+Tabel~\ref{tab:equ-vs-sama-dengan} merangkum perbedaannya.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan direktif \dir{EQU} dan \code{=}.}
+    \label{tab:equ-vs-sama-dengan}
+    \small
+    \begin{tabular}{@{}p{3.6cm}p{4.9cm}p{4.9cm}@{}}
+        \toprule
+        \textbf{Aspek} & \dir{EQU} & \code{=} \\
+        \midrule
+        Sifat simbol & Konstanta tetap sepanjang berkas &
+        Nilai yang boleh berubah \\
+        \addlinespace
+        Dapat didefinisikan ulang & Tidak; assembler melaporkan
+        \file{Symbol already defined} & Ya; definisi terakhir yang
+        berlaku \\
+        \addlinespace
+        Jenis nilai yang boleh & Bilangan, alamat, teks, atau
+        ekspresi apa pun yang dapat dihitung assembler &
+        Wajib berupa bilangan \\
+        \addlinespace
+        Pemakaian khas & Nama nomor fungsi DOS, ukuran tabel,
+        konstanta ASCII & Penghitung di dalam makro atau blok
+        yang diulang \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Perbedaan ``tidak dapat diubah'' dan ``dapat didefinisikan ulang''
+paling jelas terlihat pada dua potongan program berikut.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Definisi ulang \dir{EQU} yang menimbulkan kesalahan.},
+    label={lst:equ-salah}
+]
+LEBAR   EQU 80          ; definisi pertama
+LEBAR   EQU 40          ; **Error** Symbol already defined: LEBAR
+\end{lstlisting}
+
+\begin{session}[caption={Pesan yang dikeluarkan TASM untuk Kode~\ref{lst:equ-salah}.}, label={lst:pesan-error-equ}]
+Turbo Assembler  Version 4.1
+**Error** equ-salah.asm(2) Symbol already defined: LEBAR
+**Error** equ-salah.asm(2) Cannot define symbol
+0 errors in pass 1
+2 errors
+\end{session}
+
+Sebaliknya, pemakaian \code{=} pada baris kedua tidak menimbulkan
+kesalahan apa pun; nilai \code{URUTAN} berubah dari \dec{10} menjadi
+\dec{20}, dan pemakaian sesudahnya akan memakai nilai terakhir.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Definisi ulang \code{=} yang sah dan mengubah nilai terakhir.},
+    label={lst:sama-dengan}
+]
+URUTAN  = 10            ; nilai pertama
+    ; ... instruksi yang memakai URUTAN = 10
+URUTAN  = 20            ; sah: nilai sekarang menjadi 20
+    ; ... instruksi yang memakai URUTAN = 20
+\end{lstlisting}
+
+\begin{infobox}
+Beberapa versi TASM mengizinkan \dir{EQU} ditulis ulang bila nilai
+barunya \emph{persis sama}. Untuk menghindari perbedaan perilaku
+antarversi, anggap saja \dir{EQU} tidak dapat didefinisikan ulang
+dan pakailah \code{=} bila membutuhkan nilai yang berubah.
+\end{infobox}
+
+\subsection{Direktif Lokasi dan Struktur}
+
+Direktif kelompok ini mengatur \emph{di mana} sesuatu diletakkan dan
+\emph{bagaimana} program dibagi menjadi bagian-bagian.
+
+\begin{description}
+    \item[\dir{ORG}] Menetapkan penghitung lokasi (\eng{location
+          counter}). Pada program \file{.COM}, \lstasm|ORG 100h|
+          wajib ditulis karena DOS memuat program pada
+          \eng{offset} \hex{100}.
+
+    \item[\dir{SEGMENT} dan \dir{ENDS}] Menandai awal dan akhir
+          sebuah segmen bernama. Setiap \dir{SEGMENT} harus ditutup
+          \dir{ENDS}. Bab~\ref{chap:pengenalan} telah menjelaskan
+          bahwa program \file{.COM} menyatukan seluruh bagian dalam
+          satu segmen, sedangkan program \file{.EXE}
+          memisahkannya.
+
+    \item[\dir{ASSUME}] Memberi tahu assembler register segmen mana
+          yang dianggap menunjuk ke segmen tertentu, sehingga
+          segmen \eng{default} sebuah label dapat ditentukan.
+          Direktif ini tidak mengubah isi register saat program
+          berjalan.
+
+    \item[\dir{END}] Menutup berkas sumber; baris sesudahnya
+          diabaikan. Bila diberi label, misalnya
+          \lstasm|END START|, assembler juga mencatat label itu
+          sebagai titik masuk (\eng{entry point}) program.
+\end{description}
+
+Kesalahan \eng{END} tanpa label pada bentuk \file{.EXE} sangat
+mudah dikenali: perakit selesai tanpa pesan kesalahan, tetapi
+linker mengeluh karena tidak menemukan titik masuk program.
+Pembahasan bentuk kedua berkas program ini dapat ditinjau kembali
+pada Bab~\ref{chap:pengenalan}.
+
+\subsection{Model Memori dan Struktur Prosedur}
+
+Direktif \dir{.MODEL} memberi tahu assembler berapa banyak segmen
+yang akan dipakai program sekaligus menetapkan simbol bawaan seperti
+\code{@DATA}.
+
+\begin{table}[H]
+    \centering
+    \caption{Model memori \dir{.MODEL} dan pengaruhnya pada segmen.}
+    \label{tab:model-memori}
+    \small
+    \begin{tabular}{@{}p{1.9cm}p{3.9cm}p{3.2cm}p{4.4cm}@{}}
+        \toprule
+        \textbf{Model} & \textbf{Batas kode} &
+        \textbf{Batas data} & \textbf{Jumlah segmen} \\
+        \midrule
+        \file{TINY} & 64 KB & 64 KB & Satu segmen untuk kode,
+        data, dan \eng{stack}; dipakai untuk \file{.COM} \\
+        \addlinespace
+        \file{SMALL} & 64 KB & 64 KB & Satu segmen kode, satu
+        segmen data; pilihan lazim untuk pembelajaran \\
+        \addlinespace
+        \file{MEDIUM} & Tidak dibatasi & 64 KB & Satu segmen data,
+        banyak segmen kode \\
+        \addlinespace
+        \file{COMPACT} & 64 KB & Tidak dibatasi & Satu segmen
+        kode, banyak segmen data \\
+        \addlinespace
+        \file{LARGE} & Tidak dibatasi & Tidak dibatasi & Banyak
+        segmen kode dan data; satu \eng{array} maksimum 64 KB \\
+        \addlinespace
+        \file{HUGE} & Tidak dibatasi & Tidak dibatasi & Seperti
+        \file{LARGE}, tetapi satu \eng{array} boleh melewati
+        batas 64 KB \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Semakin besar model, semakin banyak segmen yang harus diurus
+program. Pada model \file{MEDIUM} atau \file{LARGE}, prosedur di
+segmen kode lain harus dipanggil sebagai \eng{far procedure}
+sehingga register \reg{CS} ikut berubah.
+
+Bagian program yang berdiri sendiri dapat dibungkus dengan
+\dir{PROC} dan \dir{ENDP}. Keduanya tidak menghasilkan instruksi,
+melainkan hanya menandai batas sebuah prosedur sehingga assembler
+dapat menentukan jenis pemanggilan.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Direktif \dir{PROC} dan \dir{ENDP} dasar.},
+    label={lst:proc-endp}
+]
+cetak_judul PROC            ; awal prosedur
+    MOV AH, 09h
+    LEA DX, judul
+    INT 21h
+    RET                     ; kembali ke pemanggil
+cetak_judul ENDP            ; akhir prosedur
+\end{lstlisting}
+
+Layanan DOS yang dipanggil melalui \code{INT 21h} pada Kode~\ref{lst:proc-endp}
+merupakan \eng{interrupt} perangkat lunak. Mekanisme pemanggilan dan
+daftar lengkap layanannya dibahas pada Bab~\ref{chap:interupsi}.

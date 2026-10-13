@@ -1,0 +1,180 @@
+\section{Paragraf 16-Byte, Struktur Segmen, dan Overlapping}
+\label{sec:paragraf-overlap}
+
+Perkalian dengan \hex{10} pada rumus alamat fisik bukan pilihan
+sewenang-wenang. Ia adalah akibat langsung dari cara memori
+dibagi-bagi. Bagian ini menjelaskan satuan pembagian tersebut, lalu
+menunjukkan akibatnya: satu alamat fisik dapat dinyatakan oleh
+banyak pasangan \eng{segment:offset}.
+
+\subsection{Paragraf 16-Byte}
+
+Memori 8086 dibagi menjadi satuan berukuran 16 byte yang disebut
+\term{paragraf}. Setiap paragraf diberi nomor urut mulai dari nol.
+Paragraf pertama berisi byte \hex{00000} sampai \hex{0000F},
+paragraf kedua berisi byte \hex{00010} sampai \hex{0001F}, dan
+seterusnya. Satu paragraf selalu dimulai pada alamat yang digit
+heksadesimal terakhirnya nol.
+
+\begin{definisi}
+\textbf{Paragraf} (\eng{paragraph}) adalah blok memori berukuran
+16 byte yang menjadi satuan dasar penomoran segmen. Nilai sebuah
+segmen adalah nomor paragraf tempat segmen itu dimulai. Karena itu
+alamat dasar sebuah segmen selalu merupakan kelipatan 16 dan selalu
+berakhir dengan digit \hex{0}.
+\end{definisi}
+
+Nomor paragraf dinyatakan dengan 16 bit, sehingga jumlah paragraf
+yang dapat ditunjuk adalah \dec{65.536} buah. Karena satu paragraf
+berisi 16 byte, seluruh paragraf tersebut meliputi
+$65536 \times 16 = \dec{1.048.576}$ byte, yaitu tepat 1 MB. Dengan
+demikian, himpunan alamat dasar segmen yang mungkin tepat menutupi
+seluruh ruang alamat 8086. Inilah sebabnya nilai segmen yang sah
+selalu berada pada rentang \hex{0000} sampai \hex{FFFF}.
+
+\subsection{Struktur Segmen 64 KB}
+
+Sebuah segmen bukanlah blok memori yang secara fisik terpisah,
+melainkan sebuah \emph{jendela} 64 KB yang dimulai pada salah satu
+alamat dasar paragraf. Offset 16-bit di dalam segmen bergerak dari
+\hex{0000} sampai \hex{FFFF}. Bila dasar segmen adalah $B$, maka
+segmen tersebut mencakup alamat $B$ sampai $B + \hex{FFFF}$, yaitu
+\dec{65.536} byte berturut-turut.
+
+Perhatikan bahwa panjang jendela tersebut hanya 64 KB, sedangkan
+jarak antaralamat dasar dua segmen yang berurutan hanyalah 16 byte.
+Akibatnya, jendela segmen \hex{0000} dan jendela segmen \hex{0001}
+saling menumpuk hampir seluruhnya: hanya 16 byte pertama jendela
+pertama yang tidak tercakup jendela kedua. Penumpukan inilah yang
+disebut \term{overlapping segment}, dan sifatnya melekat pada
+rancangan 8086, bukan sebuah kesalahan.
+
+\subsection{Satu Alamat Fisik, Banyak Nama}
+
+Karena setiap segmen hanya berjarak 16 byte dari segmen berikutnya,
+sebuah alamat fisik dapat dibentuk oleh banyak pasangan yang
+berbeda. Sebagai contoh, alamat fisik \hex{00050} dapat dinyatakan
+oleh enam pasangan seperti tampak pada
+Tabel~\ref{tab:overlap-pasangan}.
+
+\begin{table}[H]
+    \centering
+    \caption{Enam pasangan \eng{segment:offset} yang menunjuk alamat
+    fisik \hex{00050}.}
+    \label{tab:overlap-pasangan}
+    \small
+    \begin{tabular}{@{}cp{1.6cm}p{1.6cm}p{3.9cm}p{2.1cm}@{}}
+        \toprule
+        \textbf{No} & \textbf{Segmen} & \textbf{Offset} &
+        \textbf{Perhitungan} & \textbf{Alamat fisik} \\
+        \midrule
+        1 & \hex{0000} & \hex{0050} &
+        \hex{00000} + \hex{0050} & \hex{00050} \\
+        \addlinespace
+        2 & \hex{0001} & \hex{0040} &
+        \hex{00010} + \hex{0040} & \hex{00050} \\
+        \addlinespace
+        3 & \hex{0002} & \hex{0030} &
+        \hex{00020} + \hex{0030} & \hex{00050} \\
+        \addlinespace
+        4 & \hex{0003} & \hex{0020} &
+        \hex{00030} + \hex{0020} & \hex{00050} \\
+        \addlinespace
+        5 & \hex{0004} & \hex{0010} &
+        \hex{00040} + \hex{0010} & \hex{00050} \\
+        \addlinespace
+        6 & \hex{0005} & \hex{0000} &
+        \hex{00050} + \hex{0000} & \hex{00050} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Pola pada tabel tersebut mudah dibaca: setiap kali nomor segmen
+bertambah satu, dasar segmen bertambah 16, sehingga offset harus
+berkurang 16 agar jumlahnya tetap. Untuk alamat fisik $F$ yang
+berada di bawah \hex{10000}, banyaknya pasangan yang mungkin sama
+dengan $\lfloor F / 16 \rfloor + 1$. Pada contoh di atas,
+$\lfloor \hex{50} / \hex{10} \rfloor + 1 = 5 + 1 = 6$ pasangan.
+
+Gambar~\ref{fig:overlap-segmen} memperlihatkan hal yang sama dalam
+bentuk diagram: dua segmen dengan dasar yang berbeda menunjuk satu
+alamat fisik yang sama.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        segk/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+            rounded corners=2pt, minimum width=3.4cm, minimum height=1.0cm,
+            align=center, font=\small, inner sep=4pt},
+        offk/.style={draw=obeTeal, line width=0.8pt, fill=obeTealLight,
+            rounded corners=2pt, minimum width=2.1cm, minimum height=0.85cm,
+            align=center, font=\small\ttfamily, inner sep=4pt},
+        fisk/.style={draw=obeAmber, line width=0.9pt, fill=obeAmberLight,
+            rounded corners=2pt, minimum width=2.8cm, minimum height=1.3cm,
+            align=center, font=\small, inner sep=4pt},
+        pnrh/.style={-{Stealth[length=2.5mm]}, line width=0.8pt, obeBlue}
+    ]
+        \node[segk] (s1) at (0, 2.1)
+            {Segmen \hex{0000}\\{\scriptsize dasar \hex{00000}}};
+        \node[offk] (o1) at (3.7, 2.1) {\hex{0050}};
+
+        \node[segk] (s2) at (0, 0.6)
+            {Segmen \hex{0001}\\{\scriptsize dasar \hex{00010}}};
+        \node[offk] (o2) at (3.7, 0.6) {\hex{0040}};
+
+        \node[fisk] (f) at (7.6, 1.35)
+            {Alamat fisik\\\hex{00050}};
+
+        \draw[pnrh] (s1) -- (o1);
+        \draw[pnrh] (s2) -- (o2);
+        \draw[pnrh] (o1.east) -- ++(0.6,0) -| (f.north);
+        \draw[pnrh] (o2.east) -- ++(0.6,0) -| (f.south);
+    \end{tikzpicture}
+    \caption{Dua pasangan \eng{segment:offset} yang berbeda menunjuk
+    satu alamat fisik yang sama.}
+    \label{fig:overlap-segmen}
+\end{figure}
+
+Berapa pasangan terbanyak yang mungkin menunjuk satu alamat?
+Offset hanya mampu bergerak sejauh 64 KB, sedangkan setiap
+kenaikan nomor segmen menggeser dasarnya 16 byte. Karena itu
+jumlah pasangan untuk satu alamat tidak pernah melebihi
+$65536 / 16 = 4096$ pasangan. Sebagai contoh, alamat \hex{10000}
+dapat dinyatakan oleh 4096 pasangan, di antaranya
+\code{0FFFh:0010h}, \code{0FFEh:0020h}, sampai
+\code{1000h:0000h}. Secara keseluruhan terdapat
+$65536 \times 65536 = \dec{4.294.967.296}$ alamat logis yang
+berpadanan dengan hanya \dec{1.048.576} alamat fisik, sehingga
+setiap alamat fisik rata-rata memiliki 4096 nama.
+
+\begin{infobox}
+\important{Banyak nilai segmen boleh sama, hasilnya tetap benar.}
+Program tidak wajib memakai segmen yang berakhir nol atau segmen
+yang ``rapi''. Selama pasangan \eng{segment:offset} menghasilkan
+alamat fisik yang sama, isi memori yang diakses juga sama.
+Karena itu dua program yang memakai pasangan berbeda tetap dapat
+saling berbagi data, misalnya program yang menulis ke area video
+lewat \code{B800h:0000h} dan program lain yang memakai
+\code{B7FFh:0010h}.
+\end{infobox}
+
+\subsection{Akibat bagi Penulisan Program}
+
+Konsep di atas menjelaskan mengapa 8086 memerlukan operator
+\code{seg} di samping \code{OFFSET}. Operator \code{OFFSET}
+menghasilkan bagian offset sebuah label, sedangkan operator
+\code{seg} menghasilkan nomor segmennya. Kedua nilai itu bersama
+membentuk sebuah \term{far pointer} berukuran 4 byte, yang di dalam
+memori disimpan dengan urutan offset lebih dahulu, lalu segmen.
+Pemakaian kedua operator tersebut ditunjukkan pada
+Bagian~\ref{sec:contoh-program}, sedangkan aturan lengkap mengenai
+segmen bawaan setiap mode pengalamatan dibahas pada
+Bab~\ref{chap:mode-pengalamatan}.
+
+Satu hal penting yang perlu diingat adalah bahwa pasangan
+\eng{segment:offset} tidak boleh dipandang sebagai dua bagian yang
+saling menggantikan. Perubahan kecil pada segmen menuntut perubahan
+yang sepadan pada offset bila alamat fisik hendak dipertahankan.
+Karena itu, ketika menelusuri variabel di dalam \eng{debugger},
+sebaiknya catat kedua nilai tersebut sekaligus, bukan salah satu
+saja.

@@ -1,0 +1,67 @@
+\documentclass[../../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Arsitektur Mikroprosesor 8086}
+\label{chap:arsitektur-8086}
+
+% =========================================================
+% OUTCOME PEMBELAJARAN KHUSUS BAB
+% =========================================================
+
+\begin{subcpmkbox}
+\SubCPMK{1.1} --- Menjelaskan arsitektur dasar mikroprosesor 8086
+(\textit{Execution Unit} dan \textit{Bus Interface Unit}), peran bus
+alamat/data/kontrol, serta tahapan siklus instruksi
+(\eng{fetch}--\eng{decode}--\eng{execute}).
+
+\vspace{0.4em}
+\textbf{CPMK yang didukung:} \CPMK{01} \quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}
+\end{subcpmkbox}
+
+\begin{tujuanbox}
+Setelah mempelajari bab ini, mahasiswa mampu:
+\begin{enumerate}
+    \item menjelaskan kedudukan mikroprosesor 8086 sebagai dasar
+          arsitektur keluarga x86 beserta evolusi singkatnya;
+    \item membedakan arsitektur internal dan arsitektur eksternal
+          sebuah mikroprosesor;
+    \item menguraikan pembagian tugas antara \eng{Bus Interface Unit}
+          (BIU) dan \eng{Execution Unit} (EU) pada 8086;
+    \item menjelaskan cara kerja \eng{instruction queue} enam byte
+          dan pengaruh \eng{pipelining} terhadap kinerja;
+    \item menyebutkan fungsi bus alamat 20-bit, bus data 16-bit, dan
+          bus kontrol beserta sinyal-sinyal utamanya;
+    \item menelusuri satu instruksi melalui tahapan
+          \eng{fetch}--\eng{decode}--\eng{execute}--\eng{store}
+          langkah demi langkah.
+\end{enumerate}
+\end{tujuanbox}
+
+\begin{materibox}
+\begin{enumerate}
+    \item Evolusi mikroprosesor dan kedudukan 8086 sebagai dasar
+          arsitektur x86; arsitektur internal dan eksternal.
+    \item Diagram blok 8086: BIU dan EU, tugas masing-masing,
+          \eng{instruction queue} enam byte, dan peran segmentasi.
+    \item \eng{Pipelining} instruksi dan dampaknya pada kinerja.
+    \item Bus eksternal: bus alamat 20-bit, bus data 16-bit, bus
+          kontrol, \eng{multiplexing} AD0--AD15, dan sinyal kendali.
+    \item Siklus instruksi: \eng{fetch} $\rightarrow$ \eng{decode}
+          $\rightarrow$ \eng{execute} $\rightarrow$ \eng{store}.
+    \item Register internal yang terlibat (sekilas).
+\end{enumerate}
+\end{materibox}
+
+\subfile{section-01}
+\subfile{section-02}
+\subfile{section-03}
+
+\input{contoh}
+\input{praktikum}
+\input{latihan}
+\input{rangkuman}
+\input{evaluasi}
+
+\end{document}
