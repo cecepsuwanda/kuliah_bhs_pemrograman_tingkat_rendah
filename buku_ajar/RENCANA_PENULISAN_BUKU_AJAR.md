@@ -1,8 +1,9 @@
 # RENCANA PENULISAN BUKU AJAR
-## Pemrograman Bahasa Tingkat Rendah (Assembly 8086)
+## Bahasa Pemrograman Tingkat Rendah (Assembly 8086)
 
-**Program Studi Teknik Informatika — Fakultas Teknik**
-**Mata Kuliah:** Pemrograman Bahasa Tingkat Rendah (TIF-201, 3 SKS)
+**Program Studi Teknik Informatika — Fakultas Teknologi Informasi**
+**Universitas Bale Bandung**
+**Mata Kuliah:** Bahasa Pemrograman Tingkat Rendah (MWCA010, 3 SKS)
 **Edisi:** Pertama
 **Tahun:** 2026
 **Basis:** RPS berbasis *Outcome-Based Education* (OBE) — `rps_silabus/silabus.tex`

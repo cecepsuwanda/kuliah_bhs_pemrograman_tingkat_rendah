@@ -1,8 +1,8 @@
-# Buku Ajar — Pemrograman Bahasa Tingkat Rendah
+# Buku Ajar — Bahasa Pemrograman Tingkat Rendah
 
 Buku ajar berbasis *Outcome-Based Education* (OBE) untuk mata kuliah
-**Pemrograman Bahasa Tingkat Rendah** (TIF-201, 3 SKS), Program Studi
-Teknik Informatika.
+**Bahasa Pemrograman Tingkat Rendah** (MWCA010, 3 SKS), Program Studi
+Teknik Informatika, Fakultas Teknologi Informasi, Universitas Bale Bandung.
 
 Buku dibangun dengan LaTeX menggunakan arsitektur modular: setiap bab
 merupakan modul mandiri yang dapat dikompilasi sendiri maupun sebagai

@@ -1,5 +1,5 @@
 # PANDUAN PENULISAN BAB
-## Buku Ajar Pemrograman Bahasa Tingkat Rendah
+## Buku Ajar Bahasa Pemrograman Tingkat Rendah
 
 Dokumen ini adalah acuan teknis dan gaya penulisan untuk **setiap bab**.
 Bacalah seluruhnya sebelum menulis. Acuan tingkat proyek ada pada
