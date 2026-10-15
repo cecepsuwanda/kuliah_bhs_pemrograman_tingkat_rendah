@@ -1,0 +1,1049 @@
+% =========================================================
+% ppt/src/minggu-10.tex
+% Slide pertemuan 10
+% Bab XI — Operasi Logika, Pergeseran, dan Rotasi
+%
+% Sub-CPMK 3.2 | CPMK03 | CPL03
+% =========================================================
+
+\documentclass[aspectratio=169,11pt]{beamer}
+\input{preamble-ppt}
+
+\renewcommand{\PertemuanTeks}{Pertemuan 10}
+
+\begin{document}
+
+% =========================================================
+% 1. JUDUL
+% =========================================================
+\JudulDeck{Operasi Logika, Pergeseran, dan Rotasi}{Pertemuan 10}
+
+% =========================================================
+% 2. CAPAIAN DAN TUJUAN
+% =========================================================
+\begin{frame}{Capaian dan Tujuan Pembelajaran}
+\begin{block}{Sub-CPMK 3.2}
+\small Menerapkan operasi logika \eng{bitwise} serta operasi pergeseran
+dan rotasi (\asm{AND}, \asm{OR}, \asm{XOR}, \asm{NOT}, \asm{TEST},
+\asm{SHL}, \asm{SHR}, \asm{SAL}, \asm{SAR}, \asm{ROL}, \asm{ROR})
+untuk manipulasi bit.
+\end{block}
+
+\vspace{0.1em}
+{\small\textbf{CPMK yang didukung:} \CPMK{03}\quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}\par}
+
+\vspace{0.05em}
+\begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
+\footnotesize
+\begin{enumerate}
+    \item menjelaskan tabel kebenaran \asm{AND}, \asm{OR}, \asm{XOR},
+          dan \asm{NOT};
+    \item menjelaskan pengaruh operasi logika terhadap \flag{CF},
+          \flag{OF}, \flag{ZF}, \flag{SF}, dan \flag{PF};
+    \item membedakan \asm{TEST} dan \asm{CMP} serta memilih yang tepat;
+    \item menerapkan penyalakan, pemadaman, pembalikan, dan pengujian
+          bit ke-$n$ pada sebuah byte;
+    \item membedakan pergeseran logis, pergeseran aritmetika, dan
+          rotasi beserta peran \flag{CF};
+    \item menggantikan perkalian atau pembagian pangkat dua dengan
+          pergeseran;
+    \item menyusun program manipulasi bit: paritas,
+          \eng{packing}/\eng{unpacking} BCD, dan \eng{XOR cipher}.
+\end{enumerate}
+\end{exampleblock}
+\end{frame}
+
+% =========================================================
+% 3. PETA MATERI
+% =========================================================
+\begin{frame}{Peta Materi}
+\small
+\begin{enumerate}
+    \item \textbf{Operasi Logika pada Level Bit}\\
+          {\footnotesize tabel kebenaran; pengaruh terhadap \eng{flag};
+          \eng{masking} dan manipulasi bit ke-$n$; \asm{TEST} vs
+          \asm{CMP}}
+
+    \vspace{0.25em}
+    \item \textbf{Pergeseran dan Rotasi}\\
+          {\footnotesize \asm{SHL}/\asm{SHR} dan \asm{SAL}/\asm{SAR};
+          \asm{ROL}, \asm{ROR}, \asm{RCL}, \asm{RCR}; perkalian dan
+          pembagian cepat}
+
+    \vspace{0.25em}
+    \item \textbf{Studi Kasus Manipulasi Bit}\\
+          {\footnotesize pemeriksaan paritas; \eng{packing} dan
+          \eng{unpacking} BCD; \eng{XOR cipher} sederhana}
+\end{enumerate}
+
+\vspace{0.35em}
+\begin{block}{Praktik pada pertemuan ini}
+\small Menelusuri \file{paritas.asm} dengan \eng{Single Step}, mencatat
+\reg{AL}, \reg{BL}, dan \flag{CF}; dilanjutkan manipulasi bit ke-$n$
+serta \eng{packing} BCD. Ditutup dengan \textbf{Kuis 3}.
+\end{block}
+\end{frame}
+
+% =========================================================
+% BAGIAN 1
+% =========================================================
+\PemisahBagian{Operasi Logika pada Level Bit}
+
+% ---------------------------------------------------------
+\begin{frame}{Operasi Logika pada Level Bit}
+\small Berbeda dari \asm{ADD} dan \asm{SUB} yang menjalarkan
+\eng{carry} antarbit, operasi logika memperlakukan setiap posisi bit
+sebagai satuan mandiri yang tidak memengaruhi tetangganya.
+
+\vspace{0.3em}
+\begin{center}
+\begin{tabular}{@{}ccccc@{}}
+    \toprule
+    \textbf{Bit $A$} & \textbf{Bit $B$} & \textbf{\asm{AND}} &
+    \textbf{\asm{OR}} & \textbf{\asm{XOR}} \\
+    \midrule
+    0 & 0 & 0 & 0 & 0 \\
+    0 & 1 & 0 & 1 & 1 \\
+    1 & 0 & 0 & 1 & 1 \\
+    1 & 1 & 1 & 1 & 0 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.3em}
+{\footnotesize Hasilnya hanya bergantung pada pasangan bit yang
+bersesuaian; keempat instruksi bekerja pada operand 8 bit maupun
+16 bit.\par}
+
+\Sumber{Bab XI, Tabel Kebenaran dan Empat Instruksi Dasar}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Sifat Empat Instruksi Logika}
+\small
+\begin{columns}[t]
+\begin{column}{0.47\textwidth}
+\begin{itemize}
+    \item \asm{AND}: 1 hanya bila kedua bit 1 --- mempertahankan bit
+          tertentu, memadamkan sisanya.
+    \item \asm{OR}: 1 bila salah satu bit 1 --- menyalakan bit tanpa
+          mengubah bit lain.
+    \item \asm{XOR}: 1 bila kedua bit berbeda --- membalik bit.
+    \item \asm{NOT}: membalik seluruh bit dan \emph{tidak}
+          menyentuh \eng{flag}.
+\end{itemize}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{kodeasm}[numbers=none]
+MOV AL, 10100101b   ; AL = A5h
+AND AL, 00001111b   ; AL = 05h
+MOV BL, 11000011b   ; BL = C3h
+OR  AL, BL          ; AL = C7h
+MOV CL, 10100101b   ; CL = A5h
+XOR CL, 11111111b   ; CL = 5Ah
+NOT CL              ; CL = A5h
+\end{kodeasm}
+\end{column}
+\end{columns}
+\Sumber{Bab XI, Tabel Kebenaran dan Empat Instruksi Dasar}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Pengaruh Operasi Logika terhadap \eng{Flag}}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{1.5cm}p{5.0cm}p{6.4cm}@{}}
+    \toprule
+    \textbf{Flag} & \textbf{Nilai setelah operasi logika} &
+    \textbf{Alasan} \\
+    \midrule
+    \flag{CF} & Selalu 0 & Tidak ada \eng{carry} yang keluar dari bit
+    paling kiri \\
+    \flag{OF} & Selalu 0 & Operasi \eng{bitwise} tidak menghasilkan
+    luapan bertanda \\
+    \flag{ZF} & 1 bila seluruh bit hasil bernilai 0 &
+    Memeriksa apakah suatu bidang bit kosong \\
+    \flag{SF} & Menyalin bit paling kiri hasil & Hasil dianggap negatif
+    bila ditafsirkan bertanda \\
+    \flag{PF} & 1 bila cacah bit 1 pada byte rendah genap & Dipakai
+    pada pemeriksaan paritas \\
+    \flag{AF} & Tidak terdefinisi & Jangan diandalkan setelah operasi
+    logika \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.25em}
+{\footnotesize\asm{NOT} satu-satunya pengecualian: tidak menyentuh
+\eng{flag} sama sekali, sehingga \flag{ZF}, \flag{SF}, dan \flag{PF}
+masih bernilai seperti sebelumnya.\par}
+\Sumber{Bab XI, Pengaruh Operasi Logika terhadap Flag}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Aturan Penulisan Operand}
+\small Aturan legalitas operand sama dengan \asm{MOV} dan \asm{ADD}:
+operand tujuan boleh register atau memori, operand sumber boleh
+register, memori, atau nilai segera.
+
+\vspace{0.3em}
+\begin{kodeasm}[numbers=none]
+MOV AL, nilai           ; DB + AL -> ukuran sudah sama
+MOV AX, WORD PTR total  ; DW + AX -> WORD PTR menyesuaikan ukuran
+AND AL, BYTE PTR nilai  ; AL (8 bit) dengan operand memori
+ADD BL, CL              ; register dengan register
+\end{kodeasm}
+
+\vspace{0.3em}
+\begin{alertblock}{Dua larangan yang tetap berlaku}
+\footnotesize Memori ke memori tidak diizinkan sehingga perlu register
+perantara, dan kedua operand wajib berukuran sama.
+\end{alertblock}
+\Sumber{Bab XI, Aturan Penulisan Operand}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Manipulasi Bit ke-$n$ dengan \eng{Mask}}
+\small Misalkan \reg{AL} berisi \hex{A5} = \bin{1010 0101} dan bit yang
+disasar bit ke-3 (\hex{08}). \eng{Mask} adalah $2^n$: satu bit menyala
+pada posisi yang dituju.
+
+\vspace{0.2em}
+{\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{2.6cm}p{2.2cm}p{3.2cm}p{4.4cm}@{}}
+    \toprule
+    \textbf{Kehendak} & \textbf{Mask} & \textbf{Instruksi} &
+    \textbf{Hasil pada \hex{A5}, bit 3} \\
+    \midrule
+    Menyalakan bit & mask & \asm{OR AL, mask} &
+    \bin{1010 1101} = \hex{AD} \\
+    Memadamkan bit & \asm{NOT mask} & \asm{AND AL, mask} &
+    \bin{1010 0101} = \hex{A5} \\
+    Membalik bit & mask & \asm{XOR AL, mask} &
+    \bin{1010 1101} = \hex{AD} \\
+    Menguji bit & mask & \asm{TEST AL, mask} &
+    \flag{ZF} = 0 berarti bit 3 menyala \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\par}
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+OR   AL, 08h        ; nyalakan bit 3      (A5h -> ADh)
+AND  AL, 0F7h       ; padamkan bit 3      (F7h = NOT 08h)
+XOR  AL, 08h        ; balikkan bit 3
+TEST AL, 08h        ; uji bit 3 tanpa mengubah AL
+\end{kodeasm}
+\Sumber{Bab XI, Penerapan Praktis: Manipulasi Bit Tertentu}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Memadamkan Bit: Kesalahan yang Sering Terjadi}
+\begin{alertblock}{Nilai mask sering ditulis terbalik}
+\small Untuk memadamkan bit ke-3 yang benar adalah
+\asm{AND AL, 0F7h} --- bit ke-3 pada mask bernilai 0. Penulisan
+\asm{AND AL, 08h} justru mempertahankan bit itu dan menghapus seluruh
+bit lain.
+\end{alertblock}
+
+\vspace{0.4em}
+\begin{block}{Mask penghapus dihitung saat berjalan}
+\small Mask disimpan ke register, dibalik dengan \asm{NOT}, lalu dipakai
+pada \asm{AND}. Karena \asm{NOT} tidak menyentuh \eng{flag}, keputusan
+lompatan sebelumnya tetap sah.
+\end{block}
+
+\vspace{0.4em}
+{\footnotesize\color{obeGray}Kesalahan kedua: menganggap \asm{AND}
+menyetel \flag{CF}. Operasi logika selalu mengosongkan \flag{CF} dan
+\flag{OF}.\par}
+\Sumber{Bab XI, Penerapan Praktis: Manipulasi Bit Tertentu}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{\asm{TEST} dan \asm{CMP}: Dua Instruksi Penguji}
+\footnotesize Keduanya melakukan operasi tanpa menyimpan hasilnya;
+yang tertinggal hanya jejak pada \eng{flag}.
+
+\vspace{0.2em}
+\begin{center}
+\begin{tabular}{@{}p{2.1cm}p{3.5cm}p{7.1cm}@{}}
+    \toprule
+    \textbf{Aspek} & \asm{TEST} & \asm{CMP} \\
+    \midrule
+    Operasi internal & \asm{AND} tanpa menyimpan hasil &
+    \asm{SUB} tanpa menyimpan hasil \\
+    \flag{CF} dan \flag{OF} & Selalu 0 & Sesuai hasil pengurangan \\
+    Pemakaian utama & Memeriksa keadaan bit tertentu &
+    Membandingkan besar dua bilangan secara utuh \\
+    Lompatan lazim & \asm{JZ}/\asm{JNZ}, \asm{JP}/\asm{JNP} &
+    \asm{JE}/\asm{JNE}, \asm{JA}/\asm{JB}, \asm{JG}/\asm{JL} \\
+    Contoh & \asm{TEST AL, 01h} lalu \asm{JNZ} &
+    \asm{CMP AL, BL} lalu \asm{JA} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.25em}
+{\footnotesize Kebiasaan khusus: \asm{TEST AL, AL} tidak mengubah isi
+\reg{AL}, tetapi memperbarui \flag{ZF}, \flag{SF}, dan \flag{PF};
+pola ini menggantikan \asm{CMP AL, 0} dengan kode dua byte lebih
+pendek.\par}
+\Sumber{Bab XI, TEST dan CMP: Dua Instruksi Penguji}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 1}
+\small
+\begin{itemize}
+    \item Operasi logika memandang setiap bit sebagai satuan mandiri;
+          aturannya mengikuti gerbang logika dasar dan tidak
+          menjalarkan \eng{carry}.
+
+    \vspace{0.22em}
+    \item \asm{AND} untuk \eng{masking}, \asm{OR} untuk menyalakan,
+          \asm{XOR} untuk membalik; \asm{NOT} membalik seluruh bit dan
+          tidak menyentuh \eng{flag}.
+
+    \vspace{0.22em}
+    \item \flag{CF} dan \flag{OF} selalu 0 setelah \asm{AND},
+          \asm{OR}, \asm{XOR}, dan \asm{TEST}, sedangkan \flag{ZF},
+          \flag{SF}, dan \flag{PF} mengikuti hasil --- sumber
+          kesalahan bila \flag{CF} dipercaya.
+
+    \vspace{0.22em}
+    \item Bit ke-$n$ disentuh dengan mask $2^n$: nyalakan dengan
+          \asm{OR}, padamkan dengan \asm{AND} memakai komplemen mask,
+          balikkan dengan \asm{XOR}, uji dengan \asm{TEST}.
+
+    \vspace{0.22em}
+    \item \asm{TEST} = \asm{AND} tanpa menyimpan hasil (memeriksa bit);
+          \asm{CMP} = \asm{SUB} tanpa menyimpan hasil (membandingkan
+          nilai utuh).
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 2
+% =========================================================
+\PemisahBagian{Pergeseran dan Rotasi}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Pergeseran Logis: \asm{SHL} dan \asm{SHR}}
+\small Operasi logika bekerja pada posisi bit yang tetap; pergeseran
+justru memindahkan isi bit ke posisi lain. Bit yang terdesak keluar
+ditampung pada \flag{CF}.
+
+\vspace{0.25em}
+\begin{kodeasm}[numbers=none]
+SHL AL, 1           ; geser AL satu bit ke kiri, bit kanan diisi 0
+SHR AX, 1           ; geser AX satu bit ke kanan, bit kiri diisi 0
+MOV CL, 4           ; jumlah pergeseran disimpan pada CL
+SHL BX, CL          ; geser BX empat bit ke kiri
+\end{kodeasm}
+
+\vspace{0.25em}
+\begin{block}{Jumlah pergeseran}
+\small Ditulis sebagai angka 1 atau disimpan pada \reg{CL}. Pada 8086
+nilai \reg{CL} dipakai apa adanya (sampai 255), sedangkan pada 80286 ke
+atas hanya lima bit terendahnya (batas 31).
+\end{block}
+\Sumber{Bab XI, Pergeseran Logis: SHL dan SHR}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Pergeseran Aritmetika: \asm{SAL} dan \asm{SAR}}
+\small
+\begin{itemize}
+    \item \asm{SAL} (\eng{Shift Arithmetic Left}) secara operasi
+          \emph{identik} dengan \asm{SHL} dan menghasilkan kode mesin
+          yang sama; namanya hanya menegaskan nilai dianggap bertanda.
+
+    \vspace{0.3em}
+    \item \asm{SAR} berbeda secara hakiki: bit yang masuk dari sisi
+          kiri bukan nol, melainkan \emph{salinan bit tanda}, sehingga
+          tanda bilangan terpelihara.
+\end{itemize}
+
+\vspace{0.4em}
+\begin{alertblock}{Mengapa \asm{SAR} diperlukan}
+\small Pada \bin{1111 1111} ($-1$ dalam komplemen dua), \asm{SHR} satu
+bit memberi \bin{0111 1111} ($+127$) karena bit tanda terisi nol.
+Bagi bilangan bertanda negatif, hanya \asm{SAR} yang benar.
+\end{alertblock}
+\Sumber{Bab XI, Pergeseran Aritmetika: SAL dan SAR}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Perbedaan Pergeseran pada Byte \hex{96}}
+\begin{center}
+\begin{tikzpicture}[
+    sel/.style={draw=obeGray, line width=0.5pt, minimum width=0.52cm,
+        minimum height=0.52cm, inner sep=0pt, font=\ttfamily\scriptsize},
+    keluar/.style={sel, fill=obeMaroonLight, draw=obeMaroon},
+    masuk/.style={sel, fill=obeAmberLight, draw=obeAmber, dashed},
+    baris/.style={font=\footnotesize\bfseries, anchor=east, text=obeBlue},
+    ket/.style={font=\scriptsize, text=obeGray, anchor=west,
+        align=left, text width=3.3cm}
+]
+    \foreach \i/\v in {0/1,1/0,2/0,3/1,4/0,5/1,6/1,7/0}
+        \node[sel] at (\i*0.55, 0) {\v};
+    \node[baris] at (-1.25, 0) {Byte awal};
+    \node[ket] at (5.0, 0) {\hex{96} = \bin{1001 0110} ($-106$ bertanda)};
+
+    \foreach \i/\v in {0/0,1/0,2/1,3/0,4/1,5/1,6/0,7/0}
+        \node[sel] at (\i*0.55, -0.95) {\v};
+    \node[keluar] at (-0.75, -0.95) {1};
+    \node[masuk] at (4.6, -0.95) {0};
+    \node[baris] at (-1.25, -0.95) {SHL 1 / SAL 1};
+    \node[ket] at (5.0, -0.95) {bit 7 keluar, hasil $44$, \flag{CF} = 1};
+
+    \foreach \i/\v in {0/0,1/1,2/0,3/0,4/1,5/0,6/1,7/1}
+        \node[sel] at (\i*0.55, -1.9) {\v};
+    \node[masuk] at (-0.75, -1.9) {0};
+    \node[keluar] at (4.6, -1.9) {0};
+    \node[baris] at (-1.25, -1.9) {SHR 1};
+    \node[ket] at (5.0, -1.9) {0 masuk dari kiri, hasil $+75$,
+        \flag{CF} = 0};
+
+    \foreach \i/\v in {0/1,1/1,2/0,3/0,4/1,5/0,6/1,7/1}
+        \node[sel] at (\i*0.55, -2.85) {\v};
+    \node[masuk] at (-0.75, -2.85) {1};
+    \node[keluar] at (4.6, -2.85) {0};
+    \node[baris] at (-1.25, -2.85) {SAR 1};
+    \node[ket] at (5.0, -2.85) {bit tanda disalin masuk; hasil $-53$};
+
+    \node[keluar] at (-0.75, -3.65) {};
+    \node[font=\scriptsize, text=obeGray, anchor=west] at (-0.35, -3.65)
+        {keluar ke \flag{CF}};
+    \node[masuk] at (2.4, -3.65) {};
+    \node[font=\scriptsize, text=obeGray, anchor=west] at (2.8, -3.65)
+        {masuk dari sisi kosong};
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.1em}
+{\footnotesize\color{obeGray}\asm{SHR} memberi \bin{0100 1011} ($+75$)
+karena bit tanda dipaksa nol, sedangkan \asm{SAR} memberi
+\bin{1100 1011} ($-53$) karena bit tanda disalin ulang.\par}
+\Sumber{Bab XI, Pergeseran Aritmetika: SAL dan SAR}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Ringkasan Kedelapan Instruksi Geser dan Rotasi}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{1.3cm}p{1.1cm}p{3.2cm}p{6.9cm}@{}}
+    \toprule
+    \textbf{Instruksi} & \textbf{Arah} & \textbf{Bit yang masuk} &
+    \textbf{Flag terpengaruh} \\
+    \midrule
+    \asm{SHL} & kiri & 0 di bit paling kanan &
+    \flag{CF} menerima bit paling kiri; \flag{SF}, \flag{ZF},
+    \flag{PF} ikut hasil \\
+    \asm{SAL} & kiri & 0 di bit paling kanan &
+    sama dengan \asm{SHL} (kode mesin identik) \\
+    \asm{SHR} & kanan & 0 di bit paling kiri &
+    \flag{CF} menerima bit paling kanan; \flag{SF}, \flag{ZF},
+    \flag{PF} ikut hasil \\
+    \asm{SAR} & kanan & salinan bit tanda &
+    \flag{CF} menerima bit paling kanan; \flag{SF} tetap sesuai tanda \\
+    \asm{ROL} & kiri & bit keluar dari kiri &
+    \flag{CF} menerima bit berputar; \flag{OF} benar bila jumlah 1 \\
+    \asm{ROR} & kanan & bit keluar dari kanan &
+    \flag{CF} menerima bit berputar; \flag{OF} benar bila jumlah 1 \\
+    \asm{RCL} & kiri & \flag{CF} lama &
+    \flag{CF} menerima bit paling kiri, lalu ikut berputar \\
+    \asm{RCR} & kanan & \flag{CF} lama &
+    \flag{CF} menerima bit paling kanan, lalu ikut berputar \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.1em}
+{\scriptsize\color{obeGray}Pada 8086 \flag{OF} hanya terdefinisi benar
+bila jumlah pergeseran satu; \flag{CF} selalu berisi bit terakhir yang
+keluar, berapa pun jumlah pergeserannya.\par}
+\Sumber{Bab XI, Ringkasan Kedelapan Instruksi Geser dan Rotasi}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Rotasi: \asm{ROL} dan \asm{ROR}}
+\small Rotasi memindahkan bit secara melingkar: bit yang terdesak keluar
+dari satu sisi masuk kembali ke sisi lain, sehingga tidak ada informasi
+yang hilang. Bit yang berputar selalu melewati \flag{CF}.
+
+\vspace{0.3em}
+\begin{kodeasm}[numbers=none]
+MOV AL, 10000001b   ; AL = 81h
+ROL AL, 1           ; AL = 00000011b, CF = 1 (bit 7 pindah ke bawah)
+
+MOV AL, 10000001b   ; AL = 81h
+ROR AL, 1           ; AL = 11000000b, CF = 1 (bit 0 pindah ke atas)
+\end{kodeasm}
+
+\vspace{0.3em}
+{\footnotesize\color{obeGray}\flag{CF} merefleksikan bit terakhir yang
+melewatinya, bukan bit yang hilang seperti pada pergeseran.\par}
+\Sumber{Bab XI, Rotasi: ROL, ROR, RCL, dan RCR}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{\asm{RCL}, \asm{RCR}, dan Pergeseran 32 Bit}
+\small Pada \asm{RCL}, \flag{CF} menjadi bit tambahan di sebelah kiri
+operand: bit paling kiri masuk ke \flag{CF}, sedangkan nilai \flag{CF}
+yang lama masuk ke bit paling kanan. \asm{RCR} berlaku kebalikannya.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+CLC                 ; CF = 0
+MOV AL, 10000001b   ; AL = 81h
+RCL AL, 1           ; AL = 00000010b, CF = 1 (CF lama masuk ke bit 0)
+
+; menggeser bilangan 32 bit (DX:AX) satu bit ke kanan
+SAR DX, 1           ; word tinggi digeser, bit tanda disalin
+RCR AX, 1           ; bit yang keluar dari DX masuk ke AX
+\end{kodeasm}
+
+\vspace{0.2em}
+{\footnotesize Pasangan \asm{SAR} dan \asm{RCR} memindahkan bit dari
+word tinggi ke word rendah sehingga bilangan 32 bit dapat digeser
+sebagai satu kesatuan.\par}
+\Sumber{Bab XI, Rotasi: ROL, ROR, RCL, dan RCR}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Perkalian dan Pembagian Cepat dengan Pergeseran}
+\small Pergeseran satu bit setara dengan mengalikan atau membagi dengan
+dua, sehingga pangkat dua tidak perlu memakai \asm{MUL} atau \asm{DIV}.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+MOV AX, 5
+MOV CL, 4           ; 16 = 2 pangkat 4
+SHL AX, CL          ; AX = 80  (5 x 16)
+
+MOV AX, 5
+MOV BX, AX          ; BX = 5, salinan untuk 5 x 8
+SHL AX, 1           ; AX = 10  (5 x 2)
+MOV CL, 3
+SHL BX, CL          ; BX = 40  (5 x 8)
+ADD AX, BX          ; AX = 50  (10 + 40)
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Bentuk terakhir memakai $5 \times 10 =
+(5 \times 2) + (5 \times 8)$; \asm{SHL} dan \asm{ADD} hanya perlu
+beberapa siklus, sedangkan \asm{MUL} pada 8086 lebih dari seratus
+siklus.\par}
+\Sumber{Bab XI, Perkalian dan Pembagian Cepat dengan Pergeseran}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Peringatan: Membagi Bilangan Bertanda}
+\begin{alertblock}{Jangan memakai \asm{SHR} untuk bilangan bertanda}
+\small \asm{SHR AX, 1} mengosongkan bit tanda, sehingga $-1$
+(\hex{FFFF}) menjadi \hex{7FFF} ($+32767$). Gunakan \asm{SAR}, bukan
+\asm{SHR}.
+\end{alertblock}
+
+\vspace{0.5em}
+\begin{block}{Namun \asm{SAR} tidak membulatkan ke arah nol}
+\small \asm{SAR AX, 1} pada $-1$ menghasilkan $-1$, bukan $0$.
+Instruksi \asm{IDIV} tetap diperlukan bila hasil pembagian harus
+dibulatkan ke arah nol.
+\end{block}
+
+\vspace{0.5em}
+{\footnotesize\color{obeGray}Pergeseran kanan logis hanya sah untuk
+pembagian bilangan tak bertanda.\par}
+\Sumber{Bab XI, Perkalian dan Pembagian Cepat dengan Pergeseran}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 2}
+\small
+\begin{itemize}
+    \item \asm{SHL} dan \asm{SAL} identik (kode mesin sama) dan
+          menyisipkan 0 dari kanan; \asm{SHR} menyisipkan 0 dari kiri;
+          \asm{SAR} menyisipkan salinan bit tanda.
+
+    \vspace{0.22em}
+    \item Jumlah pergeseran ditulis 1 atau disimpan pada \reg{CL}.
+          \flag{CF} selalu berisi bit terakhir yang keluar; \flag{OF}
+          hanya terdefinisi benar untuk jumlah satu.
+
+    \vspace{0.22em}
+    \item \asm{ROL}/\asm{ROR} memutar bit secara melingkar tanpa
+          kehilangan informasi, sedangkan \asm{RCL}/\asm{RCR}
+          menyertakan \flag{CF} di ujung lingkaran putar.
+
+    \vspace{0.22em}
+    \item Pasangan \asm{SAR} dan \asm{RCR} menggeser bilangan 32 bit
+          (DX:AX) sebagai satu kesatuan.
+
+    \vspace{0.22em}
+    \item Geser satu bit setara kali atau bagi dua: \asm{SHL} bersama
+          \asm{ADD} menggantikan \asm{MUL} yang boros siklus, tetapi
+          pembagian bertanda hanya sah dengan \asm{SAR}.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 3
+% =========================================================
+\PemisahBagian{Studi Kasus Manipulasi Bit}
+
+% ---------------------------------------------------------
+\begin{frame}{Memeriksa Paritas Sebuah Byte}
+\small \term{Paritas} menyatakan apakah cacah bit 1 sebuah byte genap
+atau ganjil; pemeriksaan ini mendeteksi satu bit yang berubah saat
+transmisi dan dilayani \flag{PF}.
+
+\vspace{0.2em}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{2.0cm}p{3.9cm}p{7.0cm}@{}}
+    \toprule
+    \textbf{Cara} & \textbf{Instruksi kunci} & \textbf{Catatan} \\
+    \midrule
+    \eng{Flag} \flag{PF} & \asm{TEST AL, AL} lalu \asm{JP} &
+    Paling singkat; hanya untuk byte rendah hasil operasi \\
+    Pelipatan \asm{XOR} & \asm{XOR AL, AH} tiga kali &
+    Tidak bergantung \flag{PF}; berlaku untuk
+    \eng{word}/\eng{dword} \\
+    Pergeseran \asm{ADC} & \asm{SHR AL, 1} lalu \asm{ADC BL, 0} &
+    Paling gamblang; iterasi sebanyak cacah bit operand \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Byte uji \bin{1011 0110} memiliki lima bit
+1 --- cacah ganjil, sehingga program mencetak \code{GANJIL}.\par}
+\Sumber{Bab XI, Memeriksa Paritas Sebuah Byte}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Paritas Tanpa \flag{PF}: Pelipatan \asm{XOR}}
+\small Byte dilipat menjadi setengah lebarnya dengan \asm{XOR}, lalu
+diulang sampai tersisa satu bit.
+
+\vspace{0.25em}
+\begin{kodeasm}[numbers=none]
+MOV AL, nilai       ; byte yang diperiksa
+MOV AH, AL
+SHR AH, 4
+XOR AL, AH          ; lipat nibble tinggi ke nibble rendah
+MOV AH, AL
+SHR AH, 2
+XOR AL, AH
+MOV AH, AL
+SHR AH, 1
+XOR AL, AH
+AND AL, 1           ; 1 = cacah bit 1 ganjil, 0 = genap
+\end{kodeasm}
+
+\vspace{0.25em}
+{\footnotesize\color{obeGray}Pelipatan berturut-turut 4, 2, lalu 1 bit
+memindahkan seluruh bit ke posisi terendah, sehingga \asm{AND AL, 1}
+menyisakan paritasnya.\par}
+\Sumber{Bab XI, Memeriksa Paritas Sebuah Byte}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{\eng{Packing} dan \eng{Unpacking} Dua Digit BCD}
+\small \term{BCD} menyimpan bilangan desimal empat bit per digit: satu
+byte menampung puluhan pada nibble tinggi dan satuan pada nibble
+rendah.
+
+\vspace{0.15em}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{3.0cm}p{6.0cm}p{3.9cm}@{}}
+    \toprule
+    \textbf{Operasi} & \textbf{Instruksi} & \textbf{Hasil} \\
+    \midrule
+    \eng{Packing} & \asm{MOV AL, puluhan} lalu \asm{SHL AL, CL}
+    (CL = 4) lalu \asm{OR AL, satuan} & \bin{0111 0101} = \hex{75} \\
+    Ambil satuan & \asm{AND AL, 0Fh} & \bin{0000 0101} = \hex{05} \\
+    Ambil puluhan & \asm{SHR AL, CL} dengan CL = 4 &
+    \bin{0000 0111} = \hex{07} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.15em}
+\begin{kodeasm}[numbers=none]
+MOV AL, 7           ; digit puluhan
+MOV CL, 4
+SHL AL, CL          ; AL = 70h (0111 0000b)
+OR  AL, 5           ; AL = 75h -> 75 dalam BCD
+MOV AH, AL
+AND AH, 0Fh         ; AH = 05h, digit satuan
+SHR AL, CL          ; AL = 07h, digit puluhan
+\end{kodeasm}
+\Sumber{Bab XI, Packing dan Unpacking Dua Digit BCD}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{\eng{XOR Cipher} Sederhana}
+\small Bila $A$ di-XOR dengan kunci $K$, hasilnya $B = A \oplus K$.
+Nilai asli dipulihkan dengan meng-XOR-kan $B$ sekali lagi dengan kunci
+yang sama:
+$B \oplus K = (A \oplus K) \oplus K = A$.
+
+\vspace{0.2em}
+\begin{columns}[t]
+\begin{column}{0.58\textwidth}
+\begin{kodeasm}[numbers=none]
+LEA SI, asli        ; SI <- penunjuk sumber
+LEA DI, buffer      ; DI <- penunjuk tujuan
+ENKRIPSI:
+MOV AL, [SI]        ; ambil satu byte
+CMP AL, '$'         ; penanda akhir string?
+JE  TAMPIL_ENK
+XOR AL, kunci       ; XOR dengan kunci 20h
+MOV [DI], AL        ; simpan hasil
+INC SI
+INC DI
+JMP ENKRIPSI
+\end{kodeasm}
+\end{column}
+\begin{column}{0.39\textwidth}
+{\color{obeTeal}\bfseries Keluaran}\\[0.15em]
+\begin{keluaran}
+Teks asli   : BELAJARASM
+Terenkripsi : belajarasm
+Terdekripsi : BELAJARASM
+\end{keluaran}
+\end{column}
+\end{columns}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Dekripsi memakai perulangan yang sama,
+tetapi menulis kembali di tempat yang sama. Kunci \hex{20} dipilih agar
+hasil enkripsi tetap terbaca.\par}
+\Sumber{Bab XI, XOR Cipher Sederhana}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 3}
+\small
+\begin{itemize}
+    \item Paritas byte ditentukan oleh cacah bit 1: \asm{TEST AL, AL}
+          lalu \asm{JP}, pelipatan \asm{XOR} tiga kali, atau
+          \asm{SHR} delapan kali dengan \asm{ADC BL, 0}.
+
+    \vspace{0.25em}
+    \item Pelipatan \asm{XOR} tidak bergantung pada \flag{PF} dan mudah
+          diperluas ke word maupun \eng{dword}.
+
+    \vspace{0.25em}
+    \item \eng{Packing} BCD menyusun dua digit dengan \asm{SHL} lalu
+          \asm{OR}; \eng{unpacking} memisahkannya dengan \asm{AND 0Fh}
+          dan \asm{SHR} empat bit.
+
+    \vspace{0.25em}
+    \item \eng{XOR cipher} dapat dibalik karena
+          $A \oplus K \oplus K = A$, sehingga kunci yang sama dipakai
+          untuk enkripsi dan dekripsi.
+
+    \vspace{0.25em}
+    \item Namun cara itu \emph{bukan} pengamanan sungguh-sungguh: bila
+          sebagian teks dapat ditebak, kuncinya terhitung dengan satu
+          operasi \asm{XOR}.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% CONTOH PROGRAM
+% =========================================================
+\begin{frame}[fragile]{Contoh 1: Memeriksa Paritas Byte}
+\begin{columns}[t]
+\begin{column}{0.57\textwidth}
+\begin{kodeasm}[numbers=none]
+MOV AL, nilai       ; byte yang diperiksa
+MOV BL, 0           ; penghitung cacah bit 1
+MOV CX, 8           ; delapan bit diperiksa
+ULANG:
+SHR AL, 1           ; bit terkanan pindah ke CF
+ADC BL, 0           ; BL = BL + CF
+LOOP ULANG          ; ulangi sampai CX habis
+TEST BL, 1          ; uji bit terendah cacah bit 1
+JNZ CETAK_GANJIL    ; ZF = 0 -> cacah ganjil
+MOV AH, 09h         ; cacah genap: cetak GENAP
+LEA DX, genap
+INT 21h
+JMP SELESAI
+CETAK_GANJIL:       ; cacah ganjil: cetak GANJIL
+\end{kodeasm}
+\end{column}
+\begin{column}{0.41\textwidth}
+{\color{obeTeal}\bfseries Keluaran}\\[0.15em]
+\begin{keluaran}
+Byte 10110110b berparitas: GANJIL
+\end{keluaran}
+
+\vspace{0.4em}
+{\footnotesize \asm{ADC BL, 0} menjumlahkan penghitung dengan
+\flag{CF} --- di sini \eng{carry} dipakai sebagai sumber bit, bukan
+sisa penjumlahan.\\[0.25em]
+Byte \bin{1011 0111} akan mencetak \code{GENAP}.\\[0.3em]
+\color{obeGray}\file{code/asm/paritas.asm}\par}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh 2: Enkripsi dan Dekripsi \eng{XOR Cipher}}
+\begin{columns}[t]
+\begin{column}{0.59\textwidth}
+\begin{kodeasm}[numbers=none]
+LEA SI, asli        ; SI <- penunjuk teks asli
+LEA DI, buffer      ; DI <- penunjuk penampung
+ENKRIPSI:
+MOV AL, [SI]        ; ambil satu byte teks asli
+CMP AL, '$'         ; sudah sampai penanda akhir?
+JE  TAMPIL_ENK      ; ya -> hentikan perulangan
+XOR AL, kunci       ; XOR dengan kunci 20h
+MOV [DI], AL        ; simpan byte terenkripsi
+INC SI              ; maju ke byte berikutnya
+INC DI
+JMP ENKRIPSI
+; DEKRIPSI memakai perulangan sama, XOR ulang di tempat yang sama
+\end{kodeasm}
+\end{column}
+\begin{column}{0.39\textwidth}
+{\color{obeTeal}\bfseries Keluaran}\\[0.15em]
+\begin{keluaran}
+Teks asli   : BELAJARASM
+Terenkripsi : belajarasm
+Terdekripsi : BELAJARASM
+\end{keluaran}
+
+\vspace{0.35em}
+{\footnotesize Perulangan berhenti pada penanda \code{'\$'}, sehingga
+panjang string tidak perlu dihitung.\\[0.25em]
+\color{obeGray}\file{code/asm/xor-cipher.asm}\par}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh 3: Memanipulasi Bidang Bit Status}
+\small Satu byte menampung beberapa keadaan sekaligus: bit 0 lampu
+menyala, bit 3 pintu terbuka, bit 5 alarm aktif.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+.DATA
+    status  DB 00000000b        ; semula seluruh bit padam
+.CODE
+    OR  status, 00100001b       ; nyalakan lampu (bit 0) + alarm (bit 5)
+    AND status, 11011111b       ; padamkan alarm (bit 5)
+    XOR status, 00001000b       ; balikkan pintu (bit 3) -> terbuka
+    XOR status, 00001000b       ; balikkan lagi -> tertutup
+    TEST status, 00001000b      ; uji bit 3, AL tidak berubah
+    JZ  PINTU_TERTUTUP          ; ZF = 1 -> pintu tertutup
+\end{kodeasm}
+
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Jauh lebih hemat daripada satu variabel per
+keadaan: satu byte menampung delapan keadaan dan pemeriksaannya cukup
+satu \asm{TEST} diikuti lompatan bersyarat.\par}
+\Sumber{Bab XI, Contoh 3: Memanipulasi Bidang Bit Status}
+\end{frame}
+
+% =========================================================
+% PRAKTIKUM
+% =========================================================
+\begin{frame}{Praktikum: Manipulasi Bit}
+\begin{block}{Judul praktikum}
+\small Manipulasi bit --- pemeriksaan paritas dan \eng{packing} BCD
+\quad\textbullet\quad \textbf{Sub-CPMK:} 3.2 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad \textbf{Bentuk:}
+individu
+\end{block}
+
+\vspace{0.1em}
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+{\color{obeBlue}\bfseries Alat dan bahan}
+\begin{itemize}\small
+    \item Komputer bersistem operasi Windows
+    \item Emu8086 atau GUI Turbo Assembler + TASM dan TLINK
+    \item Berkas \file{paritas.asm} dan \file{xor-cipher.asm}
+    \item Lembar pengamatan paritas
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+{\color{obeBlue}\bfseries Langkah kerja}
+\begin{enumerate}\small
+    \item Telusuri \file{paritas.asm} dengan \file{Single Step};
+          catat \reg{AL}, \reg{BL}, \flag{CF}.
+    \item Uji byte \bin{1011 0111} dan \bin{0101 0101}.
+    \item Nyalakan, padamkan, balikkan, lalu uji bit ke-3 \hex{A5}.
+    \item Susun BCD $75$, pisahkan kembali, ulangi untuk $93$.
+    \item Bandingkan \asm{SHR} dan \asm{SAR} pada \hex{FF96};
+          hitung $7 \times 12$ tanpa \asm{MUL}.
+\end{enumerate}
+\end{column}
+\end{columns}
+
+\vspace{0.05em}
+{\footnotesize\textbf{Dikumpulkan:} tabel pengamatan paritas, program
+manipulasi bit ke-$n$, program \eng{packing} BCD beserta tangkapan
+layar, tabel \asm{SHR} vs \asm{SAR}, dan lembar \textbf{Kuis 3}.\par}
+\end{frame}
+
+% =========================================================
+% LATIHAN
+% =========================================================
+\begin{frame}{Latihan}
+\small
+\begin{enumerate}
+    \item Jelaskan dengan kalimat Anda sendiri perbedaan cara kerja
+          \asm{AND}, \asm{OR}, dan \asm{XOR} pada level bit. Sertakan
+          tabel kebenaran singkat untuk masing-masing instruksi.
+
+    \vspace{0.28em}
+    \item Mengapa \flag{CF} dan \flag{OF} selalu bernilai 0 setelah
+          \asm{AND}, \asm{OR}, \asm{XOR}, atau \asm{TEST}? Kaitkan
+          dengan sifat operasi \eng{bitwise} yang tidak menjalarkan
+          \eng{carry} antarbit.
+
+    \vspace{0.28em}
+    \item Sebutkan tiga perbedaan \asm{TEST} dan \asm{CMP}, lalu
+          tentukan yang lebih tepat untuk memeriksa apakah bit ke-4
+          \reg{AL} menyala, dan untuk memeriksa apakah \reg{AX} lebih
+          besar daripada \reg{BX}.
+
+    \vspace{0.28em}
+    \item Diketahui \reg{AL} = \hex{A5}. Tentukan nilai akhir \reg{AL}
+          dan nilai \flag{ZF} untuk potongan program berikut:
+          \asm{AND AL, 00001111b}; \asm{OR AL, 00110000b};
+          \asm{XOR AL, 00000011b}; \asm{TEST AL, AL}.
+
+    \vspace{0.28em}
+    \item Diketahui \reg{AL} = \bin{1001 0110} (\hex{96}) yang
+          ditafsirkan bertanda. Tentukan hasil dan nilai \flag{CF}
+          untuk \asm{SHL AL, 1}, \asm{SHR AL, 1}, dan \asm{SAR AL, 1};
+          jelaskan mengapa hanya \asm{SAR} yang memberi hasil
+          pembagian bertanda yang benar.
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% RANGKUMAN
+% =========================================================
+\begin{frame}{Rangkuman}
+\small
+\begin{itemize}
+    \item \asm{AND}, \asm{OR}, \asm{XOR}, dan \asm{NOT} bekerja pada
+          setiap posisi bit secara mandiri tanpa menjalarkan
+          \eng{carry}: \asm{AND} untuk \eng{masking}, \asm{OR} untuk
+          menyalakan, \asm{XOR} untuk membalik, dan \asm{NOT} membalik
+          seluruh bit tanpa menyentuh \eng{flag}.
+
+    \vspace{0.2em}
+    \item Setelah \asm{AND}, \asm{OR}, \asm{XOR}, dan \asm{TEST},
+          \flag{CF} dan \flag{OF} selalu 0, sedangkan \flag{ZF},
+          \flag{SF}, dan \flag{PF} mengikuti hasil.
+
+    \vspace{0.2em}
+    \item Manipulasi bit ke-$n$ memakai mask $2^n$: \asm{OR} untuk
+          menyalakan, \asm{AND} dengan komplemen mask untuk memadamkan,
+          \asm{XOR} untuk membalik, \asm{TEST} untuk menguji.
+
+    \vspace{0.2em}
+    \item \asm{TEST} = \asm{AND} tanpa menyimpan hasil (memeriksa bit);
+          \asm{CMP} = \asm{SUB} tanpa menyimpan hasil (membandingkan
+          nilai utuh).
+
+    \vspace{0.2em}
+    \item \asm{SAL} identik dengan \asm{SHL}, sedangkan \asm{SAR}
+          menyisipkan salinan bit tanda; \asm{ROL}/\asm{ROR} memutar
+          melingkar dan \asm{RCL}/\asm{RCR} menyertakan \flag{CF}.
+          Bit yang keluar selalu ditampung \flag{CF}.
+
+    \vspace{0.2em}
+    \item Tiga studi kasus: pemeriksaan paritas (\flag{PF}, pelipatan
+          \asm{XOR}, atau \asm{SHR} + \asm{ADC}), \eng{packing} BCD,
+          dan \eng{XOR cipher} yang dapat dibalik karena
+          $A \oplus K \oplus K = A$.
+\end{itemize}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Cek Pemahaman}
+\small
+\begin{enumerate}
+    \item Nilai \flag{CF} dan \flag{OF} setelah instruksi
+          \asm{XOR AL, BL} dijalankan adalah \dots
+          \begin{enumerate}\footnotesize
+              \item keduanya 0
+              \item keduanya 1
+              \item \flag{CF} = 1 dan \flag{OF} = 0
+              \item bergantung pada nilai \reg{AL} dan \reg{BL}
+          \end{enumerate}
+
+    \vspace{0.25em}
+    \item Instruksi untuk memadamkan bit ke-3 \reg{AL} tanpa mengubah
+          bit lain adalah \dots
+          \begin{enumerate}\footnotesize
+              \item \asm{OR AL, 08h} \quad
+              \item \asm{AND AL, 08h} \quad
+              \item \asm{AND AL, 0F7h} \quad
+              \item \asm{XOR AL, 08h}
+          \end{enumerate}
+
+    \vspace{0.25em}
+    \item Diketahui \reg{AL} = \bin{1111 1111} yang ditafsirkan
+          sebagai $-1$. Instruksi \asm{SHR AL, 1} menghasilkan
+          nilai \dots
+          \begin{enumerate}\footnotesize
+              \item $-1$ karena bit tanda dipertahankan
+              \item $+127$ karena bit tanda diisi nol
+              \item $0$ karena seluruh bit bergeser keluar
+              \item $-64$ karena hasilnya dibulatkan ke bawah
+          \end{enumerate}
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% PENUTUP
+% =========================================================
+\begin{frame}{Penutup}
+\small
+\begin{block}{Sebelum pertemuan berikutnya}
+\begin{itemize}
+    \item Selesaikan praktikum: tabel pengamatan paritas, program
+          manipulasi bit ke-$n$, program \eng{packing} BCD, dan tabel
+          perbandingan \asm{SHR} dengan \asm{SAR}.
+    \item Latih kembali penelusuran bit secara manual pada byte
+          \hex{96} dan \hex{A5} sebelum Kuis 3.
+    \item Baca \textbf{Bab XII} --- Struktur Kontrol dan Percabangan.
+\end{itemize}
+\end{block}
+
+\vspace{0.3em}
+{\footnotesize\textbf{Bacaan lanjutan:} Bab XI bagian Ringkasan
+Kedelapan Instruksi Geser dan Rotasi serta Studi Kasus Manipulasi Bit;
+daftar \eng{encoding} dan waktu siklus Intel 8086 (perbandingan
+\asm{SHL} dan \asm{MUL}); pembahasan \eng{flag} secara mendalam pada
+Bab V.\par}
+
+\vspace{0.35em}
+\begin{center}
+{\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
+\vspace{0.15em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
+\SemesterTeks\par}
+\end{center}
+\end{frame}
+
+\end{document}

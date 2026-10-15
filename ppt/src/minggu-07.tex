@@ -1,0 +1,972 @@
+% =========================================================
+% ppt/src/minggu-07.tex
+% Slide pertemuan 7
+% Bab IX — Direktif Assembler dan Alur Translasi Program
+%
+% Sub-CPMK 2.3 | CPMK02 | CPL02
+% =========================================================
+
+\documentclass[aspectratio=169,11pt]{beamer}
+\input{preamble-ppt}
+
+\renewcommand{\PertemuanTeks}{Pertemuan 7}
+
+\begin{document}
+
+% =========================================================
+% 1. JUDUL
+% =========================================================
+\JudulDeck{Direktif Assembler\\ dan Alur Translasi Program}{Pertemuan 7}
+
+% =========================================================
+% 2. CAPAIAN DAN TUJUAN
+% =========================================================
+\begin{frame}{Capaian dan Tujuan Pembelajaran}
+\begin{block}{Sub-CPMK 2.3}
+\footnotesize Menggunakan direktif assembler (\dir{DB}, \dir{DW},
+\dir{DD}, \dir{EQU}, \dir{ORG}, \dir{SEGMENT}) dan menjelaskan alur
+translasi \eng{source} $\rightarrow$ \eng{object} $\rightarrow$
+\eng{executable} oleh assembler dan linker.
+\end{block}
+
+\vspace{0.05em}
+{\small\textbf{CPMK yang didukung:} \CPMK{02}\quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}\par}
+
+\vspace{0.05em}
+\begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
+\fontsize{9}{10}\selectfont
+\begin{enumerate}
+    \item membedakan instruksi mesin dan direktif assembler serta
+          menjelaskan mengapa direktif tidak menghasilkan kode mesin;
+    \item menggunakan direktif data \dir{DB}, \dir{DW}, \dir{DD},
+          dan \dir{DT} beserta literal string, operator \dir{DUP},
+          penanda \code{?}, dan pengaruh urutan \eng{little-endian};
+    \item membedakan direktif \dir{EQU} dan \code{=} beserta
+          akibatnya bila simbol didefinisikan ulang;
+    \item menggunakan direktif lokasi \dir{ORG},
+          \dir{SEGMENT}/\dir{ENDS}, \dir{ASSUME}, dan \dir{END}
+          sesuai bentuk program \file{.COM} maupun \file{.EXE},
+          serta memilih model memori \dir{.MODEL} yang tepat;
+    \item menjelaskan tugas assembler (tabel simbol, \eng{offset})
+          dan linker (\eng{relocation}, resolusi simbol), lalu
+          menelusuri alur \file{.asm} $\rightarrow$ \file{.obj}
+          $\rightarrow$ \file{.exe} dengan TASM dan TLINK.
+\end{enumerate}
+\end{exampleblock}
+\end{frame}
+
+% =========================================================
+% 3. PETA MATERI
+% =========================================================
+\begin{frame}{Peta Materi}
+\small
+\begin{enumerate}
+    \item \textbf{Instruksi Mesin, Direktif Assembler, dan Direktif
+          Data}\\
+          {\footnotesize dua jenis baris kode sumber; \dir{DB},
+          \dir{DW}, \dir{DD}, \dir{DT}; \dir{DUP}; penanda \code{?};
+          urutan \eng{little-endian}}
+
+    \vspace{0.25em}
+    \item \textbf{Direktif Simbol, Lokasi, dan Struktur Program}\\
+          {\footnotesize \dir{EQU} dan \code{=}; \dir{ORG},
+          \dir{SEGMENT}/\dir{ENDS}, \dir{ASSUME}, \dir{END};
+          \dir{.MODEL}; \dir{PROC}/\dir{ENDP}}
+
+    \vspace{0.25em}
+    \item \textbf{Peran Assembler dan Linker dalam Alur Translasi}\\
+          {\footnotesize dua lintasan assembler; tabel simbol;
+          berkas \file{.lst}; resolusi simbol dan \eng{relocation};
+          berkas \file{.map}; kesalahan perakitan}
+\end{enumerate}
+
+\vspace{0.4em}
+\begin{block}{Praktik pada pertemuan ini}
+\small Merakit \file{direktif-data.asm} dengan TASM dan TLINK, lalu
+memeriksa berkas \file{.lst} dan \file{.map}.
+\end{block}
+\end{frame}
+
+% =========================================================
+% BAGIAN 1
+% =========================================================
+\PemisahBagian{Instruksi Mesin, Direktif Assembler, dan Direktif Data}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Dua Jenis Baris dalam Kode Sumber}
+\footnotesize
+\textbf{Instruksi mesin} --- mnemonic seperti \asm{MOV}, \asm{ADD},
+dan \asm{INT} diterjemahkan menjadi \term{opcode}, yaitu kode mesin
+yang benar-benar dieksekusi prosesor. Instruksi hanya bekerja pada
+saat program berjalan (\eng{run time}).
+
+\vspace{0.35em}
+\textbf{Direktif assembler} --- hanya berlaku pada saat perakitan
+(\eng{assemble time}); ia memberi tahu assembler bagaimana menata
+program. Disebut \eng{pseudo-op} karena bentuknya mirip instruksi
+tetapi \important{tidak menghasilkan kode mesin apa pun}.
+
+\vspace{0.3em}
+{\color{obeGray}Pada berkas \file{.lst}, baris instruksi memiliki
+kolom kode mesin, sedangkan baris direktif kosong:\par}
+\vspace{0.15em}
+\begin{keluaran}
+  4                             .DATA
+  5  0000  48 61 6C 6F        pesan   DB 'Halo'
+  6                             panjang EQU 5
+  8                             .CODE
+  9  0000  B8 ----            START:  MOV AX, @DATA
+ 10  0003  8E D8                      MOV DS, AX
+\end{keluaran}
+\Sumber{Bab IX, Dua Jenis Baris dalam Kode Sumber}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Direktif Data dan Ukuran yang Disediakannya}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{1.5cm}p{3.2cm}p{3.6cm}p{4.2cm}@{}}
+    \toprule
+    \textbf{Direktif} & \textbf{Fungsi} & \textbf{Contoh} &
+    \textbf{Ukuran / efek} \\
+    \midrule
+    \dir{DB} & Data 1 byte & \code{DB 0Ah} & 1 byte per nilai \\
+    \addlinespace
+    \dir{DW} & Data 2 byte & \code{DW 1234h} &
+    2 byte; \eng{little-endian} \\
+    \addlinespace
+    \dir{DD} & Data 4 byte & \code{DD 12345678h} &
+    4 byte; \eng{little-endian} \\
+    \addlinespace
+    \dir{DT} & Data 10 byte & \code{DT 1.0} &
+    10 byte (bilangan pecahan) \\
+    \addlinespace
+    \dir{DUP} & Mengulang satu pola & \code{DB 10 DUP(0)} &
+    10 byte bernilai nol \\
+    \addlinespace
+    \code{?} & Ruang tanpa nilai awal & \code{DB 8 DUP(?)} &
+    8 byte tanpa isi \\
+    \addlinespace
+    \code{\$} & Penghitung lokasi & \code{EQU \$ - pesan} &
+    Nilai \eng{offset} saat itu \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.25em}
+{\color{obeGray}Direktif yang mengisi memori (\dir{DB}, \dir{DW},
+\dir{DD}) tetap mempengaruhi isi berkas \file{.exe}. Yang tidak
+dihasilkannya adalah \emph{instruksi}.\par}
+\Sumber{Bab IX, Tabel ringkasan direktif assembler}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Bentuk Penulisan yang Sering Dipakai}
+\footnotesize
+\begin{enumerate}
+    \item \textbf{Literal string.} \code{DB 'Halo'} menyediakan empat
+          byte: \hex{48}, \hex{61}, \hex{6C}, \hex{6F}. String tidak
+          otomatis diakhiri apa pun, sehingga penanda akhir harus
+          ditambahkan sendiri: \code{DB 'Halo', '\$'}.
+
+    \vspace{0.3em}
+    \item \textbf{Beberapa nilai sekaligus.} \code{DW 1, 2, 3}
+          menyediakan tiga kata --- enam byte --- dengan urutan
+          sesuai penulisan.
+
+    \vspace{0.3em}
+    \item \textbf{Operator \dir{DUP}.} Bentuk
+          \code{<jumlah> DUP(<nilai>)} mengulang satu pola; bentuk
+          bersarang juga diizinkan, misalnya
+          \code{DB 2 DUP(3 DUP(0))}.
+
+    \vspace{0.3em}
+    \item \textbf{Penanda \code{?}.} Tanda tanya berarti sediakan
+          ruang \emph{tanpa} nilai awal, seperti pada
+          \code{buffer DB 8 DUP(?)}.
+
+    \vspace{0.3em}
+    \item \textbf{Penghitung lokasi \code{\$}.} Simbol \code{\$}
+          berisi \eng{offset} baris yang sedang dirakit, sehingga
+          \code{panjang EQU \$ - pesan} menghitung panjang string
+          secara otomatis.
+\end{enumerate}
+\Sumber{Bab IX, Direktif Data}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Urutan \eng{Little-Endian} pada \dir{DW} dan \dir{DD}}
+\small Prosesor 8086 menyimpan bilangan multi-byte dengan urutan
+\term{little-endian}: \important{byte berpangkat rendah disimpan pada
+alamat yang lebih kecil}.
+
+\vspace{0.4em}
+\begin{center}
+\begin{tikzpicture}[
+    sel/.style={draw=obeBlue, line width=0.7pt, minimum width=0.95cm,
+        minimum height=0.62cm, align=center, font=\ttfamily\small,
+        fill=obeBlueLight, inner sep=0pt},
+    selD/.style={sel, draw=obeTeal, fill=obeTealLight},
+    addr/.style={font=\scriptsize, text=obeGray},
+    nama/.style={font=\small\bfseries, text=obeBlue, anchor=east},
+    catat/.style={font=\scriptsize\itshape, text=obeMaroon}
+]
+    \node[nama] at (-0.55,0) {\dir{DW} \hex{1234}};
+    \node[sel] (w0) at (0,0) {34};
+    \node[sel, right=0pt of w0] (w1) {12};
+    \node[addr, below=0.06cm of w0] {\hex{0300}};
+    \node[addr, below=0.06cm of w1] {\hex{0301}};
+    \node[catat, above=0.12cm of w1, xshift=-0.55cm]
+        {byte rendah lebih dulu};
+
+    \node[nama] at (-0.55,-2.0) {\dir{DD} \hex{12345678}};
+    \node[selD] (d0) at (0,-2.0) {78};
+    \node[selD, right=0pt of d0] (d1) {56};
+    \node[selD, right=0pt of d1] (d2) {34};
+    \node[selD, right=0pt of d2] (d3) {12};
+    \node[addr, below=0.06cm of d0] {\hex{0302}};
+    \node[addr, below=0.06cm of d1] {\hex{0303}};
+    \node[addr, below=0.06cm of d2] {\hex{0304}};
+    \node[addr, below=0.06cm of d3] {\hex{0305}};
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.3em}
+{\footnotesize\color{obeGray}\code{nilai DW 1234h} \emph{tidak}
+tersimpan sebagai \hex{12} lalu \hex{34}, melainkan \hex{34} lalu
+\hex{12}; aturan yang sama berlaku untuk \dir{DD}. Urutan ini baru
+terlihat bila memori dibaca \emph{byte per byte}.\par}
+\Sumber{Bab IX, Urutan Little-Endian pada DW dan DD}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 1}
+\small
+\begin{itemize}
+    \item Kode sumber memuat dua jenis baris: instruksi mesin yang
+          menghasilkan opcode dan dieksekusi saat \eng{run time},
+          serta direktif assembler (\eng{pseudo-op}) yang hanya
+          berlaku saat \eng{assemble time} dan tidak menghasilkan
+          kode mesin.
+
+    \vspace{0.25em}
+    \item \dir{DB} menyediakan 1 byte, \dir{DW} 2 byte, \dir{DD}
+          4 byte, dan \dir{DT} 10 byte. Operator \dir{DUP} mengulang
+          satu pola, sedangkan penanda \code{?} hanya menyediakan
+          ruang tanpa nilai awal.
+
+    \vspace{0.25em}
+    \item Literal string tidak otomatis diakhiri; penanda \code{'\$'}
+          ditambahkan sendiri untuk layanan DOS fungsi \hex{09}.
+          Simbol \code{\$} sekaligus dapat dipakai menghitung
+          \eng{offset}.
+
+    \vspace{0.25em}
+    \item Bilangan multi-byte disimpan \eng{little-endian}: byte
+          berpangkat rendah berada di alamat lebih kecil, sehingga
+          \code{DW 1234h} tersimpan \hex{34} lalu \hex{12}.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 2
+% =========================================================
+\PemisahBagian{Direktif Simbol, Lokasi, dan Struktur Program}
+
+% ---------------------------------------------------------
+\begin{frame}{Konstanta Simbolik: \dir{EQU} dan \code{=}}
+\footnotesize
+\dir{EQU} memberi nama pada sebuah nilai. Setelah
+\code{KELUAR EQU 4Ch} ditulis, setiap kemunculan \code{KELUAR}
+digantikan \hex{4C} saat perakitan; nama semacam ini disebut
+\term{konstanta simbolik}. Direktif \code{=} berbentuk serupa, yaitu
+\code{URUTAN = 10}, tetapi sifatnya berbeda.
+
+\vspace{0.35em}
+\begin{center}
+\begin{tabular}{@{}p{3.0cm}p{5.0cm}p{5.0cm}@{}}
+    \toprule
+    \textbf{Aspek} & \dir{EQU} & \code{=} \\
+    \midrule
+    Sifat simbol & Konstanta tetap sepanjang berkas &
+    Nilai yang boleh berubah \\
+    \addlinespace
+    Dapat didefinisikan ulang & Tidak; assembler melaporkan
+    \file{Symbol already defined} & Ya; definisi terakhir yang
+    berlaku \\
+    \addlinespace
+    Jenis nilai yang boleh & Bilangan, alamat, teks, atau ekspresi
+    yang dapat dihitung assembler & Wajib berupa bilangan \\
+    \addlinespace
+    Pemakaian khas & Nama nomor fungsi DOS, ukuran tabel &
+    Penghitung di dalam makro atau blok yang diulang \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab IX, Konstanta Simbolik}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Definisi Ulang \dir{EQU} Dibandingkan \code{=}}
+\footnotesize
+Definisi ulang \dir{EQU} menimbulkan kesalahan perakitan:
+\vspace{0.15em}
+\begin{kodeasm}[numbers=none]
+LEBAR   EQU 80          ; definisi pertama
+LEBAR   EQU 40          ; **Error** Symbol already defined
+\end{kodeasm}
+{\color{obeGray}Pesan yang dikeluarkan TASM:\par}
+\begin{keluaran}
+**Error** equ-salah.asm(2) Symbol already defined: LEBAR
+**Error** equ-salah.asm(2) Cannot define symbol
+2 errors
+\end{keluaran}
+
+\vspace{0.1em}
+Dengan \code{=}, definisi ulang menjadi sah dan nilai terakhir yang
+berlaku:
+\vspace{0.15em}
+\begin{kodeasm}[numbers=none]
+URUTAN  = 10            ; nilai pertama
+URUTAN  = 20            ; sah: nilai sekarang menjadi 20
+\end{kodeasm}
+\Sumber{Bab IX, Definisi Ulang EQU}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Direktif Lokasi dan Struktur Program}
+\footnotesize
+\begin{description}
+    \item[\dir{ORG}] Menetapkan penghitung lokasi
+          (\eng{location counter}). Pada program \file{.COM},
+          \code{ORG 100h} wajib ditulis karena DOS memuat program
+          pada \eng{offset} \hex{100}.
+
+    \vspace{0.3em}
+    \item[\dir{SEGMENT} dan \dir{ENDS}] Menandai awal dan akhir
+          sebuah segmen bernama. Setiap \dir{SEGMENT} harus ditutup
+          \dir{ENDS} dengan nama segmen yang sama.
+
+    \vspace{0.3em}
+    \item[\dir{ASSUME}] Memberi tahu assembler register segmen mana
+          yang dianggap menunjuk ke segmen tertentu, sehingga segmen
+          \eng{default} sebuah label dapat ditentukan. Direktif ini
+          tidak mengubah isi register saat program berjalan.
+
+    \vspace{0.3em}
+    \item[\dir{END}] Menutup berkas sumber; baris sesudahnya
+          diabaikan. Dengan label, \code{END START} sekaligus
+          mencatat titik masuk (\eng{entry point}). \dir{END} tanpa
+          label lolos dari assembler, tetapi ditolak linker.
+
+    \vspace{0.3em}
+    \item[\dir{PROC} dan \dir{ENDP}] Menandai batas sebuah prosedur
+          sehingga assembler dapat menentukan jenis pemanggilan.
+          Keduanya tidak menghasilkan instruksi.
+\end{description}
+\Sumber{Bab IX, Direktif Lokasi dan Struktur}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Model Memori \dir{.MODEL}}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{1.5cm}p{2.5cm}p{2.5cm}p{6.0cm}@{}}
+    \toprule
+    \textbf{Model} & \textbf{Batas kode} & \textbf{Batas data} &
+    \textbf{Jumlah segmen} \\
+    \midrule
+    \file{TINY} & 64 KB & 64 KB &
+    Satu segmen untuk kode, data, dan \eng{stack}; dipakai untuk
+    \file{.COM} \\
+    \addlinespace
+    \file{SMALL} & 64 KB & 64 KB &
+    Satu segmen kode dan satu segmen data; pilihan lazim untuk
+    pembelajaran \\
+    \addlinespace
+    \file{MEDIUM} & Tidak dibatasi & 64 KB &
+    Satu segmen data, banyak segmen kode \\
+    \addlinespace
+    \file{COMPACT} & 64 KB & Tidak dibatasi &
+    Satu segmen kode, banyak segmen data \\
+    \addlinespace
+    \file{LARGE} & Tidak dibatasi & Tidak dibatasi &
+    Banyak segmen; satu \eng{array} maksimum 64 KB \\
+    \addlinespace
+    \file{HUGE} & Tidak dibatasi & Tidak dibatasi &
+    Seperti \file{LARGE}, tetapi \eng{array} boleh melewati 64 KB \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2em}
+{\color{obeGray}\dir{.MODEL} juga menetapkan simbol bawaan seperti
+\code{@DATA}. Semakin besar model, semakin banyak segmen yang harus
+diurus program.\par}
+\Sumber{Bab IX, Model Memori dan Struktur Prosedur}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 2}
+\small
+\begin{itemize}
+    \item \dir{EQU} menghasilkan konstanta tetap yang tidak dapat
+          didefinisikan ulang, sedangkan \code{=} menghasilkan nilai
+          yang boleh diganti berkali-kali --- yang berlaku adalah
+          definisi terakhir.
+
+    \vspace{0.25em}
+    \item Definisi ulang \dir{EQU} dilaporkan sebagai
+          \file{Symbol already defined}; gunakan \code{=} bila
+          memang membutuhkan nilai yang berubah.
+
+    \vspace{0.25em}
+    \item \dir{ORG} menetapkan penghitung lokasi (\code{ORG 100h}
+          wajib pada \file{.COM}); \dir{SEGMENT}/\dir{ENDS} menandai
+          batas segmen; \dir{ASSUME} menetapkan segmen
+          \eng{default} bagi assembler; \dir{END} menutup berkas dan
+          dapat menetapkan titik masuk.
+
+    \vspace{0.25em}
+    \item \dir{.MODEL} memilih model memori: \file{TINY} satu segmen
+          untuk \file{.COM}, \file{SMALL} satu segmen kode dan satu
+          segmen data. Model yang lebih besar memakai banyak segmen.
+
+    \vspace{0.25em}
+    \item \dir{PROC} dan \dir{ENDP} hanya menandai batas prosedur dan
+          menentukan jenis pemanggilan, tanpa menghasilkan
+          instruksi.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 3
+% =========================================================
+\PemisahBagian{Peran Assembler dan Linker dalam Alur Translasi}
+
+% ---------------------------------------------------------
+\begin{frame}{Alur Translasi: \file{.asm} $\rightarrow$
+\file{.obj} $\rightarrow$ \file{.exe}}
+\small
+\begin{center}
+\begin{tikzpicture}[
+    berkas/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+        rounded corners=3pt, minimum width=1.9cm, minimum height=0.8cm,
+        align=center, font=\scriptsize\bfseries, inner sep=2pt},
+    alat/.style={berkas, draw=obeTeal, fill=obeTealLight},
+    hasil/.style={berkas, draw=obeAmber, fill=obeAmberLight},
+    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeTeal},
+    panel/.style={draw=obeGray, line width=0.6pt, dashed,
+        rounded corners=2pt, fill=obeGrayLight, align=left,
+        font=\ttfamily\tiny, inner sep=3pt, text=black,
+        text width=2.25cm},
+]
+    \node[berkas] (src) {\file{program.asm}};
+    \node[alat, right=0.4cm of src] (asm) {ASSEMBLER};
+    \node[hasil, right=0.4cm of asm] (obj) {\file{program.obj}};
+    \node[alat, right=0.4cm of obj] (lnk) {LINKER};
+    \node[hasil, right=0.4cm of lnk] (exe) {\file{program.exe}};
+
+    \draw[panah] (src) -- (asm);
+    \draw[panah] (asm) -- (obj);
+    \draw[panah] (obj) -- (lnk);
+    \draw[panah] (lnk) -- (exe);
+
+    \node[panel, below=0.40cm of asm, anchor=north] (simbol) {
+        \textbf{TABEL SIMBOL}\\
+        START\ \ 0000H\\
+        panjang\ 0012H
+    };
+    \node[panel, below=0.40cm of lnk, anchor=north] (relok) {
+        \textbf{CATATAN RELOKASI}\\
+        +0009\ OFF\ sapaan\\
+        +0036\ SEG\ \_STACK
+    };
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.3em}
+{\footnotesize\color{obeGray}Assembler membangun tabel simbol dan
+menghasilkan kode mesin; linker menyelesaikan \eng{relocation} dan
+menentukan alamat akhir.\par}
+\Sumber{Bab IX, Alur translasi .asm .obj .exe}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Tugas Assembler: Dua Lintasan}
+\small Assembler bekerja dalam dua lintasan (\eng{two-pass}):
+\vspace{0.3em}
+\begin{enumerate}
+    \item \textbf{Lintasan pertama.} Assembler membaca seluruh baris,
+          memeriksa sintaks, menghitung besar setiap direktif data,
+          dan mencatat setiap label beserta \eng{offset}-nya ke dalam
+          \term{tabel simbol}. Pada lintasan ini belum ada kode mesin
+          yang ditulis ke berkas.
+
+    \vspace{0.45em}
+    \item \textbf{Lintasan kedua.} Assembler menerjemahkan setiap
+          instruksi menjadi opcode, menggabungkannya dengan
+          \eng{offset} dari tabel simbol, lalu menuliskan hasilnya ke
+          berkas objek. Karena itu, label yang terletak
+          \emph{setelah} instruksi pemakainya tetap dapat dipakai.
+\end{enumerate}
+
+\vspace{0.45em}
+\begin{block}{Berkas \file{.lst}}
+\small Berkas \file{.lst} memperlihatkan hasil kedua lintasan
+sekaligus: kolom kode mesin, tabel simbol, dan \eng{offset} yang sudah
+dihitung.
+\end{block}
+\Sumber{Bab IX, Tugas Assembler}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Membaca Tabel Simbol pada Berkas \file{.lst}}
+\footnotesize
+\begin{keluaran}
+  4                             .DATA
+  5  0000  48 61 6C 6F 2C 20 61 73 73 65  sapaan  DB 'Halo, ...'
+  7  0012                        panjang EQU $ - sapaan
+  8  0012  41 42 43 44           kata    DW 4241h, 4443h
+  9  0016  78 56 34 12           nilai   DD 12345678h
+ 10  001A  2A 2A 2A 2A           bintang DB 4 DUP('*')
+ 11  001E  ??                    buffer  DB 8 DUP(?)
+ 14  0000  B8 ----            START:  MOV AX, @DATA
+ 17  0007  8D 16 0000 R               LEA DX, sapaan
+\end{keluaran}
+
+\vspace{0.2em}
+{\color{obeGray}
+\begin{itemize}
+    \item Direktif data terlihat memakan ruang memori, sedangkan baris
+          \dir{.MODEL}, \dir{.STACK}, dan \dir{.CODE} tidak.
+    \item \code{panjang} tercatat \hex{12}, yaitu \dec{18}, hasil
+          perhitungan \code{\$ - sapaan} oleh assembler.
+    \item Tanda \code{R} berarti baris itu memuat \term{relokasi}:
+          alamatnya masih menunggu linker.
+\end{itemize}\par}
+\Sumber{Bab IX, Cuplikan direktif-data.lst}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Tugas Linker: Resolusi Simbol dan \eng{Relocation}}
+\small Berkas \file{.obj} belum dapat dijalankan karena masih memuat
+\term{simbol eksternal}, yaitu nama yang belum punya alamat pasti.
+Linker melakukan tiga pekerjaan pokok:
+\vspace{0.3em}
+\begin{enumerate}
+    \item \textbf{Resolusi simbol eksternal.} Setiap rujukan diberi
+          alamat sesungguhnya. Contoh yang paling akrab adalah
+          \code{@DATA}, yang baru memperoleh nomor segmen setelah
+          linker menempatkan segmen data.
+
+    \vspace{0.4em}
+    \item \textbf{\eng{Relocation}.} Linker mencatat bagian kode mana
+          saja yang harus disesuaikan bila program dimuat pada alamat
+          dasar yang berbeda.
+
+    \vspace{0.4em}
+    \item \textbf{Penentuan alamat akhir.} Linker menyusun seluruh
+          segmen berurutan, menetapkan alamatnya, dan menggabungkan
+          berkas objek dengan pustaka (\eng{library}) bila
+          diperlukan.
+\end{enumerate}
+
+\vspace{0.35em}
+{\footnotesize\color{obeGray}Ringkasan pekerjaan itu terekam pada
+berkas \file{.map} yang dibuat dengan opsi \file{/m}.\par}
+\Sumber{Bab IX, Tugas Linker}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Berkas \file{.map}: Alamat Akhir Setiap Segmen}
+\footnotesize
+\begin{keluaran}
+Turbo Link  Version 5.0.  Copyright (c) 1992 Borland International
+
+ Start  Stop   Length Name                   Class
+ 00000H 00035H 00036H _TEXT                  CODE
+ 00036H 0005BH 00026H _DATA                  DATA
+ 0005CH 0005BH 00000H _BSS                   BSS
+ 0005CH 00015BH 00100H _STACK                 STACK
+
+Program entry point at 0000:0000
+\end{keluaran}
+
+\vspace{0.2em}
+{\color{obeGray}Segmen \file{\_DATA} berukuran \hex{26} byte, tepat
+sama dengan total direktif data pada berkas sumber. Titik masuk
+tercatat \file{0000:0000}, yaitu label \file{START}.\par}
+\Sumber{Bab IX, Cuplikan direktif-data.map}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Alur Lengkap dari Baris Perintah DOS}
+\footnotesize
+\begin{keluaran}
+C:\ASM>tasm /l direktif-data.asm
+Turbo Assembler  Version 4.1
+Assembling file:   direktif-data.asm
+Error messages:    None
+Passes:            2
+
+C:\ASM>tlink /m direktif-data.obj
+Turbo Link  Version 5.0.
+
+C:\ASM>direktif-data
+Halo, assembly!
+ABCD****
+\end{keluaran}
+
+\vspace{0.2em}
+{\color{obeGray}Assembler menghasilkan \file{.obj} dan --- karena opsi
+\file{/l} --- \file{.lst}; linker menghasilkan \file{.exe} dan ---
+karena opsi \file{/m} --- \file{.map}. Keluaran \code{ABCD****}
+terjadi karena data dibaca \emph{byte per byte} secara
+\eng{little-endian}.\par}
+\Sumber{Bab IX, Alur lengkap dari DOS}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Empat Kesalahan Perakitan yang Paling Sering}
+\footnotesize
+\begin{enumerate}
+    \item \textbf{Simbol ganda.} Satu nama dipakai untuk dua label
+          atau dua \dir{EQU}. Pesan \file{Symbol already defined}
+          hanya menyebut nama yang bentrok, sehingga letaknya harus
+          dicari pada berkas \file{.lst}.
+
+    \vspace{0.3em}
+    \item \textbf{\dir{EQU} didefinisikan ulang.} Pesan
+          \file{Symbol already defined} pada baris \dir{EQU} kedua.
+          Gunakan \code{=} bila memang membutuhkan nilai yang
+          berubah.
+
+    \vspace{0.3em}
+    \item \textbf{\dir{END} tanpa label.} Perakitan selesai tanpa
+          kesalahan, tetapi linker melaporkan tidak menemukan titik
+          masuk program. Tuliskan \code{END START} sesuai nama label
+          awal.
+
+    \vspace{0.3em}
+    \item \textbf{Segmen tidak ditutup \dir{ENDS}.} Muncul pesan
+          \file{Block nesting error} atau \file{Missing ENDS}, dan
+          semua baris sesudahnya ikut salah tafsir.
+\end{enumerate}
+\Sumber{Bab IX, Kesalahan perakitan yang umum}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 3}
+\small
+\begin{itemize}
+    \item Assembler bekerja dua lintasan: lintasan pertama menghitung
+          ukuran direktif dan membangun tabel simbol, lintasan kedua
+          menghasilkan opcode dengan memakai \eng{offset} dari tabel
+          itu.
+
+    \vspace{0.25em}
+    \item Berkas \file{.lst} memperlihatkan hasil kedua lintasan,
+          termasuk tanda \code{R} yang berarti baris tersebut masih
+          menunggu \eng{relocation} oleh linker.
+
+    \vspace{0.25em}
+    \item Linker menyelesaikan simbol eksternal (misalnya
+          \code{@DATA}), melakukan \eng{relocation}, dan menetapkan
+          alamat akhir; ringkasannya terekam pada berkas \file{.map}.
+
+    \vspace{0.25em}
+    \item Alur lengkap: \file{tasm /l program.asm} $\rightarrow$
+          \file{tlink /m program.obj} $\rightarrow$ menjalankan
+          \file{program.exe}.
+
+    \vspace{0.25em}
+    \item Empat kesalahan tersering: simbol ganda, \dir{EQU}
+          didefinisikan ulang, \dir{END} tanpa label, dan segmen
+          tanpa \dir{ENDS}.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% CONTOH PROGRAM
+% =========================================================
+\begin{frame}[fragile]{Contoh 1: Mendemonstrasikan Semua Direktif
+Data}
+\footnotesize
+\begin{columns}[t]
+\begin{column}{0.54\textwidth}
+\begin{kodeasm}[numbers=none]
+.MODEL SMALL
+.STACK 100h
+.DATA
+    sapaan  DB 'Halo, assembly!', 0Dh, 0Ah, '$'
+    panjang EQU $ - sapaan       ; 18 byte
+    kata    DW 4241h, 4443h
+    nilai   DD 12345678h
+    bintang DB 4 DUP('*')
+    buffer  DB 8 DUP(?)
+\end{kodeasm}
+\end{column}
+\begin{column}{0.44\textwidth}
+\begin{kodeasm}[numbers=none]
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    MOV AH, 09h
+    LEA DX, sapaan
+    INT 21h
+    MOV DL, BYTE PTR [kata]
+    INT 21h
+    MOV AH, 4Ch
+    INT 21h
+END START
+\end{kodeasm}
+\end{column}
+\end{columns}
+
+\vspace{0.15em}
+{\color{obeTeal}\bfseries Keluaran}\quad
+\begin{keluaran}
+Halo, assembly!
+ABCD****
+\end{keluaran}
+{\color{obeGray}Data dibaca \emph{byte per byte} dengan \code{BYTE PTR};
+baris kedua keluaran membuktikan urutan \eng{little-endian}.\par}
+\Sumber{Bab IX, Contoh 1 --- \file{code/asm/direktif-data.asm}}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh 2: Konstanta \dir{EQU}}
+\footnotesize
+\begin{columns}[t]
+\begin{column}{0.50\textwidth}
+\begin{kodeasm}[numbers=none]
+LAYAR      EQU 02h    ; cetak karakter
+TULIS      EQU 09h    ; cetak string
+KELUAR     EQU 4Ch    ; akhiri program
+BARIS_BARU EQU 0Dh    ; carriage return
+AWAL_BARIS EQU 0Ah    ; line feed
+
+.DATA
+  judul  DB 'Konstanta EQU', 0Dh, 0Ah, '$'
+  isi    DB 'X = ', '$'
+\end{kodeasm}
+
+\vspace{0.2em}
+{\color{obeTeal}\bfseries Keluaran}\quad
+\begin{keluaran}
+Konstanta EQU
+X = 7
+\end{keluaran}
+\end{column}
+\begin{column}{0.47\textwidth}
+\begin{kodeasm}[numbers=none]
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    MOV AH, TULIS        ; cetak judul
+    LEA DX, judul
+    INT 21h
+    MOV AH, TULIS        ; cetak 'X = '
+    LEA DX, isi
+    INT 21h
+    MOV AH, LAYAR        ; cetak '7'
+    MOV DL, '7'
+    INT 21h
+    MOV AH, KELUAR
+    INT 21h
+END START
+\end{kodeasm}
+\end{column}
+\end{columns}
+\Sumber{Bab IX, Contoh 2 --- \file{code/asm/equ-konstanta.asm}}
+\end{frame}
+
+% =========================================================
+% PRAKTIKUM
+% =========================================================
+\begin{frame}{Praktikum: Merakit dengan TASM dan TLINK}
+\begin{block}{Judul praktikum}
+\footnotesize Merakit dengan TASM dan TLINK serta memeriksa berkas
+\file{.lst} dan \file{.map} \quad\textbullet\quad
+\textbf{Sub-CPMK:} 2.3 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
+\end{block}
+
+\vspace{0.2em}
+\begin{columns}[t]
+\begin{column}{0.46\textwidth}
+{\color{obeBlue}\bfseries Alat dan bahan}
+\begin{itemize}\footnotesize
+    \item DOSBox dengan direktori kerja ter-\eng{mount}
+    \item TASM dan TLINK versi DOS
+    \item \file{direktif-data.asm} dan \file{equ-konstanta.asm}
+    \item Lembar kerja pengamatan
+\end{itemize}
+\end{column}
+\begin{column}{0.50\textwidth}
+{\color{obeBlue}\bfseries Langkah kerja}
+\begin{enumerate}\footnotesize
+    \item \file{tasm /l direktif-data.asm}; catat lintasan dan
+          kesalahan
+    \item \file{tlink /m direktif-data.obj}; jalankan \file{.exe}
+    \item Periksa \file{.lst}: baris direktif dan baris bertanda
+          \code{R}
+    \item Periksa \file{.map}: hitung besar \file{\_DATA} dan
+          \file{\_TEXT}
+    \item Sengaja buat kesalahan \dir{EQU} dan \dir{END} tanpa
+          label
+\end{enumerate}
+\end{column}
+\end{columns}
+
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} berkas \file{.asm} beserta
+\file{.obj}, \file{.lst}, \file{.map}, dan \file{.exe}, serta catatan
+kesalahan yang disengaja dan cara memperbaikinya.\par}
+\end{frame}
+
+% =========================================================
+% LATIHAN
+% =========================================================
+\begin{frame}{Latihan}
+\small
+\begin{enumerate}
+    \item Jelaskan perbedaan instruksi mesin dan direktif assembler,
+          serta mengapa direktif disebut \eng{pseudo-op}. Berikan dua
+          contoh direktif yang mengisi memori dan dua contoh yang
+          tidak mempengaruhi isi berkas \file{.exe}.
+
+    \vspace{0.25em}
+    \item Sebutkan direktif data yang tepat, lalu tuliskan
+          deklarasinya: (a) satu nilai \hex{0A} untuk pindah baris;
+          (b) tabel delapan nilai 16-bit \hex{0000}; (c) penampung 32
+          byte yang diisi saat program berjalan; (d) string
+          \code{'SEMARANG'} yang siap dicetak fungsi \hex{09}.
+
+    \vspace{0.25em}
+    \item Diberikan blok data \code{a DB 'TEST'}, \code{b DW 2 DUP(0)},
+          \code{c DD 1, 2}, \code{d DB 3 DUP(?)}, dan \code{e DT 0}.
+          Hitung total byte yang disediakan dan tuliskan \eng{offset}
+          setiap label.
+
+    \vspace{0.25em}
+    \item Tuliskan urutan byte di memori untuk \code{DW 0102h} dan
+          \code{DD 03040506h}, lalu jelaskan mengapa urutannya
+          demikian.
+
+    \vspace{0.25em}
+    \item Sebuah berkas sumber berakhir dengan \code{END} tanpa nama
+          label. Apakah TASM melaporkan kesalahan? Apakah TLINK
+          melaporkan kesalahan? Bagaimana cara memperbaikinya?
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% RANGKUMAN
+% =========================================================
+\begin{frame}{Rangkuman}
+\small
+\begin{itemize}
+    \item Kode sumber assembly terdiri atas dua jenis baris:
+          instruksi mesin yang menghasilkan opcode dan dieksekusi saat
+          program berjalan, serta direktif assembler yang hanya
+          berlaku saat perakitan dan tidak menghasilkan kode mesin.
+
+    \vspace{0.25em}
+    \item \dir{DB} menyediakan satu byte, \dir{DW} dua byte,
+          \dir{DD} empat byte, dan \dir{DT} sepuluh byte. \dir{DUP}
+          mengulang satu pola, sedangkan \code{?} hanya menyediakan
+          ruang tanpa nilai awal.
+
+    \vspace{0.25em}
+    \item Bilangan multi-byte disimpan \eng{little-endian}, sehingga
+          \code{DW 1234h} tersimpan sebagai byte \hex{34} lalu
+          \hex{12}.
+
+    \vspace{0.25em}
+    \item \dir{EQU} membuat konstanta tetap yang tidak dapat
+          didefinisikan ulang, sedangkan \code{=} membuat nilai yang
+          boleh diganti berkali-kali.
+
+    \vspace{0.25em}
+    \item \dir{ORG}, \dir{SEGMENT}/\dir{ENDS}, \dir{ASSUME}, dan
+          \dir{END} mengatur letak dan struktur program; \dir{END}
+          yang diberi label sekaligus menetapkan titik masuk.
+
+    \vspace{0.25em}
+    \item Assembler membangun tabel simbol dan menghitung
+          \eng{offset}; linker menyelesaikan simbol eksternal,
+          melakukan \eng{relocation}, dan merekam alamat akhir pada
+          berkas \file{.map}.
+\end{itemize}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Cek Pemahaman}
+\small
+\begin{enumerate}
+    \item Pernyataan yang benar tentang direktif assembler adalah
+          \dots
+          \begin{enumerate}\footnotesize
+              \item direktif menghasilkan opcode seperti instruksi
+              \item direktif hanya berlaku saat perakitan dan tidak
+                    menghasilkan kode mesin
+              \item direktif dieksekusi prosesor saat program berjalan
+              \item direktif tidak berpengaruh pada berkas \file{.exe}
+          \end{enumerate}
+
+    \vspace{0.25em}
+    \item Deklarasi \code{nilai DW 1234h} menempatkan byte di memori
+          dengan urutan \dots
+          \begin{enumerate}\footnotesize
+              \item \hex{12} lalu \hex{34} \quad
+              \item \hex{34} lalu \hex{12} \quad
+              \item \hex{00} lalu \hex{12} \quad
+              \item \hex{43} lalu \hex{21}
+          \end{enumerate}
+
+    \vspace{0.25em}
+    \item Tugas yang dikerjakan linker, bukan assembler, adalah
+          \dots
+          \begin{enumerate}\footnotesize
+              \item menghitung \eng{offset} label dalam satu segmen
+              \item menerjemahkan mnemonic menjadi opcode
+              \item menyelesaikan simbol eksternal dan melakukan
+                    \eng{relocation}
+              \item membaca direktif \dir{EQU}
+          \end{enumerate}
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% PENUTUP
+% =========================================================
+\begin{frame}{Penutup}
+\small
+\begin{block}{Sebelum pertemuan berikutnya}
+\begin{itemize}
+    \item Selesaikan Tugas 3: berkas hasil perakitan, cuplikan
+          \file{.lst} dan \file{.map}, serta catatan kesalahan
+          perakitan yang disengaja.
+    \item Tuliskan deklarasi \dir{DB}, \dir{DW}, dan \dir{DD} untuk
+          tabel lima nilai, lalu hitung \eng{offset} setiap label.
+    \item Baca \textbf{Bab X} --- Instruksi Transfer Data dan
+          Aritmatika.
+\end{itemize}
+\end{block}
+
+\vspace{0.5em}
+\begin{center}
+{\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
+\vspace{0.2em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
+\SemesterTeks\par}
+\end{center}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,1059 @@
+% =========================================================
+% ppt/src/minggu-04.tex
+% Slide pertemuan 4
+% Bab VI — Segmentasi Memori dan Alamat Fisik
+%
+% Sub-CPMK 1.3 | CPMK01 | CPL02
+% =========================================================
+
+\documentclass[aspectratio=169,11pt]{beamer}
+\input{preamble-ppt}
+
+\renewcommand{\PertemuanTeks}{Pertemuan 4}
+
+\begin{document}
+
+% =========================================================
+% 1. JUDUL
+% =========================================================
+\JudulDeck{Segmentasi Memori dan Alamat Fisik}{Pertemuan 4}
+
+% =========================================================
+% 2. CAPAIAN DAN TUJUAN
+% =========================================================
+\begin{frame}{Capaian dan Tujuan Pembelajaran}
+\begin{block}{Sub-CPMK 1.3}
+\small Menerapkan konsep segmentasi memori: menghitung alamat fisik
+20-bit dari pasangan \eng{segment:offset}, menjelaskan paragraf
+16-byte, dan menganalisis skema pengalamatan 1 MB.
+\end{block}
+
+\vspace{0.15em}
+{\small\textbf{CPMK yang didukung:} \CPMK{01}\quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}\par}
+
+\vspace{0.2em}
+\begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
+\footnotesize
+\begin{enumerate}
+    \item menjelaskan mengapa prosesor 8086 yang berbus alamat 20 bit
+          memakai register segmen 16 bit;
+    \item membedakan alamat logis (\eng{segment:offset}) dan alamat
+          fisik beserta notasi penulisannya;
+    \item menghitung alamat fisik 20-bit dengan rumus
+          $(\text{segmen} \times \hex{10}) + \text{offset}$;
+    \item menjelaskan paragraf 16-byte dan menghitung banyaknya
+          pasangan yang menunjuk satu alamat fisik;
+    \item menyebutkan pembagian peta memori 1 MB dan menganalisis
+          kasus batas \eng{wrap-around}.
+\end{enumerate}
+\end{exampleblock}
+\end{frame}
+
+% =========================================================
+% 3. PETA MATERI
+% =========================================================
+\begin{frame}{Peta Materi}
+\small
+\begin{enumerate}
+    \item \textbf{Masalah Pengalamatan Memori dan Lahirnya Segmentasi}\\
+          {\footnotesize keterbatasan register 16-bit; alamat logis
+          dan alamat fisik; rumus alamat fisik; contoh hitung
+          bertingkat}
+
+    \vspace{0.25em}
+    \item \textbf{Paragraf 16-Byte, Struktur Segmen, dan
+          Overlapping}\\
+          {\footnotesize paragraf 16 byte; jendela segmen 64 KB;
+          satu alamat fisik banyak nama; \eng{far pointer}}
+
+    \vspace{0.25em}
+    \item \textbf{Peta Memori 1 MB dan Kasus Batas Alamat}\\
+          {\footnotesize pembagian ruang alamat; memori konvensional
+          dan area video; \eng{wrap-around}; verifikasi dengan
+          \eng{debugger}}
+\end{enumerate}
+
+\vspace{0.4em}
+\begin{block}{Praktik pada pertemuan ini}
+\small Menghitung alamat fisik secara manual, membuktikannya dengan
+DEBUG dan Emu8086, menjalankan dua contoh program, lalu Kuis 1.
+\end{block}
+\end{frame}
+
+% =========================================================
+% BAGIAN 1
+% =========================================================
+\PemisahBagian{Masalah Pengalamatan Memori dan Lahirnya Segmentasi}
+
+% ---------------------------------------------------------
+\begin{frame}{Keterbatasan Register 16-Bit}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{3.6cm}p{1.6cm}p{2.7cm}p{4.6cm}@{}}
+    \toprule
+    \textbf{Sisi} & \textbf{Lebar} & \textbf{Jangkauan} &
+    \textbf{Akibat} \\
+    \midrule
+    Register umum dan register segmen & 16 bit &
+    \dec{65.536} alamat & Hanya 64 KB dapat ditunjuk langsung \\
+    \addlinespace
+    Bus alamat prosesor & 20 bit & \dec{1.048.576} alamat &
+    Seluruh 1 MB dapat dijangkau \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.25em}
+\begin{alertblock}{Pertanyaan yang muncul}
+\footnotesize Satu register 16-bit hanya menjangkau \dec{65.536} nilai
+atau 64 KB, sedangkan bus alamat 20 bit harus menjangkau 1 MB. Memori
+di atas \hex{FFFF} tidak akan pernah dapat diakses, padahal ROM BIOS
+berada pada \hex{F0000}.
+\end{alertblock}
+
+\vspace{0.2em}
+\begin{block}{Jawabannya: segmentasi}
+\footnotesize Kompromi rancangan. Lebar instruksi dan register tetap
+16 bit sehingga program tetap ringkas, tetapi jangkauan alamat
+mencapai 1 MB.
+\end{block}
+\Sumber{Bab VI, Keterbatasan Register 16-Bit}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Alamat Logis dan Alamat Fisik}
+\begin{block}{Definisi}
+\footnotesize \textbf{Alamat logis} adalah cara programmer menuliskan
+sebuah alamat, yaitu pasangan \eng{segment:offset} berbentuk
+\code{segmen:offset}. \textbf{Alamat fisik} adalah alamat 20-bit
+yang benar-benar dibangkitkan prosesor dan dikirim ke bus alamat.
+\end{block}
+
+\vspace{0.25em}
+\small
+\begin{itemize}
+    \item Pada \code{1234h:5678h}, nilai \hex{1234} adalah
+          \term{segmen} dan \hex{5678} adalah \term{offset};
+          keduanya berukuran 16 bit.
+    \item Titik dua hanya pemisah penulisan, bukan operasi pembagian.
+    \item \code{MOV AX, [1234h]} memakai \reg{DS} saat itu dengan
+          offset \hex{1234}.
+    \item \code{MOV AX, 1234h:[5678h]} memakai pasangan itu apa
+          adanya, tanpa memperhatikan isi \reg{DS}.
+\end{itemize}
+
+\vspace{0.2em}
+\begin{alertblock}{Nilai segmen bukan alamat}
+\footnotesize Segmen \hex{1234} tidak menunjuk alamat \hex{1234},
+melainkan awal sebuah paragraf pada \hex{12340}. Kekeliruan ini
+adalah sumber kesalahan perhitungan yang paling sering terjadi.
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rumus Alamat Fisik}
+\begin{center}
+{\large Alamat fisik $= (\text{segmen} \times \hex{10}) +
+\text{offset}$}
+\end{center}
+
+\vspace{0.2em}
+{\footnotesize
+\begin{itemize}
+    \item \hex{10} adalah bilangan heksadesimal yang bernilai
+          $16$ desimal. Prosesor tidak benar-benar mengalikan, ia
+          hanya menggeser segmen empat bit ke kiri lalu
+          menjumlahkannya dengan offset.
+    \item Pengalinya 16 karena memori dibagi menjadi satuan 16 byte
+          bernama \term{paragraf}; nilai segmen menyatakan nomor
+          paragraf, bukan nomor byte.
+\end{itemize}}
+
+\vspace{0.25em}
+\begin{center}
+\begin{tikzpicture}[
+    digit/.style={draw=obeBlue, line width=0.5pt, minimum size=0.8cm,
+                  inner sep=0pt, font=\ttfamily\small, anchor=center},
+    labelkiri/.style={font=\scriptsize\bfseries, text=obeBlue,
+                      anchor=east}
+]
+    \foreach \d [count=\i from 0] in {1,2,3,4}
+        \node[digit, fill=obeBlueLight] at (1.00+0.85*\i, 2.10) {\d};
+    \node[digit, fill=obeTealLight, draw=obeTeal] (nol)
+        at (1.00+0.85*4, 2.10) {0};
+
+    \foreach \d [count=\i from 1] in {5,6,7,8}
+        \node[digit, fill=obeGrayLight, draw=obeGray]
+            at (1.00+0.85*\i, 1.30) {\d};
+
+    \draw[line width=0.9pt, obeBlue] (0.55, 0.85) -- (4.70, 0.85);
+
+    \foreach \d [count=\i from 0] in {1,7,9,B,8}
+        \node[digit, fill=obeAmberLight, draw=obeAmber]
+            at (1.00+0.85*\i, 0.40) {\d};
+
+    \node[labelkiri] at (0.60, 2.10) {Segmen};
+    \node[labelkiri] at (0.60, 1.30) {Offset};
+    \node[labelkiri] at (0.60, 0.40) {Fisik};
+
+    \draw[-{Stealth[length=2mm]}, obeTeal, line width=0.7pt]
+        (nol.north) -- ++(0,0.45)
+        node[above, font=\scriptsize, text=obeTeal, align=center,
+             text width=3.6cm]
+        {digit nol ditambahkan:\\ segmen digeser 4 bit
+         ($\times 16$)};
+\end{tikzpicture}
+\end{center}
+{\footnotesize\color{obeGray}Contoh: \code{1234h:5678h} $\rightarrow$
+\hex{12340} $+$ \hex{5678} $=$ \hex{179B8}.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Contoh Perhitungan Bertingkat}
+\small Enam pasangan berikut disusun dari kasus paling sederhana
+sampai munculnya \eng{carry} pada digit kelima.
+
+\vspace{0.35em}
+\begin{center}
+\begin{tabular}{@{}cp{1.6cm}p{1.6cm}p{3.9cm}p{2.1cm}@{}}
+    \toprule
+    \textbf{No} & \textbf{Segmen} & \textbf{Offset} &
+    \textbf{Perhitungan} & \textbf{Alamat fisik} \\
+    \midrule
+    1 & \hex{0000} & \hex{0100} & \hex{00000} $+$ \hex{0100} &
+    \hex{00100} \\
+    \addlinespace
+    2 & \hex{1000} & \hex{0020} & \hex{10000} $+$ \hex{0020} &
+    \hex{10020} \\
+    \addlinespace
+    3 & \hex{076A} & \hex{0100} & \hex{076A0} $+$ \hex{0100} &
+    \hex{077A0} \\
+    \addlinespace
+    4 & \hex{2000} & \hex{FFFF} & \hex{20000} $+$ \hex{FFFF} &
+    \hex{2FFFF} \\
+    \addlinespace
+    5 & \hex{1234} & \hex{5678} & \hex{12340} $+$ \hex{5678} &
+    \hex{179B8} \\
+    \addlinespace
+    6 & \hex{B800} & \hex{0000} & \hex{B8000} $+$ \hex{0000} &
+    \hex{B8000} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.3em}
+{\footnotesize\color{obeGray}Alamat fisik ditulis lima digit agar
+lebar 20-bitnya terlihat; \hex{00100} sama dengan \hex{0100}. Baris 4
+memakai offset terbesar, baris 5 memunculkan \eng{carry}, dan baris 6
+menunjuk awal area video teks warna.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Kesalahan Umum dan Cara Menghindarinya}
+\begin{alertblock}{Menjumlahkan tanpa menggeser segmen}
+\small Salah: $\hex{1234} + \hex{5678} = \hex{68AC}$.
+Benar: $\hex{12340} + \hex{5678} = \hex{179B8}$. Selisihnya sangat
+besar karena satu langkah perkalian 16 telah terlewat.
+\end{alertblock}
+
+\vspace{0.45em}
+\small
+\begin{itemize}
+    \item Tuliskan nilai segmen yang \textbf{sudah digeser} sebelum
+          melakukan penjumlahan, jangan mencampur segmen asli dengan
+          offset.
+    \item Ingat bahwa digit nol di ujung alamat dasar segmen selalu
+          ada: segmen \hex{076A} berpasangan dengan dasar \hex{076A0}.
+    \item Periksa kewajaran hasil: alamat fisik selalu 20 bit, yaitu
+          lima digit heksadesimal.
+    \item Buktikan hasilnya dengan \eng{debugger} sebelum
+          menyimpulkan.
+\end{itemize}
+
+\vspace{0.3em}
+\begin{block}{Yang sudah kita punya sejauh ini}
+\small Register 16 bit $\rightarrow$ pasangan
+\eng{segment:offset} $\rightarrow$ rumus
+$(\text{segmen} \times \hex{10}) + \text{offset}$ $\rightarrow$
+alamat fisik 20-bit.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 1}
+\small
+\begin{itemize}
+    \item Register 16-bit hanya menjangkau 64 KB, sedangkan bus
+          alamat 20 bit harus menjangkau 1 MB. Segmentasi adalah
+          kompromi rancangan yang memenuhi keduanya sekaligus.
+
+    \vspace{0.25em}
+    \item Alamat logis adalah pasangan \eng{segment:offset} yang
+          ditulis programmer, sedangkan alamat fisik adalah alamat
+          20-bit yang dibangkitkan prosesor.
+
+    \vspace{0.25em}
+    \item Alamat fisik $= (\text{segmen} \times \hex{10}) +
+          \text{offset}$; prosesor hanya menggeser segmen empat bit
+          ke kiri, bukan mengalikan sungguhan.
+
+    \vspace{0.25em}
+    \item Nilai segmen adalah nomor paragraf, bukan alamat: segmen
+          \hex{1234} menunjuk dasar \hex{12340}. Menjumlahkan segmen
+          tanpa menggesernya lebih dahulu adalah kesalahan yang
+          paling sering terjadi.
+
+    \vspace{0.25em}
+    \item Alamat fisik yang wajar selalu lima digit heksadesimal;
+          periksa kewajaran hasil dan buktikan dengan
+          \eng{debugger} sebelum menyimpulkan.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 2
+% =========================================================
+\PemisahBagian{Paragraf 16-Byte, Struktur Segmen, dan Overlapping}
+
+% ---------------------------------------------------------
+\begin{frame}{Paragraf 16-Byte}
+\begin{block}{Definisi}
+\small \textbf{Paragraf} (\eng{paragraph}) adalah blok memori
+berukuran 16 byte yang menjadi satuan dasar penomoran segmen. Nilai
+sebuah segmen adalah nomor paragraf tempat segmen itu dimulai.
+\end{block}
+
+\vspace{0.4em}
+\small
+\begin{itemize}
+    \item Setiap paragraf diberi nomor urut mulai dari nol. Paragraf
+          pertama berisi byte \hex{00000} sampai \hex{0000F},
+          paragraf kedua \hex{00010} sampai \hex{0001F}.
+    \item Karena itu alamat dasar segmen selalu kelipatan 16 dan
+          selalu berakhir dengan digit \hex{0}.
+    \item Nomor paragraf dinyatakan dengan 16 bit, sehingga jumlah
+          paragraf yang dapat ditunjuk adalah \dec{65.536} buah.
+    \item $65.536 \times 16 = \dec{1.048.576}$ byte, yaitu tepat
+          1 MB. Nilai segmen yang sah berada pada rentang
+          \hex{0000} sampai \hex{FFFF}.
+\end{itemize}
+\Sumber{Bab VI, Paragraf 16-Byte}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Struktur Segmen 64 KB}
+\small
+\begin{itemize}
+    \item Segmen bukan blok memori yang terpisah secara fisik,
+          melainkan sebuah \emph{jendela} 64 KB yang dimulai pada
+          salah satu alamat dasar paragraf.
+    \item Offset 16-bit bergerak dari \hex{0000} sampai \hex{FFFF}.
+          Bila dasar segmen adalah $B$, segmen tersebut mencakup
+          alamat $B$ sampai $B + \hex{FFFF}$.
+    \item Jarak antaralamat dasar dua segmen yang berurutan hanyalah
+          16 byte, sedangkan panjang jendelanya 64 KB.
+    \item Akibatnya jendela segmen \hex{0000} dan \hex{0001} saling
+          menumpuk hampir seluruhnya: hanya 16 byte pertama jendela
+          pertama yang tidak tercakup jendela kedua.
+    \item Penumpukan inilah yang disebut \term{overlapping segment},
+          dan sifatnya melekat pada rancangan 8086, bukan kesalahan.
+\end{itemize}
+
+\vspace{0.35em}
+\begin{center}
+\begin{tikzpicture}[font=\scriptsize]
+    \def\w{8.6}
+    \draw[fill=obeBlueLight, draw=obeBlue, line width=0.8pt]
+        (0,0.60) rectangle (\w,1.10);
+    \node at (\w/2,0.85)
+        {jendela segmen \hex{0000}: \dec{65.536} byte};
+
+    \draw[fill=obeTealLight, draw=obeTeal, line width=0.8pt]
+        (0,0.06) rectangle (\w,0.56);
+    \node at (\w/2,0.31)
+        {jendela segmen \hex{0001}: bergeser 16 byte};
+
+    \draw[-{Stealth[length=2mm]}, obeAmber, line width=0.8pt]
+        (-0.15,1.04) -- (-0.15,0.32);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Satu Alamat Fisik, Banyak Nama}
+\small Alamat fisik \hex{00050} dapat dinyatakan oleh enam pasangan
+\eng{segment:offset} yang berbeda.
+
+\vspace{0.3em}
+\begin{center}
+\begin{tabular}{@{}cp{1.6cm}p{1.6cm}p{3.9cm}p{2.1cm}@{}}
+    \toprule
+    \textbf{No} & \textbf{Segmen} & \textbf{Offset} &
+    \textbf{Perhitungan} & \textbf{Alamat fisik} \\
+    \midrule
+    1 & \hex{0000} & \hex{0050} & \hex{00000} $+$ \hex{0050} &
+    \hex{00050} \\
+    \addlinespace
+    2 & \hex{0001} & \hex{0040} & \hex{00010} $+$ \hex{0040} &
+    \hex{00050} \\
+    \addlinespace
+    3 & \hex{0002} & \hex{0030} & \hex{00020} $+$ \hex{0030} &
+    \hex{00050} \\
+    \addlinespace
+    4 & \hex{0003} & \hex{0020} & \hex{00030} $+$ \hex{0020} &
+    \hex{00050} \\
+    \addlinespace
+    5 & \hex{0004} & \hex{0010} & \hex{00040} $+$ \hex{0010} &
+    \hex{00050} \\
+    \addlinespace
+    6 & \hex{0005} & \hex{0000} & \hex{00050} $+$ \hex{0000} &
+    \hex{00050} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.3em}
+{\footnotesize\color{obeGray}Pola: setiap kali nomor segmen bertambah
+satu, dasar segmen bertambah 16 sehingga offset harus berkurang 16
+agar jumlahnya tetap.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Overlapping Segment dan Batas Jumlah Pasangan}
+\begin{center}
+\begin{tikzpicture}[
+    segk/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+        rounded corners=2pt, minimum width=3.3cm, minimum height=0.9cm,
+        align=center, font=\small, inner sep=3pt},
+    offk/.style={draw=obeTeal, line width=0.8pt, fill=obeTealLight,
+        rounded corners=2pt, minimum width=1.9cm, minimum height=0.8cm,
+        align=center, font=\small\ttfamily, inner sep=3pt},
+    fisk/.style={draw=obeAmber, line width=0.9pt, fill=obeAmberLight,
+        rounded corners=2pt, minimum width=2.7cm, minimum height=1.2cm,
+        align=center, font=\small, inner sep=3pt},
+    pnrh/.style={-{Stealth[length=2.5mm]}, line width=0.8pt, obeBlue}
+]
+    \node[segk] (s1) at (0, 2.05)
+        {Segmen \hex{0000}\\{\scriptsize dasar \hex{00000}}};
+    \node[offk] (o1) at (3.5, 2.05) {\hex{0050}};
+
+    \node[segk] (s2) at (0, 0.60)
+        {Segmen \hex{0001}\\{\scriptsize dasar \hex{00010}}};
+    \node[offk] (o2) at (3.5, 0.60) {\hex{0040}};
+
+    \node[fisk] (f) at (7.3, 1.32)
+        {Alamat fisik\\\hex{00050}};
+
+    \draw[pnrh] (s1) -- (o1);
+    \draw[pnrh] (s2) -- (o2);
+    \draw[pnrh] (o1.east) -- ++(0.5,0) -| (f.north);
+    \draw[pnrh] (o2.east) -- ++(0.5,0) -| (f.south);
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.3em}
+{\footnotesize
+\begin{itemize}
+    \item Untuk alamat fisik $F$ di bawah \hex{10000}, banyaknya
+          pasangan yang mungkin adalah $\lfloor F / 16 \rfloor + 1$;
+          untuk \hex{00050} diperoleh $5 + 1 = 6$ pasangan.
+    \item Jumlahnya tidak pernah melebihi $65536 / 16 = 4096$
+          pasangan, karena offset hanya bergerak sejauh 64 KB.
+    \item Alamat \hex{10000} dapat dinyatakan oleh 4096 pasangan,
+          di antaranya \code{0FFFh:0010h} sampai
+          \code{1000h:0000h}. Secara keseluruhan
+          $65.536 \times 65.536 = \dec{4.294.967.296}$ alamat logis
+          berpadanan dengan \dec{1.048.576} alamat fisik.
+\end{itemize}}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Akibat bagi Penulisan Program}
+\small
+\begin{itemize}
+    \item Operator \code{OFFSET} menghasilkan bagian offset sebuah
+          label, sedangkan operator \code{seg} menghasilkan nomor
+          segmennya.
+    \item Keduanya bersama membentuk sebuah \term{far pointer}
+          berukuran 4 byte, yang di dalam memori disimpan dengan
+          urutan offset lebih dahulu, lalu segmen.
+    \item Pasangan \eng{segment:offset} bukan dua bagian yang saling
+          menggantikan: perubahan kecil pada segmen menuntut
+          perubahan sepadan pada offset bila alamat fisik hendak
+          dipertahankan.
+    \item Karena itu, saat menelusuri variabel di dalam
+          \eng{debugger}, catat nilai \reg{DS} dan offset sekaligus,
+          bukan salah satu saja.
+\end{itemize}
+
+\vspace{0.4em}
+\begin{alertblock}{\code{seg} hanya memberi nomor, bukan alamat}
+\small \code{MOV AX, seg var\_nilai} memberi \hex{076A}, sedangkan
+alamat dasar segmen tersebut adalah \hex{076A0}. Perbedaan satu
+digit nol inilah yang paling sering menjebak.
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 2}
+\small
+\begin{itemize}
+    \item Paragraf adalah blok 16 byte dan nilai segmen menyatakan
+          nomor paragrafnya, sehingga alamat dasar segmen selalu
+          kelipatan 16 dan berakhir dengan digit \hex{0}.
+
+    \vspace{0.25em}
+    \item Nomor paragraf dinyatakan dengan 16 bit: \dec{65.536}
+          paragraf $\times$ 16 byte $=$ \dec{1.048.576} byte, tepat
+          1 MB. Nilai segmen yang sah adalah \hex{0000} sampai
+          \hex{FFFF}.
+
+    \vspace{0.25em}
+    \item Segmen bukan blok memori yang terpisah secara fisik,
+          melainkan jendela 64 KB. Dua segmen berurutan hanya
+          berjarak 16 byte, sehingga jendelanya saling menumpuk
+          (\eng{overlapping segment}).
+
+    \vspace{0.25em}
+    \item Satu alamat fisik dapat dinyatakan banyak pasangan:
+          $\lfloor F/16 \rfloor + 1$ buah, dan jumlahnya tidak
+          pernah melebihi 4096 pasangan.
+
+    \vspace{0.25em}
+    \item \code{seg} memberi nomor segmen dan \code{OFFSET} memberi
+          offset; keduanya membentuk \term{far pointer} 4 byte yang
+          disimpan offset lebih dahulu, lalu segmen.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 3
+% =========================================================
+\PemisahBagian{Peta Memori 1 MB dan Kasus Batas Alamat}
+
+% ---------------------------------------------------------
+\begin{frame}{Pembagian Ruang Alamat 1 MB}
+\small
+\begin{center}
+\begin{tabular}{@{}p{2.6cm}p{1.5cm}p{8.5cm}@{}}
+    \toprule
+    \textbf{Rentang alamat} & \textbf{Ukuran} &
+    \textbf{Isi dan kegunaan} \\
+    \midrule
+    \hex{00000}--\hex{003FF} & 1 KB &
+    Tabel vektor interupsi: 256 vektor, masing-masing 4 byte \\
+    \addlinespace
+    \hex{00400}--\hex{004FF} & \dec{256} byte &
+    Area data BIOS: status papan tombol, mode video, jumlah
+    \eng{tick} pewaktu \\
+    \addlinespace
+    \hex{00500}--\hex{9FFFF} & $\approx$ 639 KB &
+    Sisa memori konvensional untuk program DOS dan \eng{driver} \\
+    \addlinespace
+    \hex{A0000}--\hex{AFFFF} & 64 KB &
+    Buffer video grafis (EGA/VGA) \\
+    \addlinespace
+    \hex{B0000}--\hex{B7FFF} & 32 KB &
+    Buffer video teks monokrom (MDA) \\
+    \addlinespace
+    \hex{B8000}--\hex{BFFFF} & 32 KB &
+    Buffer video teks warna (CGA/EGA/VGA) \\
+    \addlinespace
+    \hex{C0000}--\hex{EFFFF} & 192 KB &
+    ROM adaptor, termasuk BIOS kartu video \\
+    \addlinespace
+    \hex{F0000}--\hex{FFFFF} & 64 KB &
+    ROM BIOS sistem; titik masuknya \code{FFFFh:0000h} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab VI, Pembagian Ruang Alamat 1 MB}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Peta Memori 1 MB}
+\begin{center}
+\begin{tikzpicture}[
+    alamat/.style={font=\tiny\ttfamily},
+    ket/.style={anchor=west, font=\scriptsize, align=left,
+                inner sep=2pt}
+]
+    \def\w{2.7}
+
+    \filldraw[fill=obeMaroonLight, draw=obeMaroon]
+        (0,0) rectangle (\w,0.52);
+    \node[alamat] at (\w/2,0.26) {\hex{00000}--\hex{003FF}};
+    \node[ket] at (\w+0.15,0.26) {Tabel vektor interupsi (1 KB)};
+
+    \filldraw[fill=obeGrayLight, draw=obeGray]
+        (0,0.52) rectangle (\w,0.90);
+    \node[alamat] at (\w/2,0.71) {\hex{00400}--\hex{004FF}};
+    \node[ket] at (\w+0.15,0.71) {Area data BIOS (256 byte)};
+
+    \filldraw[fill=obeBlueLight, draw=obeBlue]
+        (0,0.90) rectangle (\w,2.40);
+    \node[alamat] at (\w/2,1.65) {\hex{00500}--\hex{9FFFF}};
+    \node[ket, text width=6.2cm] at (\w+0.15,1.65)
+        {Memori konvensional program DOS ($\approx$ 639 KB); seluruh
+         memori konvensional mencakup \hex{00000} sampai
+         \hex{9FFFF} = 640 KB};
+
+    \filldraw[fill=obeTealLight, draw=obeTeal]
+        (0,2.40) rectangle (\w,2.85);
+    \node[alamat] at (\w/2,2.625) {\hex{A0000}--\hex{AFFFF}};
+    \node[ket] at (\w+0.15,2.625) {Buffer video grafis (64 KB)};
+
+    \filldraw[fill=obeTealLight, draw=obeTeal]
+        (0,2.85) rectangle (\w,3.21);
+    \node[alamat] at (\w/2,3.03) {\hex{B0000}--\hex{B7FFF}};
+    \node[ket] at (\w+0.15,3.03) {Buffer video teks monokrom (32 KB)};
+
+    \filldraw[fill=obeAmberLight, draw=obeAmber]
+        (0,3.21) rectangle (\w,3.57);
+    \node[alamat] at (\w/2,3.39) {\hex{B8000}--\hex{BFFFF}};
+    \node[ket] at (\w+0.15,3.39) {Buffer video teks warna (32 KB)};
+
+    \filldraw[fill=obeGrayLight, draw=obeGray]
+        (0,3.57) rectangle (\w,4.05);
+    \node[alamat] at (\w/2,3.81) {\hex{C0000}--\hex{EFFFF}};
+    \node[ket] at (\w+0.15,3.81) {ROM adaptor (192 KB)};
+
+    \filldraw[fill=obeGreenLight, draw=obeGreen]
+        (0,4.05) rectangle (\w,4.50);
+    \node[alamat] at (\w/2,4.275) {\hex{F0000}--\hex{FFFFF}};
+    \node[ket] at (\w+0.15,4.275) {ROM BIOS sistem (64 KB)};
+
+    \draw[dashed, obeMaroon, line width=0.8pt, fill=obeMaroonLight]
+        (0,4.50) rectangle (\w,4.85);
+    \node[alamat] at (\w/2,4.675) {\hex{100000}--\hex{10FFEF}};
+    \node[ket] at (\w+0.15,4.675)
+        {Segmen tinggi (\eng{high memory area})};
+
+    \draw[-{Stealth[length=2.5mm]}, line width=0.8pt, obeGray]
+        (-0.55,0.02) -- (-0.55,4.85);
+    \node[font=\scriptsize, text=obeGray, rotate=90, anchor=south]
+        at (-0.80,2.40) {alamat naik};
+\end{tikzpicture}
+\end{center}
+{\footnotesize\color{obeGray}Tinggi setiap blok tidak digambar
+menurut skala sebenarnya.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Memori Konvensional dan Area Video}
+\small
+\begin{itemize}
+    \item \term{Memori konvensional} adalah sebutan untuk 640 KB
+          pertama, yaitu alamat \hex{00000} sampai \hex{9FFFF}.
+          Wilayah ini dihuni tabel vektor interupsi, area data BIOS,
+          dan sisanya dipakai program DOS.
+    \item Area video dimulai pada \hex{B8000} untuk mode teks warna.
+          Alamat ini sering muncul pada program yang menulis langsung
+          ke layar tanpa memanggil layanan DOS.
+    \item Layar teks berisi $80 \times 25 = 2.000$ posisi karakter
+          dan setiap karakter memakai dua byte: satu byte kode ASCII
+          dan satu byte atribut warna.
+\end{itemize}
+
+\vspace{0.35em}
+\begin{block}{Perhitungan luas layar teks}
+\small $2.000 \times 2 = 4.000$ byte $= \hex{FA0}$ byte, mulai dari
+\hex{B8000}. Karakter pertama baris pertama berada pada
+\code{B800h:0000h}, sedangkan karakter pertama baris kedua pada
+\code{B800h:00A0h}.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Kasus Batas: Alamat yang Melewati 1 MB}
+\small Nilai terbesar yang mungkin diperoleh adalah
+$\hex{FFFF0} + \hex{FFFF} = \hex{10FFEF}$, sebuah bilangan 21 bit.
+Karena bus alamat 8086 hanya 20 bit, bit ke-21 dibuang.
+
+\vspace{0.3em}
+\begin{center}
+\begin{tabular}{@{}cp{1.9cm}p{1.9cm}p{2.4cm}p{4.6cm}@{}}
+    \toprule
+    \textbf{No} & \textbf{Segmen} & \textbf{Offset} &
+    \textbf{Hasil 21-bit} & \textbf{Alamat fisik 8086} \\
+    \midrule
+    1 & \hex{FFFF} & \hex{000F} & \hex{FFFFF} &
+    \hex{FFFFF} (masih di dalam batas) \\
+    \addlinespace
+    2 & \hex{FFFF} & \hex{0010} & \hex{100000} &
+    \hex{00000} (berputar) \\
+    \addlinespace
+    3 & \hex{FFFF} & \hex{FFFF} & \hex{10FFEF} &
+    \hex{0FFEF} (berputar) \\
+    \addlinespace
+    4 & \hex{F000} & \hex{FFFF} & \hex{FFFFF} &
+    \hex{FFFFF} (masih di dalam batas) \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.3em}
+{\footnotesize\color{obeGray}Baris 2 adalah kasus yang paling
+terkenal: \code{FFFFh:0010h} menghasilkan \hex{100000}, satu byte
+tepat di atas batas 1 MB, lalu berputar menjadi \hex{00000} sehingga
+menunjuk awal tabel vektor interupsi. Baris 3 memperlihatkan kasus
+terjauh: \hex{10FFEF} berputar menjadi \hex{0FFEF}.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Wrap-Around dan Segmen Tinggi}
+\begin{alertblock}{\eng{Wrap-around} bukan fasilitas}
+\small Ia akibat keterbatasan perangkat keras. Program yang secara
+tidak sengaja menghitung alamat di atas \hex{FFFFF} akan menulis ke
+lokasi memori yang sama sekali berbeda, misalnya menimpa tabel vektor
+interupsi.
+\end{alertblock}
+
+\vspace{0.45em}
+\small
+\begin{itemize}
+    \item Hindari pemakaian segmen yang sangat dekat dengan
+          \hex{FFFF} kecuali memang disengaja, dan periksa setiap
+          perhitungan yang menambahkan offset besar pada segmen
+          besar.
+    \item Pada prosesor 80286 dan sesudahnya, perilaku ini dapat
+          dimatikan melalui jalur \eng{A20 gate}.
+    \item Bila jalur tersebut diaktifkan, alamat \hex{100000} sampai
+          \hex{10FFEF} benar-benar dapat dipakai dan dikenal sebagai
+          \term{segmen tinggi} atau \eng{high memory area}.
+    \item Alasan kompatibilitas itulah yang membuat jalur A20 masih
+          dipertahankan pada prosesor modern.
+\end{itemize}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Verifikasi Alamat dengan Debugger}
+\small Perintah \code{D segmen:offset} pada DEBUG menampilkan isi
+memori sekitar alamat yang diberikan.
+
+\vspace{0.25em}
+\begin{keluaran}
+C:\>DEBUG hitung-alamat.exe
+-D 076A:0000
+076A:0000  CD 20 FF 9F 00 9A F0 FE-1D F0 4F 03 8E 0A A0 04  . ........O.....
+-D B800:0000
+B800:0000  48 07 61 07 6C 07 6F 07-2C 07 20 07 64 07 75 07  H.a.lo.,. .d.u.
+-D FFFF:0000
+FFFF:0000  EA 5B E0 00 F0 30 36 2F-32 34 2F 39 39 00 FC 00  .[...06/24/99...
+\end{keluaran}
+
+\vspace{0.2em}
+{\footnotesize
+\begin{itemize}
+    \item \code{D 076A:0000} menampilkan awal segmen data program,
+          yang dimulai dengan blok \eng{Program Segment Prefix}.
+    \item \code{D B800:0000} menampilkan area video teks warna:
+          \code{48 07} adalah huruf \code{H} dan \code{61 07} adalah
+          huruf \code{a} (kode ASCII berselang-seling dengan byte
+          atribut).
+    \item \code{D FFFF:0000} menampilkan awal ROM BIOS. Pada
+          Emu8086, perintah \code{D FFFF:0010} menampilkan isi
+          \hex{00000}.
+\end{itemize}}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 3}
+\small
+\begin{itemize}
+    \item Peta 1 MB terbagi menjadi tabel vektor interupsi dan area
+          data BIOS, memori konvensional 640 KB, area video, ROM
+          adaptor, serta ROM BIOS pada \hex{F0000}--\hex{FFFFF}.
+
+    \vspace{0.25em}
+    \item Memori konvensional menempati 640 KB pertama
+          (\hex{00000}--\hex{9FFFF}), sedangkan area video teks
+          warna dimulai pada \hex{B8000}.
+
+    \vspace{0.25em}
+    \item Layar teks memuat $80 \times 25 = 2.000$ karakter dan
+          setiap karakter memakai dua byte, sehingga seluruhnya
+          \dec{4.000} byte; karakter pertama baris kedua berada pada
+          \code{B800h:00A0h}.
+
+    \vspace{0.25em}
+    \item Penjumlahan terbesar \hex{FFFF0} $+$ \hex{FFFF} $=$
+          \hex{10FFEF} (21 bit); bus alamat 20 bit membuang bit
+          ke-21 sehingga alamat berputar ke awal memori
+          (\eng{wrap-around}).
+
+    \vspace{0.25em}
+    \item \eng{Wrap-around} adalah akibat keterbatasan perangkat
+          keras, bukan fasilitas. Pada 80286 dan sesudahnya perilaku
+          ini diatur lewat \eng{A20 gate} yang, bila diaktifkan,
+          membuka \term{segmen tinggi} \hex{100000}--\hex{10FFEF}.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% CONTOH PROGRAM
+% =========================================================
+\begin{frame}[fragile]{Contoh 1: Menampilkan Offset Variabel}
+\begin{columns}[t]
+\begin{column}{0.62\textwidth}
+\begin{kodeasm}
+.MODEL SMALL
+.STACK 100h
+.DATA
+    var_byte  DB 10h
+    var_word  DW 1234h
+    tanya1    DB 'Offset var_byte = $'
+    tanya2    DB 0Dh, 0Ah, 'Offset var_word = $'
+    buffer    DB '0000$'
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    MOV AX, OFFSET var_byte  ; AX = offset var_byte
+    CALL cetak_hex
+    MOV AX, OFFSET var_word  ; AX = offset var_word
+    CALL cetak_hex
+\end{kodeasm}
+\end{column}
+\begin{column}{0.35\textwidth}
+{\color{obeTeal}\bfseries Keluaran}\\[0.3em]
+\begin{keluaran}
+Offset var_byte = 0000
+Offset var_word = 0001
+\end{keluaran}
+
+\vspace{0.4em}
+{\footnotesize\code{OFFSET} menghasilkan jarak variabel dari awal
+segmen data, bukan alamat fisiknya. Karena
+\code{var\_byte} dideklarasikan lebih dahulu, offsetnya nol,
+sedangkan \code{var\_word} berada tepat sesudahnya.\par}
+
+\vspace{0.4em}
+{\footnotesize\color{obeGray}Bila \reg{DS} $= \hex{076A}$, alamat
+fisik \code{var\_byte} adalah \hex{076A0} dan \code{var\_word}
+\hex{076A1}.\par}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh 2: Membaca Nilai Segmen dan
+Menghitung Alamat}
+\begin{columns}[t]
+\begin{column}{0.63\textwidth}
+\begin{kodeasm}
+MOV AX, seg var_nilai     ; AX = nomor segmen
+MOV nomor_seg, AX
+MOV AX, OFFSET var_nilai  ; AX = offset
+MOV nomor_off, AX
+; --- hitung alamat fisik ---
+MOV AX, nomor_seg
+MOV BX, nomor_off
+MOV DX, AX                ; DX untuk bit 16..19
+MOV CL, 4
+SHR DX, CL                ; DX = segmen / 16
+SHL AX, CL                ; AX = segmen x 16
+ADD AX, BX                ; tambahkan offset
+ADC DX, 0                 ; simpan carry ke DX
+\end{kodeasm}
+\end{column}
+\begin{column}{0.34\textwidth}
+{\color{obeTeal}\bfseries Keluaran}\\[0.3em]
+\begin{keluaran}
+Segmen: 076A
+Offset: 0000
+Alamat fisik: 000076A0
+\end{keluaran}
+
+\vspace{0.5em}
+{\footnotesize Pergeseran kiri empat bit adalah bentuk lain
+perkalian dengan 16. Hasil penjumlahan dapat mencapai 20 bit,
+sehingga disimpan pada pasangan \reg{DX}:\reg{AX}.\par}
+
+\vspace{0.4em}
+{\footnotesize\color{obeGray}\file{code/asm/alamat-fisik.asm} dan
+\file{code/asm/hitung-alamat.asm}\par}
+\end{column}
+\end{columns}
+\end{frame}
+
+% =========================================================
+% PRAKTIKUM
+% =========================================================
+\begin{frame}{Praktikum: Menghitung dan Memverifikasi Alamat Fisik}
+\begin{block}{Judul praktikum}
+\footnotesize Menghitung dan memverifikasi alamat fisik dengan
+\eng{debugger} \quad\textbullet\quad \textbf{Sub-CPMK:} 1.3
+\quad\textbullet\quad \textbf{Waktu:} 100 menit (70 praktikum
+$+$ 30 Kuis 1) \quad\textbullet\quad \textbf{Bentuk:} individu
+\end{block}
+
+\vspace{0.15em}
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+{\color{obeBlue}\bfseries Alat dan bahan}
+\begin{itemize}\footnotesize
+    \item Komputer bersistem operasi Windows
+    \item Emu8086
+    \item DOSBox + DEBUG, TASM, TLINK
+    \item \file{alamat-fisik.asm} dan \file{hitung-alamat.asm}
+    \item Kalkulator heksadesimal
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+{\color{obeBlue}\bfseries Langkah kerja}
+\begin{enumerate}\footnotesize
+    \item Rakit dan jalankan \file{alamat-fisik.asm}
+    \item Jalankan di bawah DEBUG, catat \reg{DS} lewat
+          perintah \code{R}
+    \item Hitung alamat fisik tiap variabel secara manual
+    \item Verifikasi dengan \code{D DS:0000 L 08}, lalu buktikan
+          \eng{overlapping} lewat \code{0769h:0011h}
+    \item Uji \eng{wrap-around} pada \code{FFFFh:0010h}, lalu
+          jalankan \file{hitung-alamat.asm}
+\end{enumerate}
+\end{column}
+\end{columns}
+
+\vspace{0.15em}
+{\footnotesize\textbf{Dikumpulkan:} lembar perhitungan manual dan
+tangkapan sesi DEBUG, tangkapan layar keluaran kedua program, bukti
+\eng{overlapping} dan \eng{wrap-around}, serta jawaban Kuis 1.\par}
+\end{frame}
+
+% =========================================================
+% LATIHAN
+% =========================================================
+\begin{frame}{Latihan}
+\small
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan mengapa prosesor 8086 yang
+          berbus alamat 20 bit tetap dirancang memakai register
+          segmen 16 bit. Apa yang akan hilang bila prosesor itu
+          hanya memakai satu register 16-bit?
+
+    \vspace{0.25em}
+    \item \textbf{Perhitungan.} Hitunglah alamat fisik dari
+          \code{0000h:1A00h}, \code{1500h:0100h},
+          \code{B800h:0060h}, dan \code{ABCDh:1234h}. Tuliskan
+          langkah perhitungannya.
+
+    \vspace{0.25em}
+    \item \textbf{Overlapping.} Alamat fisik \hex{00080} dapat
+          dinyatakan oleh beberapa pasangan. Tentukan banyaknya
+          dengan pola $\lfloor F/16 \rfloor + 1$, tuliskan seluruh
+          pasangannya, lalu jelaskan mengapa jumlahnya lebih banyak
+          daripada untuk \hex{00050}.
+
+    \vspace{0.25em}
+    \item \textbf{Kasus batas.} Sebuah program memakai pasangan
+          \code{FFFFh:0020h}. Berapa hasil penjumlahan sebelum
+          pemotongan 20 bit, berapa alamat fisik yang sesungguhnya
+          diakses, dan bagian peta memori mana yang tersentuh?
+
+    \vspace{0.25em}
+    \item \textbf{Peta memori.} Alamat \hex{B8000} berada pada area
+          apa, berapa byte seluruh layar teks 80 kolom $\times$ 25
+          baris, dan pada offset berapa karakter pertama baris
+          ketiga berada?
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% RANGKUMAN
+% =========================================================
+\begin{frame}{Rangkuman}
+\small
+\begin{itemize}
+    \item Segmentasi lahir dari pertemuan dua kenyataan yang tidak
+          sepadan: register 16-bit hanya menjangkau 64 KB, sedangkan
+          bus alamat 20 bit harus menjangkau 1 MB.
+
+    \vspace{0.25em}
+    \item Alamat logis ditulis sebagai pasangan
+          \eng{segment:offset}, sedangkan alamat fisik adalah alamat
+          20-bit yang dikirim ke bus alamat.
+
+    \vspace{0.25em}
+    \item Alamat fisik $= (\text{segmen} \times \hex{10}) +
+          \text{offset}$. Pengali \hex{10} bernilai 16 desimal, yaitu
+          panjang satu paragraf.
+
+    \vspace{0.25em}
+    \item Nilai segmen menyatakan nomor paragraf, sehingga alamat
+          dasar segmen selalu berakhir digit \hex{0} dan segmen
+          selalu mencakup jendela 64 KB.
+
+    \vspace{0.25em}
+    \item Satu alamat fisik dapat dinyatakan oleh banyak pasangan
+          (\eng{overlapping segment}): $\lfloor F/16 \rfloor + 1$,
+          tidak pernah melebihi 4096 pasangan.
+
+    \vspace{0.25em}
+    \item Peta memori 1 MB terbagi menjadi tabel vektor interupsi,
+          area data BIOS, memori konvensional 640 KB, area video,
+          ROM adaptor, dan ROM BIOS. Alamat di atas \hex{FFFFF}
+          berputar ke awal ruang memori (\eng{wrap-around}).
+\end{itemize}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Cek Pemahaman}
+\small
+\begin{enumerate}
+    \item Rumus yang benar untuk menghitung alamat fisik dari
+          pasangan \eng{segment:offset} adalah \dots
+          \begin{enumerate}\footnotesize
+              \item $\text{segmen} + \text{offset}$
+              \item $(\text{segmen} \times \hex{10}) +
+                    \text{offset}$
+              \item $(\text{segmen} \times \dec{20}) +
+                    \text{offset}$
+              \item $(\text{offset} \times \hex{10}) +
+                    \text{segmen}$
+          \end{enumerate}
+
+    \vspace{0.25em}
+    \item Satu paragraf pada skema pengalamatan 8086 berukuran \dots
+          \begin{enumerate}\footnotesize
+              \item 16 byte \quad \item 256 byte \quad
+              \item 1 KB \quad \item 64 KB
+          \end{enumerate}
+
+    \vspace{0.25em}
+    \item Pada prosesor 8086, pasangan \code{FFFFh:0010h} secara
+          efektif mengakses alamat \dots
+          \begin{enumerate}\footnotesize
+              \item \hex{100000} \quad \item \hex{00000} \quad
+              \item \hex{FFFF0} \quad \item \hex{10FFEF}
+          \end{enumerate}
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% PENUTUP
+% =========================================================
+\begin{frame}{Penutup}
+\small
+\begin{block}{Sebelum pertemuan berikutnya}
+\begin{itemize}
+    \item Selesaikan praktikum 4: lembar perhitungan alamat fisik,
+          tangkapan layar DEBUG, dan bukti \eng{overlapping} serta
+          \eng{wrap-around}.
+    \item Siapkan diri untuk Kuis 1 yang mencakup seluruh Sub-CPMK
+          1.3 pada akhir pertemuan ini.
+    \item Baca \textbf{Bab VII} — Format Instruksi Mesin.
+\end{itemize}
+\end{block}
+
+\vspace{0.5em}
+\begin{center}
+{\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
+\vspace{0.2em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
+\SemesterTeks\par}
+\end{center}
+\end{frame}
+
+\end{document}

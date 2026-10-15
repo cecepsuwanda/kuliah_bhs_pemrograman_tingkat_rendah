@@ -1,0 +1,1164 @@
+% =========================================================
+% ppt/src/minggu-11.tex
+% Slide pertemuan 11
+% Bab XII — Struktur Kontrol dan Percabangan
+%
+% Sub-CPMK 3.3 | CPMK03 | CPL03
+% =========================================================
+
+\documentclass[aspectratio=169,11pt]{beamer}
+\input{preamble-ppt}
+
+\renewcommand{\PertemuanTeks}{Pertemuan 11}
+
+\begin{document}
+
+% =========================================================
+% 1. JUDUL
+% =========================================================
+\JudulDeck{Struktur Kontrol dan Percabangan}{Pertemuan 11}
+
+% =========================================================
+% 2. CAPAIAN DAN TUJUAN
+% =========================================================
+\begin{frame}{Capaian dan Tujuan Pembelajaran}
+\begin{block}{Sub-CPMK 3.3}
+\small Mengimplementasikan struktur kontrol (\asm{CMP}, \asm{TEST},
+lompatan bersyarat \asm{Jcc}, \asm{LOOP}, dan prosedur dengan
+\asm{CALL}/\asm{RET}) dalam program assembly.
+\end{block}
+
+\vspace{0.1em}
+{\small\textbf{CPMK yang didukung:} \CPMK{03}\quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}\par}
+
+\vspace{0.05em}
+\begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
+\small
+\begin{enumerate}
+    \item menjelaskan peran \eng{flag} sebagai dasar keputusan;
+    \item membedakan cara kerja \asm{CMP} dan \asm{TEST};
+    \item memilih \asm{Jcc} untuk bilangan bertanda dan tak bertanda;
+    \item menjelaskan pengaruh jarak lompatan pada ukuran kode;
+    \item menyusun perulangan \asm{LOOP} dan membandingkannya dengan
+          \asm{DEC} serta \asm{JNZ};
+    \item menerjemahkan pola \code{if}, \code{while}, \code{for},
+          dan \code{switch} ke assembly.
+\end{enumerate}
+\end{exampleblock}
+\end{frame}
+
+% =========================================================
+% 3. PETA MATERI
+% =========================================================
+\begin{frame}{Peta Materi}
+\small
+\begin{enumerate}
+    \item \textbf{Flag sebagai Dasar Pengambilan Keputusan}\\
+          {\footnotesize lima \eng{flag} utama; \asm{CMP} dan
+          \asm{TEST} sebagai penyiap \eng{flag}; lompatan tak
+          bersyarat \asm{JMP} dan jarak lompatan}
+
+    \vspace{0.25em}
+    \item \textbf{Lompatan Bersyarat dan Perulangan}\\
+          {\footnotesize keluarga \asm{Jcc}; pemilihan lompatan untuk
+          bilangan bertanda dan tak bertanda; label dan kesalahan
+          umum; perulangan \asm{LOOP} versus \asm{DEC} dan \asm{JNZ}}
+
+    \vspace{0.25em}
+    \item \textbf{Penerjemahan Pola Bahasa Tingkat Tinggi}\\
+          {\footnotesize pola \code{if}, \code{if--else},
+          \code{while}, \code{do--while}, \code{for}, dan
+          \code{switch}; studi kasus maksimum, pengurutan gelembung,
+          pencarian biner}
+\end{enumerate}
+
+\vspace{0.35em}
+\begin{block}{Praktik pada pertemuan ini}
+\small Menelusuri \file{loop-maksimum.asm} dan \file{bubble-sort.asm}
+dengan \eng{Single Step}, lalu mencatat keadaan \eng{flag} tepat
+sebelum setiap lompatan bersyarat.
+\end{block}
+\end{frame}
+
+% =========================================================
+% BAGIAN 1
+% =========================================================
+\PemisahBagian{Flag sebagai Dasar Pengambilan Keputusan}
+
+% ---------------------------------------------------------
+\begin{frame}{Mengapa Prosesor Membutuhkan Flag}
+\footnotesize
+\scriptsize
+8086 tidak memiliki instruksi ``jika''; yang tersedia adalah
+\term{flag} --- penanda keadaan pada \reg{FLAGS} --- dan instruksi
+lompatan yang memeriksanya. Pengambilan keputusan berlangsung dalam
+\textbf{dua langkah}: satu instruksi mengubah \eng{flag}, lalu satu
+lompatan bersyarat memutuskan arah eksekusi.
+
+\vspace{0.05em}
+{\scriptsize\important{Langkah kedua tidak menghitung apa pun;
+lompatan membaca \eng{flag} sisa operasi sebelumnya.\par}}
+
+\vspace{0.1em}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{1.3cm}p{5.7cm}p{5.3cm}@{}}
+    \toprule
+    \textbf{Flag} & \textbf{Makna} & \textbf{Dipakai oleh} \\
+    \midrule
+    \flag{ZF} & Bernilai 1 bila hasil operasi sama dengan nol &
+    \asm{JE}, \asm{JNE}, \asm{JG}, \asm{JL}, \asm{LOOPE} \\
+    \flag{CF} & Bernilai 1 bila terjadi pinjaman atau limpahan pada
+    operasi tak bertanda & \asm{JB}, \asm{JAE}, \asm{JC}, \asm{JNC} \\
+    \flag{SF} & Menyalin bit paling kiri (bit tanda) hasil operasi &
+    \asm{JS}, \asm{JNS}, serta lompatan bertanda \\
+    \flag{OF} & Bernilai 1 bila hasil melampaui jangkauan bilangan
+    bertanda & \asm{JO}, \asm{JNO}, \asm{JG}, \asm{JL} \\
+    \flag{PF} & Menyatakan kegenapan banyak bit 1 pada byte hasil &
+    \asm{JP}, \asm{JNP} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab XII, Mengapa Prosesor Membutuhkan Flag}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Instruksi CMP: Menyiapkan Flag melalui Pengurangan}
+\small
+\asm{CMP} (\eng{compare}) melakukan pengurangan antara operand pertama
+dan operand kedua, tetapi \emph{tidak menyimpan} hasilnya; yang
+tersimpan hanyalah perubahan pada \eng{flag}. Bentuk dan aturan
+operandnya sama persis dengan \asm{SUB}.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+MOV AX, 0005h       ; AX = 5
+MOV BX, 0003h       ; BX = 3
+CMP AX, BX          ; hitung 5 - 3 = 2, hasil dibuang
+; keadaan flag: ZF = 0, SF = 0, CF = 0, OF = 0
+JG  LEBIH_BESAR     ; lompat karena 5 > 3 (bertanda)
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize Bila kedua operand sama, \flag{ZF} bernilai 1. Bila
+operand pertama lebih kecil secara tak bertanda, terjadi pinjaman
+sehingga \flag{CF} bernilai 1. Perilaku inilah yang menjadi dasar
+seluruh tabel lompatan bersyarat.\par}
+
+\vspace{0.2em}
+\begin{alertblock}{Mengapa disebut penyiap flag}
+\small Isi \reg{AX} dan \reg{BX} tidak berubah setelah \asm{CMP};
+yang berubah hanya \reg{FLAGS}.
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Instruksi TEST: Menyiapkan Flag melalui AND}
+\small
+\asm{TEST} melakukan operasi \asm{AND} bit demi bit, lalu membuang
+hasilnya dan hanya menyimpan \eng{flag}. Berbeda dari \asm{CMP},
+\asm{TEST} tidak melakukan pengurangan; ia \emph{menyaring} bit.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+TEST AL, 01h        ; uji bit ke-0 dari AL
+JZ   GENAP          ; ZF = 1 berarti bit ke-0 nol, bilangan genap
+
+TEST AL, AL         ; uji apakah AL sama dengan nol
+JZ   NOL
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize Pemakaian \asm{TEST AL, AL} adalah idiom yang sering
+muncul: operand dibandingkan dengan dirinya sendiri sehingga
+\flag{ZF} dan \flag{SF} mengikuti nilai operand, tanpa mengubah isi
+\reg{AL}.\par}
+\Sumber{Bab XII, Instruksi TEST}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Perbedaan CMP dan TEST}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{2.6cm}p{5.0cm}p{5.0cm}@{}}
+    \toprule
+    \textbf{Aspek} & \textbf{\asm{CMP}} & \textbf{\asm{TEST}} \\
+    \midrule
+    Operasi dasar & Pengurangan (\eng{dst} $-$ \eng{src}) &
+    \asm{AND} bit demi bit (\eng{dst} \& \eng{src}) \\
+    \addlinespace
+    Hasil disimpan & Tidak; hanya \eng{flag} &
+    Tidak; hanya \eng{flag} \\
+    \addlinespace
+    Flag utama & \flag{ZF}, \flag{CF}, \flag{SF}, \flag{OF},
+    \flag{AF}, \flag{PF} &
+    \flag{ZF}, \flag{SF}, \flag{PF}; \flag{CF} dan \flag{OF}
+    selalu 0 \\
+    \addlinespace
+    Kegunaan khas & Membandingkan dua nilai, menentukan urutan &
+    Menguji bit, memeriksa nol atau tanda \\
+    \addlinespace
+    Contoh & \code{CMP AX, BX} & \code{TEST AL, 80h} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.25em}
+\begin{alertblock}{Kekeliruan yang sering terjadi}
+\small \asm{TEST AX, BX} tidak memberi tahu apakah \reg{AX} lebih
+besar dari \reg{BX}; ia hanya memberi tahu apakah \emph{ada} bit yang
+bernilai 1 pada kedua operand secara bersamaan. Untuk membandingkan
+nilai, gunakan \asm{CMP}.
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Lompatan Tak Bersyarat JMP dan Jarak Lompatan}
+\small
+\asm{JMP} memindahkan kendali tanpa syarat, misalnya
+\asm{JMP HITUNG}. Prosesor 8086 tidak menyimpan alamat mutlak tujuan,
+melainkan \term{perpindahan} (\eng{displacement}) relatif terhadap
+instruksi berikutnya; besar perpindahan inilah yang menentukan
+\term{jarak lompatan}.
+
+\vspace{0.2em}
+\begin{center}
+\begin{tikzpicture}[font=\footnotesize]
+    \draw[draw=obeGray, line width=0.7pt, fill=obeGrayLight]
+        (0,0) rectangle (2.0,-4.8);
+    \node[font=\scriptsize\bfseries, text=obeGray] at (1.0,-0.3)
+        {segmen kode};
+
+    \fill[obeTealLight] (0,-2.0) rectangle (2.0,-2.8);
+    \draw[draw=obeTeal, line width=0.6pt] (0,-2.0) rectangle (2.0,-2.8);
+    \fill[obeMaroon] (2.0,-2.4) circle (2.2pt);
+    \node[above left, font=\tiny, text=obeMaroon] at (2.0,-2.4)
+        {\asm{JMP}};
+
+    \node[anchor=east, font=\scriptsize, text=obeTeal, align=right]
+        at (-0.15,-2.4) {jangkauan\\\textbf{short}};
+
+    \node[draw=obeTeal, fill=obeTealLight, rounded corners=2pt,
+          font=\scriptsize, align=center, inner sep=3pt]
+        (ts) at (4.4,-2.4) {tujuan \textbf{short}\\(1 byte)};
+    \node[draw=obeBlue, fill=obeBlueLight, rounded corners=2pt,
+          font=\scriptsize, align=center, inner sep=3pt]
+        (tn) at (4.4,-4.2) {tujuan \textbf{near}\\(16 bit, segmen sama)};
+    \node[draw=obeAmber, fill=obeAmberLight, rounded corners=2pt,
+          font=\scriptsize, align=center, inner sep=3pt]
+        (tf) at (4.4,-0.7) {tujuan \textbf{far}\\(segmen kode lain)};
+
+    \draw[-{Stealth[length=2mm]}, obeTeal, line width=0.9pt]
+        (2.0,-2.4) -- (ts.west);
+    \draw[-{Stealth[length=2mm]}, obeBlue, line width=0.9pt]
+        (2.0,-2.4) -- (tn.west);
+    \draw[-{Stealth[length=2mm]}, obeAmber, line width=0.9pt]
+        (2.0,-2.4) to[out=75, in=180] (tf.west);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Pengaruh Jarak Lompatan pada Ukuran Kode}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{1.7cm}p{3.4cm}p{2.8cm}p{1.6cm}p{2.4cm}@{}}
+    \toprule
+    \textbf{Jenis} & \textbf{Jangkauan} & \textbf{Perpindahan} &
+    \textbf{Ukuran} & \textbf{Penulisan} \\
+    \midrule
+    \eng{short} & $\pm$ 127 byte dari instruksi berikutnya &
+    1 byte bertanda & 2 byte & \code{JMP SHORT L1} \\
+    \addlinespace
+    \eng{near} & Seluruh segmen kode (64 KB) &
+    16 bit & 3 byte & \code{JMP L1} \\
+    \addlinespace
+    \eng{far} & Segmen kode mana pun &
+    \reg{CS}:\reg{IP} lengkap & 5 byte & \code{JMP FAR PTR L1} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.3em}
+{\footnotesize Assembler memilih jarak lompatan secara otomatis;
+operator \code{SHORT} atau \code{FAR PTR} memaksa bentuk tertentu.
+Bila programmer memaksa \code{SHORT} padahal jaraknya terlalu jauh,
+assembler melaporkan kesalahan
+\file{Relative jump out of range}.\par}
+
+\vspace{0.25em}
+\begin{block}{Mengapa ini penting}
+\small Pada program besar --- misalnya rutin BIOS yang harus muat
+dalam 64 KB --- pemilihan jarak lompatan dapat menghemat ribuan byte.
+\end{block}
+\Sumber{Bab XII, Lompatan Tak Bersyarat JMP dan Jarak Lompatan}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 1}
+\small
+\begin{itemize}
+    \item Pengambilan keputusan berjalan dalam dua langkah: satu
+          instruksi menyiapkan \eng{flag}, lalu satu lompatan
+          bersyarat membacanya. Lompatan tidak menghitung apa pun.
+
+    \vspace{0.25em}
+    \item Lima \eng{flag} terpenting adalah \flag{ZF}, \flag{CF},
+          \flag{SF}, \flag{OF}, dan \flag{PF} pada register
+          \reg{FLAGS}.
+
+    \vspace{0.25em}
+    \item \asm{CMP} menyiapkan \eng{flag} melalui pengurangan yang
+          hasilnya dibuang, sedangkan \asm{TEST} melalui \asm{AND}
+          yang hasilnya dibuang. \asm{CMP} membandingkan nilai;
+          \asm{TEST} memeriksa bit.
+
+    \vspace{0.25em}
+    \item \asm{JMP} memindahkan kendali tanpa syarat dan menyimpan
+          perpindahan relatif, bukan alamat mutlak.
+
+    \vspace{0.25em}
+    \item Jarak lompatan menentukan ukuran instruksi: \eng{short} 2
+          byte ($\pm$ 127 byte), \eng{near} 3 byte (satu segmen), dan
+          \eng{far} 5 byte (antarsegmen).
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 2
+% =========================================================
+\PemisahBagian{Lompatan Bersyarat dan Perulangan}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Anatomi Instruksi Jcc}
+\small
+Nama \asm{Jcc} adalah singkatan dari \eng{jump if condition code},
+yaitu seluruh anggota keluarga lompatan bersyarat. Pola penulisannya
+seragam: mnemonic diikuti satu operand berupa label tujuan.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+CMP AX, BX          ; siapkan flag terlebih dahulu
+JE  SAMA            ; bila ZF = 1, lompat ke label SAMA
+JNE TIDAK_SAMA      ; bila ZF = 0, lompat ke label TIDAK_SAMA
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize Pola ini menjelaskan mengapa \asm{CMP} hampir selalu
+muncul berpasangan dengan \asm{Jcc}: \asm{CMP} menyiapkan
+\eng{flag}, \asm{Jcc} membacanya.\par}
+
+\vspace{0.25em}
+\begin{alertblock}{Selalu berbentuk short}
+\small Berbeda dengan \asm{JMP}, lompatan bersyarat pada 8086 selalu
+berbentuk \eng{short}, sehingga jangkauannya terbatas $\pm$ 127 byte.
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Tabel Lengkap Jcc: Kesamaan dan Perbandingan}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{2.2cm}p{2.8cm}p{4.4cm}p{2.6cm}@{}}
+    \toprule
+    \textbf{Instruksi} & \textbf{Arti} & \textbf{Syarat flag} &
+    \textbf{Jenis bilangan} \\
+    \midrule
+    \asm{JE} / \asm{JZ} & Sama dengan & \flag{ZF} $=1$ &
+    Bertanda maupun tak bertanda \\
+    \asm{JNE} / \asm{JNZ} & Tidak sama dengan & \flag{ZF} $=0$ &
+    Bertanda maupun tak bertanda \\
+    \asm{JG} / \asm{JNLE} & Lebih besar dari & \flag{ZF} $=0$ dan
+    \flag{SF} $=$ \flag{OF} & Bertanda \\
+    \asm{JGE} / \asm{JNL} & Lebih besar atau sama &
+    \flag{SF} $=$ \flag{OF} & Bertanda \\
+    \asm{JL} / \asm{JNGE} & Lebih kecil dari &
+    \flag{SF} $\neq$ \flag{OF} & Bertanda \\
+    \asm{JLE} / \asm{JNG} & Lebih kecil atau sama &
+    \flag{ZF} $=1$ atau \flag{SF} $\neq$ \flag{OF} & Bertanda \\
+    \asm{JA} / \asm{JNBE} & Di atas (\eng{above}) &
+    \flag{CF} $=0$ dan \flag{ZF} $=0$ & Tak bertanda \\
+    \asm{JAE} / \asm{JNB} & Di atas atau sama & \flag{CF} $=0$ &
+    Tak bertanda \\
+    \asm{JB} / \asm{JNAE} & Di bawah (\eng{below}) & \flag{CF} $=1$ &
+    Tak bertanda \\
+    \asm{JBE} / \asm{JNA} & Di bawah atau sama &
+    \flag{CF} $=1$ atau \flag{ZF} $=1$ & Tak bertanda \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab XII, Tabel Lengkap Lompatan Bersyarat}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Tabel Lengkap Jcc: Pemeriksa Flag Tunggal}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{2.2cm}p{2.8cm}p{4.4cm}p{2.6cm}@{}}
+    \toprule
+    \textbf{Instruksi} & \textbf{Arti} & \textbf{Syarat flag} &
+    \textbf{Jenis bilangan} \\
+    \midrule
+    \asm{JC} & Ada \eng{carry} & \flag{CF} $=1$ & Umum \\
+    \asm{JNC} & Tidak ada \eng{carry} & \flag{CF} $=0$ & Umum \\
+    \asm{JS} & Bertanda negatif & \flag{SF} $=1$ & Bertanda \\
+    \asm{JNS} & Bertanda positif & \flag{SF} $=0$ & Bertanda \\
+    \asm{JO} & Ada limpahan & \flag{OF} $=1$ & Bertanda \\
+    \asm{JNO} & Tidak ada limpahan & \flag{OF} $=0$ & Bertanda \\
+    \asm{JP} / \asm{JPE} & Kegenapan genap & \flag{PF} $=1$ & Umum \\
+    \asm{JNP} / \asm{JPO} & Kegenapan ganjil & \flag{PF} $=0$ & Umum \\
+    \asm{JCXZ} & \reg{CX} bernilai nol &
+    \reg{CX} $=0$ (bukan flag) & Umum \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.35em}
+\begin{block}{Beberapa nama, satu opcode}
+\scriptsize \asm{JAE}, \asm{JNB}, dan \asm{JNC} dirakit menjadi opcode
+identik, demikian pula \asm{JB}, \asm{JNAE}, dan \asm{JC}.
+Perbedaan nama semata-mata untuk memperjelas maksud: pilih \asm{JB}
+ketika membandingkan nilai dan \asm{JC} ketika memeriksa hasil
+aritmatika.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Memilih Jcc: Bertanda versus Tak Bertanda}
+\small
+Kesalahan paling sering berasal dari sifat \eng{two's complement}:
+nilai bit \hex{FF} dapat dibaca sebagai \dec{255} (tak bertanda) atau
+$-1$ (bertanda).
+
+\vspace{0.15em}
+\begin{kodeasm}[numbers=none]
+MOV AL, 0FFh        ; AL = 255 (tak bertanda) atau -1 (bertanda)
+MOV BL, 01h         ; BL = 1
+CMP AL, BL          ; AL - BL = 0FEh
+JA  AL_DI_ATAS      ; benar untuk tak bertanda: 255 > 1
+JG  AL_LEBIH_BESAR  ; benar untuk bertanda: -1 < 1
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize Kedua lompatan di atas tidak mungkin keduanya diambil.
+Pada kasus ini \flag{CF} bernilai 1 sehingga \asm{JA} tidak diambil,
+sedangkan \flag{SF} $\neq$ \flag{OF} sehingga \asm{JG} diambil.\par}
+
+\vspace{0.2em}
+\begin{alertblock}{Dua instruksi, dua kesimpulan berlawanan}
+\small Dari data yang sama, \asm{JA} dan \asm{JG} dapat memberi
+keputusan yang berlawanan. Tentukan lebih dahulu jenis bilangannya,
+lalu pilih kelompok lompatan yang sesuai.
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Peta Perbandingan ke Instruksi Lompatan}
+\footnotesize Setelah \code{CMP dst, src}, pilih lompatan dari kolom
+yang sesuai dengan jenis bilangan yang dibandingkan.
+
+\vspace{0.3em}
+\begin{center}
+\begin{tabular}{@{}p{3.2cm}p{4.8cm}p{4.8cm}@{}}
+    \toprule
+    \textbf{Perbandingan yang diinginkan} &
+    \textbf{Bilangan bertanda} & \textbf{Bilangan tak bertanda} \\
+    \midrule
+    \eng{dst} $>$ \eng{src} & \asm{JG} (\eng{greater}) &
+    \asm{JA} (\eng{above}) \\
+    \addlinespace
+    \eng{dst} $\geq$ \eng{src} & \asm{JGE} & \asm{JAE} \\
+    \addlinespace
+    \eng{dst} $<$ \eng{src} & \asm{JL} (\eng{less}) &
+    \asm{JB} (\eng{below}) \\
+    \addlinespace
+    \eng{dst} $\leq$ \eng{src} & \asm{JLE} & \asm{JBE} \\
+    \addlinespace
+    \eng{dst} $=$ \eng{src} & \asm{JE} / \asm{JZ} &
+    \asm{JE} / \asm{JZ} \\
+    \addlinespace
+    \eng{dst} $\neq$ \eng{src} & \asm{JNE} / \asm{JNZ} &
+    \asm{JNE} / \asm{JNZ} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab XII, Memilih Jcc yang Tepat}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Tiga Kekeliruan Umum pada Percabangan}
+\begin{alertblock}{Yang paling sering muncul saat menulis percabangan}
+\begin{enumerate}
+    \item \textbf{Memakai \asm{JG} untuk data tak bertanda.} Nilai
+          seperti \hex{FF} dibaca sebagai negatif sehingga keputusan
+          salah; gunakan kelompok \asm{JA}/\asm{JB} untuk alamat,
+          indeks, dan pencacah.
+
+    \vspace{0.3em}
+    \item \textbf{Lupa menyiapkan \eng{flag}.} \asm{JZ} tanpa
+          \asm{CMP} atau \asm{TEST} sebelumnya akan mengikuti
+          \eng{flag} sisa operasi lain.
+
+    \vspace{0.3em}
+    \item \textbf{Menyisipkan instruksi di antara \asm{CMP} dan
+          \asm{Jcc}.} Instruksi \asm{INC}, \asm{DEC}, \asm{ADD}, dan
+          \asm{LOOP} mengubah \eng{flag} dan dapat merusak syarat
+          lompatan.
+\end{enumerate}
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Label: Aturan Penamaan dan Kesalahan Umum}
+\small
+Label adalah nama simbolik untuk suatu alamat di dalam segmen kode.
+
+\vspace{0.15em}
+{\footnotesize
+\begin{itemize}
+    \item Diawali huruf, garis bawah, tanda tanya, atau tanda at;
+          tidak peka huruf besar-kecil; maksimum 31 karakter pada
+          MASM; tidak boleh sama dengan \eng{mnemonic}, register,
+          atau direktif.
+    \item Didefinisikan dengan titik dua (\code{SELESAI:}) tetapi
+          ditulis tanpa titik dua sebagai operand
+          (\asm{JMP SELESAI}).
+\end{itemize}\par}
+
+\vspace{0.2em}
+\begin{alertblock}{Tiga kesalahan berikutnya}
+\footnotesize
+\begin{itemize}
+    \item \textbf{Label ganda} --- nama yang sama dua kali
+          menghasilkan pesan \file{Symbol already defined}.
+    \item \textbf{Alamat dilompati tanpa sengaja} --- label sesudah
+          blok keluar membuat CPU mengeksekusi byte data sebagai
+          instruksi; letakkan \asm{MOV AH, 4Ch} dan \asm{INT 21h} di
+          akhir alur.
+    \item \textbf{Lompatan keluar jangkauan} --- \asm{Jcc} hanya
+          \eng{short}; baliklah syaratnya (\asm{JNE LANJUT}) lalu
+          pakai \asm{JMP} \eng{near} sebagai perantara.
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Perulangan dengan Register CX}
+\small
+Perulangan (\eng{loop}) adalah percabangan yang kembali ke titik awal
+selama syarat tertentu terpenuhi. 8086 menyediakan instruksi khusus
+yang memakai \reg{CX} sebagai pencacah (\eng{counter}).
+
+\vspace{0.1em}
+{\footnotesize\important{\asm{LOOP} mengurangi \reg{CX} dengan satu,
+lalu melompat ke label bila \reg{CX} belum nol. Karena pengujian
+dilakukan \emph{setelah} pengurangan, \asm{LOOP} dengan \reg{CX}
+bernilai nol akan mengulang sebanyak \dec{65\,536} kali.\par}}
+
+\begin{center}
+\begin{tabular}{@{}p{2.6cm}p{4.6cm}p{5.4cm}@{}}
+    \toprule
+    \textbf{Instruksi} & \textbf{Aksi} & \textbf{Kegunaan khas} \\
+    \midrule
+    \asm{LOOP} & \reg{CX} $\leftarrow$ \reg{CX} $-1$; lompat bila
+    \reg{CX} $\neq$ 0 & Perulangan dengan cacah yang diketahui \\
+    \addlinespace
+    \asm{LOOPE} / \asm{LOOPZ} & Seperti \asm{LOOP}, hanya lompat bila
+    \flag{ZF} $=1$ & Mencari ketidakcocokan selama nilai masih sama \\
+    \addlinespace
+    \asm{LOOPNE} / \asm{LOOPNZ} & Seperti \asm{LOOP}, hanya lompat
+    bila \flag{ZF} $=0$ & Pencarian berhenti saat nilai ditemukan \\
+    \addlinespace
+    \asm{JCXZ} & Lompat bila \reg{CX} $=0$; tidak mengubah \reg{CX} &
+    Menangani cacah nol sebelum perulangan dimulai \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab XII, Perulangan dengan Register CX}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{LOOP Dibandingkan dengan DEC dan JNZ}
+\small
+Perulangan yang sama dapat dibentuk dengan menggabungkan \asm{DEC} dan
+\asm{JNZ}.
+
+\vspace{0.15em}
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+{\footnotesize\color{obeBlue}\bfseries Bentuk \asm{LOOP}}\\[0.15em]
+\begin{kodeasm}[numbers=none]
+    MOV CX, 5       ; ulangi lima kali
+ULANG:
+    ; badan perulangan
+    LOOP ULANG      ; CX--; ulangi
+\end{kodeasm}
+\end{column}
+\begin{column}{0.48\textwidth}
+{\footnotesize\color{obeTeal}\bfseries Bentuk \asm{DEC} + \asm{JNZ}}\\[0.15em]
+\begin{kodeasm}[numbers=none]
+    MOV CX, 5
+ULANG2:
+    ; badan perulangan
+    DEC CX          ; kurangi pencacah
+    JNZ ULANG2      ; ulangi bila <>0
+\end{kodeasm}
+\end{column}
+\end{columns}
+
+\vspace{0.15em}
+{\footnotesize Secara fungsional kedua bentuk itu setara. Pada 8086
+asli, \asm{LOOP} lebih cepat karena hanya memerlukan satu kali
+pengambilan instruksi. Pada prosesor generasi berikutnya, \asm{LOOP}
+diterjemahkan ke mikrokode sehingga memerlukan lebih banyak siklus,
+sedangkan \asm{DEC} dan \asm{JNZ} dapat diprediksi dan dijalankan
+secara paralel; karena itu kompilator modern hampir selalu memakai
+pola tersebut. Pola ini juga lebih luwes karena pencacah tidak terpaku
+pada \reg{CX} dan \asm{JNZ} dapat dibuat \eng{near}.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 2}
+\small
+\begin{itemize}
+    \item Lompatan bersyarat pada 8086 selalu berbentuk \eng{short}
+          dan tidak membandingkan apa pun: ia hanya membaca
+          \eng{flag} yang disiapkan instruksi sebelumnya.
+
+    \vspace{0.25em}
+    \item Kelompok bertanda (\asm{JG}, \asm{JGE}, \asm{JL},
+          \asm{JLE}) memakai \flag{SF} dan \flag{OF}; kelompok tak
+          bertanda (\asm{JA}, \asm{JAE}, \asm{JB}, \asm{JBE})
+          memakai \flag{CF} dan \flag{ZF}; \asm{JE}/\asm{JNE}
+          berlaku untuk keduanya.
+
+    \vspace{0.25em}
+    \item Beberapa mnemonic menunjuk opcode yang sama, misalnya
+          \asm{JAE}, \asm{JNB}, dan \asm{JNC}; nama dipilih agar
+          maksud kode lebih jelas.
+
+    \vspace{0.25em}
+    \item \asm{LOOP} mengurangi \reg{CX} lalu melompat bila belum
+          nol; pengujian di akhir membuat badan selalu dijalankan
+          paling sedikit satu kali.
+
+    \vspace{0.25em}
+    \item Pola \asm{DEC} dan \asm{JNZ} setara secara fungsional,
+          lebih luwes karena pencacah tidak harus \reg{CX}, dan
+          lebih cepat pada prosesor modern.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 3
+% =========================================================
+\PemisahBagian{Penerjemahan Pola Bahasa Tingkat Tinggi ke Assembly}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Pola if}
+\small
+Bahasa tingkat tinggi menyediakan \code{if}, \code{while}, dan
+\code{for}; 8086 tidak mengenal satupun kata kunci tersebut. Semua
+struktur kontrol dibentuk dari tiga bahan dasar: pembanding yang
+menyiapkan \eng{flag} (\asm{CMP}/\asm{TEST}), lompatan bersyarat yang
+memeriksanya (\asm{Jcc}), dan lompatan tak bersyarat untuk melompati
+blok yang tidak dipilih (\asm{JMP}).
+
+\vspace{0.15em}
+{\footnotesize\itshape jika nilai $>$ 0 maka cetak ``positif'' akhir
+jika\par}
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+    CMP nilai, 0        ; siapkan flag: nilai - 0
+    JLE LEWATI          ; bila nilai <= 0, lompati blok
+    MOV AH, 09h         ; cetak string "positif"
+    LEA DX, pesan_pos
+    INT 21h
+LEWATI:                 ; lanjutkan program
+\end{kodeasm}
+
+\vspace{0.15em}
+\begin{block}{Kunci pola ini}
+\small Bahasa tingkat tinggi menuliskan ``kerjakan blok bila syarat
+benar'', sedangkan assembly menuliskan ``lompati blok bila syarat
+\emph{tidak} benar'' --- syaratnya dibalik.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Pola if--else}
+\small Bila terdapat cabang alternatif, diperlukan \textbf{dua}
+lompatan: satu untuk memilih cabang, satu untuk melompati cabang
+lainnya.
+
+\vspace{0.15em}
+\begin{columns}[t]
+\begin{column}{0.46\textwidth}
+\begin{center}
+\begin{tikzpicture}[
+    font=\small,
+    blok/.style={draw=obeBlue, line width=0.7pt, fill=obeBlueLight,
+        rounded corners=2pt, minimum width=2.0cm, minimum height=0.55cm,
+        align=center, inner sep=3pt, font=\scriptsize},
+    uji/.style={draw=obeTeal, line width=0.7pt, fill=obeTealLight,
+        diamond, aspect=2.0, minimum width=2.4cm,
+        align=center, inner sep=1pt, font=\scriptsize},
+    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeGray}
+]
+    \node[uji] (kondisi) {syarat\\benar?};
+    \node[blok, below left=0.7cm and 0.0cm of kondisi]
+        (ya) {blok ``ya''};
+    \node[blok, below right=0.7cm and 0.0cm of kondisi]
+        (tidak) {blok ``tidak''};
+    \node[blok, fill=obeGrayLight, draw=obeGray, below=1.1cm of kondisi]
+        (gabung) {lanjutkan program};
+    \draw[panah] (kondisi) -- node[left, font=\tiny] {ya} (ya);
+    \draw[panah] (kondisi) -- node[right, font=\tiny] {tidak} (tidak);
+    \draw[panah] (ya) |- (gabung);
+    \draw[panah] (tidak) |- (gabung);
+\end{tikzpicture}
+\end{center}
+\end{column}
+\begin{column}{0.52\textwidth}
+\begin{kodeasm}[numbers=none]
+    MOV AX, a
+    CMP AX, b        ; bandingkan a, b
+    JNE CABANG_BEDA  ; ke cabang lain
+    MOV AH, 09h      ; cabang "sama"
+    LEA DX, pesan_sama
+    INT 21h
+    JMP GABUNG       ; lompati cabang else
+CABANG_BEDA:
+    MOV AH, 09h      ; cabang "beda"
+    LEA DX, pesan_beda
+    INT 21h
+GABUNG:
+\end{kodeasm}
+\end{column}
+\end{columns}
+
+\vspace{0.1em}
+{\footnotesize \asm{JMP GABUNG} wajib ada; tanpa instruksi itu,
+setelah mencetak ``sama'' prosesor akan menjatuhi
+(\eng{fall through}) blok ``beda'' dan mencetak keduanya.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Pola while, do--while, dan for}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{2.0cm}p{4.4cm}p{6.0cm}@{}}
+    \toprule
+    \textbf{Pola} & \textbf{Bentuk bahasa tingkat tinggi} &
+    \textbf{Padanan assembly} \\
+    \midrule
+    \code{while} & \code{while (kond) \{ A \}} &
+    \code{uji}: uji di awal; lompat keluar bila salah; \code{A};
+    \asm{JMP} kembali ke \code{uji} \\
+    \addlinespace
+    \code{do--while} & \code{do \{ A \} while (kond);} &
+    \code{badan}: \code{A}; uji di akhir; lompat kembali bila benar
+    (dijalankan minimal sekali) \\
+    \addlinespace
+    \code{for} & \code{for (i=0; i<n; i++) \{ A \}} &
+    inisialisasi \reg{CX}; \code{ulang}: \code{A}; \asm{INC}/\asm{ADD}
+    pencacah; \asm{LOOP} atau \asm{DEC}+\asm{JNZ} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.3em}
+{\scriptsize \code{while} menguji syarat di awal sehingga badan dapat
+dijalankan nol kali, sedangkan \code{do--while} menguji di akhir
+sehingga badan selalu dijalankan paling sedikit satu kali. Karena itu
+\code{while} memerlukan \asm{JMP} tambahan untuk kembali ke titik
+pengujian, sedangkan \code{do--while} cukup memakai \asm{LOOP} atau
+\asm{JNZ}.\par}
+
+\vspace{0.3em}
+{\scriptsize\important{Bila pencacah harus naik dari nol, \asm{LOOP}
+tidak dapat dipakai langsung karena \asm{LOOP} selalu mengurangi.}\par}
+
+\vspace{0.15em}
+\begin{kodeasm}[numbers=none]
+    MOV SI, 0           ; i = 0
+ULANG_NAIK:
+    INC SI              ; i++
+    CMP SI, 8           ; i < 8 ?
+    JB  ULANG_NAIK      ; lanjut bila masih di bawah batas
+\end{kodeasm}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Pola switch dengan Tabel Lompatan}
+\small
+\code{switch} dengan banyak cabang tidak efisien bila diterjemahkan
+sebagai rangkaian \asm{CMP} dan \asm{Jcc} berantai. Alternatifnya
+adalah \term{tabel lompatan} (\eng{jump table}): tabel berisi alamat
+setiap cabang, diindeks dengan nomor kasus.
+
+\vspace{0.15em}
+\begin{kodeasm}[numbers=none]
+.DATA
+    TABEL DW OFFSET KASUS0, OFFSET KASUS1, OFFSET KASUS2
+.CODE
+    MOV SI, nomor       ; SI = nomor kasus (0, 1, atau 2)
+    CMP SI, 2           ; periksa batas atas
+    JA  DI_LUAR_BATAS   ; nomor di luar jangkauan ditolak
+    SHL SI, 1           ; setiap entri berukuran 2 byte
+    JMP TABEL[SI]       ; lompat ke alamat yang tersimpan pada tabel
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize
+\begin{itemize}
+    \item Indeks harus dikalikan ukuran entri: karena \dir{DW},
+          indeks digeser satu bit ke kiri dengan \asm{SHL}.
+    \item Batas atas \emph{wajib} diperiksa sebelum pengindeksan;
+          tanpa \asm{CMP SI, 2} dan \asm{JA}, nomor kasus yang salah
+          melompat ke alamat acak.
+\end{itemize}\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Studi Kasus: Maksimum, Gelembung, dan Pencarian Biner}
+\footnotesize
+\begin{exampleblock}{Kasus 1: mencari nilai maksimum}
+\footnotesize Elemen pertama dianggap kandidat maksimum, lalu
+dibandingkan dengan setiap elemen berikutnya dan diperbarui bila ada
+yang lebih besar. Perbandingan memakai \asm{CMP} diikuti \asm{JAE}
+(tak bertanda); kompleksitasnya $O(n)$.
+\end{exampleblock}
+
+\vspace{0.2em}
+\begin{exampleblock}{Kasus 2: pengurutan gelembung}
+\footnotesize Larik diproses berulang kali; pada setiap lintasan dua
+elemen bersebelahan dibandingkan dan ditukar bila urutannya salah,
+sehingga elemen terbesar bergerak ke posisi paling kanan. Perulangan
+bersarang diterjemahkan menjadi dua pencacah, sehingga \reg{CX}
+lintasan luar disimpan sementara di \eng{stack} dengan \asm{PUSH} dan
+\asm{POP}. Untuk $n$ elemen, sekitar $n^2/2$ pembandingan.
+\end{exampleblock}
+
+\vspace{0.2em}
+\begin{exampleblock}{Kasus 3 (pengantar): pencarian biner}
+\footnotesize Pada larik yang \emph{sudah terurut}, batas bawah dan
+batas atas disimpan pada dua register penunjuk, dan titik tengah
+dihitung dengan \asm{ADD} lalu \asm{SHR AX, 1}. Paling banyak
+$\log_2 n$ pembandingan.
+\end{exampleblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 3}
+\small
+\begin{itemize}
+    \item Tidak ada struktur kontrol baru pada tingkat mesin: yang
+          ada hanyalah pembanding, lompatan bersyarat, dan lompatan
+          tak bersyarat.
+
+    \vspace{0.25em}
+    \item \code{if} diterjemahkan dengan membalik syarat: lompati
+          blok bila syarat \emph{tidak} benar.
+
+    \vspace{0.25em}
+    \item \code{if--else} memerlukan dua lompatan; \asm{JMP} pengakhir
+          cabang ``ya'' wajib ada agar blok ``tidak'' tidak dijatuhi.
+
+    \vspace{0.25em}
+    \item \code{while} menguji di awal (badan boleh nol kali),
+          \code{do--while} menguji di akhir (badan minimal sekali);
+          \code{for} dengan pencacah turun paling mudah memakai
+          \reg{CX} dan \asm{LOOP}.
+
+    \vspace{0.25em}
+    \item \code{switch} dengan banyak cabang paling efisien memakai
+          tabel lompatan: indeks dikalikan ukuran entri dan batas
+          atas wajib diperiksa lebih dahulu.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% CONTOH PROGRAM
+% =========================================================
+\begin{frame}[fragile]{Contoh 1: Mencari Nilai Maksimum Larik}
+\small \file{loop-maksimum.asm} mencari nilai terbesar dalam sebuah
+larik 16-bit.
+
+\vspace{0.05em}
+\begin{columns}[t]
+\begin{column}{0.56\textwidth}
+\begin{kodeasm}[numbers=none]
+    LEA SI, deret        ; SI = awal larik
+    MOV CX, BANYAK - 1   ; n - 1 banding
+    MOV AX, [SI]         ; kandidat elemen 1
+    ADD SI, 2            ; maju satu word
+CARI:
+    CMP AX, [SI]         ; siapkan flag
+    JAE LANJUT           ; kandidat >= elemen
+    MOV AX, [SI]         ; kandidat baru
+LANJUT:
+    ADD SI, 2
+    LOOP CARI            ; CX--; ulangi
+\end{kodeasm}
+\end{column}
+\begin{column}{0.42\textwidth}
+{\footnotesize
+\begin{itemize}
+    \item \asm{MOV CX, BANYAK - 1}: elemen pertama sudah menjadi
+          kandidat, sehingga hanya $n-1$ elemen diperiksa.
+    \item \asm{CMP AX, [SI]} menyiapkan \eng{flag}, lalu \asm{JAE}
+          --- bukan \asm{JGE} --- mengambil keputusan karena larik
+          diperlakukan sebagai bilangan tak bertanda.
+\end{itemize}}
+
+\vspace{0.15em}
+{\footnotesize\color{obeTeal}\bfseries Keluaran}\\[0.1em]
+\begin{keluaran}
+Nilai maksimum: 93
+\end{keluaran}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh 2: Pengurutan Gelembung}
+\begin{columns}[t]
+\begin{column}{0.50\textwidth}
+{\footnotesize\color{obeBlue}\bfseries Perulangan luar dan dalam}\\[0.1em]
+\begin{kodeasm}[numbers=none]
+LINTASAN:
+    PUSH CX             ; simpan pencacah
+    MOV CX, BANYAK - 1  ; pencacah dalam
+BANDING:
+    LOOP BANDING
+    POP CX              ; ambil pencacah
+    LOOP LINTASAN
+\end{kodeasm}
+\end{column}
+\begin{column}{0.48\textwidth}
+{\footnotesize\color{obeTeal}\bfseries Inti pembandingan dan penukaran}\\[0.1em]
+\begin{kodeasm}[numbers=none]
+    MOV SI, 0          ; indeks kiri
+    MOV DI, 1          ; indeks kanan
+    MOV AL, deret[SI]  ; elemen kiri
+    MOV BL, deret[DI]  ; elemen kanan
+    CMP AL, BL         ; siapkan flag
+    JBE TIDAK_TUKAR    ; sudah urut
+    MOV deret[SI], BL  ; tukar
+    MOV deret[DI], AL
+TIDAK_TUKAR:
+    INC SI
+    INC DI
+\end{kodeasm}
+\end{column}
+\end{columns}
+
+\vspace{0.1em}
+{\footnotesize \file{bubble-sort.asm} mengurutkan larik delapan byte
+secara menaik; perulangan luar dijalankan $n-1 = 7$ kali. Karena
+perulangan dalam memakai register \reg{CX} yang sama, pencacah luar
+harus diselamatkan dengan \asm{PUSH CX}; tanpa itu \asm{LOOP} luar
+menguranginya menjadi \hex{FFFF} dan perulangan berjalan tanpa
+henti.\par}
+
+\vspace{0.1em}
+{\footnotesize\color{obeTeal}\bfseries Keluaran:}
+\asm{Hasil pengurutan: 1 2 3 4 6 7 8 9}\par
+\end{frame}
+
+% =========================================================
+% PRAKTIKUM
+% =========================================================
+\begin{frame}{Praktikum: Pencarian Maksimum dan Penelusuran Alur}
+\begin{block}{Judul praktikum}
+\small Pencarian maksimum, pengurutan sederhana, dan penelusuran alur
+percabangan \quad\textbullet\quad \textbf{Sub-CPMK:} 3.3
+\quad\textbullet\quad \textbf{Waktu:} 100 menit
+\quad\textbullet\quad \textbf{Bentuk:} individu
+\end{block}
+
+\vspace{0.15em}
+\begin{columns}[t]
+\begin{column}{0.42\textwidth}
+{\color{obeBlue}\bfseries Alat dan bahan}
+\begin{itemize}\footnotesize
+    \item Emu8086, GUI Turbo Assembler, dan DOSBox
+    \item Berkas \file{loop-maksimum.asm} dan \file{bubble-sort.asm}
+    \item Lembar kerja penelusuran
+\end{itemize}
+\end{column}
+\begin{column}{0.54\textwidth}
+{\color{obeBlue}\bfseries Langkah kerja}
+\begin{enumerate}\footnotesize
+    \item Rakit dan jalankan \file{loop-maksimum.asm}.
+    \item Ubah larik menjadi $5, 4, 3, 2, 1, 0, \hex{FF}, 1$;
+          tentukan maksimumnya sebagai bilangan tak bertanda.
+    \item Hapus \asm{PUSH CX} dan \asm{POP CX}; jelaskan yang
+          berubah.
+    \item Dengan \eng{Single Step}, catat \flag{ZF}, \flag{CF},
+          \flag{SF}, dan \flag{OF} sebelum dan sesudah
+          \asm{CMP AX, [SI]}; lalu ganti \asm{LOOP CARI} dengan
+          \asm{DEC CX} dan \asm{JNZ CARI} dan bandingkan ukuran
+          \file{.obj}.
+\end{enumerate}
+\end{column}
+\end{columns}
+
+{\footnotesize\textbf{Dikumpulkan (Tugas 5):} program modifikasi,
+tangkapan layar, lembar kerja penelusuran, dan jurnal praktikum.\par}
+\end{frame}
+
+% =========================================================
+% LATIHAN
+% =========================================================
+\begin{frame}[fragile]{Latihan}
+\footnotesize
+\begin{enumerate}
+    \item \textbf{Konseptual.} Jelaskan mengapa lompatan bersyarat
+          pada 8086 tidak dapat membandingkan dua bilangan secara
+          langsung; sebutkan dua instruksi penyiap \eng{flag} dan
+          perbedaannya.
+
+    \item \textbf{Analisis \eng{flag}.} Diberikan potongan berikut;
+          tentukan \flag{ZF}, \flag{CF}, \flag{SF}, dan \flag{OF}
+          setelah \asm{CMP}, lalu tentukan manakah yang diambil:
+          \asm{JA} atau \asm{JB}, dan \asm{JG} atau \asm{JL}?
+          Jelaskan mengapa kedua jawabannya berbeda.
+\begin{kodeasm}[numbers=none]
+MOV AL, 0FEh
+MOV BL, 03h
+CMP AL, BL
+\end{kodeasm}
+
+    \item \textbf{Pemilihan \asm{Jcc}.} Tuliskan lompatan yang tepat
+          untuk: \reg{AX} $>$ \reg{BX} (tak bertanda);
+          \reg{DL} $\leq$ \hex{7F} (tak bertanda);
+          \reg{SI} $=$ \reg{DI}; hasil operasi nol dan tidak terjadi
+          limpahan; \reg{AL} berisi bilangan genap.
+
+    \item \textbf{Prediksi alur.} Perulangan bersarang dengan
+          \asm{MOV CX, 3} di lintasan luar dan \asm{MOV CX, 2} di
+          lintasan dalam, dilengkapi \asm{PUSH CX} dan \asm{POP CX}:
+          berapa kali \asm{INC BX} dijalankan, dan apa yang terjadi
+          bila kedua instruksi \eng{stack} itu dihapus?
+
+    \item \textbf{Analisis kesalahan.} \asm{JNE SELESAI} diikuti 200
+          byte instruksi lain menghasilkan pesan
+          \file{Relative jump out of range}. Jelaskan penyebabnya dan
+          tuliskan perbaikan yang memakai syarat terbalik serta
+          \asm{JMP} \eng{near}.
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% RANGKUMAN
+% =========================================================
+\begin{frame}{Rangkuman}
+\footnotesize
+\begin{itemize}
+    \item Pengambilan keputusan berjalan dalam dua langkah: satu
+          instruksi menyiapkan \eng{flag}, lalu satu lompatan
+          bersyarat membacanya. Lima \eng{flag} terpenting adalah
+          \flag{ZF}, \flag{CF}, \flag{SF}, \flag{OF}, dan \flag{PF}.
+
+    \vspace{0.2em}
+    \item \asm{CMP} menyiapkan \eng{flag} melalui pengurangan yang
+          hasilnya dibuang, sedangkan \asm{TEST} melalui \asm{AND}
+          yang hasilnya dibuang. \asm{CMP} membandingkan nilai;
+          \asm{TEST} memeriksa bit.
+
+    \vspace{0.2em}
+    \item \asm{JMP} memindahkan kendali tanpa syarat. Jarak lompatan
+          menentukan ukuran instruksi: \eng{short} dua byte
+          ($\pm$ 127 byte), \eng{near} tiga byte (satu segmen), dan
+          \eng{far} lima byte (antarsegmen).
+
+    \vspace{0.2em}
+    \item Keluarga \asm{Jcc} terbagi menjadi kelompok bertanda
+          (\asm{JG}, \asm{JGE}, \asm{JL}, \asm{JLE}), kelompok tak
+          bertanda (\asm{JA}, \asm{JAE}, \asm{JB}, \asm{JBE}),
+          pemeriksa \eng{flag} tunggal (\asm{JC}, \asm{JS},
+          \asm{JO}, \asm{JP}, \asm{JCXZ}), dan kelompok kesamaan
+          (\asm{JE}/\asm{JNE}) yang berlaku untuk keduanya.
+
+    \vspace{0.2em}
+    \item Perulangan dibentuk dengan \asm{LOOP} dan \reg{CX}, varian
+          \asm{LOOPE}/\asm{LOOPNE} yang menambahkan syarat
+          \flag{ZF}, atau pola \asm{DEC} dan \asm{JNZ} yang lebih
+          luwes dan lebih cepat pada prosesor modern.
+
+    \vspace{0.2em}
+    \item Seluruh struktur kontrol bahasa tingkat tinggi ---
+          \code{if}, \code{while}, \code{for}, dan \code{switch} ---
+          diterjemahkan dari tiga bahan dasar: \asm{CMP}/\asm{TEST},
+          \asm{Jcc}, dan \asm{JMP}. \code{switch} dengan banyak
+          cabang paling efisien memakai tabel lompatan.
+\end{itemize}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Cek Pemahaman}
+\small
+\begin{enumerate}
+    \item Instruksi yang menyiapkan \eng{flag} melalui pengurangan
+          tanpa menyimpan hasilnya adalah \dots
+          \begin{enumerate}\footnotesize
+              \item \asm{SUB} \quad \item \asm{CMP} \quad
+              \item \asm{TEST} \quad \item \asm{AND}
+          \end{enumerate}
+
+    \vspace{0.15em}
+    \item Setelah \asm{CMP AX, BX}, lompatan yang tepat untuk
+          \reg{AX} $<$ \reg{BX} (tak bertanda) adalah \dots
+          \begin{enumerate}\footnotesize
+              \item \asm{JL} \quad \item \asm{JG} \quad
+              \item \asm{JB} \quad \item \asm{JA}
+          \end{enumerate}
+
+    \vspace{0.15em}
+    \item Instruksi \asm{LOOP} bekerja dengan cara \dots
+          \begin{enumerate}\footnotesize
+              \item mengurangi \reg{CX}, lalu melompat bila belum nol
+              \item menambah \reg{CX}, lalu melompat bila belum nol
+              \item menguji \reg{CX} lebih dahulu, lalu melompat
+              \item menguji \flag{ZF} tanpa mengubah \reg{CX}
+          \end{enumerate}
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% PENUTUP
+% =========================================================
+\begin{frame}{Penutup}
+\small
+\begin{block}{Sebelum pertemuan berikutnya}
+\begin{itemize}
+    \item Selesaikan praktikum (Tugas 5): kedua program versi
+          modifikasi beserta tangkapan layar, lembar kerja
+          penelusuran, jawaban langkah 1--4, dan jurnal praktikum.
+    \item Ulangi bagian yang belum dikuasai dengan menelusuri
+          \file{loop-maksimum.asm} satu instruksi demi satu pada
+          \eng{Single Step}.
+    \item Baca \textbf{Bab XIII} --- Prosedur dan Manajemen Stack.
+\end{itemize}
+\end{block}
+
+\vspace{0.35em}
+{\footnotesize\textbf{Bacaan lanjutan:} Bab XII bagian Memilih
+\asm{Jcc} yang Tepat, dan Pola \code{switch} dengan Tabel Lompatan;
+pembahasan register \reg{FLAGS} pada Bab V; pemakaian \eng{stack}
+pada Bab XIII.\par}
+
+\vspace{0.45em}
+\begin{center}
+{\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
+\vspace{0.15em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
+\SemesterTeks\par}
+\end{center}
+\end{frame}
+
+\end{document}

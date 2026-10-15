@@ -1,0 +1,113 @@
+% =========================================================
+% ppt/src/listing-ppt.tex
+% Gaya penampil kode untuk slide.
+%
+% Diturunkan dari buku_ajar/config/listings.tex, tetapi
+% disesuaikan untuk slide: ukuran lebih kecil (karena frame
+% 16:9 dan kode harus utuh terlihat) dan jarak lebih rapat.
+% =========================================================
+
+% ---------------------------------------------------------
+% 1. Definisi bahasa MASM/TASM 8086 (salinan dari buku)
+% ---------------------------------------------------------
+\lstdefinelanguage{MASM}{
+    morekeywords={
+        MOV, XCHG, LEA, LDS, LES, PUSH, POP, PUSHA, POPA, PUSHF, POPF,
+        LAHF, SAHF, XLAT, IN, OUT, CBW, CWD,
+        ADD, ADC, SUB, SBB, INC, DEC, NEG, CMP, MUL, IMUL, DIV, IDIV,
+        AAA, AAS, AAM, AAD, DAA, DAS,
+        AND, OR, XOR, NOT, TEST, SHL, SHR, SAL, SAR, ROL, ROR, RCL, RCR,
+        JMP, JE, JZ, JNE, JNZ, JG, JGE, JL, JLE, JA, JAE, JB, JBE,
+        JC, JNC, JS, JNS, JO, JNO, JP, JPE, JNP, JPO, JCXZ,
+        LOOP, LOOPE, LOOPZ, LOOPNE, LOOPNZ, CALL, RET, INT, IRET, INTO,
+        HLT, NOP, CLI, STI, CLD, STD, CLC, STC, CMC, WAIT, ESC, LOCK,
+        DB, DW, DD, DQ, DT, EQU, ORG, SEGMENT, ENDS, ASSUME, END,
+        PROC, ENDP, MACRO, ENDM, LOCAL, PUBLIC, EXTRN, EXTERN,
+        INCLUDE, INCLUDELIB, MODEL, STACK, CODE, DATA, CONST, ALIGN, EVEN,
+        OFFSET, PTR, BYTE, WORD, DWORD, QWORD, TBYTE,
+        NEAR, FAR, SHORT, LABEL, TYPE, SIZE, LENGTH, DUP, THIS,
+        AX, BX, CX, DX, AL, AH, BL, BH, CL, CH, DL, DH,
+        SP, BP, SI, DI, IP, CS, DS, SS, ES, FLAGS,
+        CF, PF, AF, ZF, TF, IF, DF, OF
+    },
+    sensitive=false,
+    morecomment=[l]{;},
+    morestring=[b]',
+    morestring=[b]"
+}
+
+% ---------------------------------------------------------
+% 2. Gaya kode assembly untuk slide
+% ---------------------------------------------------------
+\lstdefinestyle{asmslide}{
+    language=MASM,
+    basicstyle=\ttfamily\scriptsize,
+    keywordstyle=\color{obeBlue}\bfseries,
+    commentstyle=\color{obeGreen}\itshape,
+    stringstyle=\color{obeMaroon},
+    numberstyle=\tiny\color{obeGray},
+    numbers=left,
+    numbersep=5pt,
+    stepnumber=1,
+    backgroundcolor=\color{codeBack},
+    frame=single,
+    rulecolor=\color{codeFrame},
+    framesep=4pt,
+    breaklines=true,
+    breakatwhitespace=false,
+    % CATATAN PENTING: opsi `postbreak` TIDAK boleh dipakai di sini.
+    % Di beamer, `breaklines=true` bersama `postbreak=<kode>` membuat
+    % listings gagal dirakit dengan galat
+    %   "Missing number, treated as zero <to be read again> \kern".
+    % Karena \lstset{style=asmslide} bersifat global, opsi postbreak
+    % juga bocor ke gaya lain (mis. outslide/keluaran) dan merusaknya.
+    % Di buku ajar (kelas `book`) justru sebaliknya: postbreak aman dan
+    % dipakai. Jadi larangan ini khusus untuk slide.
+    showstringspaces=false,
+    tabsize=4,
+    columns=fullflexible,
+    keepspaces=true,
+    upquote=true,
+    xleftmargin=12pt,
+    aboveskip=0.4em,
+    belowskip=0.4em
+}
+
+% ---------------------------------------------------------
+% 3. Gaya keluaran program / sesi debugger untuk slide
+% ---------------------------------------------------------
+\lstdefinestyle{outslide}{
+    basicstyle=\ttfamily\scriptsize,
+    keywordstyle=\color{black},
+    commentstyle=\color{obeGray},
+    stringstyle=\color{black},
+    numbers=none,
+    backgroundcolor=\color{obeGrayLight},
+    frame=single,
+    rulecolor=\color{codeFrame},
+    framesep=4pt,
+    breaklines=true,
+    showstringspaces=false,
+    columns=fullflexible,
+    keepspaces=true,
+    upquote=true,
+    xleftmargin=4pt,
+    aboveskip=0.4em,
+    belowskip=0.4em
+}
+
+\lstset{style=asmslide}
+
+% ---------------------------------------------------------
+% 4. Environment ringkas untuk dipakai di dalam frame
+%
+% Frame yang memuat kedua environment ini WAJIB memakai
+% opsi [fragile], karena isinya verbatim.
+% ---------------------------------------------------------
+\lstnewenvironment{kodeasm}[1][]{%
+    \lstset{style=asmslide, #1}%
+}{}
+
+\lstnewenvironment{keluaran}[1][]{%
+    \lstset{style=outslide, #1}%
+}{}

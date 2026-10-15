@@ -1,0 +1,1246 @@
+% =========================================================
+% ppt/src/minggu-14.tex
+% Slide pertemuan 14
+% Bab XV — Debugging pada Level Instruksi
+%
+% Sub-CPMK 4.1 dan 4.2 | CPMK04 | CPL03
+% =========================================================
+
+\documentclass[aspectratio=169,11pt]{beamer}
+\input{preamble-ppt}
+
+\renewcommand{\PertemuanTeks}{Pertemuan 14}
+
+\begin{document}
+
+% =========================================================
+% 1. JUDUL
+% =========================================================
+\JudulDeck{Debugging pada Level Instruksi}{Pertemuan 14}
+
+% =========================================================
+% 2. CAPAIAN DAN TUJUAN
+% =========================================================
+\begin{frame}{Capaian dan Tujuan Pembelajaran}
+\begin{block}{Sub-CPMK 4.1 dan 4.2}
+\scriptsize
+\SubCPMK{4.1} --- Melakukan penelusuran program pada level instruksi
+(\eng{single-step}, \eng{trace}, \eng{breakpoint}) dan memantau
+perubahan register serta \eng{flag}.
+
+\vspace{0.3em}
+\SubCPMK{4.2} --- Memeriksa dan menganalisis isi memori dan
+\eng{stack} (\eng{dump}) untuk menemukan kesalahan logika, kesalahan
+segmentasi, dan \eng{overflow}.
+\end{block}
+
+{\small\textbf{CPMK yang didukung:} \CPMK{04}\quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}\par}
+
+\begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
+\scriptsize
+\begin{enumerate}
+    \item membedakan lima jenis kesalahan program: sintaks, saat
+          berjalan, logika, segmentasi, dan \eng{overflow};
+    \item memilih alat \eng{debugging} yang sesuai: MS-DEBUG,
+          \eng{debugger} GUI Turbo Assembler, atau Emu8086;
+    \item memakai perintah \code{R}, \code{U}, \code{T}, \code{P},
+          \code{G}, \code{D}, \code{E}, \code{A}, \code{N},
+          \code{L}, dan \code{W} pada DEBUG;
+    \item menjelaskan perbedaan \code{T} dan \code{P} ketika
+          menjumpai \asm{CALL} dan \code{INT};
+    \item mengisi tabel \eng{trace} register dan \eng{flag} setiap
+          langkah eksekusi;
+    \item membaca keluaran \code{D} serta menafsirkan bingkai
+          \eng{stack};
+    \item menerapkan metodologi \eng{debugging} sistematis untuk
+          menemukan tiga bug khas.
+\end{enumerate}
+\end{exampleblock}
+\end{frame}
+
+% =========================================================
+% 3. PETA MATERI
+% =========================================================
+\begin{frame}{Peta Materi}
+\small
+\begin{enumerate}
+    \item \textbf{Taksonomi Kesalahan Program dan Alat Debugging}\\
+          {\footnotesize lima jenis kesalahan; gejala dan cara
+          penemuannya; MS-DEBUG, GUI Turbo Assembler, dan Emu8086}
+
+    \vspace{0.25em}
+    \item \textbf{Menelusuri Program dengan Perintah DEBUG}\\
+          {\footnotesize \code{N}, \code{L}, \code{W}, \code{R},
+          \code{U}, \code{T}, \code{P}, \code{G}, \code{D},
+          \code{E}, \code{A}; perbedaan \code{T} dan \code{P};
+          \eng{breakpoint}; tabel \eng{trace}}
+
+    \vspace{0.25em}
+    \item \textbf{Analisis Memori dan Stack serta Metodologi
+          Debugging}\\
+          {\footnotesize membaca \eng{dump}; bingkai \eng{stack};
+          deteksi \eng{overflow}; enam tahap metodologi; tiga studi
+          kasus}
+\end{enumerate}
+
+\vspace{0.35em}
+\begin{block}{Praktik pada pertemuan ini}
+\small Menelusuri \file{bug-loop.asm} dan \file{bug-stack.asm} dengan
+MS-DEBUG, mengisi tabel \eng{trace}, lalu memperbaiki kedua program.
+\end{block}
+\end{frame}
+
+% =========================================================
+% BAGIAN 1
+% =========================================================
+\PemisahBagian{Taksonomi Kesalahan Program dan Alat Debugging}
+
+% ---------------------------------------------------------
+\begin{frame}{Debugging sebagai Proses Sistematis}
+\small
+Menulis program assembly berarti berhadapan langsung dengan register,
+\eng{flag}, dan alamat memori tanpa lapisan pelindung apa pun.
+
+\vspace{0.3em}
+\begin{exampleblock}{Definisi}
+\small \term{Debugging} adalah proses sistematis untuk menemukan
+penyebab suatu kesalahan (\eng{bug}) pada program, membuktikan
+penyebab itu melalui bukti pengamatan, lalu memperbaiki dan
+memverifikasi hasil perbaikan.
+\end{exampleblock}
+
+\vspace{0.25em}
+\small
+\begin{itemize}
+    \item \eng{Debugging} bukan kegiatan menebak-nebak, melainkan
+          kegiatan mengumpulkan bukti pada level instruksi.
+    \item Bekal utamanya adalah tiga pengetahuan dari bab
+          sebelumnya: cara kerja register, pengambilan keputusan
+          berdasarkan \eng{flag}, dan pemakaian \eng{stack} oleh
+          prosedur.
+\end{itemize}
+\Sumber{Bab XV, Taksonomi Kesalahan Program dan Alat Debugging}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Lima Jenis Kesalahan Program}
+\footnotesize
+\begin{enumerate}
+    \item \term{Kesalahan sintaks} --- penulisan yang membuat
+          assembler menolak berkas sumber, sehingga program
+          \emph{tidak} dihasilkan (mis. \code{MOVV} alih-alih
+          \asm{MOV}).
+
+    \vspace{0.2em}
+    \item \term{Kesalahan saat berjalan} --- baru muncul ketika
+          program dijalankan, misalnya pembagian dengan nol.
+
+    \vspace{0.2em}
+    \item \term{Kesalahan logika} --- program berjalan sampai selesai
+          tetapi hasilnya salah; assembler dan sistem operasi
+          sama-sama diam.
+
+    \vspace{0.2em}
+    \item \term{Kesalahan segmentasi} --- program mengakses alamat di
+          luar segmen yang seharusnya, misalnya \reg{DS} tidak pernah
+          diarahkan ke segmen data.
+
+    \vspace{0.2em}
+    \item \term{Overflow} --- hasil perhitungan atau pemakaian
+          \eng{stack} melebihi daya tampungnya, misalnya melebihi
+          \hex{FFFF} atau jumlah \asm{PUSH} tidak seimbang dengan
+          \asm{POP}.
+\end{enumerate}
+\Sumber{Bab XV, Lima Jenis Kesalahan Program}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Gejala dan Cara Menemukan Tiap Jenis}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{1.9cm}p{3.3cm}p{2.9cm}p{3.5cm}@{}}
+    \toprule
+    \textbf{Jenis} & \textbf{Gejala} & \textbf{Kapan terdeteksi} &
+    \textbf{Cara menemukan} \\
+    \midrule
+    Sintaks & Assembler menolak berkas; tidak ada \file{.obj} &
+    Sebelum program dijalankan & Baca pesan assembler beserta nomor
+    barisnya \\
+    \addlinespace[2pt]
+    Saat berjalan & Program berhenti di tengah jalan; pesan sistem
+    operasi & Ketika dijalankan & Jalankan bertahap sampai titik
+    berhenti \\
+    \addlinespace[2pt]
+    Logika & Program selesai normal, hasil salah & Tidak terdeteksi
+    otomatis & Tabel \eng{trace} register dan \eng{flag} per langkah \\
+    \addlinespace[2pt]
+    Segmentasi & Karakter sampah, nilai berubah sendiri, program
+    macet & Ketika dijalankan & Periksa \reg{DS}, \reg{ES},
+    \reg{SS}, dan batas indeks melalui \code{D} \\
+    \addlinespace[2pt]
+    \eng{Overflow} & Hasil aritmatika terpotong; \asm{RET} melompat
+    ke alamat aneh & Ketika dijalankan & Periksa \flag{CF},
+    \flag{OF}, dan pasangan \eng{dump} \eng{stack} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.25em}
+{\scriptsize\color{obeGray}\important{Hanya kesalahan sintaks yang
+dapat dipercayakan kepada assembler.} Empat jenis lainnya menuntut
+pengamatan langsung terhadap keadaan prosesor saat program
+berjalan.\par}
+\Sumber{Bab XV, Tabel taksonomi kesalahan}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Tiga Alat Debugging yang Tersedia}
+\small
+Ketiganya mampu melakukan hal yang sama: menghentikan program,
+memeriksa register, dan memeriksa memori. Perbedaannya terletak pada
+kemudahan pemakaian dan kedekatan dengan mesin sesungguhnya.
+
+\vspace{0.3em}
+\begin{enumerate}
+    \item \term{MS-DEBUG di DOSBox.} Program bawaan DOS yang seluruh
+          interaksinya berupa baris perintah. Yang terlihat
+          benar-benar isi memori, bukan tampilan yang disederhanakan.
+
+    \vspace{0.2em}
+    \item \term{\eng{Debugger} terpadu GUI Turbo Assembler.} Satu
+          jendela terpadu memuat kode sumber, register, dan memori
+          sekaligus; program dijalankan baris per baris dengan
+          menekan tombol.
+
+    \vspace{0.2em}
+    \item \term{Jendela \eng{debug} Emu8086.} Register, \eng{flag},
+          memori, dan \eng{stack} tampil sebagai panel terpisah yang
+          selalu terlihat sehingga cocok untuk pemula.
+\end{enumerate}
+
+\vspace{0.15em}
+\begin{block}{Mengapa MS-DEBUG ditekankan}
+\small DEBUG memperlihatkan keadaan mesin apa adanya, dan kemampuan
+membaca keluarannya berlaku umum bagi kedua alat grafis lainnya.
+\end{block}
+\Sumber{Bab XV, Alat Debugging yang Tersedia}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Perbandingan Kemampuan Tiga Alat}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{2.3cm}p{3.4cm}p{3.6cm}p{3.0cm}@{}}
+    \toprule
+    \textbf{Kemampuan} & \textbf{MS-DEBUG (DOSBox)} &
+    \textbf{GUI Turbo Assembler} & \textbf{Emu8086} \\
+    \midrule
+    Tampilan & Teks, baris perintah & Grafis, jendela terpadu &
+    Grafis, panel terpisah \\
+    \addlinespace[2pt]
+    Langkah per instruksi & \code{T} dan \code{P} & Tombol
+    \file{Step} & Tombol \file{Single Step} \\
+    \addlinespace[2pt]
+    \eng{Breakpoint} & \code{G} pada alamat; jumlah terbatas & Titik
+    henti pada baris sumber & Titik henti pada baris sumber \\
+    \addlinespace[2pt]
+    Memeriksa memori & \code{D} dan \code{E} & Jendela \eng{dump}
+    memori & Jendela memori \\
+    \addlinespace[2pt]
+    Memeriksa \eng{stack} & \code{D SS:SP} & Jendela \eng{stack} &
+    Jendela \eng{stack} \\
+    \addlinespace[2pt]
+    Memodifikasi kode mesin & \code{A} dan \code{E} & Tidak langsung
+    & Tidak langsung \\
+    \addlinespace[2pt]
+    Menjalankan \file{.exe} lama & Ya & Ya & Perlu emulasi \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab XV, Tabel perbandingan alat debugging}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 1}
+\small
+\begin{itemize}
+    \item \eng{Debugging} adalah proses sistematis yang membuktikan
+          penyebab kesalahan melalui bukti pengamatan pada level
+          instruksi --- bukan kegiatan menebak-nebak.
+
+    \vspace{0.25em}
+    \item Lima jenis kesalahan adalah sintaks, saat berjalan, logika,
+          segmentasi, dan \eng{overflow} (aritmatika maupun
+          \eng{stack}).
+
+    \vspace{0.25em}
+    \item Hanya kesalahan sintaks yang dapat ditemukan tanpa
+          \eng{debugger}; kesalahan logika paling sulit karena
+          program selesai normal tetapi hasilnya salah.
+
+    \vspace{0.25em}
+    \item Tiga alat \eng{debugging} --- MS-DEBUG, GUI Turbo
+          Assembler, dan Emu8086 --- menampilkan informasi yang sama;
+          MS-DEBUG dipakai sebagai acuan karena memperlihatkan
+          keadaan mesin apa adanya.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 2
+% =========================================================
+\PemisahBagian{Menelusuri Program dengan Perintah DEBUG}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Memuat dan Menulis Berkas: \code{N}, \code{L}, \code{W}}
+\small
+\code{N} (\eng{name}) menetapkan nama berkas, \code{L} (\eng{load})
+memuat isi berkas ke memori, dan \code{W} (\eng{write}) menulis
+kembali isi memori ke berkas.
+
+\vspace{0.2em}
+\begin{keluaran}
+C:\ASM>debug bug-loop.exe
+-n bug-loop.exe
+-l
+\end{keluaran}
+
+\vspace{0.2em}
+\small
+\begin{itemize}
+    \item \code{L} \emph{tidak} menjalankan program; ia hanya
+          memindahkan isi berkas ke memori dan menetapkan register
+          segmen beserta titik masuknya.
+    \item \code{L} dan \code{W} bekerja pada berkas yang
+          \emph{terakhir} ditetapkan \code{N}, sehingga urutan
+          \code{N} lalu \code{L} harus selalu dijaga.
+\end{itemize}
+\Sumber{Bab XV, Memuat dan Menulis Berkas}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Perintah \code{R}: Memeriksa Register dan \eng{Flag}}
+\small
+\code{R} menampilkan seluruh register umum, register segmen, dan
+seluruh \eng{flag} dalam satu layar. Baris kedua keluarannya juga
+menampilkan instruksi yang sedang ditunjuk \reg{CS}:\reg{IP}.
+\code{R} dapat pula dipakai untuk \emph{mengubah} isi register,
+misalnya \code{R AX} atau \code{R IP}.
+
+\vspace{0.2em}
+\begin{keluaran}
+-r
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=1391  ES=1391  SS=13A7  CS=13A1  IP=0000   NV UP EI PL NZ NA PO NC
+13A1:0000 B8A613         MOV     AX,13A6
+\end{keluaran}
+
+\vspace{0.2em}
+{\footnotesize Delapan penanda \eng{flag} ditampilkan dengan urutan
+yang selalu tetap: \flag{OF}, \flag{DF}, \flag{IF}, \flag{SF},
+\flag{ZF}, \flag{AF}, \flag{PF}, lalu \flag{CF}. Menghafal urutan ini
+sangat membantu ketika mengisi tabel \eng{trace}.\par}
+\Sumber{Bab XV, Memeriksa Register dengan R}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Perintah \code{U}: Membongkar Kode Mesin}
+\small
+\code{U} (\eng{unassemble}) menerjemahkan kembali kode mesin menjadi
+mnemonic assembly. Perintah ini dipakai untuk memastikan bahwa kode
+yang dijalankan benar-benar sama dengan yang ditulis, dan untuk
+mengetahui di alamat berapa setiap instruksi berada.
+
+\vspace{0.15em}
+\begin{keluaran}[basicstyle=\ttfamily\fontsize{7}{8.4}\selectfont]
+-u 0000 001c
+13A1:0000 B8A613         MOV     AX,13A6
+13A1:0003 8ED8           MOV     DS,AX
+13A1:0005 31C0           XOR     AX,AX
+13A1:0007 B90500         MOV     CX,0005
+13A1:000A 01C8           ADD     AX,CX
+13A1:000C 41             INC     CX
+13A1:000D E2FB           LOOP    000A
+13A1:000F B409           MOV     AH,09
+13A1:0011 BA0000         MOV     DX,0000
+13A1:0014 CD21           INT     21
+13A1:0016 B44C           MOV     AH,4C
+13A1:0018 B000           MOV     AL,00
+13A1:001A CD21           INT     21
+\end{keluaran}
+\Sumber{Bab XV, Membongkar Kode Mesin dengan U}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Penelusuran Satu Langkah dengan \code{T}}
+\small
+\code{T} (\eng{trace}) menjalankan \emph{tepat satu} instruksi, lalu
+menampilkan kembali seluruh register dan \eng{flag}, serta mnemonic
+instruksi berikutnya. Inilah perintah terpenting pada bab ini: hanya
+dengan menjalankan satu instruksi demi satu instruksi kita dapat
+melihat pada langkah berapa sebuah nilai mulai menyimpang.
+
+\vspace{0.2em}
+\begin{keluaran}
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=0005   NV UP EI PL NZ NA PO NC
+13A1:0005 31C0           XOR     AX,AX
+\end{keluaran}
+
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Baris terakhir selalu menunjukkan
+instruksi yang \emph{akan} dijalankan berikutnya, bukan yang baru
+saja selesai. Pada langkah di atas \reg{DS} sudah bernilai \hex{13A6}
+karena \asm{MOV DS, AX} baru saja dieksekusi.\par}
+\Sumber{Bab XV, Penelusuran Satu Langkah dengan T}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Sesi Perulangan: \reg{CX} yang Tidak Pernah Nol}
+\scriptsize Inti temuan pada \file{bug-loop.exe}: \reg{CX} naik
+menjadi \hex{0006} oleh \asm{INC CX}, lalu \asm{LOOP} menguranginya
+kembali menjadi \hex{0005}.
+
+\vspace{0.1em}
+\begin{keluaran}[basicstyle=\ttfamily\fontsize{7}{8.4}\selectfont]
+-t
+AX=0000  BX=0000  CX=0005  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=000A   NV UP EI PL ZR NA PE NC
+13A1:000A 01C8           ADD     AX,CX
+-t
+AX=0005  BX=0000  CX=0005  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+13A1:000C 41             INC     CX
+-t
+AX=0005  BX=0000  CX=0006  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+13A1:000D E2FB           LOOP    000A
+-t
+AX=0005  BX=0000  CX=0005  DX=0000  SP=0100  BP=0000  SI=0000  DI=0000
+13A1:000A 01C8           ADD     AX,CX
+\end{keluaran}
+\Sumber{Bab XV, Sesi DEBUG lengkap pada bug-loop.exe}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Perintah DEBUG Inti: Penelusuran}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{1.2cm}p{3.3cm}p{2.5cm}p{5.4cm}@{}}
+    \toprule
+    \textbf{Perintah} & \textbf{Kegunaan} & \textbf{Contoh} &
+    \textbf{Keluaran yang muncul} \\
+    \midrule
+    \code{R} & Menampilkan dan mengubah register serta \eng{flag} &
+    \code{R} atau \code{R AX} &
+    \code{AX=13A6 ... NV UP EI PL NZ NA PO NC} \\
+    \addlinespace[2pt]
+    \code{U} & Membongkar kode mesin menjadi mnemonic &
+    \code{U 0000 001C} &
+    \code{13A1:0000 B8A613 MOV AX,13A6} \\
+    \addlinespace[2pt]
+    \code{T} & Menjalankan satu instruksi, termasuk masuk ke dalam
+    \asm{CALL} & \code{T} &
+    Register baru, lalu mnemonic berikutnya \\
+    \addlinespace[2pt]
+    \code{P} & Menjalankan sampai instruksi berikutnya, melewati
+    \asm{CALL}/\code{INT} & \code{P} &
+    Register baru setelah prosedur selesai \\
+    \addlinespace[2pt]
+    \code{G} & Menjalankan sampai alamat tertentu (\eng{breakpoint})
+    & \code{G 000A} &
+    Berhenti di \hex{000A} dan menampilkan register \\
+    \addlinespace[2pt]
+    \code{D} & Menampilkan isi memori (\eng{dump}) & \code{D DS:0} &
+    \code{13A6:0000 4A 75 6D 6C ... Jumlah 1..5 = \$.} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab XV, Tabel perintah DEBUG}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Perintah DEBUG Inti: Memori dan Berkas}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{1.2cm}p{3.3cm}p{2.5cm}p{5.4cm}@{}}
+    \toprule
+    \textbf{Perintah} & \textbf{Kegunaan} & \textbf{Contoh} &
+    \textbf{Keluaran yang muncul} \\
+    \midrule
+    \code{E} & Mengubah isi memori satu per satu &
+    \code{E DS:0 48 61 6C 6F 24} &
+    Memori \reg{DS}:\hex{0000} berubah menjadi \code{Halo\$} \\
+    \addlinespace[2pt]
+    \code{A} & Merakit instruksi langsung di memori &
+    \code{A 0100} &
+    \code{13A1:0100 MOV AH,02} (DEBUG meminta baris berikutnya) \\
+    \addlinespace[2pt]
+    \code{N} & Menetapkan nama berkas & \code{N latihan.com} &
+    Tidak ada keluaran \\
+    \addlinespace[2pt]
+    \code{L} & Memuat berkas yang telah dinamai ke memori &
+    \code{L} & Tidak ada keluaran; register terisi \\
+    \addlinespace[2pt]
+    \code{W} & Menulis isi memori ke berkas & \code{W 0100} &
+    \code{Writing 0020 bytes} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2em}
+{\scriptsize\color{obeGray}\code{L} dan \code{W} selalu bekerja pada
+berkas yang terakhir ditetapkan \code{N}; urutan \code{N} lalu
+\code{L} tidak boleh dibalik.\par}
+\Sumber{Bab XV, Tabel perintah DEBUG}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Perbedaan \code{T} dan \code{P}}
+\small
+Keduanya sama-sama menjalankan program, tetapi berbeda dalam
+menyikapi instruksi yang memindahkan kendali.
+
+\vspace{0.25em}
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+\begin{exampleblock}{\code{T} --- \eng{trace}}
+\footnotesize Menjalankan satu instruksi \emph{apa pun}. Jika
+instruksi itu \asm{CALL}, \code{T} \emph{masuk} ke dalam prosedur;
+jika \code{INT 21h}, \code{T} masuk ke rutin layanan DOS.
+\end{exampleblock}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{alertblock}{\code{P} --- \eng{proceed}}
+\footnotesize Menjalankan instruksi sampai instruksi berikutnya pada
+level yang sama. Jika instruksi itu \asm{CALL} atau \code{INT},
+\code{P} menjalankannya sampai selesai lalu berhenti setelahnya.
+\end{alertblock}
+\end{column}
+\end{columns}
+
+\vspace{0.25em}
+{\footnotesize\important{Pakai \code{P} untuk \code{INT 21h} dan
+prosedur yang sudah diyakini benar; pakai \code{T} untuk prosedur
+yang sedang dicurigai.} \code{P} \emph{tidak memperbaiki} bug di
+dalam prosedur --- ia hanya menyembunyikan langkah-langkahnya.\par}
+\Sumber{Bab XV, Perbedaan T dan P}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Breakpoint dengan Perintah \code{G}}
+\small
+Menelusuri ratusan instruksi dengan \code{T} jelas tidak efisien.
+Perintah \code{G} (\eng{go}) menjalankan program sampai alamat
+tertentu berhenti, sehingga programmer dapat langsung melompat ke
+bagian yang dicurigai.
+
+\vspace{0.2em}
+\begin{itemize}
+    \item \code{G 000A} menjalankan instruksi dari \hex{0000} sampai
+          \hex{000A} dan berhenti \emph{sebelum} instruksi pada
+          alamat itu dieksekusi.
+    \item Beberapa alamat dapat ditulis sekaligus, misalnya
+          \code{G 000A 000F}; program berhenti pada alamat pertama
+          yang tercapai, sehingga titik di dalam dan sesudah
+          perulangan dapat diperiksa dalam satu kali jalan.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{alertblock}{Keterbatasan DEBUG klasik}
+\footnotesize (1) jumlah \eng{breakpoint} terbatas, umumnya empat
+sampai sepuluh; (2) \eng{breakpoint} hanya pada \emph{alamat}, bukan
+baris sumber atau kondisi seperti ``berhenti bila \reg{AX} bernilai
+nol''; (3) hanya mode real 16-bit, sehingga program 32-bit tidak
+dapat ditelusuri.
+\end{alertblock}
+\Sumber{Bab XV, Breakpoint dengan Perintah G}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Tabel Trace Register dan \eng{Flag}}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{0.6cm}p{1.6cm}p{2.3cm}p{1.0cm}p{1.0cm}p{1.0cm}p{0.6cm}p{0.6cm}p{0.6cm}@{}}
+    \toprule
+    \textbf{L} & \textbf{Alamat} & \textbf{Instruksi} & \textbf{AX} &
+    \textbf{CX} & \textbf{SP} & \textbf{ZF} & \textbf{CF} &
+    \textbf{OF} \\
+    \midrule
+    1 & 13A1:0000 & MOV AX,13A6 & 13A6 & 0000 & 0100 & 0 & 0 & 0 \\
+    \addlinespace[2pt]
+    2 & 13A1:0003 & MOV DS,AX & 13A6 & 0000 & 0100 & 0 & 0 & 0 \\
+    \addlinespace[2pt]
+    3 & 13A1:0005 & XOR AX,AX & 0000 & 0000 & 0100 & 1 & 0 & 0 \\
+    \addlinespace[2pt]
+    4 & 13A1:0007 & MOV CX,0005 & 0000 & 0005 & 0100 & 1 & 0 & 0 \\
+    \addlinespace[2pt]
+    5 & 13A1:000A & ADD AX,CX & 0005 & 0005 & 0100 & 0 & 0 & 0 \\
+    \addlinespace[2pt]
+    6 & 13A1:000C & INC CX & 0005 & 0006 & 0100 & 0 & 0 & 0 \\
+    \addlinespace[2pt]
+    7 & 13A1:000D & LOOP 000A & 0005 & 0005 & 0100 & 0 & 0 & 0 \\
+    \addlinespace[2pt]
+    8 & 13A1:000A & ADD AX,CX & 000A & 0005 & 0100 & 0 & 0 & 0 \\
+    \addlinespace[2pt]
+    9 & 13A1:000C & INC CX & 000A & 0006 & 0100 & 0 & 0 & 0 \\
+    \addlinespace[2pt]
+    10 & 13A1:000D & LOOP 000A & 000A & 0005 & 0100 & 0 & 0 & 0 \\
+    \addlinespace[2pt]
+    11 & 13A1:000A & ADD AX,CX & 000F & 0005 & 0100 & 0 & 0 & 0 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.1em}
+{\scriptsize\color{obeGray}Penyebabnya tampak pada langkah 6 dan 7:
+\reg{CX} berayun pada \dec{5} dan \dec{6} sehingga tidak pernah
+mencapai nol. \flag{ZF} pada langkah 4 masih \dec{1} karena \asm{MOV}
+\emph{tidak pernah} mengubah \eng{flag}.\par}
+\Sumber{Bab XV, Tabel trace register dan flag}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 2}
+\small
+\begin{itemize}
+    \item Berkas dimuat dengan urutan \code{N} lalu \code{L};
+          \code{L} hanya memindahkan isi berkas ke memori, bukan
+          menjalankannya.
+
+    \vspace{0.22em}
+    \item \code{R} menampilkan register dan \eng{flag} dengan urutan
+          tetap \flag{OF}--\flag{DF}--\flag{IF}--\flag{SF}--\flag{ZF}
+          --\flag{AF}--\flag{PF}--\flag{CF}, sekaligus instruksi
+          berikutnya; \code{U} membongkar kode mesin menjadi mnemonic.
+
+    \vspace{0.22em}
+    \item \code{T} menjalankan satu instruksi dan masuk ke dalam
+          \asm{CALL} serta \code{INT}; \code{P} melewatinya.
+          \code{P} tidak memperbaiki bug, hanya menyembunyikan
+          langkahnya.
+
+    \vspace{0.22em}
+    \item \code{G alamat} memasang \eng{breakpoint}, tetapi DEBUG
+          klasik hanya menyediakan titik henti dalam jumlah terbatas
+          dan hanya pada alamat, bukan pada baris sumber atau
+          kondisi.
+
+    \vspace{0.22em}
+    \item Bukti utama \eng{debugging} adalah tabel \eng{trace}: pada
+          setiap langkah dicatat alamat, instruksi, register, dan
+          \eng{flag}.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 3
+% =========================================================
+\PemisahBagian{Analisis Memori dan Stack serta Metodologi Debugging}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Membaca Keluaran \code{D}}
+\small
+\code{D} menampilkan \dec{128} byte memori dalam delapan baris.
+Setiap baris memuat tiga bagian yang dibaca secara berbeda.
+
+\vspace{0.2em}
+\begin{keluaran}
+-d ds:0
+13A6:0000 4A 75 6D 6C 61 68 20 31-2E 2E 35 20 3D 20 24 00  Jumlah 1..5 = $.
+\end{keluaran}
+
+\vspace{0.2em}
+\small
+\begin{itemize}
+    \item \textbf{Alamat} dalam bentuk \eng{segmen}:\eng{offset},
+          yaitu \hex{13A6}:\hex{0000}.
+    \item \textbf{Isi memori}: enam belas pasang digit heksadesimal;
+          setiap dua digit adalah satu byte.
+    \item \textbf{Kolom karakter ASCII} di sebelah kanan; byte yang
+          bukan karakter cetak ditampilkan sebagai titik.
+\end{itemize}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Kolom karakter memperlihatkan string
+\code{Jumlah 1..5 = \$}; kolom heksadesimal memperlihatkan kode
+ASCII-nya, \hex{4A} untuk \code{J}, \hex{75} untuk \code{u}, sampai
+\hex{24} untuk tanda \code{\$}; byte terakhir \hex{00} adalah penanda
+akhir yang dipasang assembler.\par}
+\Sumber{Bab XV, Membaca Keluaran D}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Memeriksa Variabel: Kesalahan \eng{Off-by-One}}
+\small
+Program bermaksud menjumlahkan lima byte larik \code{nilai}; jumlah
+yang benar adalah \dec{150} (\hex{0096}).
+
+\vspace{0.15em}
+\begin{keluaran}
+-d ds:0
+13A6:0000  0A 14 1E 28 32 B7 00 00-00 00 00 00 00 00 00 00  ...(2...........
+\end{keluaran}
+
+\vspace{0.15em}
+{\footnotesize
+\begin{itemize}
+    \item Lima byte pertama sesuai data: \hex{0A}=\dec{10} sampai
+          \hex{32}=\dec{50}.
+    \item Byte keenam bernilai \hex{B7}, yaitu sisa data lama di
+          memori, bukan bagian dari larik.
+    \item Karena penghitung bernilai \dec{6}, byte itu ikut
+          dijumlahkan sehingga akumulator menghasilkan \hex{014D}
+          (\dec{333}) alih-alih \hex{0096}.
+\end{itemize}}
+
+\vspace{0.1em}
+{\footnotesize\color{obeGray}Bukti ini mengubah dugaan menjadi
+kepastian: kesalahannya bukan pada penjumlahan, melainkan pada batas
+perulangan.\par}
+\Sumber{Bab XV, Memeriksa Variabel dengan D}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Program Larik Ber-kesalahan \eng{Off-by-One}}
+\scriptsize
+\begin{columns}[t]
+\begin{column}{0.62\textwidth}
+\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7.5}{8.4}\selectfont]
+.DATA
+    nilai  DB  10, 20, 30, 40, 50   ; lima byte
+.CODE
+START:
+    XOR  DX, DX          ; DX = akumulator jumlah
+    MOV  CX, 6           ; BUG: seharusnya MOV CX, 5
+    MOV  SI, 0           ; SI = indeks larik
+ULANG:
+    MOV  AH, 0           ; nolkan AH
+    MOV  AL, nilai[SI]   ; ambil elemen ke-SI
+    ADD  DX, AX          ; tambahkan ke akumulator
+    INC  SI              ; naikkan indeks
+    LOOP ULANG           ; ulangi sebanyak CX
+\end{kodeasm}
+\end{column}
+\begin{column}{0.35\textwidth}
+{\footnotesize
+\begin{itemize}
+    \item Larik berisi lima byte, sedangkan penghitung diisi
+          \dec{6}, sehingga satu byte di luar larik ikut dibaca.
+    \item Perbaikannya: ubah \asm{MOV CX, 6} menjadi
+          \asm{MOV CX, 5}.
+    \item Cara yang lebih aman adalah menghitung jumlah elemen
+          otomatis dengan \code{panjang EQU \$ - nilai}.
+\end{itemize}}
+\end{column}
+\end{columns}
+
+\vspace{0.15em}
+{\scriptsize\color{obeGray}Program ditutup \asm{MOV AH, 4Ch} dan
+\code{INT 21h}. Sumber: Bab XV, Studi Kasus Tiga Bug (Kasus 2).\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Membaca Bingkai Stack}
+\begin{center}
+\begin{tikzpicture}[
+    sel/.style={draw=obeBlue,line width=0.7pt,fill=obeBlueLight,
+        minimum width=5.6cm,minimum height=0.62cm,font=\small,
+        inner sep=2pt},
+    selsp/.style={draw=obeMaroon,line width=1.0pt,
+        fill=obeMaroonLight,minimum width=5.6cm,minimum height=0.62cm,
+        font=\small,inner sep=2pt},
+    al/.style={font=\scriptsize\ttfamily,text=obeGray,anchor=east},
+    sp/.style={-{Stealth[length=2.5mm]},line width=1.0pt,obeMaroon}
+]
+    \node[sel,fill=obeGrayLight] (d) at (0,0) {dasar \eng{stack}};
+    \node[sel,below=0.08cm of d] (r) {alamat kembali \hex{0008}};
+    \node[sel,below=0.08cm of r] (ax) {AX lama = \hex{13A6}};
+    \node[sel,below=0.08cm of ax] (bx) {BX lama = \hex{0000}};
+    \node[selsp,below=0.08cm of bx] (cx) {CX lama = \hex{00FF}};
+
+    \node[al] at ([xshift=-0.18cm]d.west) {\hex{0100}};
+    \node[al] at ([xshift=-0.18cm]r.west) {\hex{00FE}};
+    \node[al] at ([xshift=-0.18cm]ax.west) {\hex{00FC}};
+    \node[al] at ([xshift=-0.18cm]bx.west) {\hex{00FA}};
+    \node[al] at ([xshift=-0.18cm]cx.west) {\hex{00F8}};
+
+    \draw[sp] ([xshift=0.18cm]cx.east) -- ++(0.55cm,0)
+        node[right,font=\scriptsize,text=obeMaroon,align=left]
+        {\reg{SP} menunjuk\\puncak \eng{stack}};
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}\asm{CALL} menurunkan \reg{SP} dari
+\hex{0100} ke \hex{00FE} dan menuliskan alamat kembali di sana;
+ketiga \asm{PUSH} menurunkannya sampai \hex{00F8}. Alamat kembali
+berada \emph{di bawah} seluruh data yang ditekan prosedur, sehingga
+\asm{RET} hanya dapat mengambilnya bila seluruh data di atasnya
+sudah diambil kembali. Sumber: Bab XV, Membaca Bingkai Stack.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Menemukan Stack Tidak Seimbang}
+\scriptsize Prosedur menekan tiga register tetapi hanya memulihkan
+dua, sehingga \asm{RET} membaca nilai yang bukan alamat kembali.
+
+\vspace{0.1em}
+\begin{keluaran}[basicstyle=\ttfamily\fontsize{7}{8.4}\selectfont]
+-g 0005
+13A1:0005 E80D00         CALL    0015
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=00FE  BP=0000  SI=0000  DI=0000
+13A1:0015 50             PUSH    AX
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=00FC  BP=0000  SI=0000  DI=0000
+13A1:0016 53             PUSH    BX
+-t
+AX=13A6  BX=0000  CX=00FF  DX=0000  SP=00FA  BP=0000  SI=0000  DI=0000
+13A1:0017 51             PUSH    CX
+-d ss:00f8
+13A7:00F8  FF 00 00 00 A6 13 08 00-00 00 00 00 00 00 00 00  ................
+-t
+AX=0003  BX=0002  CX=00FF  DX=0000  SP=00FC  BP=0000  SI=0000  DI=0000
+13A1:0024 C3             RET
+\end{keluaran}
+
+\vspace{0.1em}
+{\scriptsize\color{obeGray}Setelah dua \asm{POP}, \reg{SP} berhenti
+pada \hex{00FC} dan menunjuk \code{A6 13}, yaitu nilai \reg{AX} lama;
+\asm{RET} memuatnya ke \reg{IP} sehingga program melompat ke
+\hex{13A6} --- jauh di luar batas program.\par}
+\Sumber{Bab XV, Menemukan stack tidak seimbang melalui D dan T}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Deteksi \eng{Overflow} melalui \eng{Flag} dan \reg{SP}}
+\small
+\eng{Overflow} aritmatika tidak selalu menghentikan program, tetapi
+selalu meninggalkan jejak pada \eng{flag}.
+
+\vspace{0.3em}
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+\begin{block}{\eng{Overflow} aritmatika}
+\footnotesize Operasi yang melewati batas bilangan
+\emph{bertanda} menyalakan \flag{OF}, sedangkan yang melewati batas
+bilangan \emph{tak bertanda} menyalakan \flag{CF}.
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{alertblock}{\eng{Overflow} \eng{stack}}
+\footnotesize Meninggalkan jejak berbeda: nilai \reg{SP} terus
+menurun tanpa pernah naik kembali. Gejalanya adalah perubahan nilai
+variabel yang tidak pernah disentuh program.
+\end{alertblock}
+\end{column}
+\end{columns}
+
+\vspace{0.3em}
+{\footnotesize\color{obeGray}Karena itu \flag{CF}, \flag{OF}, dan
+register \reg{SP} sebaiknya selalu disertakan pada tabel
+\eng{trace}.\par}
+\Sumber{Bab XV, Deteksi Overflow melalui Flag dan SP}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Metodologi Debugging yang Sistematis}
+\begin{center}
+\begin{tikzpicture}[
+    tahap/.style={draw=obeTeal,line width=0.8pt,fill=obeTealLight,
+        rounded corners=3pt,text width=3.4cm,minimum height=1.25cm,
+        align=center,inner sep=3pt,font=\footnotesize},
+    panah/.style={-{Stealth[length=2.2mm]},line width=0.9pt,obeTeal}
+]
+    \node[tahap] (t1) {\textbf{1. Reproduksi}\\{\scriptsize\itshape
+        pastikan dapat diulang}};
+    \node[tahap,right=0.5cm of t1] (t2) {\textbf{2. Isolasi}\\
+        {\scriptsize\itshape perkecil cakupan}};
+    \node[tahap,right=0.5cm of t2] (t3) {\textbf{3. Hipotesis}\\
+        {\scriptsize\itshape dugaan yang dapat diuji}};
+    \node[tahap,below=0.85cm of t1] (t4) {\textbf{4. Uji hipotesis}\\
+        {\scriptsize\itshape buktikan dengan \code{T}, \code{G},
+        \code{D}}};
+    \node[tahap,right=0.5cm of t4] (t5) {\textbf{5. Perbaiki}\\
+        {\scriptsize\itshape ubah satu hal saja}};
+    \node[tahap,right=0.5cm of t5] (t6) {\textbf{6. Verifikasi}\\
+        {\scriptsize\itshape ulangi seluruh pengujian}};
+
+    \draw[panah] (t1) -- (t2);
+    \draw[panah] (t2) -- (t3);
+    \draw[panah] (t3.south) -- ++(0,-0.42) -| (t4.north);
+    \draw[panah] (t4) -- (t5);
+    \draw[panah] (t5) -- (t6);
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Pada tahap perbaikan, ubah \emph{satu
+hal saja} agar penyebab keberhasilan dapat dipastikan. Bila program
+kemudian berjalan benar, mengubah beberapa baris sekaligus membuat
+kita tidak pernah tahu baris mana yang sebenarnya
+memperbaiki keadaan.\par}
+\Sumber{Bab XV, Metodologi Debugging yang Sistematis}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Studi Kasus Tiga Bug}
+\footnotesize
+\begin{enumerate}
+    \item \term{Perulangan tak berujung.} \file{bug-loop.asm} berhenti
+          tidak pada waktunya karena \reg{CX} dinaikkan di dalam
+          badan perulangan; \asm{LOOP} menguranginya kembali,
+          sehingga \reg{CX} berayun pada \dec{5} dan \dec{6}.
+          Perbaikannya menghapus \asm{INC CX}.
+
+    \vspace{0.25em}
+    \item \term{Kesalahan \eng{off-by-one} pada larik.} Program
+          selesai normal, sehingga kesalahan sintaks dan kesalahan
+          saat berjalan dapat disingkirkan. \code{D DS:0}
+          memperlihatkan byte keenam di luar larik; perbaikannya
+          mengubah \asm{MOV CX, 6} menjadi \asm{MOV CX, 5}.
+
+    \vspace{0.25em}
+    \item \term{\eng{Stack} tidak seimbang.} \file{bug-stack.asm}
+          melompat ke alamat aneh --- gejala khas \eng{stack} rusak,
+          karena hanya \asm{CALL}, \asm{RET}, dan \code{INT} yang
+          dapat memindahkan kendali ke luar batas program. Prosedur
+          menekan tiga register tetapi memulihkan dua; perbaikannya
+          menambahkan satu \asm{POP AX}.
+\end{enumerate}
+
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Pola yang sama pada ketiganya:
+gejalanya muncul di satu tempat, sedangkan penyebabnya berada di
+tempat lain.\par}
+\Sumber{Bab XV, Studi Kasus Tiga Bug}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 3}
+\small
+\begin{itemize}
+    \item Keluaran \code{D} dibaca dalam tiga bagian: alamat, isi
+          memori heksadesimal, dan kolom karakter ASCII. Kolom
+          karakter paling cepat dipakai untuk mengenali letak
+          sebuah string.
+
+    \vspace{0.22em}
+    \item Bagian \eng{stack} dibaca dari alamat terendah ke
+          tertinggi: data yang ditekan terakhir berada pada alamat
+          terendah, sedangkan alamat kembali berada di bawah seluruh
+          data tersebut.
+
+    \vspace{0.22em}
+    \item \eng{Overflow} aritmatika meninggalkan jejak pada
+          \flag{OF} (bilangan bertanda) dan \flag{CF} (bilangan tak
+          bertanda); \eng{overflow} \eng{stack} meninggalkan
+          \reg{SP} yang terus menurun.
+
+    \vspace{0.22em}
+    \item Metodologi \eng{debugging} terdiri atas enam tahap:
+          reproduksi, isolasi, hipotesis, pengujian, perbaikan, dan
+          verifikasi --- dengan perbaikan satu hal pada satu waktu.
+
+    \vspace{0.22em}
+    \item Tiga bug yang dibedah adalah perulangan tak berujung,
+          kesalahan \eng{off-by-one} pada larik, dan \eng{stack}
+          tidak seimbang.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% CONTOH PROGRAM
+% =========================================================
+\begin{frame}[fragile]{Contoh 1: Perulangan Tak Berujung}
+\scriptsize Bermaksud menjumlahkan bilangan 1 sampai 5 (seharusnya
+\hex{000F} atau \dec{15}); program dirakit tanpa kesalahan sintaks,
+tetapi tidak pernah selesai.
+
+\vspace{0.1em}
+\begin{columns}[t]
+\begin{column}{0.5\textwidth}
+{\footnotesize\color{obeMaroon}\bfseries \file{bug-loop.asm}
+(ber-bug)}\\[0.1em]
+\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7.5}{8.4}\selectfont]
+XOR AX, AX      ; akumulator = 0
+MOV CX, 5       ; penghitung = 5
+ULANG:
+    ADD AX, CX  ; jumlahkan penghitung
+    INC CX      ; BUG: CX dinaikkan
+    LOOP ULANG  ; LOOP mengurangi CX
+MOV AH, 09h     ; tak pernah dicapai
+LEA DX, pesan
+INT 21h
+\end{kodeasm}
+\end{column}
+\begin{column}{0.46\textwidth}
+{\footnotesize\color{obeTeal}\bfseries \file{bug-loop-fix.asm}
+(perbaikan)}\\[0.1em]
+\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7.5}{8.4}\selectfont]
+XOR AX, AX      ; akumulator = 0
+MOV CX, 5       ; penghitung = 5
+ULANG:
+    ADD AX, CX
+    LOOP ULANG  ; CX turun otomatis
+MOV BX, AX      ; BX = 15
+MOV AH, 09h     ; cetak judul
+LEA DX, pesan
+INT 21h
+\end{kodeasm}
+
+\vspace{0.1em}
+{\footnotesize\color{obeTeal}\bfseries Keluaran}\\[0.1em]
+\begin{keluaran}
+Jumlah 1..5 = 15
+\end{keluaran}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh 2: Stack yang Tidak Seimbang}
+\scriptsize Program memanggil prosedur \asm{HITUNG} lalu bermaksud
+mencetak pesan penutup; kendali melompat ke alamat yang tidak dikenal
+dan pesan itu tidak pernah muncul.
+
+\vspace{0.1em}
+\begin{columns}[t]
+\begin{column}{0.5\textwidth}
+{\footnotesize\color{obeMaroon}\bfseries \file{bug-stack.asm}
+(ber-bug)}\\[0.1em]
+\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7.5}{8.4}\selectfont]
+HITUNG PROC
+    PUSH AX     ; simpan AX lama
+    PUSH BX     ; simpan BX lama
+    PUSH CX     ; simpan CX lama
+    MOV  AX, 0001h
+    MOV  BX, 0002h
+    ADD  AX, BX ; AX = 0003h
+    MOV  CX, AX
+    POP  CX     ; pulihkan CX
+    POP  BX     ; pulihkan BX
+    RET         ; BUG: POP AX tidak ada
+HITUNG ENDP
+\end{kodeasm}
+\end{column}
+\begin{column}{0.46\textwidth}
+{\footnotesize\color{obeTeal}\bfseries \file{bug-stack-fix.asm}
+(perbaikan)}\\[0.1em]
+\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7.5}{8.4}\selectfont]
+    MOV  CX, AX
+    POP  CX     ; pulihkan CX
+    POP  BX     ; pulihkan BX
+    POP  AX     ; PERBAIKAN: pulihkan AX
+    RET         ; alamat kembali benar
+HITUNG ENDP
+\end{kodeasm}
+
+\vspace{0.1em}
+{\footnotesize\color{obeTeal}\bfseries Keluaran}\\[0.1em]
+\begin{keluaran}
+Selesai.
+\end{keluaran}
+
+\vspace{0.1em}
+{\footnotesize Setiap \asm{PUSH} memerlukan \asm{POP} pasangannya
+pada jalur eksekusi yang sama.\par}
+\end{column}
+\end{columns}
+\end{frame}
+
+% =========================================================
+% PRAKTIKUM
+% =========================================================
+\begin{frame}{Praktikum: Debugging Terpandu Tiga Kasus Bug}
+\begin{block}{Judul praktikum}
+\small \eng{Debugging} terpandu tiga kasus bug tingkat instruksi
+\quad\textbullet\quad \textbf{Sub-CPMK:} 4.1 dan 4.2
+\quad\textbullet\quad \textbf{Waktu:} 100 menit
+\quad\textbullet\quad \textbf{Bentuk:} individu, laporan tertulis
+\end{block}
+
+\vspace{0.1em}
+\begin{columns}[t]
+\begin{column}{0.44\textwidth}
+{\color{obeBlue}\bfseries Alat dan bahan}
+\begin{itemize}\footnotesize
+    \item Komputer bersistem operasi Windows
+    \item DOSBox beserta berkas \file{DEBUG.EXE}
+    \item TASM dan TLINK (atau Emu8086 sebagai pembanding)
+    \item Berkas \file{bug-loop.asm}, \file{bug-stack.asm}, dan
+          \file{program-larik.asm}
+\end{itemize}
+\end{column}
+\begin{column}{0.52\textwidth}
+{\color{obeBlue}\bfseries Langkah kerja}
+\begin{enumerate}\footnotesize
+    \item Rakit ketiga berkas uji dengan TASM dan TLINK.
+    \item \textbf{Kasus 1:} muat \file{bug-loop.exe}, catat \code{R}
+          dan \code{U}, lalu jalankan \code{T} sepuluh kali.
+    \item \textbf{Kasus 2:} jalankan \code{G} sampai setelah
+          \asm{LOOP}, lalu \code{D DS:0} untuk memeriksa larik.
+    \item \textbf{Kasus 3:} \code{G 0005}, telusuri dengan \code{T},
+          lalu bandingkan \code{T} dan \code{P} pada \asm{CALL}.
+    \item Tuliskan hipotesis, perbaiki, rakit ulang, dan verifikasi.
+\end{enumerate}
+\end{column}
+\end{columns}
+
+\vspace{0.05em}
+{\scriptsize\textbf{Dikumpulkan:} tabel \eng{trace} lengkap
+(minimal sepuluh langkah per kasus) dengan kolom \reg{AX}, \reg{BX},
+\reg{CX}, \reg{DX}, \reg{SP}, \flag{ZF}, \flag{CF}, \flag{OF};
+salinan keluaran \code{R}, \code{U}, \code{D}, dan \code{T}; berkas
+hasil perbaikan beserta tangkapan layarnya.\par}
+\end{frame}
+
+% =========================================================
+% LATIHAN
+% =========================================================
+\begin{frame}{Latihan}
+\small
+\begin{enumerate}
+    \item Jelaskan perbedaan lima jenis kesalahan program. Untuk
+          setiap jenis, sebutkan satu contoh dan alat atau perintah
+          yang paling tepat untuk menemukannya.
+
+    \vspace{0.25em}
+    \item Sebuah program memanggil \code{INT 21h} dengan fungsi
+          \hex{09}. Apa yang terjadi bila ditelusuri dengan \code{T},
+          dan apa yang terjadi bila ditelusuri dengan \code{P}?
+          Mengapa \code{P} lebih dianjurkan pada kasus ini?
+
+    \vspace{0.25em}
+    \item Diberikan keluaran \code{R}: \code{AX=0000 CX=0005 SP=00F8
+          IP=000A} dan baris \eng{flag} \code{NV UP EI NG NZ AC PO
+          CY}. Nilai \flag{ZF}, \flag{CF}, \flag{SF}, dan \flag{OF}
+          berturut-turut berapa? Instruksi apa yang dijalankan
+          berikutnya?
+
+    \vspace{0.25em}
+    \item Diberikan keluaran \code{D DS:0000}: \code{48 41 4C 4F 24
+          0A 0B ...}. String apa yang tersimpan di sana, dan pada
+          byte berapa penanda akhirnya? Apa yang tampak di layar bila
+          program membaca delapan byte mulai \hex{0000}?
+
+    \vspace{0.25em}
+    \item Tulislah prosedur \asm{HITUNG} yang menekan tiga register
+          ke \eng{stack}, melakukan perhitungan sederhana, lalu
+          memulihkan ketiganya sebelum \asm{RET}. Jelaskan mengapa
+          urutan \asm{POP} harus kebalikan urutan \asm{PUSH}.
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% RANGKUMAN
+% =========================================================
+\begin{frame}{Rangkuman}
+\footnotesize
+\begin{itemize}
+    \item \eng{Debugging} adalah proses sistematis untuk menemukan
+          penyebab kesalahan melalui bukti pengamatan pada level
+          instruksi, bukan melalui perubahan kode secara acak.
+
+    \vspace{0.18em}
+    \item Lima jenis kesalahan program: sintaks, saat berjalan,
+          logika, segmentasi, dan \eng{overflow} (aritmatika maupun
+          \eng{stack}). Hanya kesalahan sintaks yang dapat dideteksi
+          tanpa \eng{debugger}.
+
+    \vspace{0.18em}
+    \item Tiga alat \eng{debugging} --- MS-DEBUG di DOSBox,
+          \eng{debugger} terpadu GUI Turbo Assembler, dan jendela
+          \eng{debug} Emu8086 --- menampilkan informasi yang sama:
+          register, memori, \eng{flag}, dan \eng{stack}.
+
+    \vspace{0.18em}
+    \item Perintah wajib DEBUG adalah \code{R}, \code{U}, \code{T},
+          \code{P}, \code{G}, \code{D}, \code{E}, \code{A}, serta
+          \code{N}, \code{L}, dan \code{W}. Perintah \code{T} masuk
+          ke dalam prosedur dan \code{INT}, sedangkan \code{P}
+          melewatinya.
+
+    \vspace{0.18em}
+    \item Bukti utama \eng{debugging} adalah tabel \eng{trace}.
+          Keluaran \code{D} dibaca dalam tiga bagian: alamat, isi
+          heksadesimal, dan kolom karakter ASCII.
+
+    \vspace{0.18em}
+    \item Metodologi \eng{debugging} terdiri atas enam tahap:
+          reproduksi, isolasi, hipotesis, pengujian, perbaikan, dan
+          verifikasi --- dengan perbaikan satu hal pada satu waktu,
+          lalu pengujian diulang pada seluruh kasus.
+\end{itemize}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Cek Pemahaman}
+\footnotesize
+\begin{enumerate}
+    \item Perintah DEBUG yang menampilkan seluruh register dan
+          \eng{flag} adalah \dots
+          \begin{enumerate}\footnotesize
+              \item \code{U} \quad \item \code{D} \quad
+              \item \code{R} \quad \item \code{T}
+          \end{enumerate}
+
+    \vspace{0.2em}
+    \item Pada \asm{CALL HITUNG}, perintah yang \emph{tidak} masuk ke
+          dalam prosedur adalah \dots
+          \begin{enumerate}\footnotesize
+              \item \code{T} \quad \item \code{P} \quad
+              \item \code{U} \quad \item \code{R}
+          \end{enumerate}
+
+    \vspace{0.2em}
+    \item Prosedur menekan tiga register tetapi hanya memulihkan dua
+          di antaranya. Akibatnya adalah \dots
+          \begin{enumerate}\footnotesize
+              \item assembler menolak program karena \asm{PUSH} dan
+                    \asm{POP} tidak seimbang
+              \item \asm{RET} melompat ke alamat yang bukan alamat
+                    kembali
+              \item register \reg{AX} dipulihkan otomatis oleh DOS
+              \item program tetap benar karena \reg{AX} tidak dipakai
+                    lagi
+          \end{enumerate}
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% PENUTUP
+% =========================================================
+\begin{frame}{Penutup}
+\small
+\begin{block}{Sebelum pertemuan berikutnya}
+\begin{itemize}
+    \item Selesaikan laporan praktikum: tabel \eng{trace} ketiga
+          kasus bug, salinan keluaran \code{R}, \code{U}, \code{D},
+          dan \code{T}, serta berkas hasil perbaikan.
+    \item Ulangi bagian yang belum dikuasai dengan menelusuri
+          \file{bug-loop.asm} dan \file{bug-stack.asm} satu instruksi
+          demi satu, lalu bandingkan keluaran \code{T} dan \code{P}.
+    \item Baca \textbf{Bab XVI} --- Analisis Kode Mesin, Disassembly,
+          dan Optimasi.
+\end{itemize}
+\end{block}
+
+\vspace{0.3em}
+{\footnotesize\textbf{Bacaan lanjutan:} Bab XV bagian Perbedaan
+\code{T} dan \code{P}, Membaca Bingkai Stack, dan Metodologi
+\eng{Debugging} yang Sistematis; pembahasan register pada Bab VII;
+pembahasan \eng{flag} pada Bab IX; pembahasan prosedur dan
+\eng{stack} pada Bab XIII.\par}
+
+\vspace{0.35em}
+\begin{center}
+{\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
+\vspace{0.12em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
+\SemesterTeks\par}
+\end{center}
+\end{frame}
+
+\end{document}

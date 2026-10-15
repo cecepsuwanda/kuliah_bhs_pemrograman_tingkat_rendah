@@ -1,0 +1,211 @@
+% =========================================================
+% ppt/src/preamble-ppt.tex
+% Tema, warna, paket, dan makro bersama seluruh deck slide.
+%
+% Dipakai oleh setiap berkas minggu-NN.tex dengan pola:
+%   \documentclass[aspectratio=169,11pt]{beamer}
+%   \input{preamble-ppt}
+%
+% Palet warna disalin dari buku_ajar/config/styles.tex agar
+% identitas visual slide sama dengan buku ajar.
+% =========================================================
+
+% ---------------------------------------------------------
+% 1. Paket
+% ---------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[indonesian]{babel}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{pifont}          % \ding untuk tanda checklist
+\usepackage{listings}
+
+% ---------------------------------------------------------
+% 2. Palet warna OBE (identik dengan buku)
+% ---------------------------------------------------------
+\definecolor{obeBlue}{HTML}{1F3864}
+\definecolor{obeBlueLight}{HTML}{DCE4F5}
+\definecolor{obeTeal}{HTML}{0F6E6E}
+\definecolor{obeTealLight}{HTML}{D9F0EE}
+\definecolor{obeGreen}{HTML}{2E6B34}
+\definecolor{obeGreenLight}{HTML}{DEEFDF}
+\definecolor{obeAmber}{HTML}{8A5A00}
+\definecolor{obeAmberLight}{HTML}{FDF1D6}
+\definecolor{obeMaroon}{HTML}{7A2233}
+\definecolor{obeMaroonLight}{HTML}{F7E1E5}
+\definecolor{obeGray}{HTML}{4A4A4A}
+\definecolor{obeGrayLight}{HTML}{F0F0F0}
+\definecolor{codeBack}{HTML}{F7F7F4}
+\definecolor{codeFrame}{HTML}{C9C9C0}
+
+% ---------------------------------------------------------
+% 3. Identitas mata kuliah (dipakai seluruh deck)
+% ---------------------------------------------------------
+\newcommand{\NamaMK}{Bahasa Pemrograman Tingkat Rendah}
+\newcommand{\NamaMKShort}{Bhs.\ Pemrograman Tingkat Rendah}
+\newcommand{\KodeMK}{MWCA010}
+\newcommand{\Prodi}{Program Studi Teknik Informatika}
+\newcommand{\Fakultas}{Fakultas Teknologi Informasi}
+\newcommand{\PerguruanTinggi}{Universitas Bale Bandung}
+\newcommand{\DosenPengampu}{Cecep Suwanda, S.Si., M.Kom.}
+\newcommand{\SemesterTeks}{Semester Ganjil}
+
+% \PertemuanTeks dan \JudulBab ditetapkan di masing-masing
+% berkas minggu-NN.tex sebelum \begin{document}.
+\providecommand{\PertemuanTeks}{Pertemuan}
+
+% ---------------------------------------------------------
+% 4. Tema beamer
+% ---------------------------------------------------------
+\usetheme{default}
+\setbeamertemplate{navigation symbols}{}
+
+\setbeamercolor{normal text}{fg=black!88}
+\setbeamercolor{structure}{fg=obeBlue}
+\setbeamercolor{alerted text}{fg=obeMaroon}
+
+% --- judul slide: pita biru penuh lebar ---
+\setbeamercolor{frametitle}{fg=white,bg=obeBlue}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{%
+    \nointerlineskip%
+    \begin{beamercolorbox}[%
+        wd=\paperwidth,ht=2.9ex,dp=1.5ex,
+        leftskip=0.4cm,rightskip=0.4cm]{frametitle}%
+        \usebeamerfont{frametitle}\insertframetitle%
+    \end{beamercolorbox}%
+    \nointerlineskip%
+    \hbox{\textcolor{obeTeal}{\rule{\paperwidth}{1.1pt}}}%
+}
+
+% --- kaki slide: identitas mata kuliah, pertemuan, nomor ---
+\setbeamercolor{footline}{fg=white,bg=obeGray}
+\setbeamerfont{footline}{size=\scriptsize,family=\sffamily}
+\setbeamertemplate{footline}{%
+    \leavevmode%
+    \hbox{%
+        \begin{beamercolorbox}[wd=0.42\paperwidth,ht=2.1ex,dp=1.1ex,
+            leftskip=0.4cm]{footline}%
+            \usebeamerfont{footline}%
+            \KodeMK\ \textbullet\ \NamaMKShort%
+        \end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=0.32\paperwidth,ht=2.1ex,dp=1.1ex,
+            center]{footline}%
+            \usebeamerfont{footline}\PertemuanTeks%
+        \end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=0.26\paperwidth,ht=2.1ex,dp=1.1ex,
+            rightskip=0.4cm]{footline}%
+            \usebeamerfont{footline}%
+            \insertframenumber\,/\,\inserttotalframenumber%
+        \end{beamercolorbox}%
+    }%
+    \vskip0pt%
+}
+
+% --- daftar ---
+\setbeamercolor{itemize item}{fg=obeTeal}
+\setbeamercolor{itemize subitem}{fg=obeTeal}
+\setbeamercolor{enumerate item}{fg=obeBlue}
+\setbeamertemplate{itemize item}{\raise0.2ex\hbox{\tiny$\blacksquare$}}
+\setbeamertemplate{itemize subitem}{\raise0.2ex\hbox{\scriptsize$\bullet$}}
+
+% --- kotak (pengganti tcolorbox pada buku) ---
+\setbeamercolor{block title}{bg=obeBlueLight,fg=obeBlue}
+\setbeamercolor{block body}{bg=obeBlueLight!45,fg=black!88}
+\setbeamercolor{block title alerted}{bg=obeMaroonLight,fg=obeMaroon}
+\setbeamercolor{block body alerted}{bg=obeMaroonLight!45,fg=black!88}
+\setbeamercolor{block title example}{bg=obeTealLight,fg=obeTeal}
+\setbeamercolor{block body example}{bg=obeTealLight!45,fg=black!88}
+
+% ---------------------------------------------------------
+% 5. Makro notasi (sama persis dengan buku)
+%
+% Catatan: \note TIDAK didefinisikan di sini karena beamer
+% sudah memakai \note untuk catatan pembicara. Untuk catatan
+% di slide dipakai \catatan.
+% ---------------------------------------------------------
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\asm}[1]{\texttt{#1}}
+\newcommand{\reg}[1]{\texttt{#1}}
+\newcommand{\flag}[1]{\texttt{#1}}
+\newcommand{\dir}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\texttt{#1}}
+\newcommand{\eng}[1]{\textit{#1}}
+
+\newcommand{\hex}[1]{\texttt{#1h}}
+\newcommand{\bin}[1]{\texttt{#1b}}
+\newcommand{\dec}[1]{\texttt{#1}}
+
+\newcommand{\important}[1]{\textbf{Penting:} #1}
+\newcommand{\catatan}[1]{\textbf{Catatan:} #1}
+\newcommand{\term}[1]{\textbf{#1}}
+
+\newcommand{\CPL}[1]{\textbf{CPL#1}}
+\newcommand{\CPMK}[1]{\textbf{CPMK#1}}
+\newcommand{\SubCPMK}[1]{\textbf{Sub-CPMK #1}}
+
+\newcommand{\checkbox}{\ding{113}\hspace{0.35em}}
+\newcommand{\checked}{\ding{51}\hspace{0.35em}}
+\newcommand{\crossed}{\ding{55}\hspace{0.35em}}
+
+\newcommand{\flowarrow}{\ensuremath{\rightarrow}}
+
+% ---------------------------------------------------------
+% 6. Makro tata letak slide
+% ---------------------------------------------------------
+
+% Keterangan sumber materi (ketertelusuran ke buku)
+\newcommand{\Sumber}[1]{%
+    \vfill
+    {\scriptsize\color{obeGray}Sumber: #1\par}%
+}
+
+% Frame judul deck: \JudulDeck{<judul bab>}{<pertemuan>}
+\newcommand{\JudulDeck}[2]{%
+\begin{frame}[plain]
+    \vspace{0.25cm}
+    {\color{obeBlue}\sffamily\bfseries\small \NamaMK\ (\KodeMK)\par}
+    \vspace{0.12cm}
+    {\color{obeGray}\sffamily\scriptsize
+     \Prodi\ \textbullet\ \Fakultas\ \textbullet\ \PerguruanTinggi\par}
+    \vfill
+    {\color{obeBlue}\sffamily\LARGE\bfseries #1\par}
+    \vspace{0.4cm}
+    {\color{obeTeal}\sffamily\large #2\par}
+    \vspace{0.45cm}
+    {\color{obeTeal}\rule{\textwidth}{1pt}}
+    \vfill
+    {\color{obeGray}\sffamily\small Dosen Pengampu\par}
+    \vspace{0.08cm}
+    {\sffamily\bfseries \DosenPengampu\par}
+    \vspace{0.2cm}
+    {\color{obeGray}\sffamily\small \SemesterTeks\par}
+    \vspace{0.25cm}
+\end{frame}
+}
+
+% Frame pemisah bagian
+\newcommand{\PemisahBagian}[1]{%
+\begin{frame}[plain]
+    \vfill
+    \begin{center}
+        {\color{obeTeal}\sffamily\small\bfseries BAGIAN\par}
+        \vspace{0.35cm}
+        {\color{obeBlue}\sffamily\Large\bfseries #1\par}
+        \vspace{0.35cm}
+        {\color{obeTeal}\rule{0.55\textwidth}{0.9pt}}
+    \end{center}
+    \vfill
+\end{frame}
+}
+
+% ---------------------------------------------------------
+% 7. Gaya penampil kode
+% ---------------------------------------------------------
+\input{listing-ppt}

@@ -1,0 +1,1015 @@
+% =========================================================
+% ppt/src/minggu-06.tex
+% Slide pertemuan 6
+% Bab VIII — Mode Pengalamatan
+%
+% Sub-CPMK 2.2 | CPMK02 | CPL02
+% =========================================================
+
+\documentclass[aspectratio=169,11pt]{beamer}
+\input{preamble-ppt}
+
+\renewcommand{\PertemuanTeks}{Pertemuan 6}
+
+\begin{document}
+
+% =========================================================
+% 1. JUDUL
+% =========================================================
+\JudulDeck{Mode Pengalamatan}{Pertemuan 6}
+
+% =========================================================
+% 2. CAPAIAN DAN TUJUAN
+% =========================================================
+\begin{frame}{Capaian dan Tujuan Pembelajaran}
+\begin{block}{Sub-CPMK 2.2}
+\small Menganalisis mode pengalamatan (\eng{immediate}, \eng{direct},
+\eng{register indirect}, \eng{indexed}, \eng{base-relative}, dan
+\eng{based-indexed}) serta menentukan segmen \eng{default} yang
+digunakan setiap mode.
+\end{block}
+
+\vspace{0.1em}
+{\small\textbf{CPMK yang didukung:} \CPMK{02}\quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{02}\par}
+
+\vspace{0.05em}
+\begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
+\small
+\begin{enumerate}
+    \item menjelaskan peran mode pengalamatan dalam menentukan letak
+          operand;
+    \item mengenali mode pengalamatan dari penulisan operandnya;
+    \item menghitung alamat efektif dan alamat fisik operand;
+    \item menentukan segmen \eng{default} dan \eng{override prefix};
+    \item memilih mode paling efisien untuk array dan \eng{record};
+    \item menuliskan satu operasi yang sama dalam beberapa mode.
+\end{enumerate}
+\end{exampleblock}
+\end{frame}
+
+% =========================================================
+% 3. PETA MATERI
+% =========================================================
+\begin{frame}{Peta Materi}
+\small
+\begin{enumerate}
+    \item \textbf{Operand dan Tiga Mode Pengalamatan Dasar}\\
+          {\footnotesize opcode dan operand; mengapa mode pengalamatan
+          diperlukan; mode \eng{immediate}, \eng{register}, dan
+          \eng{direct}}
+
+    \vspace{0.25em}
+    \item \textbf{Mode Memori Berpenunjuk dan Segmen Default}\\
+          {\footnotesize \eng{register indirect}, \eng{indexed},
+          \eng{base-relative}, \eng{based-indexed}; alamat efektif;
+          kombinasi register legal; segmen \reg{DS}/\reg{SS} dan
+          \eng{override}}
+
+    \vspace{0.25em}
+    \item \textbf{Perbandingan Efisiensi dan Studi Kasus}\\
+          {\footnotesize jumlah byte dan siklus; satu operasi dalam
+          tujuh mode; akses array dan medan \eng{record}}
+\end{enumerate}
+
+\vspace{0.35em}
+\begin{block}{Praktik pada pertemuan ini}
+\small Menelusuri \file{mode-array.asm} dan \file{param-bp.asm} dengan
+\eng{debugger}, lalu memverifikasi alamat efektif pada jendela memori.
+\end{block}
+\end{frame}
+
+% =========================================================
+% BAGIAN 1
+% =========================================================
+\PemisahBagian{Operand dan Tiga Mode Pengalamatan Dasar}
+
+% ---------------------------------------------------------
+\begin{frame}{Operand, Opcode, dan Mengapa Mode Diperlukan}
+\small
+\begin{itemize}
+    \item Setiap instruksi mesin tersusun atas \term{opcode} dan
+          \term{operand}. Pada \asm{MOV AX, BX}, \reg{AX} adalah
+          operand tujuan dan \reg{BX} operand sumber.
+
+    \vspace{0.25em}
+    \item Pertanyaan pokok prosesor: \emph{di manakah operand itu
+          berada?} Data dapat berada di dalam instruksi, di dalam
+          register, atau di dalam memori pada alamat tertentu.
+
+    \vspace{0.25em}
+    \item Cara prosesor menyatakan letak operand disebut \term{mode
+          pengalamatan} (\eng{addressing mode}).
+
+    \vspace{0.25em}
+    \item Mode pengalamatan menjadi jembatan antara penulisan simbolik
+          programmer dan byte \eng{ModR/M} hasil assembler. Karena byte
+          itu hanya delapan bit, jumlah cara yang dapat dikodekan
+          memang terbatas.
+\end{itemize}
+
+\vspace{0.3em}
+\begin{alertblock}{Batasan penting}
+\small Operand tujuan tidak boleh berupa nilai segera: \asm{MOV 5, AX}
+tidak mungkin, karena angka 5 bukan tempat yang dapat menampung hasil.
+\end{alertblock}
+\Sumber{Bab VIII, Mengapa Mode Pengalamatan Diperlukan}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Mode Immediate}
+\small Operand sumber adalah nilai konstan yang sudah tertulis di dalam
+instruksi, sehingga prosesor tidak perlu mengakses memori.
+
+\vspace{0.25em}
+\begin{kodeasm}[numbers=none]
+MOV AX, 1234h       ; AX <- 1234h   (immediate 16 bit)
+MOV BL, 0Ah         ; BL <- 0Ah     (immediate 8 bit)
+ADD CX, 100         ; CX <- CX + 100
+MOV AL, 'A'         ; AL <- 41h, kode ASCII huruf 'A'
+\end{kodeasm}
+
+\vspace{0.25em}
+\begin{block}{Ciri dan kegunaan}
+\small Ukuran nilai segera mengikuti ukuran register tujuan: 8 bit untuk
+\reg{AL} dan 16 bit untuk \reg{AX}. Nilai segera tidak mengenal segmen
+karena tidak berada di memori, dan dipakai untuk mengisi nilai awal
+serta menaikkan nilai dengan langkah tetap.
+\end{block}
+\Sumber{Bab VIII, Mode Immediate}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Mode Register}
+\small Operand berada di dalam register prosesor; baik sumber maupun
+tujuan berupa register, tanpa pengaksesan memori.
+
+\vspace{0.25em}
+\begin{kodeasm}[numbers=none]
+MOV AX, BX      ; AX <- BX
+ADD DX, CX      ; DX <- DX + CX
+MOV DL, AL      ; DL <- AL (ukuran operand harus sama)
+\end{kodeasm}
+
+\vspace{0.25em}
+\begin{exampleblock}{Tercepat dan paling ringkas}
+\small \asm{MOV AX, BX} hanya menempati 2 byte dan selesai dalam dua
+siklus. Keterbatasannya adalah jumlah register 8086 yang sangat
+sedikit.
+\end{exampleblock}
+\Sumber{Bab VIII, Mode Register}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Mode Direct (Memori Langsung)}
+\small Operand berada di memori dan alamatnya (offset) ditulis harfiah
+di dalam instruksi.
+
+\vspace{0.25em}
+\begin{kodeasm}[numbers=none]
+.DATA
+    nilai   DW  1234h
+    total   DW  ?
+.CODE
+    MOV AX, nilai       ; AX <- isi memori DS:nilai
+    MOV AX, [1234h]     ; AX <- isi memori pada offset 1234h
+    MOV total, AX       ; simpan AX ke variabel total
+\end{kodeasm}
+
+\vspace{0.2em}
+{\footnotesize Alamat pada mode ini tetap selamanya karena tertulis di
+dalam instruksi, sehingga cocok untuk variabel tunggal. Kerugiannya,
+setiap variabel memerlukan byte kode sendiri dan datanya tidak dapat
+dipindahkan tanpa dirakit ulang.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Tiga Mode Pengalamatan Dasar}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{1.8cm}p{2.5cm}p{3.0cm}p{1.4cm}p{3.6cm}@{}}
+    \toprule
+    \textbf{Mode} & \textbf{Bentuk penulisan} & \textbf{Contoh} &
+    \textbf{Akses memori} & \textbf{Kegunaan utama} \\
+    \midrule
+    Immediate & nilai konstan & \asm{MOV AX, 1234h} & tidak &
+    mengisi nilai awal dan tetapan \\
+    \addlinespace
+    Register & register & \asm{MOV AX, BX} & tidak &
+    memindahkan data antarvariabel kerja \\
+    \addlinespace
+    Direct & \code{[disp]} atau nama variabel & \asm{MOV AX, [1234h]} &
+    ya, sekali & variabel tunggal ber-alamat tetap \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab VIII, Mode Direct}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Tampak Mirip, Artinya Berbeda}
+\small
+\begin{itemize}
+    \item \asm{MOV AX, nilai} menyalin \emph{isi} variabel \code{nilai}
+          --- mode \eng{direct}.
+
+    \vspace{0.25em}
+    \item \asm{MOV AX, OFFSET nilai} menyalin \emph{offset}-nya sebagai
+          nilai segera --- mode \eng{immediate}.
+
+    \vspace{0.25em}
+    \item \asm{MOV AX, 1234h} memuat nilai \hex{1234}, sedangkan
+          \asm{MOV AX, [1234h]} memuat isi memori pada offset itu.
+\end{itemize}
+
+\vspace{0.35em}
+\begin{block}{Segmen \eng{default} mode direct}
+\small Offset pada mode \eng{direct} dianggap berada pada segmen
+\reg{DS} kecuali dinyatakan lain.
+\end{block}
+
+\vspace{0.35em}
+{\footnotesize Ketiga mode dasar belum memanfaatkan register penunjuk,
+sehingga alamat memori harus tetap dan tidak dapat dihitung saat
+program berjalan.\par}
+\Sumber{Bab VIII, Mode Direct}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 1}
+\small
+\begin{itemize}
+    \item Instruksi mesin tersusun atas opcode dan operand; prosesor
+          harus lebih dahulu tahu \emph{di mana} operand berada.
+
+    \vspace{0.25em}
+    \item Mode pengalamatan adalah jembatan antara penulisan simbolik
+          programmer dan byte \eng{ModR/M}. Karena byte itu 8 bit,
+          jumlah cara yang dapat dikodekan terbatas.
+
+    \vspace{0.25em}
+    \item Mode \eng{immediate} menyimpan konstanta di dalam instruksi:
+          tanpa akses memori dan tanpa segmen. Operand tujuan tidak
+          boleh berupa nilai segera.
+
+    \vspace{0.25em}
+    \item Mode \eng{register} paling cepat dan ringkas (2 byte, 2
+          siklus); mode \eng{direct} memakai offset tetap pada segmen
+          \reg{DS} dan cocok untuk variabel tunggal.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 2
+% =========================================================
+\PemisahBagian{Mode Memori Berpenunjuk dan Segmen Default}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Mode Register Indirect}
+\small Operand ditulis di antara tanda kurung siku berisi sebuah
+register; register itu menyimpan \emph{offset} tempat data berada.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+MOV BX, OFFSET data1    ; BX <- offset awal array data1
+MOV AX, [BX]            ; AX <- isi memori DS:BX
+ADD BX, 2               ; maju dua byte (satu elemen word)
+MOV AX, [BX]            ; AX <- elemen kedua array
+\end{kodeasm}
+
+\vspace{0.2em}
+{\small
+\begin{itemize}
+    \item Hanya \reg{BX}, \reg{BP}, \reg{SI}, dan \reg{DI} yang boleh
+          menjadi penunjuk alamat.
+    \item \reg{BX} dan \reg{BP} adalah \term{register basis};
+          \reg{SI} dan \reg{DI} adalah \term{register indeks}.
+\end{itemize}}
+
+\vspace{0.15em}
+\begin{alertblock}{Segmen \code{[BX]} dan \code{[BP]} berbeda}
+\small \code{[BX]} memakai \reg{DS}, sedangkan \code{[BP]} memakai
+\reg{SS}; \asm{MOV AX, [BP]} membaca \eng{stack}, bukan segmen data.
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Mode Indexed dan Base-Relative}
+\small
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+\begin{exampleblock}{\eng{Indexed}: \code{[SI+disp]}, \code{[DI+disp]}}
+\footnotesize register indeks $+$ perpindahan
+\end{exampleblock}
+\begin{kodeasm}[numbers=none]
+MOV SI, 4
+MOV AX, data1[SI]
+MOV AX, [SI+8]
+\end{kodeasm}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{exampleblock}{\eng{Base-relative}: \code{[BX+disp]}, \code{[BP+disp]}}
+\footnotesize register basis $+$ perpindahan
+\end{exampleblock}
+\begin{kodeasm}[numbers=none]
+MOV AX, [BX+4]
+MOV BP, SP
+MOV AX, [BP+2]
+\end{kodeasm}
+\end{column}
+\end{columns}
+
+\vspace{0.25em}
+{\footnotesize \code{data1[SI]} diterjemahkan assembler menjadi
+\code{[data1 + SI]}, menyerupai penulisan array pada bahasa tingkat
+tinggi. Perpindahan boleh berukuran 8 bit, 16 bit, atau nol.\par}
+\Sumber{Bab VIII, Mode Indexed dan Base-Relative}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Mode Based-Indexed}
+\small Menggabungkan satu basis, satu indeks, dan satu perpindahan
+sekaligus. Hanya empat kombinasi yang legal: \asm{[BX+SI+disp]},
+\asm{[BX+DI+disp]}, \asm{[BP+SI+disp]}, dan \asm{[BP+DI+disp]}.
+
+\vspace{0.25em}
+\begin{kodeasm}[numbers=none]
+MOV BX, OFFSET tabel    ; basis  : awal tabel record
+MOV SI, 6               ; indeks : record ke-3 (3 x 2 byte)
+MOV AX, [BX+SI+2]       ; AX <- medan ke-2 dari record ke-3
+\end{kodeasm}
+
+\vspace{0.25em}
+\begin{block}{Kapan dipakai}
+\small Bila alamat akhir tersusun dari dua komponen yang bergerak
+sendiri-sendiri, misalnya baris dan kolom matriks, atau nomor
+\eng{record} dan nomor medannya.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Menghitung Alamat Efektif}
+\begin{center}
+\begin{tikzpicture}[
+    komp/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+        rounded corners=3pt, minimum width=4.0cm, minimum height=0.7cm,
+        align=center, font=\footnotesize, inner sep=3pt},
+    jumlah/.style={draw=obeGray, line width=0.9pt, fill=obeGrayLight,
+        circle, minimum size=0.7cm, font=\small\bfseries},
+    hasil/.style={draw=obeTeal, line width=1.0pt, fill=obeTealLight,
+        rounded corners=3pt, minimum width=4.0cm, minimum height=0.7cm,
+        align=center, font=\footnotesize, inner sep=3pt},
+    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeBlue},
+    kecil/.style={font=\scriptsize\itshape, text=obeGray}
+]
+    \node[komp] (base) at (0, 1.65)
+        {\textbf{Basis}: \reg{BX}, \reg{BP}, atau tidak ada};
+    \node[komp] (index) at (0, 0.82)
+        {\textbf{Indeks}: \reg{SI}, \reg{DI}, atau tidak ada};
+    \node[komp] (disp) at (0, -0.01)
+        {\textbf{Perpindahan}: 8/16 bit atau 0};
+
+    \node[jumlah] (plus) at (3.2, 0.82) {$+$};
+    \node[hasil] (ea) at (6.6, 1.05)
+        {\textbf{EA} $=$ basis $+$ indeks $+$ disp};
+    \node[hasil, below=0.6cm of ea] (fisik)
+        {\textbf{Alamat fisik} $=$ (segmen $\times$ 16) $+$ EA};
+
+    \draw[panah] (base.east) -- (plus);
+    \draw[panah] (index.east) -- (plus);
+    \draw[panah] (disp.east) -- (plus);
+    \draw[panah] (plus) -- (ea.west);
+    \draw[panah] (ea) -- (fisik)
+        node[midway, right=3pt, kecil] {ditambah basis segmen};
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Alamat efektif (\eng{effective address})
+adalah offset 16 bit yang kembali ke nol setelah melewati batas segmen;
+alamat fisik dibentuk dengan menambahkan basis segmen.\par}
+\Sumber{Bab VIII, Menghitung Alamat Efektif}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Contoh Perhitungan Alamat}
+\small Diketahui \reg{DS} $=$ \hex{1000}, \reg{BX} $=$ \hex{0200},
+\reg{SI} $=$ \hex{0006}, dan instruksi \asm{MOV AX, [BX+SI+2]}.
+
+\vspace{0.5em}
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+\begin{exampleblock}{Alamat efektif}
+\small \hex{0200} $+$ \hex{0006} $+$ \hex{0002} $=$ \hex{0208}
+\end{exampleblock}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{exampleblock}{Alamat fisik}
+\small \hex{1000} $\times$ \hex{10} $+$ \hex{0208} $=$ \hex{10208}
+\end{exampleblock}
+\end{column}
+\end{columns}
+
+\vspace{0.45em}
+\begin{block}{Verifikasi}
+\small Alamat fisik inilah yang muncul pada jendela memori
+\eng{debugger} saat program ditelusuri satu instruksi demi satu.
+\end{block}
+\Sumber{Bab VIII, Menghitung Alamat Efektif}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Kombinasi Register yang Legal dan Ilegal}
+\begin{columns}[t]
+\begin{column}{0.47\textwidth}
+\begin{exampleblock}{Legal}
+\footnotesize
+\begin{itemize}
+    \item \asm{[BX]}, \asm{[SI]}, \asm{[DI]} --- \reg{DS}
+    \item \asm{[BP]} --- \reg{SS}
+    \item \asm{[BX+SI]}, \asm{[BX+DI]} --- \reg{DS}
+    \item \asm{[BP+SI]}, \asm{[BP+DI]} --- \reg{SS}
+\end{itemize}
+\end{exampleblock}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{alertblock}{Ditolak assembler}
+\footnotesize
+\begin{itemize}
+    \item \asm{[AX]}, \asm{[CX]}, \asm{[DX]} --- bukan penunjuk
+    \item \asm{[SP]} --- \reg{SP} bukan register basis
+    \item \asm{[BX+BP]} --- dua register basis
+    \item \asm{[SI+DI]}, \asm{[BX+SI+DI]} --- dua indeks
+\end{itemize}
+\end{alertblock}
+\end{column}
+\end{columns}
+
+\vspace{0.3em}
+{\footnotesize\color{obeGray}Pesan \file{Invalid use of register} bukan
+kesalahan penulisan semata: 8086 memang tidak memiliki
+\eng{encoding}-nya, sesuai struktur byte \eng{ModR/M}.\par}
+\Sumber{Bab VIII, Kombinasi Register yang Legal dan Ilegal}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Segmen \eng{Default} Setiap Operand Memori}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{4.9cm}p{2.1cm}p{5.4cm}@{}}
+    \toprule
+    \textbf{Bentuk operand} & \textbf{Segmen} &
+    \textbf{Keterangan dan override} \\
+    \midrule
+    \code{[disp]}, nama variabel & \reg{DS} &
+    Override: \code{CS:}, \code{SS:}, atau \code{ES:} \\
+    \addlinespace
+    \code{[BX]}, \code{[SI]}, \code{[DI]}, \code{[BX+disp]} & \reg{DS} &
+    Penunjuk data; override \code{SS:}, \code{ES:}, \code{CS:} \\
+    \addlinespace
+    \code{[BP]}, \code{[BP+disp]}, \code{[BP+SI]} & \reg{SS} &
+    Penunjuk stack; override \code{DS:}, \code{ES:}, \code{CS:} \\
+    \addlinespace
+    Operand string \reg{DI} sebagai tujuan & \reg{ES} &
+    Tidak dapat di-override \\
+    \addlinespace
+    Pengambilan instruksi (\reg{IP}) & \reg{CS} &
+    Tidak dapat di-override \\
+    \addlinespace
+    \asm{PUSH} dan \asm{POP} & \reg{SS} &
+    Selalu memakai stack; tidak dapat di-override \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab VIII, Segmen Default dan Segment Override}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Segment Override Prefix}
+\begin{columns}[t]
+\begin{column}{0.5\textwidth}
+\begin{tikzpicture}[
+    opd/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+        rounded corners=3pt, minimum width=2.7cm, minimum height=0.62cm,
+        align=center, font=\footnotesize\ttfamily, inner sep=2pt},
+    seg/.style={draw=obeTeal, line width=0.9pt, fill=obeTealLight,
+        rounded corners=3pt, minimum width=1.3cm, minimum height=0.62cm,
+        align=center, font=\footnotesize\bfseries},
+    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeTeal}
+]
+    \node[opd] (bx) at (0, 1.1) {[BX + disp]};
+    \node[opd] (bp) at (0, 0) {[BP + disp]};
+    \node[seg] (ds) at (3.5, 1.1) {DS};
+    \node[seg] (ss) at (3.5, 0) {SS};
+
+    \draw[panah] (bx) -- (ds) node[midway, above, font=\tiny] {default};
+    \draw[panah] (bp) -- (ss) node[midway, above, font=\tiny] {default};
+\end{tikzpicture}
+
+\vspace{0.2em}
+{\footnotesize Bila tidak disebutkan, prosesor memakai segmen
+\eng{default} yang bergantung pada register penunjuknya.\par}
+\end{column}
+\begin{column}{0.46\textwidth}
+{\footnotesize Override ditulis dengan menempatkan nama register segmen
+di depan tanda kurung:\par}
+\vspace{0.15em}
+\begin{kodeasm}[numbers=none]
+MOV AX, ES:[BX]
+\end{kodeasm}
+\end{column}
+\end{columns}
+
+\vspace{0.2em}
+\begin{block}{Yang berubah dan yang tidak}
+\small Override hanya mengganti register segmen, bukan offset, dan
+menambah satu byte awalan (\eng{prefix}).
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 2}
+\small
+\begin{itemize}
+    \item Empat mode berpenunjuk menghitung alamat dari isi register,
+          sehingga alamatnya dapat berubah saat program berjalan ---
+          dasar akses array dan \eng{record}.
+
+    \vspace{0.25em}
+    \item Hanya \reg{BX}, \reg{BP}, \reg{SI}, dan \reg{DI} yang boleh
+          menjadi penunjuk; \reg{BX}/\reg{BP} adalah basis,
+          \reg{SI}/\reg{DI} adalah indeks.
+
+    \vspace{0.25em}
+    \item \code{EA $=$ base $+$ index $+$ disp}, lalu alamat fisik
+          $=$ (segmen $\times$ 16) $+$ EA.
+
+    \vspace{0.25em}
+    \item \code{[BX]} dan \code{[SI]} memakai \reg{DS}, sedangkan
+          \code{[BP]} memakai \reg{SS} --- itulah sebabnya \reg{BP}
+          dipakai untuk membaca parameter pada \eng{stack}.
+
+    \vspace{0.25em}
+    \item \eng{Segment override prefix} seperti \code{ES:} mengganti
+          register segmen, bukan offset, dan menambah satu byte awalan.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% BAGIAN 3
+% =========================================================
+\PemisahBagian{Perbandingan Efisiensi dan Studi Kasus}
+
+% ---------------------------------------------------------
+\begin{frame}{Ringkasan Tujuh Mode Pengalamatan}
+\scriptsize
+\begin{center}
+\begin{tabular}{@{}p{2.0cm}p{2.4cm}p{3.0cm}p{2.4cm}p{0.9cm}@{}}
+    \toprule
+    \textbf{Mode} & \textbf{Bentuk penulisan} & \textbf{Contoh} &
+    \textbf{Segmen default} & \textbf{Byte} \\
+    \midrule
+    Immediate & nilai konstan & \asm{MOV AX, 1234h} & tidak ada & 3 \\
+    \addlinespace
+    Register & register & \asm{MOV AX, BX} & tidak ada & 2 \\
+    \addlinespace
+    Direct & \code{[disp16]} & \asm{MOV AX, [1234h]} & \reg{DS} & 3 \\
+    \addlinespace
+    Register indirect & \code{[BX]}, \code{[SI]}, \code{[DI]}
+        & \asm{MOV AX, [BX]} & \reg{DS} (\reg{BP}: \reg{SS}) & 2 \\
+    \addlinespace
+    Indexed & \code{[SI+disp]}, \code{[DI+disp]} & \asm{MOV AX, [SI+8]}
+        & \reg{DS} & 3 \\
+    \addlinespace
+    Base-relative & \code{[BX+disp]}, \code{[BP+disp]}
+        & \asm{MOV AX, [BX+8]} & \reg{DS} (\reg{BP}: \reg{SS}) & 3 \\
+    \addlinespace
+    Based-indexed & \code{[BX+SI+disp]} dan tiga kombinasi lain
+        & \asm{MOV AX, [BX+SI+8]} & \reg{DS} (\reg{BP}: \reg{SS}) & 3 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab VIII, Ringkasan Tujuh Mode Pengalamatan}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Jumlah Byte dan Siklus Relatif}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}p{2.2cm}p{3.0cm}p{0.7cm}p{1.0cm}p{3.5cm}@{}}
+    \toprule
+    \textbf{Mode} & \textbf{Contoh} & \textbf{Byte} & \textbf{Siklus} &
+    \textbf{Paling cocok untuk} \\
+    \midrule
+    Register & \asm{MOV AX, BX} & 2 & 2 & data kerja yang paling sering \\
+    \addlinespace
+    Immediate & \asm{MOV AX, 1234h} & 3 & 4 & nilai awal dan tetapan \\
+    \addlinespace
+    Direct & \asm{MOV AX, [1234h]} & 3 & 10 &
+    variabel tunggal ber-alamat tetap \\
+    \addlinespace
+    Register indirect & \asm{MOV AX, [BX]} & 2 & 13 &
+    penelusuran \eng{pointer} \\
+    \addlinespace
+    Indexed & \asm{MOV AX, [SI+8]} & 3 & 17 & elemen array berindeks \\
+    \addlinespace
+    Base-relative & \asm{MOV AX, [BX+8]} & 3 & 17 &
+    medan \eng{record} dan \code{[BP+disp]} \\
+    \addlinespace
+    Based-indexed & \asm{MOV AX, [BX+SI+8]} & 3 & 19 &
+    matriks dan array di dalam \eng{record} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab VIII, Jumlah Byte dan Siklus Relatif}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Satu Operasi dalam Tujuh Mode}
+\small Menyalin elemen ke-2 array \code{data1} (nilai \hex{1E}) ke
+register \reg{AX}:
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+MOV AX, 30              ; 1. immediate
+MOV BX, 30
+MOV AX, BX              ; 2. register
+MOV AX, data1+4         ; 3. direct
+MOV BX, OFFSET data1
+ADD BX, 4
+MOV AX, [BX]            ; 4. register indirect
+MOV SI, 4
+MOV AX, data1[SI]       ; 5. indexed
+MOV BX, OFFSET data1
+MOV AX, [BX+4]          ; 6. base-relative
+MOV BX, OFFSET data1
+MOV SI, 4
+MOV AX, [BX+SI]         ; 7. based-indexed
+\end{kodeasm}
+
+{\footnotesize\color{obeGray}Ketujuhnya menghasilkan nilai yang sama,
+tetapi berbeda panjang kode dan jumlah siklusnya.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Studi Kasus: Elemen Array Satu Dimensi}
+\small Array \eng{word} disimpan berurutan; elemen ke-$i$ berada pada
+offset awal array ditambah $2i$.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+MOV BX, OFFSET data1     ; BX = basis, awal array
+XOR SI, SI               ; SI = 0, indeks elemen pertama
+MOV CX, 5                ; banyaknya elemen
+ULANG:
+MOV AX, [BX+SI]          ; AX <- data1[i]
+; ... olah nilai AX di sini ...
+ADD SI, 2                ; maju ke elemen berikutnya
+LOOP ULANG               ; ulangi sampai CX = 0
+\end{kodeasm}
+
+\vspace{0.2em}
+{\footnotesize Bila elemen berukuran satu byte, langkahnya cukup
+\asm{INC SI}; bila empat byte, \asm{ADD SI, 4}. Yang berubah hanyalah
+besarnya langkah, bukan bentuk pengalamatannya.\par}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Studi Kasus: Medan \eng{Record} dengan Base-Relative}
+\small \eng{Record} menyatukan beberapa medan bertipe berbeda dalam satu
+blok memori. Karena panjang medannya tetap, offsetnya pun tetap.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+.DATA
+    mhs1    DB  '2210'       ; medan NIM   : offset 0 sampai 3
+    nilai1  DW  85           ; medan nilai : offset 4 sampai 5
+.CODE
+    MOV BX, OFFSET mhs1      ; basis = awal record
+    MOV AX, [BX+4]           ; AX <- medan nilai (85)
+\end{kodeasm}
+
+\vspace{0.2em}
+\begin{block}{Bentuk yang sama dengan \reg{BP}}
+\small \code{[BP+disp]} dipakai untuk membaca parameter prosedur karena
+bawaannya menunjuk segmen \reg{SS}.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 3}
+\small
+\begin{itemize}
+    \item Efisiensi menurun seiring bertambahnya komponen alamat: mode
+          \eng{register} 2 siklus, sedangkan \eng{based-indexed} 19
+          siklus.
+
+    \vspace{0.25em}
+    \item \eng{Register indirect} paling ringkas di antara mode memori
+          (2 byte), tetapi tetap 13 siklus; \eng{immediate} 3 byte dan
+          4 siklus.
+
+    \vspace{0.25em}
+    \item Satu operasi dapat dituliskan dalam tujuh mode; hasilnya
+          sama, panjang kode dan jumlah siklusnya berbeda. Cara 4--7
+          lebih menguntungkan bila indeks berubah saat program
+          berjalan.
+
+    \vspace{0.25em}
+    \item Array satu dimensi ditelusuri dengan satu instruksi tetap
+          \asm{[BX+SI]} yang indeksnya dinaikkan 2 tiap putaran.
+
+    \vspace{0.25em}
+    \item Pada \eng{record}, basis menunjuk awal blok dan perpindahan
+          memilih medannya: \asm{[BX+4]} mengambil medan nilai.
+\end{itemize}
+\end{frame}
+
+% =========================================================
+% CONTOH PROGRAM
+% =========================================================
+\begin{frame}[fragile]{Contoh 1: Tiga Mode pada Satu Array}
+\scriptsize Menjumlahkan lima elemen \code{data1} dengan tiga mode
+pengalamatan berbeda; ketiganya harus memberi jumlah yang identik.
+
+\vspace{0.15em}
+\begin{columns}[t]
+\begin{column}{0.32\textwidth}
+{\footnotesize\color{obeBlue}\bfseries Cara 1: direct}\\[0.15em]
+\begin{kodeasm}[numbers=none]
+MOV AX, data1+0
+ADD AX, data1+2
+ADD AX, data1+4
+ADD AX, data1+6
+ADD AX, data1+8
+MOV jumlah1, AX
+\end{kodeasm}
+\end{column}
+\begin{column}{0.32\textwidth}
+{\footnotesize\color{obeTeal}\bfseries Cara 2: indexed}\\[0.15em]
+\begin{kodeasm}[numbers=none]
+XOR SI, SI
+MOV CX, n
+C2: ADD AX, data1[SI]
+    ADD SI, 2
+    LOOP C2
+MOV jumlah2, AX
+\end{kodeasm}
+\end{column}
+\begin{column}{0.32\textwidth}
+{\footnotesize\color{obeAmber}\bfseries Cara 3: base-relative}\\[0.15em]
+\begin{kodeasm}[numbers=none]
+LEA BX, data1
+XOR SI, SI
+MOV CX, n
+C3: ADD AX, [BX+SI]
+    ADD SI, 2
+    LOOP C3
+MOV jumlah3, AX
+\end{kodeasm}
+\end{column}
+\end{columns}
+
+\vspace{0.15em}
+\begin{columns}[t]
+\begin{column}{0.34\textwidth}
+{\footnotesize\color{obeTeal}\bfseries Keluaran}\\[0.1em]
+\begin{keluaran}
+Perbandingan tiga mode
+Ketiga hasil identik.
+\end{keluaran}
+\end{column}
+\begin{column}{0.62\textwidth}
+\vspace{0.3em}
+{\footnotesize \asm{CMP} dan \asm{JNE} membandingkan \code{jumlah1}
+dengan \code{jumlah2}, lalu \code{jumlah2} dengan \code{jumlah3}.
+Ketiganya bernilai $10+20+30+40+50 = 150$ (\hex{96}).
+Sumber: \file{mode-array.asm}.\par}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh 2: Membaca Parameter dengan \code{[BP+disp]}}
+\begin{columns}[t]
+\begin{column}{0.53\textwidth}
+\begin{kodeasm}[numbers=none]
+MOV AX, 0002h    ; parameter kedua
+PUSH AX
+MOV AX, 0001h    ; parameter pertama
+PUSH AX
+MOV BP, SP       ; basis bingkai stack
+MOV AX, [BP+0]   ; param. 1 -> SS:BP + 0
+MOV BX, [BP+2]   ; param. 2 -> SS:BP + 2
+ADD AX, BX       ; AX = 1 + 2 = 3
+MOV DL, AL       ; hasil -> DL
+ADD DL, '0'      ; angka -> karakter
+MOV AH, 02h      ; cetak satu karakter
+INT 21h
+POP AX           ; bersihkan stack
+POP AX
+\end{kodeasm}
+\end{column}
+\begin{column}{0.43\textwidth}
+{\footnotesize\color{obeTeal}\bfseries Keluaran}\\[0.1em]
+\begin{keluaran}
+1 + 2 = 3
+\end{keluaran}
+
+\vspace{0.4em}
+{\footnotesize
+8086 tidak memiliki \asm{PUSH 2} untuk nilai segera, sehingga nilainya
+dimuat ke \reg{AX} lebih dahulu.\\[0.25em]
+\code{[BP+0]} dan \code{[BP+2]} memakai segmen \reg{SS} secara bawaan;
+tanpa \reg{BP}, \code{[BX+2]} akan membaca lokasi lain pada
+\reg{DS}.\par}
+
+\vspace{0.3em}
+{\footnotesize\color{obeGray}\file{param-bp.asm}\par}
+\end{column}
+\end{columns}
+\end{frame}
+
+% =========================================================
+% PRAKTIKUM
+% =========================================================
+\begin{frame}{Praktikum: Menelusuri Mode Pengalamatan}
+\begin{block}{Judul praktikum}
+\small Penelusuran mode pengalamatan dan verifikasi alamat efektif
+dengan \eng{debugger} \quad\textbullet\quad \textbf{Sub-CPMK:} 2.2
+\quad\textbullet\quad \textbf{Waktu:} 100 menit
+\quad\textbullet\quad \textbf{Bentuk:} individu
+\end{block}
+
+\vspace{0.25em}
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+{\color{obeBlue}\bfseries Alat dan bahan}
+\begin{itemize}\small
+    \item Komputer bersistem operasi Windows
+    \item Emu8086 (tampilan register dan memori)
+    \item DOSBox beserta \file{DEBUG}, TASM, dan TLINK
+    \item Berkas \file{mode-array.asm} dan \file{param-bp.asm}
+    \item Lembar kerja pengamatan alamat efektif
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+{\color{obeBlue}\bfseries Langkah kerja}
+\begin{enumerate}\small
+    \item Rakit kedua berkas contoh dengan TASM dan TLINK.
+    \item Aktifkan \file{Single Step}, catat \reg{DS}, \reg{BX},
+          \reg{SI}, \reg{BP}, lalu hitung EA-nya.
+    \item Jalankan \file{debug mode-array.exe} dan pakai perintah
+          \file{u}, \file{t}, \file{d}.
+    \item Ubah \asm{[BP+0]} menjadi \asm{[BX+0]}, jelaskan
+          perubahan keluarannya.
+\end{enumerate}
+\end{column}
+\end{columns}
+
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} lembar pengamatan alamat efektif,
+tangkapan layar Emu8086 dan sesi \file{DEBUG}, serta lembar jawaban
+Kuis 2.\par}
+\end{frame}
+
+% =========================================================
+% LATIHAN
+% =========================================================
+\begin{frame}{Latihan}
+\small
+\begin{enumerate}
+    \item Jelaskan mengapa mode pengalamatan diperlukan, padahal satu
+          instruksi \asm{MOV} sudah cukup untuk memindahkan data.
+          Kaitkan dengan keterbatasan byte \eng{ModR/M}.
+
+    \vspace{0.3em}
+    \item Tentukan mode pengalamatan operand sumber dan segmen
+          \eng{default}-nya untuk: \asm{MOV AX, 1234h};
+          \asm{MOV AX, CX}; \asm{MOV AX, nilai};
+          \asm{MOV AX, [BX]}; \asm{MOV AX, [BP+2]};
+          \asm{MOV AX, data1[SI]}; \asm{MOV AX, [BX+DI+6]};
+          \asm{MOV AX, ES:[BX]}.
+
+    \vspace{0.3em}
+    \item Diketahui \reg{DS} $=$ \hex{1234}, \reg{SS} $=$ \hex{2000},
+          \reg{BX} $=$ \hex{0050}, \reg{BP} $=$ \hex{0010},
+          \reg{SI} $=$ \hex{0008}, \reg{DI} $=$ \hex{0002}. Hitung
+          alamat efektif dan alamat fisik \asm{MOV AX, [SI+4]},
+          \asm{MOV AX, [BP+DI]}, dan \asm{MOV AX, [BX+SI+2]}.
+
+    \vspace{0.3em}
+    \item Manakah penulisan berikut yang ditolak assembler? Jelaskan
+          alasan setiap penolakan: \asm{[AX]}, \asm{[BX+BP]},
+          \asm{[SI+DI]}, \asm{[BX+SI+DI]}, \asm{[BP+DI]},
+          \asm{[SP+2]}.
+
+    \vspace{0.3em}
+    \item Urutkan \asm{MOV AX, BX}, \asm{MOV AX, [BX]},
+          \asm{MOV AX, [BX+SI+2]}, dan \asm{MOV AX, [1234h]} dari yang
+          paling ringkas ke yang paling panjang. Sertakan perkiraan
+          byte dan siklusnya, lalu jelaskan mengapa urutannya demikian.
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% RANGKUMAN
+% =========================================================
+\begin{frame}{Rangkuman}
+\small
+\begin{itemize}
+    \item \term{Mode pengalamatan} adalah cara prosesor menyatakan
+          letak operand --- jembatan antara penulisan simbolik
+          programmer dan byte \eng{ModR/M} hasil assembler.
+
+    \vspace{0.22em}
+    \item Tujuh mode 8086: \eng{immediate}, \eng{register},
+          \eng{direct}, \eng{register indirect}, \eng{indexed},
+          \eng{base-relative}, dan \eng{based-indexed}.
+
+    \vspace{0.22em}
+    \item \eng{Immediate} dan \eng{register} tidak mengakses memori
+          sehingga paling cepat; \eng{direct} memakai offset tetap;
+          empat mode sisanya membentuk alamat dari register penunjuk.
+
+    \vspace{0.22em}
+    \item \code{EA $=$ base $+$ index $+$ disp}; alamat fisik
+          $=$ (segmen $\times$ 16) $+$ EA.
+
+    \vspace{0.22em}
+    \item Penunjuk alamat hanya \reg{BX}, \reg{BP}, \reg{SI}, dan
+          \reg{DI}; \code{[AX]}, \code{[BX+BP]}, \code{[SI+DI]}, dan
+          \code{[BX+SI+DI]} ditolak karena tidak ada
+          \eng{encoding}-nya.
+
+    \vspace{0.22em}
+    \item Segmen \eng{default}: \reg{DS} untuk \reg{BX}/\reg{SI}/
+          \reg{DI} dan \reg{SS} untuk \reg{BP}. \eng{Override prefix}
+          mengubah segmen tanpa mengubah offset.
+\end{itemize}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Cek Pemahaman}
+\small
+\begin{enumerate}
+    \item Mode pengalamatan yang dipakai oleh operand
+          \asm{MOV AX, [BX+SI+4]} adalah \dots
+          \begin{enumerate}\footnotesize
+              \item \eng{indexed} \quad \item \eng{base-relative} \quad
+              \item \eng{based-indexed} \quad
+              \item \eng{register indirect}
+          \end{enumerate}
+
+    \vspace{0.25em}
+    \item Segmen \eng{default} untuk operand \asm{MOV AX, [BP+2]}
+          adalah \dots
+          \begin{enumerate}\footnotesize
+              \item \reg{CS} \quad \item \reg{DS} \quad
+              \item \reg{ES} \quad \item \reg{SS}
+          \end{enumerate}
+
+    \vspace{0.25em}
+    \item Penulisan operand berikut yang ditolak assembler karena tidak
+          memiliki \eng{encoding} 8086 adalah \dots
+          \begin{enumerate}\footnotesize
+              \item \asm{MOV AX, [SI+DI]} \quad
+              \item \asm{MOV AX, [BX+DI]} \quad
+              \item \asm{MOV AX, [BP+DI]} \quad
+              \item \asm{MOV AX, [BX+SI]}
+          \end{enumerate}
+\end{enumerate}
+\end{frame}
+
+% =========================================================
+% PENUTUP
+% =========================================================
+\begin{frame}{Penutup}
+\small
+\begin{block}{Sebelum pertemuan berikutnya}
+\begin{itemize}
+    \item Selesaikan praktikum: lembar pengamatan alamat efektif,
+          tangkapan layar Emu8086 dan \file{DEBUG}, serta lembar
+          jawaban Kuis 2.
+    \item Ulangi bagian yang belum dikuasai dengan menelusuri
+          \file{mode-array.asm} satu instruksi demi satu.
+    \item Baca \textbf{Bab IX} --- Direktif Assembler dan Alur
+          Translasi Program.
+\end{itemize}
+\end{block}
+
+\vspace{0.35em}
+{\footnotesize\textbf{Bacaan lanjutan:} Bab VIII bagian Segmen Default
+dan Segment Override; daftar \eng{encoding} dan waktu siklus Intel
+8086; pembahasan segmen secara mendalam pada Bab VI.\par}
+
+\vspace{0.45em}
+\begin{center}
+{\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
+\vspace{0.15em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
+\SemesterTeks\par}
+\end{center}
+\end{frame}
+
+\end{document}
