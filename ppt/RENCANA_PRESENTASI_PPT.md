@@ -112,6 +112,11 @@ hanya berisi **PDF siap pakai** dan dokumen rencana — sesuai perintah yang mem
 sama (`\input{preamble-ppt}`), sedangkan skrip kompilasi menaruh PDF hasil ke
 direktori induk (`..`), yaitu `ppt/`.
 
+**PDF tidak disimpan di repositori.** Mengikuti konvensi repo ini (yang juga
+mengabaikan `output/` dan `buku_ajar/chapters/*/chapter.pdf`), `ppt/*.pdf`
+didaftarkan di `.gitignore`. Berkas PDF-nya tetap ada di disk dan dapat dibangun
+ulang kapan saja dengan `compile_ppt.bat`; yang di-versi hanyalah sumbernya.
+
 ### 4.2 Berkas tema bersama
 
 `preamble-ppt.tex` memuat seluruh keputusan tampilan agar 14 deck seragam dan

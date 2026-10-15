@@ -39,6 +39,11 @@ buku2/output/
 # Hasil kompilasi per bab (buku_ajar/chapters/NN/chapter.pdf)
 buku_ajar/chapters/*/chapter.pdf
 
+# Hasil kompilasi slide (ppt/minggu-NN.pdf).
+# Sumbernya ada di ppt/src/ dan PDF dapat dibangun ulang dengan
+# ppt/compile_ppt.bat, jadi tidak disimpan di repositori.
+ppt/*.pdf
+
 # Materi rujukan pihak ketiga tidak disertakan ke repositori
 referensi/
 
