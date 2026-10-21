@@ -59,8 +59,8 @@ CPL yang dibebankan pada mata kuliah ini adalah sebagai berikut:
 
 \textbf{Keterkaitan CPL dengan Mata Kuliah:}
 \begin{itemize}[leftmargin=*]
-  \item CPL02 didukung melalui penguasaan cara kerja sistem komputer pada level mesin: arsitektur prosesor, register, siklus instruksi, dan organisasi memori.
-  \item CPL03 didukung melalui perancangan, penulisan, pengujian, dan analisis program dalam bahasa pemrograman tingkat rendah (assembly) sebagai representasi langsung dari algoritma pada perangkat keras.
+  \item CPL02 didukung melalui pemahaman cara kerja mikroprosesor 8086 pada level mesin: pembagian \textit{Bus Interface Unit} dan \textit{Execution Unit}, register, organisasi memori bersegmen, serta mekanisme interupsi.
+  \item CPL03 didukung melalui perancangan dan penulisan program assembly untuk operasi aritmatika, logika, percabangan, perulangan, prosedur, dan pengolahan data, kemudian diuji serta diperbaiki melalui penelusuran per instruksi.
 \end{itemize}
 
 \vspace{0.5cm}
@@ -104,9 +104,11 @@ CPL03 & CPMK03, CPMK04 & Tinggi \\
 % ============================================================
 \section*{4. Sub-CPMK / Indikator Pencapaian}
 
-Penjabaran CPMK menjadi indikator yang lebih terukur dan dapat diuji. Setiap Sub-CPMK diturunkan dari CPMK dan diselaraskan dengan materi pada referensi terbuka yang tersedia pada Bagian~10.
+Penjabaran CPMK menjadi indikator yang lebih terukur dan dapat diuji. Setiap Sub-CPMK diturunkan dari CPMK dan diselaraskan dengan bab pada dua buku sumber di Bagian~10. Notasi rujukan: [1] untuk buku Indra Gunawan dan [2] untuk buku S'to.
 
-\begin{longtable}{|>{\raggedright\arraybackslash}p{1.6cm}|>{\raggedright\arraybackslash}p{8.3cm}|>{\raggedright\arraybackslash}p{1.9cm}|>{\raggedright\arraybackslash}p{1.8cm}|}
+\vspace{0.2cm}
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{1.55cm}|>{\raggedright\arraybackslash}p{7.5cm}|>{\raggedright\arraybackslash}p{2.05cm}|>{\raggedright\arraybackslash}p{2.2cm}|}
 \hline
 \textbf{Sub-CPMK} & \textbf{Indikator Pencapaian (dapat diuji)} & \textbf{CPMK} & \textbf{Ref.} \\
 \hline
@@ -118,33 +120,37 @@ Penjabaran CPMK menjadi indikator yang lebih terukur dan dapat diuji. Setiap Sub
 \hline
 \endfoot
 
-\textbf{1.1} & Menjelaskan arsitektur dasar mikroprosesor 8086 (unit Execution Unit dan Bus Interface Unit), peran bus alamat/data/kontrol, serta tahapan siklus instruksi (fetch--decode--execute). & CPMK01 & [1], [14], [15] \\
+\textbf{1.1} & Menjelaskan peran bahasa assembly serta mengonversi bilangan biner, desimal, oktal, dan heksadesimal, termasuk membedakan bilangan bertanda dan tidak bertanda. & CPMK01 & [1] Bagian 1; [2] BAB I \\
 \hline
-\textbf{1.2} & Mengidentifikasi fungsi register umum (AX, BX, CX, DX), register segmen (CS, DS, SS, ES), register pointer/index (SP, BP, SI, DI), dan register flag beserta pengaruhnya terhadap eksekusi program. & CPMK01 & [1], [5], [6] \\
+\textbf{1.2} & Menjelaskan pembagian \textit{Bus Interface Unit} dan \textit{Execution Unit}, peran bus, \textit{queue} instruksi, dan ALU, serta urutan pengambilan dan eksekusi instruksi pada 8086. & CPMK01 & [1] Bagian 2; [2] BAB II \\
 \hline
-\textbf{1.3} & Menerapkan konsep segmentasi memori: menghitung alamat fisik 20-bit dari pasangan \textit{segment:offset}, menjelaskan paragraf 16-byte, dan menganalisis skema pengalamatan 1 MB. & CPMK01 & [1], [13], [14] \\
+\textbf{1.3} & Mengidentifikasi register umum (AX--DX), register segmen (CS, DS, SS, ES), register pointer/index (SP, BP, SI, DI), IP, dan flag beserta pengaruh flag terhadap keputusan program. & CPMK01 & [1] Bagian 2; [2] BAB IV \\
 \hline
-\textbf{2.1} & Menjelaskan format instruksi mesin (opcode, byte ModR/M, displacement/immediate) dan mengaitkannya dengan operasi yang dieksekusi perangkat keras. & CPMK02 & [1], [7], [15] \\
+\textbf{1.4} & Menghitung alamat fisik dari pasangan \textit{segment:offset} serta menjelaskan pembagian memori 1 MB dan \textit{overlapping} segmen. & CPMK01 & [2] BAB II; [1] Bagian 2.1.1 \\
 \hline
-\textbf{2.2} & Menganalisis mode pengalamatan (\textit{immediate}, \textit{direct}, \textit{register indirect}, \textit{indexed}, \textit{base-relative}) dan menentukan segmen default yang digunakan. & CPMK02 & [13], [16], [1] \\
+\textbf{2.1} & Menjelaskan struktur program assembly (\texttt{.MODEL}, \texttt{ORG 100h}, \texttt{.CODE}, \texttt{.DATA}, label, komentar) dan alur translasi \texttt{.ASM} $\rightarrow$ \texttt{.OBJ} $\rightarrow$ \texttt{.EXE}/\texttt{.COM}. & CPMK02 & [1] Bagian 4; [2] BAB V--VI \\
 \hline
-\textbf{2.3} & Menggunakan direktif assembler (DB, DW, DD, EQU, ORG, SEGMENT) dan menjelaskan alur translasi \textit{source} $\rightarrow$ \textit{object} $\rightarrow$ \textit{executable} oleh assembler dan linker. & CPMK02 & [5], [9], [18] \\
+\textbf{2.2} & Menerapkan instruksi transfer data (MOV, LEA, LDS/LES, XCHG, CMP, XLAT, CBW, CWD) untuk memindahkan data antar register, memori, dan segmen. & CPMK02 & [1] Bagian 5; [2] BAB V \\
 \hline
-\textbf{2.4} & Menjelaskan mekanisme interupsi dan layanan BIOS/DOS (INT 10h, INT 21h) sebagai jembatan antara instruksi mesin dan perangkat keras/I/O. & CPMK02 & [8], [10], [12] \\
+\textbf{2.3} & Menjelaskan mekanisme interupsi dan tabel vektor interupsi serta menggunakan layanan BIOS/DOS (INT 21h, INT 10h, INT 16h) untuk operasi masukan dan keluaran. & CPMK02 & [1] Bagian 3 dan 18; [2] BAB III, VII, XII, XV, XVIII \\
 \hline
-\textbf{3.1} & Menulis program assembly lengkap menggunakan instruksi transfer data (MOV, XCHG, LEA, PUSH/POP) dan instruksi aritmatika (ADD, SUB, INC, DEC, MUL, IMUL, DIV, IDIV). & CPMK03 & [3], [5], [17] \\
+\textbf{3.1} & Menulis program dengan instruksi ADD, ADC, INC, SUB, SBB, DEC, MUL, dan DIV serta menjelaskan pengaruhnya terhadap flag. & CPMK03 & [1] Bagian 14; [2] BAB VIII \\
 \hline
-\textbf{3.2} & Menerapkan operasi logika bitwise dan operasi pergeseran/rotasi (AND, OR, XOR, NOT, TEST, SHL, SHR, SAL, SAR, ROL, ROR) untuk manipulasi bit. & CPMK03 & [5], [6], [17] \\
+\textbf{3.2} & Menerapkan operasi NOT, AND, OR, XOR, TEST, SHL, dan SHR untuk manipulasi bit. & CPMK03 & [1] Bagian 7; [2] BAB X \\
 \hline
-\textbf{3.3} & Mengimplementasikan struktur kontrol (CMP, TEST, lompatan bersyarat Jcc, LOOP, dan prosedur dengan CALL/RET) dalam program assembly. & CPMK03 & [3], [5], [16] \\
+\textbf{3.3} & Menerapkan tujuh mode pengalamatan 8086 (\textit{register}, \textit{immediate}, \textit{direct memory}, \textit{indirect memory}, \textit{base relative}, \textit{direct index}, \textit{based indexed}) pada instruksi transfer dan aritmatika. & CPMK03 & [1] Bagian 9; [2] BAB XI \\
 \hline
-\textbf{3.4} & Mengembangkan prosedur/subrutin dengan mekanisme \textit{parameter passing} dan mengelola stack frame (PUSH, POP, BP, konvensi pemanggilan). & CPMK03 & [3], [17], [9] \\
+\textbf{3.4} & Menyusun percabangan dan perulangan dengan label, JMP, CMP, lompatan bersyarat, dan LOOP. & CPMK03 & [1] Bagian 11; [2] BAB XIII \\
 \hline
-\textbf{4.1} & Melakukan penelusuran program pada level instruksi (\textit{single-step}, \textit{trace}, \textit{breakpoint}) dan memantau perubahan register serta flag. & CPMK04 & [10], [11], [9] \\
+\textbf{3.5} & Menggunakan stack (PUSH/POP), prosedur (PROC/ENDP, CALL/RET), dan macro dalam program yang modular. & CPMK03 & [1] Bagian 12--13; [2] BAB XIV, XVI--XVII \\
 \hline
-\textbf{4.2} & Memeriksa dan menganalisis isi memori dan stack (\textit{dump}) untuk menemukan kesalahan logika, kesalahan segmentasi, dan \textit{overflow}. & CPMK04 & [10], [11], [2] \\
+\textbf{3.6} & Mengolah array dan string serta mencetak bilangan desimal dan heksadesimal ke layar. & CPMK03 & [1] Bagian 10, 14.1, 16; [2] BAB IX, XIX--XX \\
 \hline
-\textbf{4.3} & Menganalisis kode mesin hasil \textit{disassembly} dan menerapkan strategi optimasi program pada level instruksi. & CPMK04 & [7], [4], [18] \\
+\textbf{4.1} & Melakukan penelusuran program per instruksi (\textit{single step}/\textit{trace}) dan memantau perubahan register serta flag. & CPMK04 & [1] Bagian 4.3; [2] BAB XXVII \\
+\hline
+\textbf{4.2} & Memeriksa isi memori dan stack (\textit{dump}) untuk menemukan kesalahan sintaks dan kesalahan logika. & CPMK04 & [1] Bagian 4.2--4.3; [2] BAB XXVII \\
+\hline
+\textbf{4.3} & Menganalisis penyebab program berhenti (\textit{hang}) dan memperbaiki kesalahan berdasarkan hasil penelusuran. & CPMK04 & [1] Bagian 4.3; [2] BAB XXVII \\
 \hline
 \end{longtable}
 
@@ -155,51 +161,53 @@ Penjabaran CPMK menjadi indikator yang lebih terukur dan dapat diuji. Setiap Sub
 % ============================================================
 \section*{5. Materi Pembelajaran (Bahan Kajian)}
 
-Mata kuliah diselenggarakan dalam \textbf{16 pertemuan} yang terdiri atas \textbf{14 pertemuan kuliah/praktikum} dan \textbf{2 pertemuan ujian} (UTS pada Minggu~8 dan UAS pada Minggu~16). Setiap pertemuan dipetakan ke Sub-CPMK dan referensi terbuka yang mendukungnya.
+Mata kuliah diselenggarakan dalam \textbf{16 pertemuan}, terdiri atas \textbf{14 pertemuan kuliah/praktikum} (Minggu 1--7 dan 9--15) serta \textbf{2 pertemuan ujian} (UTS pada Minggu~8 dan UAS pada Minggu~16). Setiap pertemuan dipetakan ke Sub-CPMK, bab, dan halaman sumber.
 
-\begin{longtable}{|>{\raggedright\arraybackslash}p{1.6cm}|>{\raggedright\arraybackslash}p{4.6cm}|>{\raggedright\arraybackslash}p{2.1cm}|>{\raggedright\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}p{2.5cm}|}
+\vspace{0.2cm}
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{1.65cm}|>{\raggedright\arraybackslash}p{3.5cm}|>{\raggedright\arraybackslash}p{1.55cm}|>{\raggedright\arraybackslash}p{3.7cm}|>{\raggedright\arraybackslash}p{3.2cm}|}
 \hline
-\textbf{Minggu} & \textbf{Materi Pokok} & \textbf{Sub-CPMK} & \textbf{Referensi} & \textbf{Aktivitas / Asesmen} \\
+\textbf{Minggu} & \textbf{Materi Pokok} & \textbf{Sub-CPMK} & \textbf{Referensi (bab, halaman)} & \textbf{Aktivitas / Asesmen} \\
 \hline
 \endfirsthead
 \hline
-\textbf{Minggu} & \textbf{Materi Pokok} & \textbf{Sub-CPMK} & \textbf{Referensi} & \textbf{Aktivitas / Asesmen} \\
+\textbf{Minggu} & \textbf{Materi Pokok} & \textbf{Sub-CPMK} & \textbf{Referensi (bab, halaman)} & \textbf{Aktivitas / Asesmen} \\
 \hline
 \endhead
 \hline
 \endfoot
 
-\textbf{1} & Pengenalan pemrograman tingkat rendah: perbandingan bahasa tingkat tinggi vs.\ tingkat rendah, peran bahasa assembly, gambaran \textit{toolchain} dan lingkungan kerja (TASM / Emu8086 / DOSBox). & 1.1 & [14], [15], [12] & Ceramah interaktif, demonstrasi \textit{setup} tools. Kuis lisan. \\
+\textbf{1} & Pengantar pemrograman tingkat rendah: kedudukan bahasa assembly, jenis bilangan (biner, desimal, oktal, heksadesimal), serta bilangan bertanda dan tidak bertanda. & 1.1 & [1] Bagian 1, hlm. 10--11; [2] BAB I, hlm. 6--8 & Ceramah dan latihan konversi bilangan. Kuis lisan. \\
 \hline
-\textbf{2} & Arsitektur mikroprosesor 8086: \textit{Execution Unit} dan \textit{Bus Interface Unit}, \textit{pipeline} instruksi, bus alamat/data/kontrol, dan siklus instruksi. & 1.1 & [1], [14], [15] & Ceramah, diagram arsitektur, latihan menggambar alur \textit{fetch--decode--execute}. \\
+\textbf{2} & Arsitektur mikroprosesor 8086: \textit{Bus Interface Unit} dan \textit{Execution Unit}, bus, \textit{queue} instruksi, ALU, serta urutan pengambilan dan eksekusi instruksi. & 1.2 & [1] Bagian 2, hlm. 12--18; [2] BAB II, hlm. 9--10 & Ceramah dengan diagram arsitektur; latihan menelusuri alur instruksi. \\
 \hline
-\textbf{3} & Register 8086: register umum dan penggunaannya, register segmen, register pointer/index, register flag (ZF, CF, SF, OF, PF, AF) dan pengaruhnya pada keputusan program. & 1.2 & [1], [5], [6] & Latihan membaca/mengubah register dengan debugger. Tugas 1. \\
+\textbf{3} & Register 8086: register umum dan pembagian \textit{high}/\textit{low}, register segmen, register pointer/index, IP, serta flag (CF, PF, AF, ZF, SF, OF, DF, IF, TF). & 1.3 & [1] Bagian 2, hlm. 13--18; [2] BAB IV, hlm. 17--20 & Latihan membaca dan mengisi register; kuis. \\
 \hline
-\textbf{4} & Segmentasi memori: alamat logis vs.\ alamat fisik, paragraf 16-byte, perhitungan alamat fisik 20-bit, memori 1 MB, dan \textit{overlapping segment}. & 1.3 & [1], [13], [14] & Latihan perhitungan alamat fisik. Kuis 1. \\
+\textbf{4} & Organisasi memori: pembagian blok memori PC, segmentasi 64 KB, offset, alamat relatif dan absolut, konversi \textit{segment:offset}, serta \textit{overlapping} segmen. & 1.4 & [2] BAB II, hlm. 9--13; [1] Bagian 2.1.1, hlm. 13--15 & Latihan konversi alamat; verifikasi dengan DEBUG. \\
 \hline
-\textbf{5} & Set instruksi dan format instruksi mesin: opcode, byte ModR/M, displacement, immediate, serta pengaruh format instruksi terhadap eksekusi \textit{hardware}. & 2.1 & [1], [7], [15] & Analisis \textit{opcode} manual dan dengan \textit{disassembler}. Tugas 2. \\
+\textbf{5} & Memulai assembly: editor teks, assembler TASM, linker TLINK, program COM dan EXE, direktif \texttt{.MODEL}, \texttt{ORG 100h}, \texttt{.CODE}, \texttt{.DATA}, label, dan komentar. & 2.1 & [1] Bagian 4, hlm. 26--34; [2] BAB V--VI, hlm. 21--26 & Praktikum menulis, meng-assemble, dan menjalankan program COM pertama. \\
 \hline
-\textbf{6} & Mode pengalamatan: \textit{immediate}, \textit{direct}, \textit{register}, \textit{register indirect}, \textit{indexed}, \textit{base-relative}, dan penentuan segmen default. & 2.2 & [13], [16], [1] & Latihan \textit{tracing} mode pengalamatan. Kuis 2. \\
+\textbf{6} & Instruksi transfer data: MOV, LEA, LDS/LES, XCHG, CMP, XLAT, CBW, dan CWD. & 2.2 & [1] Bagian 5, hlm. 35--44; [2] BAB V, hlm. 21--24 & Praktikum menyalin data antar register dan memori. Tugas 1. \\
 \hline
-\textbf{7} & Direktif assembler dan alur translasi program: DB, DW, DD, EQU, ORG, SEGMENT; peran assembler dan linker (\textit{source} $\rightarrow$ \textit{obj} $\rightarrow$ \textit{exe}). & 2.3 & [5], [9], [18] & Praktikum menyusun dan meng-asmble program pertama. Tugas 3. \\
+\textbf{7} & Interupsi: \textit{hardware} dan \textit{software interrupt}, tabel vektor interupsi, BIOS interrupt, DOS interrupt, serta layanan INT 21h, INT 10h, dan INT 16h. & 2.3 & [1] Bagian 3, hlm. 19--25; Bagian 18, hlm. 179--204; [2] BAB III, hlm. 14--16; BAB VII, hlm. 27--31; BAB XII, hlm. 63--67; BAB XV, hlm. 78--84 & Praktikum mencetak karakter/kalimat dan membaca masukan keyboard dengan INT 21h. Kuis. \\
 \hline
-\textbf{8} & \textbf{UJIAN TENGAH SEMESTER (UTS)} --- mencakup CPMK01 dan CPMK02 (Minggu 1--7). & 1.1--2.3 & [1], [5], [13] & Ujian tertulis dan \textit{coding} terbatas. \\
+\textbf{8} & \textbf{UJIAN TENGAH SEMESTER (UTS)} --- mencakup CPMK01 dan CPMK02 (Minggu 1--7). & 1.1--2.3 & [1] Bagian 1--5, 18; [2] BAB I--VII, XII, XV & Ujian tertulis dan \textit{coding} terbatas. \\
 \hline
-\textbf{9} & Instruksi transfer data dan aritmatika: MOV, XCHG, LEA, PUSH/POP, ADD, SUB, INC, DEC, MUL/IMUL, DIV/IDIV, dan pengaruh pada flag. & 3.1 & [3], [5], [17] & Praktikum: program kalkulator sederhana. Tugas 4. \\
+\textbf{9} & Operasi aritmatika: ADD, ADC, INC, SUB, SBB, DEC, MUL, dan DIV, pengaruh \textit{carry}/\textit{overflow}, serta pencetakan hasil. & 3.1 & [1] Bagian 14, hlm. 127--142; [2] BAB VIII, hlm. 32--40 & Praktikum program penjumlahan, pengurangan, perkalian, dan pembagian. Tugas 2. \\
 \hline
-\textbf{10} & Operasi logika, pergeseran, dan rotasi: AND, OR, XOR, NOT, TEST, SHL, SHR, SAL, SAR, ROL, ROR untuk manipulasi bit dan \textit{masking}. & 3.2 & [5], [6], [17] & Praktikum manipulasi bit (paritas, \textit{packing}). Kuis 3. \\
+\textbf{10} & Operasi logika dan manipulasi bit: NOT, AND, OR, XOR, TEST, SHL, dan SHR. & 3.2 & [1] Bagian 7, hlm. 68--73; [2] BAB X, hlm. 47--51 & Praktikum \textit{masking} dan pemeriksaan bit. Kuis. \\
 \hline
-\textbf{11} & Struktur kontrol: CMP dan TEST, lompatan bersyarat (Jcc), perulangan dengan LOOP, serta penyusunan algoritma bercabang dalam assembly. & 3.3 & [3], [5], [16] & Praktikum: pencarian maksimum dan pengurutan sederhana. Tugas 5. \\
+\textbf{11} & Mode pengalamatan: \textit{register}, \textit{immediate}, \textit{direct memory}, \textit{indirect memory}, \textit{base relative}, \textit{direct index}, dan \textit{based indexed}. & 3.3 & [1] Bagian 9, hlm. 78--92; [2] BAB XI, hlm. 52--62 & Latihan menelusuri alamat efektif dan segmen default. Tugas 3. \\
 \hline
-\textbf{12} & Prosedur dan manajemen stack: CALL/RET, \textit{stack frame}, \textit{parameter passing}, konvensi pemanggilan, dan rekursi. & 3.4 & [3], [17], [9] & Praktikum: prosedur dengan parameter dan nilai balik. Tugas 6. \\
+\textbf{12} & Percabangan dan perulangan: label, JMP, CMP, lompatan bersyarat, LOOP, dan penyusunan algoritma bercabang. & 3.4 & [1] Bagian 11, hlm. 101--114; [2] BAB XIII, hlm. 68--72 & Praktikum percabangan bersyarat dan perulangan dengan LOOP. Tugas 4. \\
 \hline
-\textbf{13} & Interupsi BIOS/DOS dan operasi I/O: mekanisme interupsi, INT 10h (video), INT 21h (DOS), layanan keyboard, dan pencetakan ke layar. & 2.4 & [8], [10], [12] & Praktikum: program input--output dengan INT 21h. Tugas 7. \\
+\textbf{13} & Stack, prosedur, dan macro: PUSH/POP, sifat LIFO, PROC/ENDP, CALL/RET, penyampaian data melalui register/stack/variabel, dan macro. & 3.5 & [1] Bagian 12--13, hlm. 115--126; [2] BAB XIV, hlm. 73--77; BAB XVI--XVII, hlm. 85--92 & Praktikum prosedur dan macro. Tugas 5. \\
 \hline
-\textbf{14} & Debugging level instruksi: \textit{single-step}, \textit{breakpoint}, \textit{trace}, pemantauan register dan flag, serta \textit{dump} memori dan stack. & 4.1, 4.2 & [10], [11], [9] & Praktikum debugging terpandu. Asesmen kinerja. \\
+\textbf{14} & Array, string, dan pencetakan bilangan: array satu dan multi dimensi, operasi string, konversi bilangan ke kode ASCII, serta pencetakan desimal dan heksadesimal. & 3.6 & [1] Bagian 10, hlm. 93--100; Bagian 14.1, hlm. 127--131; Bagian 16, hlm. 154--158; [2] BAB IX, hlm. 41--46; BAB XIX--XX, hlm. 110--121 & Praktikum pengolahan array/string dan pencetakan bilangan. Tugas 6. \\
 \hline
-\textbf{15} & Analisis kode mesin, \textit{disassembly}, dan optimasi: membaca hasil \textit{disassembly}, mengidentifikasi inefisiensi, dan strategi optimasi level instruksi. & 4.3 & [7], [4], [18] & Studi kasus dan presentasi proyek akhir. \\
+\textbf{15} & Debugging level instruksi: kesalahan sintaks dan logika, \textit{single step}/\textit{trace}, pemeriksaan register, flag, memori, dan stack dengan DEBUG, emu8086, dan Turbo Debugger. & 4.1--4.3 & [1] Bagian 4.2--4.3, hlm. 29--32; [2] BAB XXVII, hlm. 194--202 & Praktikum debugging terpandu. Asesmen kinerja. \\
 \hline
-\textbf{16} & \textbf{UJIAN AKHIR SEMESTER (UAS)} --- mencakup CPMK03 dan CPMK04 (Minggu 9--15) secara komprehensif. & 3.1--4.3 & [3], [5], [10] & Ujian tertulis dan \textit{coding}. \\
+\textbf{16} & \textbf{UJIAN AKHIR SEMESTER (UAS)} --- mencakup CPMK03 dan CPMK04 (Minggu 9--15). & 3.1--4.3 & [1] Bagian 4, 7, 9--14, 16; [2] BAB VIII--XIV, XVI--XVII, XIX--XX, XXVII & Ujian tertulis dan \textit{coding}. \\
 \hline
 \end{longtable}
 
@@ -207,8 +215,8 @@ Mata kuliah diselenggarakan dalam \textbf{16 pertemuan} yang terdiri atas \textb
 
 \textbf{Komposisi Pembelajaran:}
 \begin{itemize}[leftmargin=*]
-  \item \textbf{Teori (30\%):} arsitektur prosesor, organisasi memori, format instruksi, mode pengalamatan.
-  \item \textbf{Praktik (70\%):} penulisan program assembly, penggunaan debugger, analisis dan optimasi kode.
+  \item \textbf{Teori (30\%):} arsitektur 8086, register, segmentasi memori, format program, mode pengalamatan, dan mekanisme interupsi.
+  \item \textbf{Praktik (70\%):} penulisan program assembly, penggunaan assembler/linker, eksekusi di emulator, dan debugging.
 \end{itemize}
 
 \vspace{0.5cm}
@@ -218,24 +226,23 @@ Mata kuliah diselenggarakan dalam \textbf{16 pertemuan} yang terdiri atas \textb
 % ============================================================
 \section*{6. Metode Pembelajaran}
 
-Strategi atau pendekatan pembelajaran yang dipilih sesuai OBE yang menekankan aktivitas mahasiswa:
+Strategi pembelajaran dipilih sesuai OBE dengan penekanan pada aktivitas mahasiswa:
 
 \begin{itemize}[leftmargin=*]
-  \item \textbf{Ceramah Interaktif:} Penjelasan konsep arsitektur dan instruksi dengan demonstrasi \textit{live coding}
-  \item \textbf{Hands-on Lab:} Praktikum langsung menggunakan GUI Turbo Assembler (TASM) atau Emu8086 dengan bimbingan
-  \item \textbf{Problem-Based Learning:} Mahasiswa menyelesaikan kasus pemrograman tingkat rendah
-  \item \textbf{Pair Programming:} Kolaborasi berpasangan untuk debugging dan optimasi kode
-  \item \textbf{Project-Based Learning:} Pengembangan aplikasi assembly mini sebagai proyek akhir
-  \item \textbf{Flipped Classroom:} Mahasiswa mempelajari teori sebelum kelas, fokus praktik di kelas
-  \item \textbf{Code Review Session:} Sesi review dan optimasi kode assembly secara bersama
+  \item \textbf{Ceramah Interaktif:} penjelasan arsitektur, instruksi, dan contoh kode dari buku sumber.
+  \item \textbf{Praktikum Terbimbing:} mahasiswa menulis berkas \texttt{.ASM}, meng-compile dengan TASM, men-link dengan TLINK, lalu menjalankan program.
+  \item \textbf{Latihan Terstruktur:} mengerjakan contoh program pada buku, kemudian memodifikasi operand, instruksi, atau alurnya.
+  \item \textbf{Pembelajaran Berbasis Proyek Kecil:} menyusun program COM/EXE untuk kasus aritmatika, logika, pengolahan array/string, atau antarmuka teks.
+  \item \textbf{Review Kode Berpasangan:} memeriksa program secara berpasangan dan mencatat kesalahan sintaks maupun logika.
+  \item \textbf{Diskusi dan Presentasi:} membahas hasil praktikum dan cara memperbaiki program.
 \end{itemize}
 
 \textbf{Lingkungan Pembelajaran:}
 \begin{itemize}[leftmargin=*]
-  \item GUI Turbo Assembler (TASM) dengan \textit{integrated debugger}
-  \item Emu8086 sebagai emulator dengan tampilan register dan memori
-  \item DOSBox untuk simulasi lingkungan DOS (\textit{MS-DEBUG}, TASM, TLINK)
-  \item Dokumentasi referensi daring yang tersedia bebas (lihat Bagian~10)
+  \item Editor teks untuk berkas \texttt{.ASM} (sesuai [1] Bagian 4.1).
+  \item DOSBox dengan TASM, TLINK, dan DEBUG untuk alur tutorial S'to (sesuai [2] BAB V dan [1] Bagian 4.2).
+  \item emu8086 untuk menulis, menjalankan, dan men-debug program (sesuai [1] Bagian 4.3).
+  \item Turbo Debugger untuk menelusuri program per instruksi (sesuai [2] BAB XXVII).
 \end{itemize}
 
 \vspace{0.5cm}
@@ -245,27 +252,27 @@ Strategi atau pendekatan pembelajaran yang dipilih sesuai OBE yang menekankan ak
 % ============================================================
 \section*{7. Pengalaman Belajar Mahasiswa}
 
-Deskripsi tugas, aktivitas, atau pengalaman belajar yang mendukung pencapaian Sub-CPMK:
+Deskripsi tugas, aktivitas, dan pengalaman belajar yang mendukung pencapaian Sub-CPMK:
 
 \begin{itemize}[leftmargin=*]
-  \item Menginstal dan mengkonfigurasi lingkungan kerja assembly (GUI TASM/Emu8086/DOSBox)
-  \item Menghitung alamat fisik dari pasangan \textit{segment:offset} secara manual dan memverifikasinya dengan debugger
-  \item Menulis program assembly sederhana untuk operasi aritmatika dan logika dasar
-  \item Mengimplementasikan program kalkulator menggunakan instruksi 8086
-  \item Mengembangkan program manipulasi string dengan prosedur dan \textit{parameter passing}
-  \item Membuat program antarmuka teks menggunakan interupsi BIOS/DOS (INT 10h, INT 21h)
-  \item Melakukan debugging program assembly dengan \textit{single-step}, \textit{breakpoint}, dan \textit{memory dump}
-  \item Menganalisis kode mesin hasil \textit{disassembly} dan mengoptimasi kode assembly
-  \item Berkolaborasi dalam tim untuk mengembangkan proyek aplikasi sistem
-  \item Membuat dokumentasi teknis untuk program assembly yang dikembangkan
+  \item Mengonversi bilangan biner, desimal, oktal, dan heksadesimal serta menuliskan bentuk bilangan yang diterima assembler.
+  \item Menghitung alamat fisik dari pasangan \textit{segment:offset} secara manual dan memeriksanya dengan DEBUG.
+  \item Menulis, meng-assemble, dan men-link program \texttt{.ASM} menjadi berkas \texttt{.COM} atau \texttt{.EXE}.
+  \item Menulis program dengan instruksi transfer data, aritmatika, dan logika.
+  \item Menyusun program bercabang dan berulang menggunakan CMP, JMP, lompatan bersyarat, dan LOOP.
+  \item Membuat prosedur dan macro untuk memecah program menjadi bagian-bagian kecil.
+  \item Mengolah array dan string serta mencetak bilangan desimal dan heksadesimal ke layar.
+  \item Menggunakan interupsi BIOS/DOS untuk mencetak karakter/kalimat, mengatur layar, dan membaca masukan keyboard.
+  \item Menelusuri program per instruksi dan memeriksa register, flag, memori, serta stack untuk menemukan kesalahan.
+  \item Menyusun laporan praktikum yang memuat kode, hasil eksekusi, dan analisis kesalahan.
 \end{itemize}
 
 \textbf{Proyek Akhir:}
 \begin{itemize}[leftmargin=*]
-  \item Pilihan 1: Program kalkulator dengan validasi input dan antarmuka teks
-  \item Pilihan 2: Program pengolah string (pencarian, pengurutan, penggantian)
-  \item Pilihan 3: Program manipulasi bit untuk enkripsi/dekripsi sederhana
-  \item Pilihan 4: \textit{Utility} sistem untuk menampilkan isi memori dan register
+  \item Pilihan 1: program kalkulator bilangan dengan ADD, SUB, MUL, dan DIV.
+  \item Pilihan 2: program pengolahan array atau string (pencarian dan pencetakan data).
+  \item Pilihan 3: program konversi dan pencetakan bilangan desimal serta heksadesimal.
+  \item Pilihan 4: program menu teks dengan interupsi BIOS/DOS.
 \end{itemize}
 
 \vspace{0.5cm}
@@ -275,9 +282,9 @@ Deskripsi tugas, aktivitas, atau pengalaman belajar yang mendukung pencapaian Su
 % ============================================================
 \section*{8. Kriteria, Indikator, dan Bobot Penilaian}
 
-Teknik/alat asesmen dipetakan ke Sub-CPMK/CPMK dengan bobot yang jelas:
+Teknik dan alat asesmen dipetakan ke Sub-CPMK/CPMK dengan bobot sebagai berikut:
 
-\begin{longtable}{|>{\raggedright\arraybackslash}p{2.5cm}|>{\raggedright\arraybackslash}p{3.6cm}|>{\raggedright\arraybackslash}p{5.4cm}|c|}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{2.4cm}|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{5.2cm}|c|}
 \hline
 \textbf{Komponen} & \textbf{Teknik Asesmen} & \textbf{Indikator/CPMK} & \textbf{Bobot (\%)} \\
 \hline
@@ -289,17 +296,17 @@ Teknik/alat asesmen dipetakan ke Sub-CPMK/CPMK dengan bobot yang jelas:
 \hline
 \endfoot
 
-Tugas Individu & Analisis dan \textit{Assembly Programming} & Sub-CPMK 1.1--1.3, 2.1--2.3 (CPMK01, CPMK02) & 15 \\
+Tugas Individu & Latihan terstruktur dan penulisan program & Sub-CPMK 2.2, 3.1--3.6 (CPMK02, CPMK03) & 15 \\
 \hline
-Praktikum & \textit{Lab Exercise} dengan TASM/Emu8086 & Sub-CPMK 3.1--3.4, 4.1 (CPMK03, CPMK04) & 20 \\
+Praktikum & Latihan laboratorium dengan TASM/TLINK, DEBUG, dan emu8086 & Sub-CPMK 1.1--1.4, 2.1--2.3, 4.1--4.3 (CPMK01, CPMK02, CPMK04) & 20 \\
 \hline
-Kuis & Teori \& Praktik & Sub-CPMK 1.2, 1.3, 2.1 & 10 \\
+Kuis & Tes tertulis dan tes singkat di laboratorium & Sub-CPMK 1.1--1.4, 2.1--2.3 & 10 \\
 \hline
-UTS (Minggu 8) & Ujian Tertulis \& \textit{Coding} & CPMK01, CPMK02 & 20 \\
+UTS (Minggu 8) & Ujian tertulis dan \textit{coding} & CPMK01, CPMK02 & 20 \\
 \hline
-Proyek Akhir & Aplikasi Akhir & CPMK03, CPMK04 & 15 \\
+Proyek Akhir & Produk program dan laporan & CPMK03, CPMK04 & 15 \\
 \hline
-UAS (Minggu 16) & Ujian Tertulis \& \textit{Coding} & CPMK01--CPMK04 (komprehensif) & 20 \\
+UAS (Minggu 16) & Ujian tertulis dan \textit{coding} & CPMK03, CPMK04 & 20 \\
 \hline
 \textbf{Total} & & & \textbf{100} \\
 \hline
@@ -307,17 +314,17 @@ UAS (Minggu 16) & Ujian Tertulis \& \textit{Coding} & CPMK01--CPMK04 (komprehens
 
 \textbf{Kriteria Penilaian:}
 \begin{itemize}[leftmargin=*]
-  \item A (85--100): Menguasai semua CPMK dengan sangat baik, mampu mengembangkan program assembly kompleks
-  \item B (70--84): Menguasai sebagian besar CPMK dengan baik, mampu membuat program assembly moderat
-  \item C (60--69): Menguasai CPMK dasar dengan cukup, mampu membuat program assembly sederhana
-  \item D (50--59): Menguasai sebagian kecil CPMK, program assembly terbatas
-  \item E (<50): Belum menguasai CPMK yang ditetapkan
+  \item A (85--100): Menguasai semua CPMK dengan sangat baik dan mampu mengembangkan program assembly secara mandiri.
+  \item B (70--84): Menguasai sebagian besar CPMK dengan baik dan mampu membuat program assembly moderat.
+  \item C (60--69): Menguasai CPMK dasar dengan cukup dan mampu membuat program assembly sederhana.
+  \item D (50--59): Menguasai sebagian kecil CPMK dan program assembly masih terbatas.
+  \item E (<50): Belum menguasai CPMK yang ditetapkan.
 \end{itemize}
 
 \textbf{Penekanan Penilaian:}
 \begin{itemize}[leftmargin=*]
-  \item \textbf{70\% Praktik:} Kemampuan menulis dan debugging kode assembly
-  \item \textbf{30\% Teori:} Pemahaman konsep arsitektur, instruksi mesin, dan organisasi memori
+  \item \textbf{70\% Praktik:} kemampuan menulis, menjalankan, dan men-debug program assembly.
+  \item \textbf{30\% Teori:} pemahaman arsitektur, register, segmentasi memori, instruksi, dan interupsi.
 \end{itemize}
 
 \vspace{0.5cm}
@@ -327,23 +334,23 @@ UAS (Minggu 16) & Ujian Tertulis \& \textit{Coding} & CPMK01--CPMK04 (komprehens
 % ============================================================
 \section*{9. Evaluasi dan Refleksi Pembelajaran}
 
-Penilaian sumatif/formatif untuk memantau ketercapaian \textit{outcome} secara menyeluruh:
+Penilaian formatif dan sumatif untuk memantau ketercapaian \textit{outcome} secara menyeluruh:
 
 \begin{itemize}[leftmargin=*]
-  \item \textbf{Evaluasi Formatif:} Kuis mingguan, latihan \textit{coding} TASM, sesi debugging untuk umpan balik berkelanjutan
-  \item \textbf{Evaluasi Sumatif:} UTS dan UAS untuk mengukur pencapaian CPMK secara komprehensif
-  \item \textbf{Refleksi Mahasiswa:} Jurnal praktikum mingguan untuk refleksi terhadap pemahaman instruksi assembly
-  \item \textbf{Code Review Session:} Sesi review kode assembly untuk identifikasi bug dan optimasi
-  \item \textbf{Evaluasi Dosen:} Survei keefektifan tools (GUI TASM/Emu8086) dan materi praktikum
-  \item \textbf{Continuous Improvement:} Analisis hasil proyek assembly untuk perbaikan kurikulum
+  \item \textbf{Evaluasi Formatif:} kuis, latihan \textit{coding}, pemeriksaan program dengan DEBUG, dan umpan balik per pertemuan.
+  \item \textbf{Evaluasi Sumatif:} UTS dan UAS untuk mengukur pencapaian CPMK.
+  \item \textbf{Refleksi Mahasiswa:} jurnal praktikum yang mencatat kesalahan sintaks/logika dan cara memperbaikinya.
+  \item \textbf{Review Kode:} pembahasan bersama atas program yang belum berjalan benar dan alternatif perbaikannya.
+  \item \textbf{Evaluasi Dosen:} peninjauan kesesuaian materi, contoh program, dan alokasi waktu praktikum.
+  \item \textbf{Perbaikan Berkelanjutan:} analisis hasil tugas, praktikum, dan proyek untuk penyempurnaan bahan kajian.
 \end{itemize}
 
-\textbf{Monitoring Progress:}
+\textbf{Monitoring Progres:}
 \begin{itemize}[leftmargin=*]
-  \item \textit{Weekly coding checkpoint} dengan TASM/Emu8086
-  \item \textit{Progress tracking} untuk proyek akhir
-  \item \textit{Peer assessment} untuk praktikum
-  \item \textit{Performance benchmarking} untuk optimasi kode
+  \item Pemeriksaan berkas \texttt{.ASM} dan hasil \textit{compile}/\textit{link} setiap minggu.
+  \item Pemeriksaan hasil penelusuran register, memori, dan stack pada praktikum debugging.
+  \item Pemantauan progres proyek akhir melalui laporan antara.
+  \item Penilaian sejawat pada kegiatan review kode berpasangan.
 \end{itemize}
 
 \vspace{0.5cm}
@@ -353,66 +360,17 @@ Penilaian sumatif/formatif untuk memantau ketercapaian \textit{outcome} secara m
 % ============================================================
 \section*{10. Daftar Referensi}
 
-Seluruh referensi di bawah ini merupakan sumber terbuka (\textit{open access}) yang dapat diunduh secara bebas dalam format PDF, slide, arsip teks, atau dokumentasi daring. Referensi telah diverifikasi dapat diakses pada tanggal penyusunan.
+Materi, aktivitas, dan asesmen mata kuliah ini hanya bersumber pada dua buku berikut:
 
-\textbf{A. Arsitektur Prosesor dan Set Instruksi}
 \begin{enumerate}[leftmargin=*]
-  \item[{[1]}] Intel Corporation. (1979). \textit{The 8086 Family User's Manual} (Order No. 9800722-03). Santa Clara, CA: Intel Corporation. [PDF] \url{https://ardent-tool.com/CPU/docs/Intel/808x/manuals/9800722-03.pdf} --- arsip alternatif: \url{https://archive.org/details/manualzilla-id-6912386}.
+  \item[{[1]}] Indra Gunawan. (2019). \textit{Pemrograman Bahasa Assembly Mikroprosesor 8086}. Guepedia.
 
-  \item[{[2]}] Intel Corporation. (2024). \textit{Intel 64 and IA-32 Architectures Software Developer's Manual}. [PDF] \url{https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html}.
-
-  \item[{[3]}] Bartlett, J. (2004). \textit{Programming from the Ground Up}. Savannah: GNU Free Documentation License. [PDF/HTML] \url{https://savannah.nongnu.org/projects/pgubook/}.
-
-  \item[{[4]}] Bartlett, J., \& Eagle, C. (2023). \textit{x86 Assembly from the Ground Up using NASM}. Annapolis, MD: United States Naval Academy. [PDF, GNU FDL] \url{https://www.usna.edu/Users/cs/norine/spring24/SI459/resources/X86NasmBook.pdf}.
-
-  \item[{[5]}] Hyde, R. (2010). \textit{The Art of Assembly Language} (2nd ed.). San Francisco: No Starch Press. [PDF] \url{https://repository.root-me.org/Programmation/ASM/EN%20-%20The%20Art%20Of%20Assembly%20Language.pdf}.
-
-  \item[{[6]}] Wikibooks contributors. (2024). \textit{x86 Assembly}. Wikibooks. [HTML/PDF, CC BY-SA 3.0] \url{https://en.wikibooks.org/wiki/X86_Assembly} --- versi cetak: \url{https://en.wikibooks.org/wiki/X86_Assembly/Print_Version}.
-
-  \item[{[7]}] Wikibooks contributors. (2024). \textit{X86 Disassembly}. Wikibooks. [PDF, CC BY-SA 3.0] \url{https://en.wikibooks.org/wiki/File:X86_Disassembly.pdf}.
+  \item[{[2]}] S'to. (2001). \textit{Pemrograman dengan Bahasa Assembly, Edisi Online Versi 1.0}. IlmuKomputer.Com.
 \end{enumerate}
 
 \vspace{0.3cm}
 
-\textbf{B. Modul, Slide Kuliah, dan Bahan Ajar}
-\begin{enumerate}[leftmargin=*]
-  \item[{[8]}] Brown, R. (2000). \textit{Ralf Brown's Interrupt List (RBIL), Release 61}. Pittsburgh: Carnegie Mellon University. [TXT/ZIP] \url{https://www.cs.cmu.edu/~ralf/files.html}.
-
-  \item[{[9]}] Bodur, M. \textit{Microprocessors Lab Manual (CMPE323)}. Famagusta: Eastern Mediterranean University. [PDF] \url{https://staff.emu.edu.tr/hasankomurcugil/Documents/cmpe323/Microprocessor%20lab.pdf}.
-
-  \item[{[10]}] Ebrahim, A. (2018). \textit{Hands-on Introduction to Computers \& Programming using DEBUG and the 8086 Microprocessor}. [PDF] \url{https://www.mathscitech.org/papers/ebrahim-2018-ms-debug_HandsOnExploration_MachineCode_x86_Assembly.pdf}.
-
-  \item[{[11]}] Irvine, K. R. (1999). \textit{Using the DEBUG Program}. [PDF] \url{https://asmirvine.com/debug/Debug_Tutorial.pdf}.
-
-  \item[{[12]}] emu8086. \textit{Help for Emu8086: Tutorial and Reference}. [PDF] \url{https://www.philadelphia.edu.jo/academics/qhamarsheh/uploads/emu8086.pdf}.
-
-  \item[{[13]}] Kader, M. A. (2014). \textit{8086 Addressing Modes} [Handout kuliah]. [PDF] \url{https://kader05cuet.wordpress.com/wp-content/uploads/2014/09/8086-addressing-modes1.pdf}.
-
-  \item[{[14]}] CO 2103 Course Team. \textit{Introduction to Assembly Language: Intel 8086} [Slide kuliah]. [PDF] \url{https://ailab.space/wp-content/uploads/co-2103-introduction-to-assembly-language/C02103-03-8086.pdf}.
-
-  \item[{[15]}] Carleton University. (2011). \textit{SYSC-3006: The Intel 80x86} [Slide kuliah]. [PDF] \url{http://www.sce.carleton.ca/courses/sysc-3006/f11/Part5-8086.pdf}.
-
-  \item[{[16]}] Evans, D. (2020). \textit{x86 Assembly Guide}. Charlottesville: University of Virginia, CS216. [HTML] \url{https://www.cs.virginia.edu/~evans/cs216/guides/x86.html}.
-
-  \item[{[17]}] University of Virginia. (2024). \textit{Laboratory 8: x86 Assembly Language} (PDR/CS2150). [HTML] \url{https://uva-cs.github.io/pdr/labs/lab08-32bit/index.html}.
-
-  \item[{[18]}] NASM Development Team. (2024). \textit{NASM --- The Netwide Assembler Documentation}. [HTML/PDF] \url{https://nasm.us/doc/nasmdoc0.html}.
-\end{enumerate}
-
-\vspace{0.3cm}
-
-\textbf{C. Perangkat Lunak Pendukung (Open Source)}
-\begin{enumerate}[leftmargin=*]
-  \item[{[19]}] GUI Turbo Assembler (TASM) --- \url{https://sourceforge.net/projects/guitasm8086/} dan \url{https://github.com/ljnath/GUI-Turbo-Assembler}.
-
-  \item[{[20]}] emu8086 --- Microprocessor Emulator and Assembler: \url{http://www.emu8086.com/}.
-
-  \item[{[21]}] DOSBox --- x86 Emulator for DOS: \url{https://www.dosbox.com/}.
-\end{enumerate}
-
-\vspace{0.3cm}
-
-\textit{Catatan:} Beberapa dokumen (misalnya manual Intel dan buku teks komersial) tersedia untuk diunduh secara bebas untuk keperluan pendidikan dan arsip, namun tetap tunduk pada hak cipta penerbitnya. Referensi berlisensi terbuka (GNU FDL, CC BY-SA) ditandai secara eksplisit.
+\textit{Catatan:} Nomor halaman pada Bagian~4 dan Bagian~5 mengacu pada penanda halaman berkas \texttt{.tex} sumber, yaitu \texttt{GuepediaAssemblyCoverIsi.tex} untuk [1] dan \texttt{Tutorial Emulator 8086.tex} untuk [2]. Tidak ada sumber daring yang digunakan dalam penyusunan RPS ini.
 
 \vspace{1cm}
 
