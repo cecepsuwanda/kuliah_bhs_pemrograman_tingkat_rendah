@@ -4,78 +4,66 @@
 \subsection{Soal Pilihan Ganda}
 
 \begin{enumerate}
-    \item Nilai \flag{CF} dan \flag{OF} setelah instruksi
-          \lstasm|XOR AL, BL| dijalankan adalah \dots
+    \item Hasil \asm{AND} antara bit 1 dan bit 0 adalah \dots
           \begin{enumerate}
-              \item keduanya 0
-              \item keduanya 1
-              \item \flag{CF} = 1 dan \flag{OF} = 0
-              \item bergantung pada nilai \reg{AL} dan \reg{BL}
+              \item 0 \item 1
+              \item bergantung pada \flag{CF}
+              \item tidak terdefinisi
           \end{enumerate}
 
-    \item Instruksi untuk memadamkan bit ke-3 \reg{AL} tanpa mengubah
-          bit lain adalah \dots
+    \item Instruksi yang dipakai untuk membalik bit tertentu
+          adalah \dots
           \begin{enumerate}
-              \item \lstasm|OR AL, 08h|
-              \item \lstasm|AND AL, 08h|
-              \item \lstasm|AND AL, 0F7h|
-              \item \lstasm|XOR AL, 08h|
+              \item \asm{AND} \item \asm{OR}
+              \item \asm{XOR} \item \asm{NOT}
           \end{enumerate}
 
-    \item Diketahui \reg{AL} = \bin{1111 1111} yang ditafsirkan
-          sebagai $-1$. Instruksi \lstasm|SHR AL, 1| menghasilkan
-          nilai \dots
+    \item \asm{TEST} melakukan operasi internal yang sama dengan
+          \dots
           \begin{enumerate}
-              \item $-1$ karena bit tanda dipertahankan
-              \item $+127$ karena bit tanda diisi nol
-              \item $0$ karena seluruh bit bergeser keluar
-              \item $-64$ karena hasilnya dibulatkan ke bawah
+              \item \asm{ADD} \item \asm{AND}
+              \item \asm{OR} \item \asm{SUB}
           \end{enumerate}
 
-    \item Instruksi yang menyertakan \flag{CF} sebagai bit tambahan
-          yang ikut berputar adalah \dots
+    \item Diketahui \reg{AL} = \bin{10100101}. Setelah
+          \lstasm|SHL AL, 1|, isi \reg{AL} dan \flag{CF} adalah
+          \dots
           \begin{enumerate}
-              \item \asm{ROL} dan \asm{ROR}
-              \item \asm{RCL} dan \asm{RCR}
-              \item \asm{SHL} dan \asm{SHR}
-              \item \asm{SAL} dan \asm{SAR}
+              \item \bin{01001010}, \flag{CF} = 1
+              \item \bin{01001010}, \flag{CF} = 0
+              \item \bin{11010010}, \flag{CF} = 1
+              \item \bin{01010010}, \flag{CF} = 1
           \end{enumerate}
 
-    \item Perbedaan hakiki antara \asm{TEST} dan \asm{CMP} terletak
-          pada \dots
+    \item Pergeseran \asm{SHR} satu bit pada bilangan tidak bertanda
+          setara dengan \dots
           \begin{enumerate}
-              \item operasi internalnya, yaitu \asm{AND} dan \asm{SUB},
-                    meskipun keduanya tidak menyimpan hasil
-              \item \asm{TEST} menyimpan hasil sedangkan \asm{CMP}
-                    tidak
-              \item \asm{TEST} hanya dapat dipakai pada operand 8 bit
-              \item keduanya mengubah \flag{CF}, tetapi hanya
-                    \asm{CMP} yang mengubah \flag{ZF}
+              \item menambah 2
+              \item mengalikan 2
+              \item membagi 2
+              \item membalik tanda
           \end{enumerate}
 \end{enumerate}
 
 \subsection{Soal Uraian}
 
 \begin{enumerate}
-    \item Jelaskan mengapa \flag{CF} dan \flag{OF} selalu 0 setelah
-          operasi logika, sedangkan pada operasi aritmatika keduanya
-          dapat bernilai 1. Kaitkan dengan penjalaran \eng{carry}
-          antarbit.
+    \item Jelaskan tabel kebenaran \asm{AND}, \asm{OR}, \asm{XOR},
+          dan \asm{NOT}. Jelaskan pula pengaruh masing-masing
+          operasi terhadap \flag{CF}, \flag{OF}, \flag{ZF}, dan
+          \flag{SF}.
 
-    \item Diketahui \reg{AL} = \bin{1100 1010}. Tuliskan hasil
-          \lstasm|SHL AL, 1|, \lstasm|SHR AL, 1|, dan
-          \lstasm|SAR AL, 1| beserta nilai \flag{CF}, lalu nyatakan
-          hasil \asm{SAR} sebagai bilangan bertanda.
+    \item Diketahui \reg{AL} = \hex{A5}. Tuliskan instruksi untuk
+          menyalakan, memadamkan, membalik, dan menguji bit 4.
+          Jelaskan mask yang dipakai pada setiap instruksi.
 
-    \item Tuliskan program yang menyusun digit puluhan dari variabel
-          \code{puluhan} dan digit satuan dari variabel \code{satuan}
-          menjadi satu byte BCD, lalu memisahkannya kembali. Jelaskan
-          peran \asm{SHL}, \asm{OR}, \asm{AND}, dan \asm{SHR}.
+    \item Jelaskan perbedaan \asm{TEST} dan \asm{CMP}. Jelaskan
+          pula kegunaan \lstasm|TEST AL, AL| dan mengapa instruksi
+          itu tidak mengubah isi \reg{AL}.
 
-    \item Jelaskan mengapa dekripsi \eng{XOR cipher} dapat memakai
-          kunci dan operasi yang sama dengan enkripsi, lalu sebutkan
-          dua alasan mengapa cara ini belum memadai sebagai pengamanan
-          data.
+    \item Jelaskan cara kerja \asm{SHL} dan \asm{SHR}. Tuliskan
+          program yang menghitung $5 \times 16$ dengan \asm{SHL}
+          dan $1000 \div 8$ dengan \asm{SHR}.
 \end{enumerate}
 
 \subsection{Kisi-kisi Penilaian}
@@ -85,48 +73,43 @@
     \caption{Kisi-kisi evaluasi Bab~\ref{chap:logika}.}
     \label{tab:kisi-bab11}
     \small
-    \setlength{\tabcolsep}{5pt}
-    \begin{tabular}{@{}p{1.5cm}p{5.4cm}p{3.6cm}c@{}}
+    \begin{tabular}{@{}p{1.5cm}p{5.0cm}p{3.0cm}c@{}}
         \toprule
         \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
         \textbf{Bentuk soal} & \textbf{Bobot} \\
         \midrule
-        3.2 & Menjelaskan tabel kebenaran dan pengaruh operasi logika
-        terhadap \eng{flag} & Pilihan ganda 1; Uraian 1 & 20\% \\
+        3.2 & Menjelaskan operasi logika dan flag &
+        Pilihan ganda 1, 2; Uraian 1 & 30\% \\
         \addlinespace
-        3.2 & Menerapkan manipulasi bit ke-$n$ dan memilih instruksi
-        yang tepat & Pilihan ganda 2, 5 & 20\% \\
+        3.2 & Menerapkan mask dan TEST &
+        Pilihan ganda 3; Uraian 2, 3 & 30\% \\
         \addlinespace
-        3.2 & Menganalisis pergeseran logis dan aritmetika pada
-        bilangan bertanda & Pilihan ganda 3; Uraian 2 & 25\% \\
+        3.2 & Menerapkan SHL dan SHR &
+        Pilihan ganda 4, 5; Uraian 4 & 30\% \\
         \addlinespace
-        3.2 & Menjelaskan rotasi dan peran \flag{CF} & Pilihan ganda
-        4 & 10\% \\
-        \addlinespace
-        3.2 & Menulis program \eng{packing} BCD dan menganalisis
-        \eng{XOR cipher} & Uraian 3, 4 & 25\% \\
+        3.2 & Menganalisis program manipulasi bit &
+        Uraian 1, 4 & 10\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \begin{checklistbox}
-\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:logika}}
+\vspace{1.1em}
+\textbf{Checklist Pencapaian Kompetensi
+Bab~\ref{chap:logika}}
 
 Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 3.2 apabila:
 \begin{itemize}
-    \item[\checked] dapat menyusun tabel kebenaran \asm{AND},
-          \asm{OR}, \asm{XOR}, dan \asm{NOT};
-    \item[\checked] dapat menjelaskan pengaruh operasi logika terhadap
-          \flag{CF}, \flag{OF}, \flag{ZF}, \flag{SF}, dan \flag{PF};
-    \item[\checked] dapat menuliskan instruksi penyalakan, pemadaman,
-          pembalikan, dan pengujian bit ke-$n$;
-    \item[\checked] dapat membedakan \asm{TEST} dan \asm{CMP} beserta
-          pemakaiannya;
-    \item[\checked] dapat menentukan hasil \asm{SHL}, \asm{SHR}, dan
-          \asm{SAR} pada bilangan bertanda disertai \flag{CF};
-    \item[\checked] dapat menjelaskan perbedaan \asm{ROL}/\asm{ROR}
-          dengan \asm{RCL}/\asm{RCR};
-    \item[\checked] berhasil menulis dan menjalankan program paritas
-          serta \eng{packing} BCD.
+    \item[\checked] dapat menjelaskan tabel kebenaran operasi
+          logika;
+    \item[\checked] dapat menjelaskan pengaruh operasi logika
+          terhadap \eng{flag};
+    \item[\checked] dapat menggunakan mask untuk manipulasi bit;
+    \item[\checked] dapat membedakan \asm{TEST} dan \asm{CMP};
+    \item[\checked] dapat menggunakan \asm{SHL} dan \asm{SHR};
+    \item[\checked] dapat memakai pergeseran untuk perkalian dan
+          pembagian pangkat dua;
+    \item[\checked] dapat menganalisis program paritas dan
+          \eng{XOR cipher}.
 \end{itemize}
 \end{checklistbox}

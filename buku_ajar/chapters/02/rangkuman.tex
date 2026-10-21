@@ -15,12 +15,12 @@ Pada bab ini telah dibahas:
           beberapa siklus mesin.
 
     \item ISA adalah kontrak instruksi antara perangkat lunak dan
-          perangkat keras. Kompatibilitas ISA membuat program 8086
-          masih dapat dijalankan pada prosesor x86 modern.
+          perangkat keras. Program yang memakai instruksi ISA yang
+          sama dapat dijalankan pada prosesor yang mendukungnya.
 
-    \item \eng{Opcode} menyatakan operasi, \eng{operand} menyatakan
-          data, dan \eng{mnemonic} adalah nama pendek opcode dalam
-          bahasa assembly.
+    \item \eng{Operand} menyatakan data yang dikenai instruksi, dan
+          \eng{mnemonic} adalah nama pendek instruksi dalam bahasa
+          assembly.
 
     \item Register adalah penyimpan kecil di dalam prosesor dengan
           akses jauh lebih cepat daripada memori. Jumlahnya terbatas,
@@ -49,9 +49,8 @@ Tandai setiap butir yang sudah Anda kuasai.
     \item[\checkbox] Saya dapat menjelaskan model von Neumann dan
           prinsip \eng{stored-program}.
     \item[\checkbox] Saya dapat menjelaskan tahapan siklus instruksi.
-    \item[\checkbox] Saya dapat mendefinisikan ISA, \eng{opcode},
-          \eng{operand}, \eng{mnemonic}, dan register dengan kalimat
-          saya sendiri.
+    \item[\checkbox] Saya dapat mendefinisikan ISA, \eng{operand},
+          \eng{mnemonic}, dan register dengan kalimat saya sendiri.
     \item[\checkbox] Saya dapat mengonversi bilangan antara biner,
           heksadesimal, dan desimal tanpa alat bantu.
     \item[\checkbox] Saya dapat menyatakan bilangan negatif dalam
@@ -66,14 +65,11 @@ Tandai setiap butir yang sudah Anda kuasai.
 
 \vspace{0.4em}
 Bila masih ada butir yang belum bertanda, ulangi bagian yang
-bersesuaian sebelum melanjutkan ke Bab~\ref{chap:pengenalan}.
+bersesuaian sebelum melanjutkan ke Bab~\ref{chap:pengantar-assembly}.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
-\cite{tanenbaum2013}, \cite{stallings2016}, dan \cite{brey2009}
-untuk organisasi komputer dan representasi data. Untuk gambaran
-teknis 8086 yang lebih rinci, lihat \cite{intel1979}. Pembahasan
-\eng{two's complement} dan operasi bertanda pada bahasa assembly
-dapat dilihat pada \cite{hyde2010}.
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 1--2, hlm.~10--18, dan \cite{sto2001},
+BAB I--II, hlm.~6--13, serta BAB IV, hlm.~17--20.
 \end{infobox}

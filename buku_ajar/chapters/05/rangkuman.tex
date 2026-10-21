@@ -4,78 +4,68 @@
 Pada bab ini telah dibahas:
 
 \begin{itemize}
-    \item Register adalah tempat penyimpanan tercepat di dalam
-          prosesor. Prosesor 8086 memiliki empat belas register
-          16 bit yang dapat dipakai programmer.
+    \item Mikroprosesor 8086 memiliki empat belas register 16 bit
+          yang dikelompokkan menjadi register umum, register segmen,
+          register \eng{pointer}/\eng{index}, serta register
+          \eng{flag}.
 
-    \item Register umum \reg{AX}, \reg{BX}, \reg{CX}, dan \reg{DX}
-          dapat diakses sebagai dua byte terpisah: \reg{AH}/\reg{AL},
-          \reg{BH}/\reg{BL}, \reg{CH}/\reg{CL}, dan \reg{DH}/\reg{DL}.
-          Menulis ke byte rendah tidak mengubah byte tinggi.
+    \item Register umum AX, BX, CX, dan DX dapat diakses sebagai dua
+          byte 8 bit. AX terdiri atas AH dan AL, BX atas BH dan BL,
+          CX atas CH dan CL, serta DX atas DH dan DL.
 
-    \item Setiap register umum memiliki peran khas sebagai akibat
-          cara penyandian instruksi: \reg{AX} sebagai akumulator,
-          \reg{BX} sebagai basis pengalamatan, \reg{CX} sebagai
-          pencacah, dan \reg{DX} sebagai pasangan data pada operasi
-          32 bit serta penunjuk alamat port.
+    \item Setiap register umum memiliki peran khas: AX sebagai
+          akumulator, BX sebagai penunjuk \eng{offset}, CX sebagai
+          pencacah pengulangan, dan DX sebagai data pendukung atau
+          penampung sisa pembagian.
 
-    \item Register segmen \reg{CS}, \reg{DS}, \reg{SS}, dan \reg{ES}
-          menyimpan nomor segmen, bukan data. Pasangannya adalah
-          \reg{IP} untuk kode, \reg{BP}/\reg{SP} untuk \eng{stack},
-          serta \reg{SI} dan \reg{DI} untuk data dan tujuan operasi
-          string.
+    \item Register segmen CS, DS, SS, dan ES menyimpan nomor segmen.
+          Pasangan alamat yang dibentuk adalah CS:IP, DS:SI atau
+          DS:BX, SS:SP atau SS:BP, dan ES:DI.
 
-    \item Register \eng{pointer} dan \eng{index} menyimpan
-          \eng{offset}. \reg{SP} menunjuk puncak \eng{stack} dan
-          berubah otomatis pada \asm{PUSH}/\asm{POP}, \reg{BP}
-          menjadi acuan tetap di dalam \eng{stack}, sedangkan
-          \reg{SI} dan \reg{DI} menunjuk sumber dan tujuan operasi
-          string.
+    \item Register \eng{pointer}/\eng{index} SP, BP, SI, dan DI
+          menyimpan \eng{offset}. SP menunjuk puncak \eng{stack},
+          BP menjadi acuan data di \eng{stack}, SI menunjuk sumber,
+          dan DI menunjuk tujuan operasi string.
 
-    \item Register \reg{IP} menyimpan \eng{offset} instruksi
-          berikutnya dan selalu berpasangan dengan \reg{CS}.
+    \item Register IP menyimpan \eng{offset} instruksi berikutnya.
+          Pasangan CS:IP menentukan alamat instruksi yang akan
+          diambil.
 
-    \item Register \reg{FLAGS} 16 bit memuat sembilan \eng{flag}
-          aktif: \flag{CF}, \flag{PF}, \flag{AF}, \flag{ZF},
-          \flag{SF}, \flag{OF} sebagai \eng{flag} status, serta
-          \flag{TF}, \flag{IF}, \flag{DF} sebagai \eng{flag}
-          kendali.
+    \item Register FLAGS memiliki sembilan \eng{flag}: CF, PF, AF,
+          ZF, SF, dan OF sebagai \eng{flag} status, serta TF, IF,
+          dan DF sebagai \eng{flag} kendali.
 
-    \item \flag{CF} melaporkan simpanan keluar pada bilangan tak
-          bertanda, sedangkan \flag{OF} melaporkan \eng{overflow}
-          pada bilangan bertanda. Keduanya harus dibedakan dengan
-          cermat.
+    \item CF menandai simpanan keluar pada operasi tak bertanda,
+          sedangkan OF menandai \eng{overflow} pada operasi
+          bertanda. Keduanya menjawab pertanyaan yang berbeda dan
+          tidak boleh dipertukarkan.
 
-    \item \eng{Flag} menjadi berguna ketika dibaca oleh lompatan
-          bersyarat, sedangkan \asm{MOV}, \asm{LEA}, \asm{PUSH}, dan
-          \asm{POP} tidak mengubah \eng{flag}.
-
-    \item Register \reg{CS}, \reg{IP}, \reg{SS}, dan \reg{SP}
-          mengendalikan alur program dan letak \eng{stack}, sehingga
-          tidak boleh diubah sembarangan.
+    \item Keadaan \eng{flag} dapat dibaca untuk mengambil keputusan.
+          Lompatan bersyarat seperti JE/JZ, JNE/JNZ, JC/JB, JNC/JAE,
+          JS/JNS, dan JO/JNO memakai \eng{flag} sebagai dasar
+          pemilihan jalur program.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
     \item[\checkbox] Saya dapat menyebutkan keempat belas register
-          8086 beserta kelompoknya.
-    \item[\checkbox] Saya dapat menjelaskan akses byte rendah dan
-          byte tinggi pada \reg{AX}, \reg{BX}, \reg{CX}, \reg{DX}.
-    \item[\checkbox] Saya dapat menjelaskan peran khas setiap
-          register umum beserta alasannya.
-    \item[\checkbox] Saya dapat menjelaskan peran \reg{CS}, \reg{DS},
-          \reg{SS}, dan \reg{ES} dalam pengalamatan memori.
-    \item[\checkbox] Saya dapat menjelaskan perbedaan tugas \reg{SP},
-          \reg{BP}, \reg{SI}, \reg{DI}, dan \reg{IP}.
-    \item[\checkbox] Saya dapat menyebutkan sembilan \eng{flag}
-          beserta posisi bitnya.
-    \item[\checkbox] Saya dapat memprediksi \flag{CF}, \flag{OF},
-          \flag{SF}, dan \flag{ZF} pada operasi \asm{ADD}.
-    \item[\checkbox] Saya dapat menjelaskan akibat mengubah
-          \reg{CS}, \reg{IP}, \reg{SS}, atau \reg{SP} secara
-          sembarangan.
+          8086 dan kelompoknya.
+    \item[\checkbox] Saya dapat menjelaskan akses byte tinggi dan
+          byte rendah pada register umum.
+    \item[\checkbox] Saya dapat menjelaskan peran khas AX, BX, CX,
+          dan DX.
+    \item[\checkbox] Saya dapat menjelaskan register segmen dan
+          pasangan alamatnya.
+    \item[\checkbox] Saya dapat menjelaskan tugas SP, BP, SI, DI,
+          dan IP.
+    \item[\checkbox] Saya dapat menyebutkan sembilan \eng{flag} dan
+          kapan masing-masing bernilai 1.
+    \item[\checkbox] Saya dapat memprediksi \eng{flag} hasil
+          penjumlahan dan menjelaskan pengaruhnya pada keputusan
+          program.
 \end{itemize}
 
 \vspace{0.4em}
@@ -84,9 +74,9 @@ bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Uraian mengenai fungsi dan penyandian register
-8086 bersumber dari \cite{intel1979}. Penjelasan tentang \eng{flag}
-dan pengaruhnya terhadap eksekusi diperkuat oleh \cite{brey2009}
-dan \cite{hyde2010}. Ringkasan praktis mengenai daftar register dan
-\eng{flag} dapat ditelusuri pada \cite{wikibooksx86}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 2, hlm.~13--18, dan \cite{sto2001},
+BAB IV, hlm.~17--20. Kaitan \eng{flag} dengan lompatan bersyarat
+diperkuat oleh \cite{sto2001}, BAB XIII, hlm.~68--72.
 \end{infobox}

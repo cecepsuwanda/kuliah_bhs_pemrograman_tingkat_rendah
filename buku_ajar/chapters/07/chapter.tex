@@ -2,17 +2,19 @@
 
 \begin{document}
 
-\chapter{Format Instruksi Mesin}
-\label{chap:format-instruksi}
+\chapter{Memulai Assembly: TASM, TLINK, COM, EXE, dan Direktif}
+\label{chap:memulai-assembly}
 
 % =========================================================
 % OUTCOME PEMBELAJARAN KHUSUS BAB
 % =========================================================
 
 \begin{subcpmkbox}
-\SubCPMK{2.1} --- Menjelaskan format instruksi mesin (\eng{opcode},
-byte ModR/M, \eng{displacement}/\eng{immediate}) dan mengaitkannya
-dengan operasi yang dieksekusi perangkat keras.
+\vspace{1.1em}
+\SubCPMK{2.1} --- Menjelaskan struktur program assembly
+(\texttt{.MODEL}, \texttt{ORG 100h}, \texttt{.CODE}, \texttt{.DATA},
+label, komentar) dan alur translasi \texttt{.ASM} $\rightarrow$
+\texttt{.OBJ} $\rightarrow$ \texttt{.EXE}/\texttt{.COM}.
 
 \vspace{0.4em}
 \textbf{CPMK yang didukung:} \CPMK{02} \quad\textbullet\quad
@@ -20,37 +22,34 @@ dengan operasi yang dieksekusi perangkat keras.
 \end{subcpmkbox}
 
 \begin{tujuanbox}
+\vspace{1.1em}
 Setelah mempelajari bab ini, mahasiswa mampu:
 \begin{enumerate}
-    \item menjelaskan hubungan antara \eng{mnemonic} assembly dan kode
-          mesin yang dihasilkan assembler;
-    \item menjelaskan alasan satu \eng{mnemonic} memiliki beberapa
-          bentuk \eng{encoding} yang berbeda;
-    \item menguraikan susunan field instruksi 8086: awalan,
-          \eng{opcode}, ModR/M, \eng{displacement}, dan
-          \eng{immediate};
-    \item memecah byte ModR/M menjadi field \code{mod},
-          \code{reg/opcode}, dan \code{r/m};
-    \item melakukan \eng{encoding} manual instruksi sederhana dan
-          membacanya kembali dengan \eng{disassembler};
-    \item menilai pengaruh format instruksi terhadap ukuran kode dan
-          kecepatan eksekusi.
+    \item menjelaskan rantai proses dari berkas \file{.ASM} sampai
+          program dapat dijalankan;
+    \item menjelaskan peran editor, TASM, TLINK, dan \eng{loader};
+    \item membedakan program \file{.COM} dan \file{.EXE};
+    \item menjelaskan fungsi direktif \dir{.MODEL}, \dir{ORG 100h},
+          \dir{.CODE}, \dir{.DATA}, dan \dir{.STACK};
+    \item menulis label dan komentar sesuai aturan assembler;
+    \item menggunakan direktif data \dir{DB}, \dir{DW}, \dir{DD},
+          \dir{EQU}, dan \dir{DUP};
+    \item menulis, meng-assemble, men-link, dan menjalankan program
+          assembly sederhana.
 \end{enumerate}
 \end{tujuanbox}
 
 \begin{materibox}
+\vspace{1.1em}
 \begin{enumerate}
-    \item Hubungan \eng{mnemonic} assembly dengan kode mesin.
-    \item Format umum instruksi 8086: awalan, \eng{opcode},
-          ModR/M, \eng{displacement}, dan \eng{immediate}.
-    \item Struktur byte ModR/M: field \code{mod}, \code{reg/opcode},
-          dan \code{r/m}.
-    \item Peran \eng{displacement} dan \eng{immediate}.
-    \item Pengaruh format instruksi terhadap ukuran kode dan kecepatan
-          eksekusi.
-    \item \eng{Encoding} manual dan peran \eng{disassembler} pada
-          DEBUG.
-    \item Tabel ringkas \eng{opcode} instruksi umum 8086.
+    \item Rantai proses: editor, TASM, TLINK, dan \eng{loader}.
+    \item Perbedaan program \file{.COM} dan \file{.EXE}.
+    \item Struktur program: \dir{.MODEL}, \dir{.STACK}, \dir{.DATA},
+          \dir{.CODE}, label, komentar, dan \dir{END}.
+    \item \dir{ORG 100h} dan \eng{Program Segment Prefix}.
+    \item Direktif data: \dir{DB}, \dir{DW}, \dir{DD}, \dir{EQU},
+          dan \dir{DUP}.
+    \item Alur translasi dan pesan kesalahan assembler.
 \end{enumerate}
 \end{materibox}
 

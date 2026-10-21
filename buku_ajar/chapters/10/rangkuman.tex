@@ -4,76 +4,62 @@
 Pada bab ini telah dibahas:
 
 \begin{itemize}
-    \item Instruksi \asm{MOV} menyalin data tanpa menghapus sumber.
-          Legalitasnya dibatasi tiga aturan: ukuran operand harus
-          sama, tidak boleh memori ke memori, dan tidak boleh nilai
-          segera langsung ke register segmen.
+    \item \asm{ADD} menjumlahkan dua operand, sedangkan \asm{ADC}
+          ikut menambahkan \flag{CF}. \asm{INC} menambah satu.
 
-    \item Pemindahan yang ditolak assembler diatasi dengan register
-          perantara, bukan dengan menambahkan \lstasm|WORD PTR|.
+    \item \asm{SUB} mengurangi dua operand, sedangkan \asm{SBB}
+          ikut mengurangkan \flag{CF}. \asm{DEC} mengurangi satu.
 
-    \item \asm{XCHG} menukar isi dua operand dan mensyaratkan
-          minimal satu operand berada di register.
+    \item Operasi aritmatika memperbarui \flag{CF}, \flag{OF},
+          \flag{ZF}, \flag{SF}, \flag{AF}, dan \flag{PF}.
 
-    \item \asm{MOV} memindahkan \emph{isi} memori, sedangkan
-          \asm{LEA} memindahkan \emph{alamat} memori. Bila alamat
-          efektif harus dihitung saat program berjalan, \asm{LEA}
-          lebih ringkas dan tidak menyentuh memori.
+    \item \flag{CF} menandai luapan bilangan tidak bertanda,
+          sedangkan \flag{OF} menandai luapan bilangan bertanda.
 
-    \item \asm{PUSH} dan \asm{POP} bekerja pada satuan word, tidak
-          menerima nilai segera, dan harus berpasangan seimbang agar
-          \reg{SP} kembali ke posisi semula.
+    \item \asm{INC} dan \asm{DEC} tidak mengubah \flag{CF}, sehingga
+          tidak dipakai untuk meneruskan \eng{carry} pada
+          aritmatika bertingkat.
 
-    \item Instruksi aritmatika dasar adalah \asm{ADD}, \asm{ADC},
-          \asm{SUB}, \asm{SBB}, \asm{INC}, \asm{DEC}, \asm{NEG}, dan
-          \asm{CMP}. Hasil setiap instruksi meninggalkan jejak pada
-          \eng{flag}, kecuali \flag{CF} yang tidak disentuh
-          \asm{INC} dan \asm{DEC}.
+    \item Bilangan lebih dari 16 bit dijumlahkan dengan \asm{ADD}
+          pada word rendah dan \asm{ADC} pada word tinggi. Bentuk
+          yang sama berlaku untuk pengurangan dengan \asm{SUB} dan
+          \asm{SBB}.
 
-    \item \flag{CF} dipakai untuk operasi tak bertanda, sedangkan
-          \flag{OF} dipakai untuk operasi bertanda. Pilihan
-          instruksi dan lompatan bersyarat harus mengikuti tafsiran
-          yang dipilih.
+    \item \asm{MUL} 8 bit mengalikan \reg{AL} dengan operand dan
+          menyimpan hasil di \reg{AX}. \asm{MUL} 16 bit mengalikan
+          \reg{AX} dengan operand dan menyimpan hasil di
+          \reg{DX}:\reg{AX}.
 
-    \item \asm{MUL} dan \asm{IMUL} memakai operand implisit
-          \reg{AL} atau \reg{AX} dan menghasilkan bilangan berukuran
-          dua kali operand pada \reg{AX} atau \reg{DX}:\reg{AX}.
+    \item \asm{DIV} 8 bit membagi \reg{AX} dengan operand; hasil
+          bagi di \reg{AL} dan sisa di \reg{AH}. \asm{DIV} 16 bit
+          membagi \reg{DX}:\reg{AX}; hasil bagi di \reg{AX} dan
+          sisa di \reg{DX}.
 
-    \item \asm{DIV} dan \asm{IDIV} membagi \reg{AX} atau
-          \reg{DX}:\reg{AX}. Hasil bagi yang tidak muat pada register
-          tujuan menimbulkan kesalahan \eng{divide overflow}, sehingga
-          pemeriksaan \lstasm|CMP AH, BL| perlu dilakukan lebih
-          dahulu.
-
-    \item Aritmatika bertingkat disusun dengan \asm{ADC} dan
-          \asm{SBB} agar \eng{carry} dan pinjaman diteruskan dari
-          word rendah ke word tinggi.
-
-    \item Bilangan biner diubah menjadi digit desimal dengan
-          pembagian berulang sepuluh, lalu digit-digitnya dicetak
-          dengan \code{INT 21h} fungsi \hex{02}.
+    \item \eng{Divide overflow} terjadi bila hasil bagi tidak muat
+          pada register tujuan. Pemeriksaan \reg{AH} atau \reg{DX}
+          harus dilakukan sebelum \asm{DIV}.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
-    \item[\checkbox] Saya dapat menyebutkan tiga aturan legalitas
-          \asm{MOV} beserta contoh yang sah dan yang ditolak.
-    \item[\checkbox] Saya dapat menjelaskan perbedaan \asm{MOV} dan
-          \asm{LEA} serta memilih yang tepat sesuai kebutuhan.
-    \item[\checkbox] Saya dapat memakai \asm{PUSH} dan \asm{POP}
-          dengan jumlah yang seimbang.
-    \item[\checkbox] Saya dapat menyebutkan \eng{flag} yang
-          terpengaruh oleh setiap instruksi aritmatika dasar.
-    \item[\checkbox] Saya dapat menuliskan perkalian dan pembagian
-          dengan operand implisit yang benar.
-    \item[\checkbox] Saya dapat memeriksa dan menangani kesalahan
+    \item[\checkbox] Saya dapat menggunakan \asm{ADD}, \asm{ADC},
+          dan \asm{INC}.
+    \item[\checkbox] Saya dapat menggunakan \asm{SUB}, \asm{SBB},
+          dan \asm{DEC}.
+    \item[\checkbox] Saya dapat menjelaskan pengaruh operasi
+          aritmatika terhadap \eng{flag}.
+    \item[\checkbox] Saya dapat membedakan \flag{CF} dan \flag{OF}.
+    \item[\checkbox] Saya dapat menyusun aritmatika 32 bit dengan
+          \asm{ADC} dan \asm{SBB}.
+    \item[\checkbox] Saya dapat menggunakan \asm{MUL} sesuai aturan
+          operand.
+    \item[\checkbox] Saya dapat menggunakan \asm{DIV} dan memeriksa
           \eng{divide overflow}.
-    \item[\checkbox] Saya dapat menyusun penjumlahan 32 bit dengan
-          \asm{ADD} dan \asm{ADC}.
-    \item[\checkbox] Saya dapat mengubah nilai register menjadi
-          deretan digit desimal dan mencetaknya.
+    \item[\checkbox] Saya dapat memverifikasi hasil dengan DEBUG
+          atau emu8086.
 \end{itemize}
 
 \vspace{0.4em}
@@ -82,11 +68,8 @@ bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Pembahasan operand implisit dan pengaruh
-\eng{flag} pada bab ini diperkuat oleh \cite{bartlett2004} dan
-\cite{brey2009}. Rincian aturan perakitan dan penanganan kesalahan
-\eng{divide overflow} dapat ditelusuri pada \cite{hyde2010}. Contoh
-penerapan aritmatika pada program lengkap dibahas oleh
-\cite{uva2024}. Aturan \eng{flag} secara rinci tercantum pada
-\cite{intel1979}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 14, hlm.~127--142, dan
+\cite{sto2001}, BAB VIII, hlm.~32--40.
 \end{infobox}

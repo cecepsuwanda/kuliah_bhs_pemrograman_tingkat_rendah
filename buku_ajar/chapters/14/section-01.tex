@@ -1,283 +1,124 @@
-\section{Konsep Interupsi dan Tabel Vektor}
-\label{sec:konsep-interupsi}
+\section{Stack dan Instruksi PUSH/POP}
+\label{sec:stack}
 
-Pada Bab~\ref{chap:pengenalan}, layanan \code{INT 21h} dipakai sebagai
-kotak hitam. Bab ini membuka kotak hitam tersebut: pertanyaannya bukan
-lagi ``bagaimana memakai'' layanan, melainkan ``apa yang sesungguhnya
-terjadi'' ketika \asm{INT} dijalankan.
+\eng{Stack} adalah daerah memori yang dipakai untuk menyimpan data
+sementara dengan aturan \eng{last in, first out} (LIFO): data yang
+terakhir dimasukkan adalah data yang pertama diambil. Stack dipakai
+untuk menyimpan alamat kembali prosedur, parameter, dan nilai
+sementara.
 
-\subsection{Mengapa Interupsi Diperlukan}
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 12,
+hlm.~115--117, dan \cite{sto2001}, BAB XIV, hlm.~73--77.
 
-Prosesor berjalan jauh lebih cepat daripada perangkat di sekitarnya.
-Bila program terus-menerus memeriksa status keyboard, sebagian besar
-waktunya terbuang untuk pengulangan yang hampir selalu sia-sia. Cara
-ini disebut \eng{polling}.
+\subsection{Kedudukan Stack di Memori}
 
-\begin{definisi}
-\term{Interupsi} adalah mekanisme yang memaksa prosesor menghentikan
-sementara alur program, memindahkan kendali ke rutin khusus yang
-disebut \term{penangan interupsi} (\eng{interrupt handler}), lalu
-melanjutkan kembali program semula tepat pada instruksi berikutnya.
-\end{definisi}
+Stack ditunjuk oleh pasangan register \reg{SS} dan \reg{SP}. Alamat
+sel teratas adalah:
+\[
+    (\reg{SS} \times \hex{10}) + \reg{SP}.
+\]
 
-Interupsi juga menjadi sarana baku untuk meminta layanan sistem:
-program cukup memanggil \code{INT 10h} tanpa menulis sendiri rutin
-pengendali video \cite{intel1979}.
+Stack 8086 tumbuh ke arah alamat yang lebih rendah. Setiap kali data
+didorong, \reg{SP} berkurang dua; setiap kali data diambil, \reg{SP}
+bertambah dua. Satu sel stack berukuran satu \eng{word} atau dua byte.
 
-\subsection{Tiga Jenis Interupsi}
+\subsection{PUSH}
 
-Berdasarkan sumber pemicunya, interupsi dibagi menjadi tiga jenis.
+\asm{PUSH} menyimpan satu word ke puncak stack. Langkahnya:
 
 \begin{enumerate}
-    \item \term{Interupsi perangkat keras} berasal dari luar prosesor
-          melalui kaki \file{INTR} atau \file{NMI}. Interupsi melalui
-          \file{INTR} bersifat \eng{maskable}: dapat ditahan bila
-          \flag{IF} bernilai nol. Interupsi melalui \file{NMI} tidak
-          dapat ditolak dan dipakai untuk kejadian gawat.
-
-    \item \term{Interupsi perangkat lunak} dipicu instruksi
-          \lstasm|INT n| di dalam program. Instruksi ini sengaja
-          dijalankan untuk meminta layanan; seluruh layanan BIOS dan
-          DOS termasuk jenis ini.
-
-    \item \term{Pengecualian} (\eng{exception}) dibangkitkan prosesor
-          ketika terjadi keadaan yang tidak diinginkan. Instruksi
-          \lstasm|DIV| dengan pembagi nol memicu vektor \hex{00},
-          sedangkan \lstasm|INTO| memicu vektor \hex{04} bila
-          \flag{OF} bernilai satu.
+    \item \reg{SP} dikurangi dua;
+    \item isi operand disalin ke memori \reg{SS}:\reg{SP}.
 \end{enumerate}
 
-Perbedaan ketiga jenis tersebut dirangkum pada
-Tabel~\ref{tab:jenis-interupsi}.
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, 1234h
+PUSH AX             ; SP = SP - 2; [SS:SP] = 1234h
+\end{lstlisting}
 
-\begin{table}[H]
-    \centering
-    \caption{Tiga jenis interupsi pada prosesor 8086.}
-    \label{tab:jenis-interupsi}
-    \small
-    \begin{tabular}{@{}p{2.5cm}p{3.1cm}p{4.1cm}p{3.9cm}@{}}
-        \toprule
-        \textbf{Jenis} & \textbf{Sumber} & \textbf{Contoh} &
-        \textbf{Sifat} \\
-        \midrule
-        Perangkat keras & Kaki \file{INTR} atau \file{NMI} &
-        Timer 18,2 kali per detik (\hex{08}); penekanan tombol
-        (\hex{09}) & Terjadi kapan saja, tidak direncanakan program \\
-        \addlinespace
-        Perangkat lunak & Instruksi \lstasm|INT n| &
-        \code{INT 21h} fungsi \hex{09} untuk mencetak string &
-        Disengaja, hasilnya dapat diperkirakan \\
-        \addlinespace
-        Pengecualian & Prosesor, akibat kesalahan eksekusi &
-        Pembagian dengan nol (\hex{00}); limpahan \lstasm|INTO|
-        (\hex{04}) & Menandakan kesalahan yang harus ditangani \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\subsection{POP}
 
-\subsection{Tabel Vektor Interupsi}
+\asm{POP} mengambil satu word dari puncak stack. Langkahnya:
 
-Prosesor harus mengetahui letak rutin penangan setiap interupsi. Untuk
-itu, 256 kemungkinan interupsi pada 8086 diberi nomor \hex{00} sampai
-\hex{FF}, dan alamat setiap penangan disimpan pada \term{tabel vektor
-interupsi} (\eng{interrupt vector table}). Tabel ini menempati 1.024
-byte pertama memori, yaitu alamat \hex{0000} sampai \hex{03FF} pada
-segmen nol, dan mampu menampung $1.024 \div 4 = 256$ vektor.
+\begin{enumerate}
+    \item isi memori \reg{SS}:\reg{SP} disalin ke operand tujuan;
+    \item \reg{SP} ditambah dua.
+\end{enumerate}
 
-Setiap entri terdiri atas 2 byte \term{offset} penangan yang dimuat ke
-\reg{IP}, diikuti 2 byte \term{segmen} yang dimuat ke \reg{CS}. Bagian
-bernilai lebih rendah diletakkan pada alamat yang lebih rendah. Tata
-letaknya tampak pada Gambar~\ref{fig:tabel-vektor}.
+\begin{lstlisting}[language=MASM, numbers=none]
+POP BX              ; BX = [SS:SP]; SP = SP + 2
+\end{lstlisting}
+
+Gambar~\ref{fig:push-pop} memperlihatkan perubahan \reg{SP} dan isi
+stack pada \asm{PUSH} dan \asm{POP}.
 
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        alamat/.style={font=\ttfamily\scriptsize, text=obeGray,
-                       anchor=east},
-        sel/.style={draw=obeGray, line width=0.6pt,
-                    minimum height=0.5cm, minimum width=1.45cm,
-                    inner sep=0pt, anchor=west},
-        selisi/.style={sel, fill=obeBlueLight},
-        ket/.style={font=\scriptsize, anchor=west, text=obeBlue},
-        kopf/.style={font=\scriptsize\bfseries, text=obeGray}
-    ]
-        \node[kopf, anchor=east] at (1.55,0) {vektor};
-        \node[kopf, anchor=east] at (3.05,0) {alamat};
-        \node[kopf, anchor=west] at (3.30,0) {isi 4 byte};
-        \node[kopf, anchor=west] at (6.45,0) {keterangan};
-        \draw[obeGray, line width=0.5pt] (-1.7,0.28) -- (9.4,0.28);
-
-        \foreach \r/\v/\a/\k in {%
-            0/00h/0000h/{pembagian dengan nol},
-            1/01h/0004h/{eksekusi satu langkah},
-            2/02h/0008h/{interupsi NMI},
-            3/08h/0020h/{timer sistem},
-            4/09h/0024h/{keyboard},
-            5/10h/0040h/{layanan video BIOS},
-            6/16h/0058h/{layanan keyboard BIOS},
-            7/17h/005Ch/{layanan printer BIOS},
-            8/1Ch/0070h/{timer tick bagi pengguna},
-            9/21h/0084h/{layanan DOS},
-            10/FFh/03FCh/{belum ditetapkan}%
-        }{%
-            \pgfmathsetmacro{\y}{-0.58*\r-0.30}
-            \node[alamat] at (1.55,\y) {\v};
-            \node[alamat] at (3.05,\y) {\a};
-            \node[selisi] at (3.30,\y) {offset};
-            \node[selisi] at (4.75,\y) {segmen};
-            \node[ket] at (6.45,\y) {\k};
-        }
-    \end{tikzpicture}
-    \caption{Tata letak tabel vektor interupsi pada segmen nol, dari
-    alamat \hex{0000} sampai \hex{03FF}. Entri berisi alamat penangan,
-    bukan penangan itu sendiri.}
-    \label{fig:tabel-vektor}
-\end{figure}
-
-\subsection{Menghitung Alamat Vektor ke-\texorpdfstring{$n$}{n}}
-
-Karena setiap vektor berukuran tetap, alamat awal vektor bernomor $n$
-dihitung dengan rumus berikut:
-
-\begin{equation}
-\label{eq:alamat-vektor}
-\text{alamat vektor}_n = n \times 4
-\end{equation}
-
-Hasilnya adalah offset di dalam segmen nol. Vektor \hex{09} (keyboard)
-berada pada $9 \times 4 = 36 = \hex{24}$, vektor \hex{10} (video BIOS)
-pada $16 \times 4 = 64 = \hex{40}$, dan vektor \hex{21} (layanan DOS)
-pada $33 \times 4 = 132 = \hex{84}$. Vektor yang sering dijumpai pada
-praktikum dirangkum pada Tabel~\ref{tab:vektor-penting}.
-
-\begin{table}[H]
-    \centering
-    \caption{Vektor interupsi penting beserta alamat dan kegunaannya.}
-    \label{tab:vektor-penting}
-    \small
-    \begin{tabular}{@{}ccp{3.0cm}p{6.0cm}@{}}
-        \toprule
-        \textbf{Vektor} & \textbf{Alamat entri} & \textbf{Pemicu} &
-        \textbf{Kegunaan} \\
-        \midrule
-        \hex{00} & \hex{0000} & Pengecualian prosesor &
-        Pembagian dengan nol, dipicu otomatis oleh \lstasm|DIV| \\
-        \addlinespace
-        \hex{01} & \hex{0004} & Pengecualian prosesor &
-        Eksekusi satu langkah, dipicu saat \flag{TF} bernilai satu \\
-        \addlinespace
-        \hex{08} & \hex{0020} & Perangkat keras &
-        Timer sistem, dibangkitkan 18,2 kali per detik \\
-        \addlinespace
-        \hex{09} & \hex{0024} & Perangkat keras &
-        Penekanan dan pelepasan tombol keyboard \\
-        \addlinespace
-        \hex{10} & \hex{0040} & Perangkat lunak &
-        Layanan video BIOS: mode layar, kursor, penulisan karakter \\
-        \addlinespace
-        \hex{16} & \hex{0058} & Perangkat lunak &
-        Layanan keyboard BIOS: membaca dan memeriksa tombol \\
-        \addlinespace
-        \hex{17} & \hex{005C} & Perangkat lunak &
-        Layanan printer BIOS \\
-        \addlinespace
-        \hex{1A} & \hex{0068} & Perangkat lunak &
-        Waktu dan tanggal dari jam perangkat keras \\
-        \addlinespace
-        \hex{1C} & \hex{0070} & Perangkat lunak &
-        Timer \eng{tick} bagi pengguna, dipanggil dari penangan
-        \hex{08} \\
-        \addlinespace
-        \hex{21} & \hex{0084} & Perangkat lunak &
-        Layanan DOS: masukan, keluaran, berkas, terminasi program \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\subsection{Mekanisme \asm{INT} dan \asm{IRET}}
-
-Instruksi \lstasm|INT n| bekerja seperti pemanggilan prosedur jarak
-jauh, tetapi dengan tambahan penyimpanan \eng{flag}
-\cite{intel1979}. Urutannya:
-
-\begin{enumerate}
-    \item isi register \reg{FLAGS} disimpan ke stack;
-    \item register \reg{CS} disimpan ke stack;
-    \item register \reg{IP} --- yang ketika itu sudah menunjuk
-          instruksi sesudah \lstasm|INT n| --- disimpan ke stack;
-    \item \flag{IF} dan \flag{TF} dikosongkan, sehingga interupsi
-          perangkat keras ditahan sementara dan eksekusi satu langkah
-          tidak aktif;
-    \item alamat penangan dibaca dari entri vektor pada alamat
-          $n \times 4$; dua byte pertama dimuat ke \reg{IP} dan dua
-          byte berikutnya ke \reg{CS}.
-\end{enumerate}
-
-Ketiga penyimpanan itu menurunkan \reg{SP} sebanyak 6 byte. Isi stack
-sesudahnya tampak pada Gambar~\ref{fig:stack-int}.
-
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        sel/.style={draw=obeTeal, line width=0.7pt, fill=obeTealLight,
-                    minimum width=3.0cm, minimum height=0.55cm,
-                    font=\ttfamily\small, inner sep=0pt},
-        old/.style={draw=obeGray, line width=0.7pt, fill=obeGrayLight,
-                    minimum width=3.0cm, minimum height=0.55cm,
-                    font=\ttfamily\small, inner sep=0pt},
-        alamat/.style={font=\ttfamily\scriptsize, text=obeGray,
-                       anchor=west},
+        sel/.style={
+            draw=obeBlue, line width=0.6pt, minimum width=3.2cm,
+            minimum height=0.55cm, font=\ttfamily\small,
+            inner sep=0pt
+        },
+        isi/.style={sel, fill=obeBlueLight},
+        kosong/.style={sel, fill=obeGrayLight},
         panah/.style={-{Stealth[length=2.2mm]}, line width=0.9pt,
-                      obeMaroon}
+            obeMaroon}
     ]
-        \node[sel] (ip) at (0,0) {\reg{IP}};
-        \node[sel] (cs) [below=0pt of ip] {\reg{CS}};
-        \node[sel] (fl) [below=0pt of cs] {\reg{FLAGS}};
-        \node[old] (lama) [below=0pt of fl] {data lama};
+        \node[isi] (a0) at (0,0) {1234h};
+        \node[kosong] (a1) [below=0pt of a0] {kosong};
+        \node[font=\scriptsize, text=obeGray, anchor=west]
+            at (1.75,0) {SP sesudah PUSH};
+        \node[font=\scriptsize, text=obeGray, anchor=west]
+            at (1.75,-0.55) {SP sebelum PUSH};
 
-        \node[alamat] at (1.65,0) {SS:SP};
-        \node[alamat] at (1.65,-0.55) {SS:SP+2};
-        \node[alamat] at (1.65,-1.10) {SS:SP+4};
-
-        \draw[panah] (-2.9,0) -- (-1.62,0);
+        \draw[panah] (-2.0,0) -- (-1.65,0);
+        \draw[panah] (-2.0,-0.55) -- (-1.65,-0.55);
         \node[font=\scriptsize, text=obeMaroon, anchor=east]
-            at (-3.0,0) {SP sesudah \asm{INT}};
-
-        \node[font=\scriptsize, text=obeGray, anchor=north west,
-              align=left] at (-3.0,-2.35)
-            {SP berkurang 6 byte. Pengambilan\\kembali oleh \asm{IRET}
-             dilakukan\\dalam urutan terbalik.};
+            at (-2.1,0) {PUSH};
+        \node[font=\scriptsize, text=obeMaroon, anchor=east]
+            at (-2.1,-0.55) {awal};
     \end{tikzpicture}
-    \caption{Isi stack sesudah instruksi \asm{INT n} dijalankan,
-    dengan \reg{SP} menunjuk pada nilai \reg{IP} yang tersimpan paling
-    akhir.}
-    \label{fig:stack-int}
+    \caption{Puncak stack sebelum dan sesudah \asm{PUSH AX}. Stack
+    tumbuh ke alamat rendah.}
+    \label{fig:push-pop}
 \end{figure}
 
-Instruksi \lstasm|IRET| melakukan tiga pengambilan berurutan, yaitu
-\reg{IP}, \reg{CS}, lalu \reg{FLAGS}, persis kebalikan urutan
-penyimpanan. Bandingkan dengan \lstasm|CALL| pada
-Bab~\ref{chap:prosedur} yang hanya menyimpan \reg{CS} dan \reg{IP}:
-\lstasm|IRET| setara dengan \lstasm|RET| ditambah \lstasm|POPF|.
+\subsection{Aturan Pemakaian}
+
+\begin{itemize}
+    \item \asm{PUSH} dan \asm{POP} bekerja pada operand 16 bit.
+          Pada 8086 tidak tersedia \lstasm|PUSH AL|.
+    \item Operand nilai segera tidak dapat didorong langsung pada
+          8086.
+    \item Setiap \asm{PUSH} harus berpasangan dengan \asm{POP} agar
+          \reg{SP} kembali ke posisi semula.
+    \item Isi stack bersifat sementara. Data yang didorong dapat
+          ditimpa oleh pemanggilan prosedur berikutnya.
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Perubahan stack pada PUSH dan POP.}
+    \label{tab:push-pop}
+    \small
+    \begin{tabular}{@{}p{2.1cm}p{3.0cm}p{3.0cm}p{5.5cm}@{}}
+        \toprule
+        \textbf{Instruksi} & \textbf{\reg{SP}} &
+        \textbf{Isi stack} & \textbf{Keterangan} \\
+        \midrule
+        \asm{PUSH} sumber & berkurang 2 &
+        operand disimpan & Stack tumbuh ke alamat rendah \\
+        \addlinespace
+        \asm{POP} tujuan & bertambah 2 &
+        operand diambil & Data teratas diambil lebih dahulu \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \begin{peringatanbox}
-Rutin penangan interupsi wajib diakhiri \lstasm|IRET|, bukan
-\lstasm|RET|. Bila \lstasm|RET| dipakai, dua byte teratas stack yang
-diambil sebagai alamat kembali justru berisi \reg{FLAGS}, sehingga
-prosesor melompat ke alamat acak dan program menghentikan diri atau
-sistem membeku.
+\vspace{1.1em}
+Jumlah \asm{PUSH} dan \asm{POP} harus seimbang. Bila tidak seimbang,
+\reg{SP} tidak kembali ke posisi semula dan instruksi \asm{RET}
+dapat mengambil alamat kembali yang salah.
 \end{peringatanbox}
-
-\subsection{Flag \flag{TF} dan Eksekusi Satu Langkah}
-
-Bit ke-8 register \reg{FLAGS} adalah \term{trap flag} \flag{TF}. Bila
-bit ini bernilai satu, prosesor menjalankan satu instruksi lalu segera
-membangkitkan interupsi vektor \hex{01}. Mekanisme inilah yang dipakai
-\eng{debugger} untuk menyediakan tombol \file{Single Step} pada Emu8086
-atau perintah \file{T} pada DEBUG \cite{ebrahim2018}.
-
-Peran \flag{TF} menjelaskan langkah keempat mekanisme \lstasm|INT| di
-atas: bila flag itu tetap bernilai satu, penangan akan memicu vektor
-\hex{01} setiap kali satu instruksinya selesai sehingga prosesor
-terjebak. Pemakaiannya pada penelusuran program dibahas pada
-Bab~\ref{chap:debugging}.

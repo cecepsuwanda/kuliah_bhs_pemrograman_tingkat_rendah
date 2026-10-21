@@ -2,180 +2,115 @@
 \label{sec:praktikum-bab15}
 
 \begin{praktikumbox}
-\textbf{Judul:} \eng{Debugging} terpandu tiga kasus bug tingkat
-instruksi.\\[0.3em]
-\textbf{Sub-CPMK:} 4.1 dan 4.2 \quad\textbullet\quad
+\vspace{1.1em}
+\textbf{Judul:} Mengolah array/string dan mencetak bilangan.\\[0.3em]
+\textbf{Sub-CPMK:} 3.6 \quad\textbullet\quad
 \textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
-\textbf{Bentuk:} individu, laporan tertulis
+\textbf{Bentuk:} individu
 \end{praktikumbox}
 
 \subsection{Tujuan Praktikum}
 
-Setelah menyelesaikan praktikum ini, mahasiswa mampu menelusuri
-program pada level instruksi dengan perintah \code{R}, \code{U},
-\code{T}, \code{P}, \code{G}, dan \code{D}; mengisi tabel \eng{trace}
-register dan \eng{flag}; membaca \eng{dump} memori dan \eng{stack};
-serta menemukan dan memperbaiki perulangan tak berujung, kesalahan
-\eng{off-by-one}, dan \eng{stack} yang tidak seimbang.
+Setelah menyelesaikan praktikum ini, mahasiswa mampu mengakses array,
+menyalin string, serta mengubah dan mencetak bilangan desimal dan
+heksadesimal.
 
 \subsection{Alat dan Bahan}
 
 \begin{itemize}
-    \item Komputer dengan sistem operasi Windows.
-    \item DOSBox beserta berkas \file{DEBUG.EXE}.
-    \item TASM dan TLINK (atau Emu8086 sebagai pembanding).
-    \item Berkas \file{bug-loop.asm}, \file{bug-stack.asm}, dan
-          \file{program-larik.asm} yang disiapkan dosen.
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \file{array-string.asm} dan
+          \file{cetak-bilangan.asm} dari \file{code/asm/}.
+    \item Lembar pengamatan memori dan keluaran.
 \end{itemize}
 
 \subsection{Langkah Kerja}
 
 \begin{enumerate}
-    \item \textbf{Menyiapkan berkas uji.}
+    \item \textbf{Menguji array dan string.}
     \begin{enumerate}
-        \item Salin berkas \file{bug-loop.asm} ke direktori kerja
-              DOSBox, lalu rakit dan gabungkan dengan perintah
-              \file{tasm bug-loop.asm} dan \file{tlink bug-loop.obj}.
-        \item Ulangi langkah yang sama untuk \file{bug-stack.asm}.
-        \item Tuliskan program \eng{off-by-one} pada
-              Kode~\ref{lst:off-by-one} ke dalam berkas
-              \file{program-larik.asm}, lalu rakit.
+        \item Rakit \file{array-string.asm} dengan TASM, lalu link
+              dengan TLINK.
+        \item Jalankan program. Program tidak mencetak keluaran.
+        \item Jalankan \file{debug array-string.exe}, lalu periksa
+              segmen data dengan \lstasm|D DS:0000 L 30|.
+        \item Catat nilai \code{jumlah}, isi \code{tujuan}, dan
+              \code{panjang}.
+        \item Bandingkan dengan Tabel~\ref{tab:hasil-array}.
     \end{enumerate}
 
-    \item \textbf{Kasus 1: perulangan tak berujung
-          (\file{bug-loop.exe}).}
+    \item \textbf{Mengubah array.}
     \begin{enumerate}
-        \item Jalankan DEBUG, lalu muat program dengan urutan
-              \code{N} dan \code{L}.
-        \item Catat keluaran \code{R}. Berapa nilai \reg{CS}, \reg{IP},
-              \reg{DS}, \reg{SS}, dan \reg{SP}?
-        \item Tampilkan hasil pembongkaran dengan \code{U 0000 001c},
-              lalu salin ke dalam laporan.
-        \item Jalankan \code{T} sekurang-kurangnya sepuluh kali.
-              Catat setiap langkah pada tabel \eng{trace}
-              (gunakan susunan kolom pada
-              Tabel~\ref{tab:trace-register}).
-        \item Jawab: pada langkah berapa penyimpangan mulai terjadi,
-              dan register apa yang menyimpang?
-        \item Tuliskan hipotesis penyebab, buktikan dengan data
-              \eng{trace}, lalu ubah program dan rakit ulang sampai
-              keluarannya benar (\hex{000F} atau \dec{15}).
+        \item Ubah array menjadi \code{5, 10, 15, 20, 25}.
+        \item Rakit ulang dan periksa \code{jumlah}.
+        \item Pastikan hasilnya 75.
     \end{enumerate}
 
-    \item \textbf{Kasus 2: kesalahan \eng{off-by-one}
-          (\file{program-larik.exe}).}
+    \item \textbf{Mengubah string.}
     \begin{enumerate}
-        \item Muat program ke dalam DEBUG, lalu jalankan sampai
-              perulangan selesai menggunakan \code{G} pada alamat
-              setelah \asm{LOOP}.
-        \item Tampilkan isi larik dengan \code{D DS:0}.
-        \item Tentukan berapa byte yang seharusnya dibaca dan berapa
-              byte yang benar-benar dibaca.
-        \item Perbaiki program, rakit ulang, dan buktikan bahwa
-              hasilnya sekarang \hex{0096}.
+        \item Ubah \code{sumber} menjadi \code{'MIKROPROSESOR\$'}.
+        \item Perbesar buffer \code{tujuan} bila diperlukan.
+        \item Rakit ulang dan pastikan salinan serta panjangnya
+              benar.
     \end{enumerate}
 
-    \item \textbf{Kasus 3: \eng{stack} tidak seimbang
-          (\file{bug-stack.exe}).}
+    \item \textbf{Menguji pencetakan bilangan.}
     \begin{enumerate}
-        \item Muat program, lalu jalankan dengan \code{G 0005} agar
-              berhenti tepat sebelum \asm{CALL}.
-        \item Telusuri dengan \code{T} sampai seluruh register selesai
-              ditekan. Perhatikan nilai \reg{SP} pada setiap langkah
-              dan catat pada tabel \eng{trace} dengan menambahkan
-              kolom \reg{SP}.
-        \item Tampilkan \eng{stack} dengan \code{D SS:SP}, lalu
-              gambarkan susunan bingkai \eng{stack}-nya seperti pada
-              Gambar~\ref{fig:stack-frame}.
-        \item Lanjutkan penelusuran sampai \asm{RET} dijalankan.
-              Alamat berapa yang diambil oleh \asm{RET}, dan mengapa
-              demikian?
-        \item Bandingkan pemakaian \code{T} dan \code{P} pada
-              instruksi \asm{CALL} tersebut. Tuliskan perbedaan
-              keluarannya dan jelaskan kapan masing-masing lebih
-              tepat dipakai.
-        \item Perbaiki program sehingga pesan \code{Selesai.}
-              tercetak.
+        \item Rakit dan jalankan \file{cetak-bilangan.asm}.
+        \item Catat keluarannya.
+        \item Ubah \code{nilai} menjadi 255, lalu rakit ulang.
+        \item Pastikan keluaran desimal 255 dan heksadesimal 00FF.
+    \end{enumerate}
+
+    \item \textbf{Menelusuri konversi desimal.}
+    \begin{enumerate}
+        \item Jalankan program pada emu8086 dengan \eng{single step}.
+        \item Masuk ke \code{CETAK\_DESIMAL}.
+        \item Catat hasil bagi dan sisa setiap \asm{DIV BX}.
+        \item Jelaskan mengapa sisa disimpan pada \eng{stack}.
+    \end{enumerate}
+
+    \item \textbf{Menelusuri konversi heksadesimal.}
+    \begin{enumerate}
+        \item Masuk ke \code{CETAK\_HEX}.
+        \item Catat nilai \reg{AL} setelah \asm{ROL AX, 4} dan
+              \asm{AND DL, 0Fh}.
+        \item Jelaskan mengapa nilai 10--15 perlu ditambah 7 sebelum
+              diubah menjadi karakter.
     \end{enumerate}
 \end{enumerate}
-
-\subsection{Tabel Kerja}
-
-Salin dan lengkapi tabel berikut pada jurnal praktikum Anda.
-
-\begin{table}[H]
-    \centering
-    \caption{Templat tabel \eng{trace} untuk diisi mahasiswa.}
-    \label{tab:template-trace}
-    \scriptsize
-    \setlength{\tabcolsep}{2.5pt}
-    \begin{tabular}{@{}rl l rrrr r ccc p{2.3cm}@{}}
-        \toprule
-        \textbf{L} & \textbf{Alamat} & \textbf{Instruksi} &
-        \textbf{AX} & \textbf{BX} & \textbf{CX} & \textbf{DX} &
-        \textbf{SP} & \textbf{ZF} & \textbf{CF} & \textbf{OF} &
-        \textbf{Keterangan} \\
-        \midrule
-        1 & & & & & & & & & & & \\
-        \addlinespace
-        2 & & & & & & & & & & & \\
-        \addlinespace
-        3 & & & & & & & & & & & \\
-        \addlinespace
-        4 & & & & & & & & & & & \\
-        \addlinespace
-        5 & & & & & & & & & & & \\
-        \bottomrule
-    \end{tabular}
-\end{table}
 
 \subsection{Hasil yang Dikumpulkan}
 
 \begin{enumerate}
-    \item Tabel \eng{trace} lengkap untuk ketiga kasus, minimal
-          sepuluh langkah per kasus, memuat kolom \reg{AX},
-          \reg{BX}, \reg{CX}, \reg{DX}, \reg{SP}, \flag{ZF},
-          \flag{CF}, dan \flag{OF}.
-    \item Salinan keluaran \code{R}, \code{U}, \code{D}, dan
-          \code{T} untuk setiap kasus.
-    \item Rumusan hipotesis dan bukti pengujiannya untuk setiap
-          kasus, ditulis dengan alur metodologi pada
-          Gambar~\ref{fig:metodologi-debugging}.
-    \item Berkas hasil perbaikan ketiga program beserta tangkapan
-          layar keluarannya.
-    \item Perbandingan pengalaman memakai \code{T} dan \code{P} pada
-          instruksi \asm{CALL}.
+    \item Berkas \file{array-string.asm} dan
+          \file{cetak-bilangan.asm} versi modifikasi.
+    \item Tangkapan layar isi segmen data.
+    \item Tangkapan layar keluaran program pencetakan.
+    \item Tabel hasil konversi desimal dan heksadesimal.
+    \item Penjelasan penggunaan \eng{stack} pada konversi desimal.
 \end{enumerate}
 
 \begin{asesmenbox}
-\textbf{Asesmen kinerja \eng{debugging} (bobot 10\% dari komponen
-praktikum).} Penilaian dilakukan terhadap laporan dan demonstrasi
-langsung.
+\vspace{1.1em}
+\textbf{Asesmen praktikum 13 (bobot 5\% dari komponen praktikum).}
 
-\begin{tabular}{@{}p{2.6cm}cp{9.6cm}@{}}
+\begin{tabular}{@{}p{6.2cm}cp{4.6cm}@{}}
     \toprule
-    \textbf{Aspek kinerja} & \textbf{Bobot} & \textbf{Kriteria} \\
+    \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
     \midrule
-    Penggunaan perintah DEBUG & 20\% &
-    Mampu memuat berkas (\code{N}, \code{L}), menampilkan register
-    (\code{R}), membongkar kode (\code{U}), dan menelusuri
-    (\code{T}, \code{P}, \code{G}) tanpa bantuan \\
+    Ketepatan pengolahan array & 25\% &
+    Jumlah elemen dan hasil penjumlahan benar \\
     \addlinespace
-    Ketepatan tabel \eng{trace} & 25\% &
-    Nilai register dan \eng{flag} tercatat benar pada setiap langkah;
-    perbedaan \code{T} dan \code{P} dicatat dengan tepat \\
+    Ketepatan penyalinan string & 25\% &
+    Salinan dan panjang string benar \\
     \addlinespace
-    Analisis \eng{dump} memori & 20\% &
-    Mampu menafsirkan isi larik dan bingkai \eng{stack}; menemukan
-    byte atau alamat yang menyimpang \\
+    Ketepatan konversi desimal & 25\% &
+    Digit dan urutan cetak benar \\
     \addlinespace
-    Ketepatan diagnosis & 20\% &
-    Hipotesis sesuai bukti; penyebab yang disebutkan benar-benar
-    sumber kesalahan, bukan gejala \\
-    \addlinespace
-    Mutu perbaikan dan verifikasi & 15\% &
-    Perbaikan mengubah satu hal pada satu waktu dan seluruh kasus uji
-    diulang setelah perbaikan \\
+    Ketepatan konversi heksadesimal & 25\% &
+    Empat digit dan konversi A--F benar \\
     \bottomrule
 \end{tabular}
 \end{asesmenbox}

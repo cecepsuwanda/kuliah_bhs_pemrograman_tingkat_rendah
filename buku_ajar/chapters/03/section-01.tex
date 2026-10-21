@@ -1,39 +1,43 @@
-\section{Tingkat Abstraksi Bahasa Pemrograman}
-\label{sec:tingkat-abstraksi}
+\section{Kedudukan dan Peran Bahasa Assembly}
+\label{sec:peran-assembly}
 
-Sebuah program pada akhirnya harus dijalankan oleh perangkat keras,
-yaitu rangkaian gerbang logika di dalam prosesor yang hanya mengenal
-sinyal listrik bernilai tinggi atau rendah. Karena itu, seluruh
-instruksi yang dipahami prosesor pada dasarnya hanyalah deretan bit.
-Perbedaan antarbahasa pemrograman terletak pada \term{tingkat
-abstraksi}: seberapa jauh bahasa tersebut menyembunyikan detail
-perangkat keras dari programmer.
+Prosesor pada akhirnya hanya mengenal sinyal listrik yang mewakili
+nilai tinggi atau rendah. Seluruh instruksi yang dijalankan komputer
+merupakan deretan bit yang disusun menurut aturan tertentu. Manusia
+dapat menulis deretan bit itu secara langsung, tetapi cara tersebut
+sangat lambat dan rawan kesalahan. Bahasa assembly hadir sebagai
+representasi simbolik yang lebih mudah dibaca tanpa meninggalkan
+kendali atas instruksi mesin.
 
-\subsection{Tiga Tingkat Bahasa}
+Bagian ini diringkas dari \cite{sto2001}, Kata Pengantar, hlm.~3, dan
+BAB I, hlm.~6--8, serta \cite{gunawan2019}, Bagian 1, hlm.~10--11.
 
-Secara umum bahasa pemrograman dibagi menjadi tiga tingkat.
+\subsection{Tiga Tingkat Bahasa Pemrograman}
+
+Berdasarkan kedekatannya dengan perangkat keras, bahasa pemrograman
+dibagi menjadi tiga tingkat.
 
 \begin{enumerate}
-    \item \term{Bahasa mesin} (\eng{machine code}) adalah deretan bit
-          yang langsung dikenali prosesor. Contoh potongan kode mesin
-          8086 untuk memindahkan nilai 5 ke register AX adalah
-          \hex{B8 05 00} dalam notasi heksadesimal. Bahasa mesin tidak
-          memiliki nama simbolik sehingga sangat sulit dibaca dan
-          ditulis manusia.
+    \item \term{Bahasa mesin} adalah deretan bit yang langsung dikenali
+          prosesor. Bahasa ini tidak memiliki nama simbolik, sehingga
+          sulit dibaca dan ditulis manusia.
 
     \item \term{Bahasa assembly} adalah representasi simbolik dari
           bahasa mesin. Setiap instruksi mesin diberi nama pendek
-          (\eng{mnemonic}) yang lebih mudah diingat. Deretan bit di
-          atas ditulis sebagai \lstasm|MOV AX, 5|. Hubungan antara
+          (\eng{mnemonic}) yang lebih mudah diingat, misalnya
+          \lstasm|MOV| untuk memindahkan data. Hubungan antara
           assembly dan bahasa mesin bersifat \eng{one-to-one}: satu
-          instruksi assembly menghasilkan tepat satu instruksi mesin.
+          instruksi assembly diterjemahkan menjadi satu instruksi
+          mesin.
 
     \item \term{Bahasa tingkat tinggi} seperti C, Java, atau Python
           menyembunyikan register dan memori di balik variabel,
           ekspresi, dan struktur kontrol. Satu baris bahasa tingkat
-          tinggi dapat diterjemahkan menjadi puluhan bahkan ratusan
-          instruksi mesin.
+          tinggi dapat diterjemahkan menjadi banyak instruksi mesin.
 \end{enumerate}
+
+Hubungan ketiga tingkat tersebut ditunjukkan pada
+Gambar~\ref{fig:tingkat-bahasa}.
 
 \begin{figure}[H]
     \centering
@@ -50,100 +54,124 @@ Secara umum bahasa pemrograman dibagi menjadi tiga tingkat.
             font=\small
         }
     ]
-        \node[lapis, fill=obeBlueLight] (l4) {
-            \textbf{Bahasa tingkat tinggi}\hfill
-            \textit{satu baris} $\Rightarrow$ \textit{banyak instruksi}};
-        \node[lapis, fill=obeTealLight, below=of l4] (l3) {
-            \textbf{Bahasa assembly}\hfill
+        \node[lapis, fill=obeBlueLight] (l4) {%
+            \textbf{Bahasa tingkat tinggi}\\[2pt]
+            \textit{satu baris} $\Rightarrow$ \textit{banyak instruksi mesin}};
+        \node[lapis, fill=obeTealLight, below=of l4] (l3) {%
+            \textbf{Bahasa assembly}\\[2pt]
             \textit{satu instruksi} $\Rightarrow$ \textit{satu instruksi mesin}};
-        \node[lapis, fill=obeAmberLight, below=of l3] (l2) {
-            \textbf{Bahasa mesin}\hfill \hex{B8 05 00}};
-        \node[lapis, fill=obeGrayLight, below=of l2] (l1) {
-            \textbf{Perangkat keras}\hfill \textit{gerbang logika, bus, register}};
+        \node[lapis, fill=obeAmberLight, below=of l3] (l2) {%
+            \textbf{Bahasa mesin}\\[2pt]
+            \textit{deretan bit}};
+        \node[lapis, fill=obeGrayLight, below=of l2] (l1) {%
+            \textbf{Perangkat keras}\\[2pt]
+            \textit{gerbang logika, bus, register}};
 
         \draw[-{Stealth[length=2.5mm]}, obeBlue, line width=0.8pt]
-            ([xshift=-1.4cm]l4.north) -- ([xshift=-1.4cm]l1.south)
+            ([xshift=-0.7cm]l4.north west) --
+            ([xshift=-0.7cm]l1.south west)
             node[midway, left, font=\scriptsize, align=center]
             {semakin\\dekat\\mesin};
         \draw[-{Stealth[length=2.5mm]}, obeBlue, line width=0.8pt]
-            ([xshift=1.4cm]l1.south) -- ([xshift=1.4cm]l4.north)
+            ([xshift=0.7cm]l1.south east) --
+            ([xshift=0.7cm]l4.north east)
             node[midway, right, font=\scriptsize, align=center]
             {semakin\\tinggi\\abstraksi};
     \end{tikzpicture}
     \caption{Tingkat abstraksi bahasa pemrograman, dari perangkat
     keras hingga bahasa tingkat tinggi.}
-    \label{fig:tingkat-abstraksi}
+    \label{fig:tingkat-bahasa}
 \end{figure}
 
-\subsection{Kapan Pemrograman Tingkat Rendah Digunakan}
-
-Bahasa tingkat tinggi hampir selalu menjadi pilihan pertama untuk
-membangun aplikasi, karena lebih cepat ditulis, lebih mudah dibaca,
-dan lebih mudah dipelihara. Meskipun demikian, ada sejumlah situasi
-yang menuntut pemrograman tingkat rendah.
-
-\begin{itemize}
-    \item \textbf{Kendali penuh atas perangkat keras.} Menulis
-          \eng{device driver}, rutin awal sistem operasi
-          (\eng{bootloader}), atau \eng{firmware} memerlukan akses
-          langsung ke register dan port I/O, yang tidak disediakan
-          bahasa tingkat tinggi.
-
-    \item \textbf{Kinerja dan ukuran kode.} Pada sistem tertanam
-          (\eng{embedded system}) dengan memori sangat terbatas,
-          program assembly dapat dibuat jauh lebih kecil dan lebih
-          cepat daripada hasil kompilasi bahasa tingkat tinggi.
-
-    \item \textbf{Analisis dan keamanan.} Pemahaman assembly
-          diperlukan untuk membaca hasil \eng{disassembly}, melakukan
-          analisis \eng{malware}, dan menguji keamanan perangkat lunak.
-
-    \item \textbf{Pendidikan.} Bahasa assembly memperlihatkan secara
-          eksplisit bagaimana prosesor bekerja: bagaimana instruksi
-          diambil, bagaimana data berpindah, dan bagaimana
-          keputusan diambil berdasarkan \eng{flag}.
-\end{itemize}
-
-\subsection{Perbandingan Ringkas}
-
-Tabel~\ref{tab:perbandingan-bahasa} merangkum perbedaan kedua
-kelompok bahasa tersebut.
+Perbedaan ketiga tingkat tersebut dirangkum pada
+Tabel~\ref{tab:perbandingan-bahasa}.
 
 \begin{table}[H]
     \centering
-    \caption{Perbandingan bahasa tingkat tinggi dan tingkat rendah.}
+    \caption{Perbandingan bahasa mesin, assembly, dan bahasa tingkat
+    tinggi.}
     \label{tab:perbandingan-bahasa}
     \small
-    \begin{tabular}{@{}p{3.4cm}p{5.2cm}p{5.2cm}@{}}
+    \begin{tabular}{@{}p{2.9cm}p{3.8cm}p{3.8cm}p{3.6cm}@{}}
         \toprule
-        \textbf{Aspek} & \textbf{Bahasa Tingkat Tinggi} &
-        \textbf{Bahasa Tingkat Rendah} \\
+        \textbf{Aspek} & \textbf{Bahasa Mesin} &
+        \textbf{Bahasa Assembly} & \textbf{Bahasa Tingkat Tinggi} \\
         \midrule
-        Kedekatan ke mesin & Jauh; mesin disembunyikan &
-        Sangat dekat; instruksi mesin tampak langsung \\
+        Satuan penulisan & Deretan bit & Satu \eng{mnemonic} per
+        instruksi & Ekspresi dan pernyataan \\
         \addlinespace
-        Portabilitas & Tinggi, satu kode untuk banyak mesin &
-        Rendah, terikat pada satu keluarga prosesor \\
+        Contoh & deretan bit & \lstasm|MOV AX, 5| & \code{x = 5} \\
         \addlinespace
-        Produktivitas & Tinggi, sedikit kode untuk banyak pekerjaan &
-        Rendah, banyak kode untuk pekerjaan sederhana \\
+        Kedekatan ke mesin & Langsung & Sangat dekat & Jauh \\
         \addlinespace
-        Kendali perangkat keras & Terbatas &
-        Penuh (register, memori, port I/O) \\
+        Kendali perangkat keras & Penuh & Penuh & Terbatas \\
         \addlinespace
-        Ukuran hasil & Lebih besar (ada kode pustaka) &
-        Sangat kecil dan dapat dioptimalkan \\
+        Portabilitas & Rendah & Rendah & Tinggi \\
         \addlinespace
-        Kemudahan pemeliharaan & Mudah dibaca dan diubah &
-        Sulit dibaca, rawan kesalahan kecil \\
+        Kemudahan penulisan & Sangat sulit & Sulit & Mudah \\
         \bottomrule
     \end{tabular}
 \end{table}
 
+\subsection{Mengapa Bahasa Assembly Masih Dipakai}
+
+Bahasa tingkat tinggi lebih produktif untuk membangun aplikasi
+umum. Meskipun demikian, bahasa assembly tetap memiliki tempat pada
+pekerjaan yang menuntut kendali langsung atas mesin.
+
+\begin{itemize}
+    \item \textbf{Kendali perangkat keras.} Akses ke register, memori,
+          dan port masukan/keluaran dapat dilakukan secara langsung
+          tanpa lapisan abstraksi.
+
+    \item \textbf{Ukuran dan kecepatan program.} Pada sistem dengan
+          memori terbatas, program assembly dapat dibuat sangat kecil
+          dan hemat instruksi.
+
+    \item \textbf{Pemahaman cara kerja prosesor.} Assembly
+          memperlihatkan bagaimana instruksi diambil, bagaimana data
+          berpindah antara register dan memori, serta bagaimana
+          keputusan diambil berdasarkan \eng{flag}.
+
+    \item \textbf{Analisis program.} Pemahaman instruksi mesin
+          membantu mahasiswa menelaah mengapa sebuah program berperilaku
+          tertentu pada level perangkat keras.
+\end{itemize}
+
 \begin{infobox}
-Pemrograman tingkat rendah tidak berarti ``lebih baik'' daripada
-pemrograman tingkat tinggi. Keduanya adalah alat dengan tujuan
-berbeda. Yang penting adalah mahasiswa memahami \textit{mengapa}
-sebuah abstraksi ada, sehingga mampu memilih tingkat yang tepat
-sesuai kebutuhan.
+\vspace{1.1em}
+Bahasa assembly bukan pengganti bahasa tingkat tinggi. Keduanya
+merupakan alat dengan tujuan berbeda. Bahasa tingkat tinggi dipakai
+ketika produktivitas dan pemeliharaan menjadi prioritas, sedangkan
+assembly dipakai ketika kendali dan pemahaman level mesin diperlukan.
 \end{infobox}
+
+\subsection{Bahasa Assembly 8086 dalam Mata Kuliah Ini}
+
+Mata kuliah ini memakai prosesor Intel 8086 dalam mode real 16-bit.
+Perangkat praktik yang dipakai adalah TASM untuk meng-%
+\eng{assemble} berkas \file{.ASM}, TLINK untuk menghasilkan berkas
+\file{.EXE} atau \file{.COM}, DEBUG untuk memeriksa register dan
+memori, serta emu8086 untuk menulis dan menjalankan program secara
+terpandu. Alur kerja perangkat tersebut dibahas pada bab tentang
+memulai assembly.
+
+Pada bab ini, fokus pembelajaran bukan pada penulisan program utuh,
+melainkan pada dua hal yang menjadi dasar seluruh bab berikutnya:
+kedudukan bahasa assembly dan cara merepresentasikan bilangan.
+Keduanya diperlukan sebelum mahasiswa menulis instruksi, menghitung
+alamat memori, atau menafsirkan isi register.
+
+\begin{aktivitasbox}
+\vspace{1.1em}
+Sebelum melanjutkan, lakukan dua aktivitas berikut.
+\begin{enumerate}
+    \item Tuliskan satu operasi sederhana, misalnya menambahkan dua
+          bilangan, dalam bentuk kalimat bahasa Indonesia, lalu
+          bayangkan bagaimana operasi itu dipecah menjadi langkah
+          mesin.
+    \item Sebutkan tiga pekerjaan yang menurut Anda lebih tepat
+          dikerjakan dengan bahasa assembly daripada bahasa tingkat
+          tinggi, beserta alasannya.
+\end{enumerate}
+\end{aktivitasbox}

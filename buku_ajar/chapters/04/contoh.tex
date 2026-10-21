@@ -1,166 +1,115 @@
-\section{Contoh Program}
+\section{Contoh}
 \label{sec:contoh-bab4}
 
-Dua contoh berikut dipakai untuk menguji pemahaman tentang siklus
-instruksi. Contoh pertama memakai program sesingkat mungkin agar
-seluruh langkah dapat ditelusuri, sedangkan contoh kedua
-membandingkan dua cara penjumlahan yang berbeda biayanya.
+Dua contoh berikut menghubungkan diagram BIU/EU dengan pengamatan
+langsung. Contoh pertama menelusuri program pendek dengan
+\eng{single step}. Contoh kedua membandingkan instruksi yang bekerja
+di register dengan instruksi yang membaca memori.
 
-\subsection{Contoh 1: Menelusuri Siklus Instruksi sebuah Program}
+\subsection{Contoh 1: Menelusuri Program Pendek}
 
-Kode~\ref{lst:siklus-dasar} adalah program utuh yang berisi satu
-instruksi utama, yaitu \lstasm|MOV AX, 1234h|. Program ini sengaja
-dibuat pendek agar setiap langkah pada Emu8086 dapat diamati tanpa
-kehilangan jejak.
+Program pada Kode~\ref{lst:siklus-dasar} sengaja dibuat singkat agar
+setiap perubahan \reg{IP}, \reg{AX}, dan isi \eng{queue} dapat
+diamati.
 
 \lstinputlisting[
     language=MASM,
-    caption={Program \file{siklus-dasar.asm} untuk penelusuran siklus
-    instruksi.},
+    caption={Program \file{siklus-dasar.asm} untuk penelusuran
+    siklus instruksi.},
     label={lst:siklus-dasar}
 ]{\CodeDir/siklus-dasar.asm}
 
-Setelah program dirakit, hasil \eng{disassembly} pada Emu8086
-memperlihatkan setiap instruksi beserta panjangnya dalam byte.
-Panjang tersebut penting karena langsung menentukan berapa kali
-\reg{IP} bertambah dan berapa banyak byte yang masuk ke
-\eng{instruction queue}. Tabel~\ref{tab:trace-program} mencatat
-penelusuran program tersebut dari titik masuk hingga program selesai.
+Setelah program dijalankan dengan \eng{single step} pada emu8086,
+setiap instruksi dapat dicatat seperti pada
+Tabel~\ref{tab:trace-program}. Alamat awal diandaikan
+\reg{CS}:\reg{IP} $=$ \hex{1000}:\hex{0000}.
 
 \begin{table}[H]
     \centering
-    \caption{Hasil penelusuran program \file{siklus-dasar.asm}
-    dengan \eng{instruction queue} berisi maksimum enam byte.}
+    \caption{Penelusuran program \file{siklus-dasar.asm} dengan
+    \eng{instruction queue}.}
     \label{tab:trace-program}
     \small
-    \begin{tabular}{@{}clp{1.5cm}p{2.3cm}p{2.0cm}p{3.6cm}@{}}
+    \begin{tabular}{@{}clp{1.8cm}p{2.35cm}p{2.35cm}p{2.8cm}@{}}
         \toprule
-        \textbf{Langkah} & \textbf{\reg{CS}:\reg{IP}} &
-        \textbf{Panjang} & \textbf{Instruksi} &
-        \textbf{Antrean} & \textbf{Keadaan setelahnya} \\
+        \textbf{Langkah} & \textbf{Instruksi} & \textbf{Panjang} &
+        \textbf{\reg{CS}:\reg{IP} awal} & \textbf{\reg{IP} akhir} &
+        \textbf{Kejadian utama} \\
         \midrule
-        1 & \hex{1000}:\hex{0000} & 3 byte & \code{MOV AX, @DATA} &
-        \hex{B8 00 10} & \reg{AX} $=$ \hex{1000} \\
+        1 & \code{MOV AX, @DATA} & 3 byte &
+        \hex{1000}:\hex{0000} & \hex{0003} &
+        BIU mengambil tiga byte; \reg{AX} diisi nomor segmen data \\
         \addlinespace
-        2 & \hex{1000}:\hex{0003} & 2 byte & \code{MOV DS, AX} &
-        \hex{8E D8} & \reg{DS} $=$ \hex{1000} \\
+        2 & \code{MOV DS, AX} & 2 byte &
+        \hex{1000}:\hex{0003} & \hex{0005} &
+        EU memindahkan isi \reg{AX} ke \reg{DS} \\
         \addlinespace
-        3 & \hex{1000}:\hex{0005} & 3 byte & \code{MOV AX, 1234h} &
-        \hex{B8 34 12} & \reg{AX} $=$ \hex{1234} \\
+        3 & \code{MOV AX, 1234h} & 3 byte &
+        \hex{1000}:\hex{0005} & \hex{0008} &
+        BIU mengambil tiga byte; EU menuliskan \hex{1234} ke \reg{AX} \\
         \addlinespace
-        4 & \hex{1000}:\hex{0008} & 2 byte & \code{MOV AH, 4Ch} &
-        \hex{B4 4C} & \reg{AH} $=$ \hex{4C} \\
+        4 & \code{MOV AH, 4Ch} & 2 byte &
+        \hex{1000}:\hex{0008} & \hex{000A} &
+        EU menyiapkan nomor fungsi keluar \\
         \addlinespace
-        5 & \hex{1000}:\hex{000A} & 2 byte & \code{MOV AL, 00h} &
-        \hex{B0 00} & \reg{AL} $=$ \hex{00} \\
+        5 & \code{MOV AL, 00h} & 2 byte &
+        \hex{1000}:\hex{000A} & \hex{000C} &
+        EU menyiapkan kode keluar \\
         \addlinespace
-        6 & \hex{1000}:\hex{000C} & 2 byte & \code{INT 21h} &
-        \hex{CD 21} & Program berakhir \\
+        6 & \code{INT 21h} & 2 byte &
+        \hex{1000}:\hex{000C} & \hex{000E} &
+        Program berakhir melalui layanan DOS \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Tiga hal dapat disimpulkan dari Tabel~\ref{tab:trace-program}.
+Dari Tabel~\ref{tab:trace-program} dapat disimpulkan tiga hal.
 
 \begin{enumerate}
-    \item \textbf{\reg{IP} bertambah menurut panjang instruksi.}
-          Instruksi tiga byte menambah \reg{IP} sebanyak tiga,
-          sedangkan instruksi dua byte menambahnya sebanyak dua.
-
-    \item \textbf{Antrean menampung lebih dari satu instruksi.}
-          Pada langkah 4 dan 5, kedua instruksi hanya berukuran dua
-          byte sehingga keduanya dapat berada dalam antrean enam
-          byte sekaligus.
-
-    \item \textbf{Instruksi yang mengakses memori menambah siklus
-          bus.} Instruksi yang membaca variabel pada segmen data
-          memicu siklus bus tambahan yang tidak dimiliki instruksi
-          register-ke-register.
+    \item \reg{IP} bertambah sesuai panjang instruksi. Instruksi tiga
+          byte menambah \reg{IP} sebanyak tiga, sedangkan instruksi
+          dua byte menambahnya sebanyak dua.
+    \item BIU dapat mengisi \eng{queue} dengan beberapa instruksi
+          pendek sekaligus. Antrean enam byte cukup untuk menampung
+          lebih dari satu instruksi berukuran dua atau tiga byte.
+    \item Instruksi yang hanya bekerja di register, seperti
+          \code{MOV AX, 1234h}, tidak memerlukan siklus bus data
+          tambahan. BIU hanya mengambil byte instruksinya.
 \end{enumerate}
 
-\subsection{Contoh 2: Dua Cara Menjumlahkan Dua Bilangan}
+\subsection{Contoh 2: Operand Register dan Operand Memori}
 
-Contoh kedua membandingkan biaya dua pendekatan penjumlahan. Pada
-cara pertama, kedua operand sudah berada di register. Pada cara
-kedua, operand dibaca dari memori sehingga BIU harus menjalankan
-siklus bus. Program lengkapnya ditunjukkan pada
-Kode~\ref{lst:jumlah-dua-cara}.
+Perhatikan dua instruksi berikut.
 
-\lstinputlisting[
-    language=MASM,
-    caption={Program \file{jumlah-dua-cara.asm}: penjumlahan
-    melalui register dan melalui memori.},
-    label={lst:jumlah-dua-cara}
-]{\CodeDir/jumlah-dua-cara.asm}
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, BX      ; operand sumber berada di register
+MOV AX, [BX]    ; operand sumber berada di memori
+\end{lstlisting}
 
-Kedua cara menghasilkan nilai yang sama, yaitu \hex{1234} $+$
-\hex{5678} $=$ \hex{68AC}. Meskipun demikian, jumlah siklus yang
-dibutuhkan berbeda. Tabel~\ref{tab:perbandingan-siklus} membandingkan
-perkiraan jumlah siklus \eng{clock} untuk setiap instruksi
-berdasarkan datasheet 8086 \cite{intel1979}.
+Keduanya sama-sama memindahkan data ke \reg{AX}, tetapi jalurnya
+berbeda.
 
-\begin{table}[H]
-    \centering
-    \caption{Perkiraan jumlah siklus \eng{clock} kedua cara
-    penjumlahan.}
-    \label{tab:perbandingan-siklus}
-    \small
-    \begin{tabular}{@{}p{3.6cm}cp{4.4cm}p{3.4cm}@{}}
-        \toprule
-        \textbf{Instruksi} & \textbf{Siklus} & \textbf{Jenis operand} &
-        \textbf{Akses bus} \\
-        \midrule
-        \multicolumn{4}{@{}l}{\textbf{Cara 1 --- operand di
-        register}} \\
-        \addlinespace
-        \code{MOV AX, 1234h} & 4 & nilai segera &
-        hanya pengambilan instruksi \\
-        \addlinespace
-        \code{MOV BX, 5678h} & 4 & nilai segera &
-        hanya pengambilan instruksi \\
-        \addlinespace
-        \code{ADD AX, BX} & 3 & register--register &
-        tidak ada \\
-        \addlinespace
-        \textbf{Jumlah cara 1} & \textbf{11} & & \\
-        \midrule
-        \multicolumn{4}{@{}l}{\textbf{Cara 2 --- operand di memori}} \\
-        \addlinespace
-        \code{MOV AX, bil1} & 14 & memori langsung &
-        satu baca memori \\
-        \addlinespace
-        \code{ADD AX, bil2} & 15 & register--memori &
-        satu baca memori \\
-        \addlinespace
-        \textbf{Jumlah cara 2} & \textbf{29} & & \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\begin{itemize}
+    \item Pada \lstasm|MOV AX, BX|, BIU hanya mengambil byte
+          instruksi. EU kemudian menyalin isi \reg{BX} ke \reg{AX}
+          di dalam chip. Tidak ada pertukaran data tambahan melalui
+          bus luar.
+    \item Pada \lstasm|MOV AX, [BX]|, EU harus meminta BIU membaca
+          memori pada alamat yang ditunjuk \reg{DS}:\reg{BX}.
+          BIU menjalankan siklus bus baca, mengambil dua byte dari
+          memori, lalu menyerahkannya ke EU untuk dimasukkan ke
+          \reg{AX}.
+\end{itemize}
 
-Perbandingan pada Tabel~\ref{tab:perbandingan-siklus} menunjukkan
-bahwa cara kedua memerlukan waktu hampir tiga kali lebih lama untuk
-pekerjaan yang sama. Penyebabnya bukan pada operasi penjumlahannya,
-melainkan pada dua siklus bus tambahan yang harus dijalankan BIU.
-Karena BIU juga sibuk mengambil instruksi berikutnya, siklus bus
-yang panjang dapat mengosongkan antrean dan meniadakan keuntungan
-\eng{pipeline}.
+Karena instruksi kedua melibatkan satu siklus bus tambahan, waktu
+eksekusinya lebih lama daripada instruksi pertama. Perbedaan ini
+tidak terlihat dari hasil akhir, tetapi terlihat dari jumlah langkah
+bus yang harus dikerjakan BIU.
 
 \begin{infobox}
-Angka pada Tabel~\ref{tab:perbandingan-siklus} adalah nilai khas
-untuk 8086 dengan pengalamatan langsung. Nilai sebenarnya bergantung
-pada mode pengalamatan yang dipakai, karena setiap mode memiliki
-biaya perhitungan alamat (\eng{effective address}) yang berbeda.
-Cara penerjemahan instruksi menjadi kode mesin dibahas pada
-Bab~\ref{chap:format-instruksi}.
+\vspace{1.1em}
+Pada emu8086, isi \eng{queue} dan perubahan \reg{IP} dapat diamati
+pada jendela \eng{debug}. Bila jendela antrean tidak ditampilkan,
+panjang instruksi tetap dapat diperkirakan dari selisih alamat
+instruksi pada tampilan kode mesin.
 \end{infobox}
-
-\begin{session}[caption={Keluaran pemeriksaan isi memori
-\file{jumlah-dua-cara.asm} pada Emu8086.}, label={lst:keluaran-hasil}]
-1000:0008  hasil1  DW  68AC
-1000:000A  hasil2  DW  68AC
-\end{session}
-
-Kedua penampung berisi nilai yang sama, tetapi waktu tempuhnya
-berbeda. Inilah pelajaran utama bab ini: memahami arsitektur berarti
-memahami \emph{mengapa} dua program yang hasilnya sama bisa memiliki
-biaya yang berbeda.

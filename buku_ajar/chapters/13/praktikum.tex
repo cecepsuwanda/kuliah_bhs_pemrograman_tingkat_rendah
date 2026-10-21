@@ -2,122 +2,120 @@
 \label{sec:praktikum-bab13}
 
 \begin{praktikumbox}
-\textbf{Judul:} Menulis prosedur berparameter dan memeriksa isi stack
-dengan \eng{debugger}.\\[0.3em]
+\vspace{1.1em}
+\textbf{Judul:} Menelusuri percabangan dan perulangan pada program
+array.\\[0.3em]
 \textbf{Sub-CPMK:} 3.4 \quad\textbullet\quad
 \textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
-\textbf{Bentuk:} individu \quad\textbullet\quad
-\textbf{Tugas:} Tugas 6 (dikumpulkan pada pertemuan ini)
+\textbf{Bentuk:} individu
 \end{praktikumbox}
 
 \subsection{Tujuan Praktikum}
 
-Setelah menyelesaikan praktikum ini, mahasiswa mampu menulis prosedur
-berparameter melalui stack, mengembalikan nilai melalui register
-\reg{AX}, serta membuktikan kebenaran \eng{stack frame} dengan
-mengamati isi stack pada \eng{debugger}.
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menelusuri
+percabangan dengan \asm{CMP} dan \asm{Jcc}, perulangan dengan
+\asm{LOOP}, serta perulangan bersarang pada pengolahan array.
 
 \subsection{Alat dan Bahan}
 
 \begin{itemize}
-    \item Emu8086 dengan jendela register, memori, dan stack, atau
-          GUI Turbo Assembler dengan \eng{debugger} terpadu.
-    \item DOSBox beserta perangkat \file{DEBUG}, TASM, dan TLINK.
-    \item Berkas \file{prosedur-luas.asm} dan \file{faktorial.asm}
-          dari direktori \file{code/asm/}.
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \file{loop-maksimum.asm} dan
+          \file{bubble-sort.asm} dari \file{code/asm/}.
+    \item Lembar pengamatan register dan \eng{flag}.
 \end{itemize}
 
 \subsection{Langkah Kerja}
 
 \begin{enumerate}
-    \item \textbf{Menjalankan prosedur berparameter.}
+    \item \textbf{Menguji pencarian maksimum.}
     \begin{enumerate}
-        \item Rakit dan jalankan \file{prosedur-luas.asm}. Periksa
-              isi \reg{AX} dan variabel \code{luas}; pastikan
-              nilainya \hex{0032}.
-        \item Ubah \code{lebar} menjadi \dec{7} dan \code{tinggi}
-              menjadi \dec{6}, lalu pastikan hasilnya \dec{42}
-              (\hex{002A}).
-        \item Jelaskan mengapa urutan instruksi \asm{PUSH} tidak
-              boleh ditukar tanpa mengubah badan prosedur.
+        \item Rakit \file{loop-maksimum.asm} dengan TASM, lalu link
+              dengan TLINK.
+        \item Jalankan program dan catat keluarannya.
+        \item Buka program pada emu8086 dan jalankan
+              \eng{single step} sampai label \code{CARI}.
+        \item Catat \reg{AX}, \reg{SI}, \reg{CX}, dan \flag{CF}
+              setiap kali \lstasm|CMP AX, [SI]| selesai.
+        \item Jelaskan kapan \lstasm|JAE LANJUT| diambil dan kapan
+              tidak.
     \end{enumerate}
 
-    \item \textbf{Menelusuri isi stack per langkah.}
+    \item \textbf{Mengubah data maksimum.}
     \begin{enumerate}
-        \item Jalankan program dengan \file{Single Step}, mulai dari
-              \lstasm|PUSH tinggi|.
-        \item Catat nilai \reg{SP}, \reg{BP}, dan \reg{SS} pada
-              setiap langkah ke dalam tabel pengamatan.
-        \item Bandingkan hasilnya dengan Tabel~\ref{tab:trace-stack}
-              dan Gambar~\ref{fig:isi-stack-call}; pastikan alamat
-              setiap sel cocok.
-        \item Setelah \lstasm|MOV BP, SP|, buktikan bahwa
-              \code{[BP+4]} berisi \hex{0005} dan \code{[BP+6]}
-              berisi \hex{000A}.
+        \item Ubah array menjadi \code{25, 7, 120, 41, 93, 18, 60, 5}.
+        \item Rakit ulang dan jalankan program.
+        \item Pastikan nilai maksimum berubah menjadi 120.
     \end{enumerate}
 
-    \item \textbf{Membedah prosedur rekursif.}
+    \item \textbf{Menguji pengurutan gelembung.}
     \begin{enumerate}
-        \item Jalankan \file{faktorial.asm} sampai pemanggilan
-              \code{Faktorial} yang pertama.
-        \item Catat nilai \reg{SP} sebelum dan sesudah pemanggilan
-              rekursif. Berapa byte yang berkurang pada setiap
-              tingkat?
-        \item Hitung kedalaman rekursi dan perkirakan pemakaian stack
-              untuk $n = 5$ serta $n = \dec{8}$.
+        \item Rakit dan jalankan \file{bubble-sort.asm}.
+        \item Catat keluarannya.
+        \item Telusuri satu lintasan luar dan catat nilai \reg{CX},
+              \reg{SI}, dan \reg{DI}.
+        \item Jelaskan peran \lstasm|JBE TIDAK_TUKAR| pada
+              pembandingan.
     \end{enumerate}
 
-    \item \textbf{Menguji kesalahan stack yang disengaja.}
+    \item \textbf{Mengubah data pengurutan.}
     \begin{enumerate}
-        \item Pada salinan \file{prosedur-luas.asm}, ubah
-              \asm{RET} \code{4} menjadi \asm{RET} biasa, lalu
-              rakit ulang dan jalankan.
-        \item Jelaskan mengapa kesalahan ini tidak dilaporkan
-              assembler, dan bagaimana \eng{debugger} membantu
-              menemukannya.
+        \item Ubah array menjadi \code{9, 8, 7, 6, 5, 4, 3, 2}.
+        \item Rakit ulang dan jalankan program.
+        \item Pastikan hasilnya terurut menaik.
+    \end{enumerate}
+
+    \item \textbf{Membandingkan LOOP dan DEC/JNZ.}
+    \begin{enumerate}
+        \item Ganti \lstasm|LOOP BANDING| dengan pasangan
+              \lstasm|DEC CX| dan \lstasm|JNZ BANDING|.
+        \item Rakit ulang dan pastikan hasil pengurutan tetap sama.
+        \item Jelaskan perbedaan penggunaan \reg{CX} pada kedua
+              bentuk.
+    \end{enumerate}
+
+    \item \textbf{Menulis percabangan if--else.}
+    \begin{enumerate}
+        \item Tulis potongan program yang membandingkan \reg{AX} dan
+              \reg{BX}.
+        \item Bila \reg{AX} lebih besar, isi \code{hasil} dengan 1;
+              bila tidak, isi dengan 0.
+        \item Gunakan \asm{CMP}, \asm{JLE}, dan \asm{JMP}.
     \end{enumerate}
 \end{enumerate}
 
-\subsection{Hasil yang Dikumpulkan (Tugas 6)}
+\subsection{Hasil yang Dikumpulkan}
 
 \begin{enumerate}
-    \item Berkas \file{prosedur-luas.asm} yang dimodifikasi memakai
-          tiga parameter (lebar, tinggi, dan satuan harga), dengan
-          prosedur yang benar-benar mengakses \code{[BP+8]}.
-    \item Berkas \file{prosedur-ganjil.asm} berisi prosedur
-          \code{HitungJumlahGanjil} yang menjumlahkan bilangan ganjil
-          dari \dec{1} sampai $n$; parameter dikirim melalui stack
-          dan hasil dikembalikan pada \reg{AX}.
-    \item Tabel pengamatan nilai \reg{SP}, \reg{BP}, dan \reg{SS}
-          pada setiap langkah pemanggilan prosedur.
-    \item Tangkapan layar jendela stack yang memperlihatkan isi sel
-          \code{[BP+2]}, \code{[BP+4]}, dan \code{[BP+6]}.
-    \item Jawaban tertulis atas pertanyaan pada langkah kerja nomor
-          1(c), 3(b), dan 4(b).
+    \item Berkas \file{loop-maksimum.asm} dan
+          \file{bubble-sort.asm} versi modifikasi.
+    \item Tangkapan layar keluaran kedua program.
+    \item Tabel pengamatan \reg{AX}, \reg{SI}, \reg{CX}, dan
+          \eng{flag}.
+    \item Penjelasan pemilihan \asm{JAE} dan \asm{JBE}.
+    \item Potongan program \code{if--else}.
 \end{enumerate}
 
 \begin{asesmenbox}
-\textbf{Asesmen praktikum (bobot 6\% dari komponen praktikum).}
+\vspace{1.1em}
+\textbf{Asesmen praktikum 11 (bobot 5\% dari komponen praktikum).}
 
-\begin{tabular}{@{}p{5.6cm}cp{5.2cm}@{}}
+\begin{tabular}{@{}p{6.2cm}cp{4.6cm}@{}}
     \toprule
     \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
     \midrule
-    Prosedur berparameter dirancang dengan benar & 30\% &
-    Parameter diakses melalui \code{[BP+4]}, \code{[BP+6]}, dan
-    \code{[BP+8]} dengan urutan yang tepat \\
+    Ketepatan penelusuran percabangan & 30\% &
+    Keputusan \asm{JAE}/\asm{JBE} dijelaskan dengan benar \\
     \addlinespace
-    Ketepatan tabel pengamatan stack & 30\% &
-    Nilai \reg{SP} dan isi sel stack tercatat benar pada setiap
-    langkah, cocok dengan teori \\
+    Ketepatan penelusuran perulangan & 30\% &
+    Nilai \reg{CX}, \reg{SI}, dan \reg{DI} tercatat benar \\
     \addlinespace
-    Keseimbangan stack & 20\% &
-    Jumlah \asm{PUSH} seimbang dengan \asm{POP} dan \asm{RET}
-    \code{n}; program kembali ke DOS dengan benar \\
+    Program modifikasi berjalan & 25\% &
+    Keluaran berubah sesuai data baru \\
     \addlinespace
-    Kerapian dokumentasi dan jurnal & 20\% &
-    Langkah kerja terdokumentasi, tangkapan layar jelas, dan
-    pertanyaan dijawab dengan tepat \\
+    Ketepatan potongan if--else & 15\% &
+    Alur dan label disusun dengan benar \\
     \bottomrule
 \end{tabular}
 \end{asesmenbox}

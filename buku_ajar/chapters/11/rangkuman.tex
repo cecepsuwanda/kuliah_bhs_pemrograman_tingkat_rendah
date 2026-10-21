@@ -4,78 +4,60 @@
 Pada bab ini telah dibahas:
 
 \begin{itemize}
-    \item Operasi logika \asm{AND}, \asm{OR}, \asm{XOR}, dan \asm{NOT}
-          bekerja pada setiap posisi bit secara mandiri tanpa
-          menjalarkan \eng{carry}, mengikuti tabel kebenaran gerbang
-          logika dasar.
+    \item Operasi logika bekerja pada setiap bit secara mandiri,
+          tanpa menjalarkan \eng{carry} antarbit.
 
-    \item \asm{AND} bernilai 1 hanya bila kedua bit 1 (\eng{masking}),
-          \asm{OR} bila salah satu bit 1 (penyalakan), \asm{XOR} bila
-          kedua bit berbeda (pembalikan), dan \asm{NOT} membalik seluruh
-          bit tanpa menyentuh \eng{flag}.
+    \item \asm{AND} menghasilkan 1 bila kedua bit bernilai 1,
+          \asm{OR} bila salah satu bit bernilai 1, \asm{XOR} bila
+          kedua bit berbeda, dan \asm{NOT} membalik seluruh bit.
 
-    \item Setelah \asm{AND}, \asm{OR}, \asm{XOR}, dan \asm{TEST},
-          \flag{CF} dan \flag{OF} selalu 0, sedangkan \flag{ZF},
-          \flag{SF}, dan \flag{PF} mengikuti hasil operasi.
+    \item \asm{AND}, \asm{OR}, dan \asm{XOR} selalu mengosongkan
+          \flag{CF} dan \flag{OF}. \flag{ZF}, \flag{SF}, dan
+          \flag{PF} mengikuti hasil. \asm{NOT} tidak mengubah
+          \eng{flag}.
 
-    \item Manipulasi bit ke-$n$ memakai mask $2^n$: \asm{OR} untuk
-          menyalakan, \asm{AND} dengan komplemen mask untuk memadamkan,
-          \asm{XOR} untuk membalik, dan \asm{TEST} untuk menguji.
+    \item \eng{Mask} dipakai untuk menyalakan bit dengan \asm{OR},
+          memadamkan bit dengan \asm{AND} dan mask terbalik,
+          membalik bit dengan \asm{XOR}, serta menguji bit dengan
+          \asm{TEST}.
 
     \item \asm{TEST} melakukan \asm{AND} tanpa menyimpan hasil,
           sedangkan \asm{CMP} melakukan \asm{SUB} tanpa menyimpan
-          hasil. \asm{TEST} dipakai untuk memeriksa keadaan bit,
-          \asm{CMP} untuk membandingkan nilai dua operand secara utuh.
+          hasil. \asm{TEST} dipakai untuk bit, \asm{CMP} untuk nilai
+          keseluruhan.
 
-    \item \asm{SHL} dan \asm{SAL} identik dan menggeser bit ke kiri
-          dengan penyisipan 0; \asm{SHR} menggeser ke kanan dengan
-          penyisipan 0; \asm{SAR} menyisipkan salinan bit tanda
-          sehingga hasil pembagian bilangan bertanda tetap benar.
+    \item \asm{SHL} menggeser bit ke kiri dan mengisi bit kanan
+          dengan 0. \asm{SHR} menggeser bit ke kanan dan mengisi bit
+          kiri dengan 0. Bit yang keluar ditampung \flag{CF}.
 
-    \item Bit yang terdesak keluar selalu ditampung pada \flag{CF};
-          \flag{OF} hanya terdefinisi dengan benar bila jumlah
-          pergeseran sama dengan satu.
+    \item Pergeseran ke kiri setara dengan perkalian pangkat dua,
+          sedangkan pergeseran ke kanan setara dengan pembagian
+          pangkat dua untuk bilangan tidak bertanda.
 
-    \item \asm{ROL} dan \asm{ROR} memutar bit secara melingkar,
-          sedangkan \asm{RCL} dan \asm{RCR} menyertakan \flag{CF}
-          sebagai bit tambahan di ujung lingkaran putar. Pasangan
-          \asm{SAR} dan \asm{RCR} menggeser bilangan 32 bit yang
-          tersusun dari dua word.
-
-    \item Pergeseran satu bit setara dengan perkalian atau pembagian
-          dengan dua. Kompilator memanfaatkannya untuk menggantikan
-          \asm{MUL} dan \asm{DIV}, tetapi pembagian bilangan bertanda
-          hanya sah dengan \asm{SAR} dan pembulatannya tidak menuju
-          nol.
-
-    \item Tiga studi kasus dibahas: pemeriksaan paritas (memakai
-          \flag{PF}, pelipatan \asm{XOR}, atau pergeseran ber-\asm{ADC}),
-          \eng{packing}/\eng{unpacking} dua digit BCD, dan
-          \eng{XOR cipher} yang dapat dibalik karena
-          $A \oplus K \oplus K = A$.
+    \item Penerapan operasi logika dan pergeseran meliputi
+          pemeriksaan paritas, manipulasi bit, dan \eng{XOR cipher}
+          sederhana.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
-    \item[\checkbox] Saya dapat menjelaskan tabel kebenaran \asm{AND},
-          \asm{OR}, \asm{XOR}, dan \asm{NOT}.
-    \item[\checkbox] Saya dapat menyebutkan pengaruh operasi logika
-          terhadap \flag{CF}, \flag{OF}, \flag{ZF}, \flag{SF}, dan
-          \flag{PF}.
-    \item[\checkbox] Saya dapat memilih antara \asm{TEST} dan
+    \item[\checkbox] Saya dapat menjelaskan tabel kebenaran
+          \asm{AND}, \asm{OR}, \asm{XOR}, dan \asm{NOT}.
+    \item[\checkbox] Saya dapat menjelaskan pengaruh operasi logika
+          terhadap \eng{flag}.
+    \item[\checkbox] Saya dapat menyalakan, memadamkan, membalik,
+          dan menguji bit dengan mask.
+    \item[\checkbox] Saya dapat membedakan \asm{TEST} dan
           \asm{CMP}.
-    \item[\checkbox] Saya dapat menuliskan instruksi penyalakan,
-          pemadaman, pembalikan, dan pengujian bit ke-$n$.
-    \item[\checkbox] Saya dapat membedakan \asm{SHR} dan \asm{SAR}
-          pada bilangan bertanda negatif.
-    \item[\checkbox] Saya dapat menjelaskan peran \flag{CF} pada
-          \asm{RCL} dan \asm{RCR}.
-    \item[\checkbox] Saya dapat menggantikan perkalian atau pembagian
-          pangkat dua dengan pergeseran.
-    \item[\checkbox] Saya dapat menulis program paritas dan
-          \eng{packing} BCD.
+    \item[\checkbox] Saya dapat menggunakan \asm{SHL} dan
+          \asm{SHR}.
+    \item[\checkbox] Saya dapat memakai pergeseran untuk perkalian
+          dan pembagian pangkat dua.
+    \item[\checkbox] Saya dapat menjelaskan program paritas dan
+          \eng{XOR cipher}.
 \end{itemize}
 
 \vspace{0.4em}
@@ -84,9 +66,8 @@ bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
-\cite{hyde2010}, \cite{wikibooksx86}, \cite{uva2024}, dan
-\cite{bartlett2004}. Untuk penelusuran lebih dalam mengenai pergeseran
-dan rotasi serta pemakaiannya pada penyandian data sederhana, lihat
-\cite{stallings2016}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 7, hlm.~68--73, dan \cite{sto2001},
+BAB X, hlm.~47--51.
 \end{infobox}

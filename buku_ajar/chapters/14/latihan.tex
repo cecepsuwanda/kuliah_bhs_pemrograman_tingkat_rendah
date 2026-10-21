@@ -2,86 +2,51 @@
 \label{sec:latihan-bab14}
 
 \begin{enumerate}
-    \item \textbf{Konseptual.} Jelaskan mengapa mekanisme interupsi
-          lebih efisien daripada \eng{polling}. Sertakan satu contoh
-          perangkat pada komputer yang lebih baik diperiksa dengan
-          interupsi.
+    \item \textbf{Stack.} Jelaskan pengertian \eng{last in, first
+          out}. Mengapa stack 8086 tumbuh ke alamat yang lebih
+          rendah?
 
-    \item \textbf{Konseptual.} Sebutkan tiga jenis interupsi pada
-          prosesor 8086. Untuk setiap jenis, berikan satu contoh
-          beserta nomor vektornya dan siapa yang memicunya.
+    \item \textbf{PUSH dan POP.} Diketahui \reg{SP} = \hex{FFFE}.
+          Tentukan nilai \reg{SP} setelah \asm{PUSH AX} dan setelah
+          \asm{POP BX}. Jelaskan urutan langkah masing-masing.
 
-    \item \textbf{Perhitungan vektor.} Dengan memakai
-          Persamaan~\ref{eq:alamat-vektor}, tentukan alamat entri
-          vektor \hex{0A}, \hex{13}, dan \hex{21}. Sebutkan pula
-          alamat byte pertama (offset) dan byte ketiga (segmen) setiap
-          entri.
+    \item \textbf{Prosedur.} Jelaskan fungsi \asm{PROC}, \asm{ENDP},
+          \asm{CALL}, dan \asm{RET}. Mengapa \asm{CALL} berbeda dari
+          \asm{JMP}?
 
-    \item \textbf{Analisis stack.} Sebuah program sedang berjalan
-          dengan \reg{SP} = \hex{FF00} ketika instruksi
-          \lstasm|INT 21h| dijalankan.
-          \begin{enumerate}
-              \item Berapa nilai \reg{SP} sesudah ketiga penyimpanan
-                    pada mekanisme \asm{INT} selesai?
-              \item Nilai apa yang berada pada \reg{SS}:\reg{SP},
-                    \reg{SS}:\reg{SP}+2, dan \reg{SS}:\reg{SP}+4?
-              \item Mengapa \lstasm|RET| tidak dapat menggantikan
-                    \lstasm|IRET| pada rutin penangan interupsi?
-          \end{enumerate}
+    \item \textbf{Stack frame.} Diketahui prosedur menerima dua
+          parameter melalui stack. Jelaskan isi \code{[BP+0]},
+          \code{[BP+2]}, \code{[BP+4]}, dan \code{[BP+6]} setelah
+          \asm{PUSH BP} dan \asm{MOV BP, SP}.
 
-    \item \textbf{Analisis BIOS.} Perhatikan dua potongan program
-          berikut.
+    \item \textbf{Penyampaian data.} Sebutkan tiga cara menyampaikan
+          data ke prosedur. Berikan kelebihan dan kekurangan
+          masing-masing.
 
-\begin{lstlisting}[language=MASM, numbers=none]
-; potongan A                       ; potongan B
-MOV AH, 09h                        MOV AH, 13h
-MOV AL, '*'
-MOV BH, 00h
-MOV BL, 0Ah
-MOV CX, 10
-INT 10h                            INT 10h
-\end{lstlisting}
+    \item \textbf{RET n.} Jelaskan fungsi \asm{RET} \code{4}.
+          Kapan pembersihan stack dilakukan oleh prosedur, dan kapan
+          oleh pemanggil?
 
-          \begin{enumerate}
-              \item Apa yang tercetak oleh potongan A dan pada warna
-                    apa karakter itu tampil?
-              \item Bagian mana pada potongan B yang belum lengkap?
-              \item Jelaskan satu perbedaan perilaku kursor antara
-                    fungsi \hex{09} dan \hex{13}.
-          \end{enumerate}
+    \item \textbf{Macro.} Jelaskan cara mendefinisikan macro dengan
+          parameter. Apa yang terjadi pada saat assembler menemukan
+          pemakaian macro?
 
-    \item \textbf{Analisis atribut warna.} Tentukan warna huruf dan
-          warna latar untuk atribut \hex{1E}, \hex{4F}, dan \hex{07},
-          dengan menyebut nilai bit 3--0, bit 6--4, dan bit 7.
-
-    \item \textbf{Penulisan program.} Tulislah program lengkap yang
-          menampilkan kata \code{SELAMAT} pada baris 10, kolom 20,
-          dengan warna hijau terang pada latar hitam. Gunakan
-          \code{INT 10h} fungsi \hex{02} untuk menempatkan kursor dan
-          fungsi \hex{13} untuk menulis string. Sertakan inisialisasi
-          register segmen yang diperlukan.
-
-    \item \textbf{Analisis kesalahan.} Seorang mahasiswa memasang
-          penangan interupsi pada vektor \hex{60} dengan langkah
-          seperti pada Kode~\ref{lst:pasang-vektor}, tetapi program
-          selalu membeku ketika \lstasm|INT 60h| dijalankan. Setelah
-          diperiksa, rutin penangan yang ditulis diakhiri
-          \lstasm|RET| dan vektor lama tidak pernah dipulihkan.
-          \begin{enumerate}
-              \item Mengapa \lstasm|RET| menyebabkan program membeku?
-              \item Apa akibatnya bila vektor lama tidak dipulihkan?
-              \item Tuliskan perbaikan yang diperlukan.
-          \end{enumerate}
+    \item \textbf{Perbandingan.} Sebutkan empat perbedaan prosedur
+          dan macro. Kapan sebaiknya memakai prosedur, dan kapan
+          memakai macro?
 \end{enumerate}
 
 \begin{refleksibox}
+\vspace{1.1em}
 Jawab pertanyaan berikut pada jurnal praktikum Anda.
 \begin{enumerate}
-    \item Setelah melihat isi stack secara langsung pada penelusuran
-          DEBUG, apakah gambaran Anda tentang cara kerja
-          \lstasm|INT| berubah? Bagian mana yang paling mengejutkan?
-    \item Konsep mana pada bab ini yang masih terasa kabur, dan
-          rencana belajar apa yang akan Anda lakukan untuk
-          mengatasinya?
+    \item Bagian mana yang paling sulit Anda telusuri: perubahan
+          \reg{SP}, pembentukan \eng{stack frame}, atau penyalinan
+          macro? Mengapa?
+    \item Setelah memeriksa stack dengan DEBUG, apakah Anda memahami
+          hubungan antara \asm{PUSH}, \asm{CALL}, dan \asm{RET}?
+          Jelaskan.
+    \item Konsep apa yang perlu Anda ulangi sebelum mempelajari
+          array, string, dan pencetakan bilangan pada bab berikutnya?
 \end{enumerate}
 \end{refleksibox}

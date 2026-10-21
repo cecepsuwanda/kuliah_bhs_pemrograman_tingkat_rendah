@@ -1,216 +1,165 @@
-\section{Dari Mnemonic ke Kode Mesin}
-\label{sec:mnemonic-ke-kode-mesin}
+\section{Rantai Proses Pembuatan Program Assembly}
+\label{sec:rantai-proses}
 
-Bab-bab sebelumnya telah memperkenalkan register dan segmentasi
-sebagai wadah data. Bab ini melangkah satu tingkat lebih dalam: ke
-bentuk fisik instruksi yang benar-benar dibaca prosesor. Pemahaman
-atas format instruksi adalah kunci untuk membaca hasil
-\eng{disassembly}, menghitung ukuran program, dan menelusuri kesalahan
-pada level mesin.
+Program assembly tidak dapat langsung dijalankan. Berkas teks yang
+ditulis programmer harus melewati beberapa tahap pengolahan sampai
+menjadi berkas yang dapat dimuat sistem operasi. Keseluruhan tahap
+itu disebut \term{rantai proses} (\eng{toolchain}).
 
-\subsection{Assembly adalah Simbol dari Kode Mesin}
+Bagian ini diringkas dari \cite{sto2001}, BAB V, hlm.~21--24, dan
+\cite{gunawan2019}, Bagian 4, hlm.~26--34.
 
-Perangkat keras hanya mengenal deretan bit. Instruksi untuk
-memindahkan isi register \reg{BX} ke register \reg{AX} tidak pernah
-berbentuk huruf \code{MOV}; yang tersimpan di memori adalah dua byte
-\hex{89 D8}. Deretan byte inilah yang disebut \term{kode mesin}
-(\eng{machine code}).
-
-Manusia menulis \lstasm|MOV AX, BX| karena deretan byte jauh lebih
-sulit diingat dan rawan salah tulis. Kata pendek yang mewakili operasi
-tersebut disebut \term{mnemonic}. Assembler menerjemahkan setiap
-mnemonic beserta operandnya menjadi deretan byte kode mesin yang
-ekuivalen.
-
-Pertanyaan pentingnya: mengapa \asm{MOV} tidak selalu menghasilkan
-opcode yang sama? Jawabannya terletak pada operand. \asm{MOV} dapat
-memindahkan data antardua register, dari nilai segera ke register,
-dari memori ke register, atau sebaliknya. Setiap bentuk operand
-memerlukan pengodean yang berbeda.
-
-\subsection{Mengapa Satu Mnemonic Memiliki Beberapa Encoding}
-
-Ada empat sebab utama yang membuat satu mnemonic memiliki banyak
-bentuk \eng{encoding}.
+\subsection{Tahapan Rantai Proses}
 
 \begin{enumerate}
-    \item \textbf{Jenis operand.} Register, sel memori, dan nilai
-          segera adalah tiga jenis operand yang berbeda. Instruksi
-          \lstasm|MOV AX, BX| (register ke register) memakai opcode
-          \hex{89}, sedangkan \lstasm|MOV AX, 1234h| (nilai segera ke
-          register) memakai opcode \hex{B8}.
+    \item \textbf{Penyuntingan.} Program ditulis sebagai berkas teks
+          berekstensi \file{.ASM} menggunakan editor teks atau editor
+          bawaan emu8086.
 
-    \item \textbf{Ukuran operand.} Prosesor 8086 bekerja dengan data
-          8 bit dan 16 bit. Instruksi \lstasm|MOV AL, 5| dan
-          \lstasm|MOV AX, 5| beroperasi pada ukuran berbeda dan
-          memakai opcode yang berbeda pula, yaitu \hex{B0} dan
-          \hex{B8}.
+    \item \textbf{Perakitan.} Assembler TASM menerjemahkan kode
+          assembly menjadi berkas objek \file{.OBJ}. Pada tahap ini
+          simbol dan label dicatat, tetapi alamat akhir program belum
+          ditetapkan.
 
-    \item \textbf{Arah perpindahan.} Opcode \hex{8B} berarti
-          ``register $\leftarrow$ memori'', sedangkan \hex{89}
-          berarti ``memori $\leftarrow$ register''. Assembler memilih
-          salah satunya sesuai urutan operand yang ditulis programmer.
+    \item \textbf{Pengaitan.} Linker TLINK menggabungkan berkas objek,
+          menyelesaikan rujukan simbol, dan menghasilkan berkas yang
+          dapat dijalankan, yaitu \file{.EXE} atau \file{.COM}.
 
-    \item \textbf{Mode pengalamatan.} Operand memori dapat berupa
-          alamat langsung, penjumlahan dua register, atau penjumlahan
-          dengan sebuah konstanta. Perbedaan ini diatur melalui byte
-          ModR/M dan \eng{displacement}, bukan dengan mengganti opcode
-          (Bab~\ref{chap:mode-pengalamatan}).
+    \item \textbf{Pemuatan dan eksekusi.} DOS memuat berkas program ke
+          memori, menetapkan register segmen, lalu menyerahkan kendali
+          ke instruksi pertama.
 \end{enumerate}
 
-Akibatnya \asm{MOV} memiliki puluhan bentuk mesin. Programmer tidak
-perlu menghafalnya karena assembler yang memilih bentuk yang tepat,
-tetapi pembaca hasil \eng{disassembly} harus mengenali bentuk yang
-sedang dihadapi.
-
-\subsection{Format Umum Instruksi 8086}
-
-Meskipun jumlah bentuknya banyak, seluruh instruksi 8086 mengikuti
-satu pola susunan field yang sama. Panjang totalnya antara 1 sampai
-6 byte dan tersusun dari lima bagian berikut, dengan urutan yang
-tetap.
-
-\begin{enumerate}
-    \item \textbf{Byte awalan} (\eng{prefix}), 0--1 byte. Bersifat
-          pilihan. Contohnya \code{LOCK} (\hex{F0}), pengganti segmen
-          \code{ES} (\hex{26}), dan \code{REP} (\hex{F3}).
-
-    \item \textbf{Opcode}, 1--2 byte. Menyatakan operasi yang harus
-          dilakukan, misalnya ``pindahkan'', ``tambahkan'', atau
-          ``lompat''.
-
-    \item \textbf{Byte ModR/M}, 0--1 byte. Menyatakan letak operand
-          dan cara pengalamatannya. Byte ini hadir bila instruksi
-          melibatkan register atau memori.
-
-    \item \textbf{Displacement}, 0--2 byte. Nilai pergeseran alamat
-          pada operand memori berbentuk \lstasm|[SI+4]|.
-
-    \item \textbf{Immediate}, 0--2 byte. Nilai konstanta yang menjadi
-          operand langsung, misalnya \hex{5} pada \lstasm|MOV AL, 5|.
-\end{enumerate}
-
-Field yang tidak diperlukan tidak ditulis sama sekali, sehingga
-panjang instruksi bervariasi. Susunan kelima field tersebut
-ditunjukkan pada Gambar~\ref{fig:format-instruksi}.
+Rantai proses tersebut ditunjukkan pada Gambar~\ref{fig:toolchain}.
 
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        font=\small,
-        bidang/.style={
+        node distance=0.9cm,
+        tahap/.style={
             draw=obeBlue,
             line width=0.8pt,
-            minimum height=1.0cm,
+            fill=obeBlueLight,
+            rounded corners=3pt,
+            minimum width=3.0cm,
+            minimum height=1.15cm,
             align=center,
-            inner sep=3pt
+            font=\small\bfseries,
+            inner sep=4pt
         },
-        kosong/.style={
-            draw=obeGray,
-            line width=0.8pt,
-            dashed,
-            minimum height=1.0cm,
-            align=center,
-            inner sep=3pt
+        alat/.style={
+            font=\scriptsize\itshape,
+            text=obeGray,
+            align=center
         },
-        ket/.style={font=\scriptsize, text=obeGray, align=center}
+        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt,
+            obeTeal}
     ]
-        % --- baris pertama: kerangka umum ---
-        \node[bidang, fill=obeAmberLight, minimum width=1.5cm] (p)
-            at (0,0) {\textbf{Prefix}\\{\scriptsize 0--1 B}};
-        \node[bidang, fill=obeBlueLight, minimum width=2.6cm]
-            (o) at (2.6,0) {\textbf{Opcode}\\{\scriptsize 1--2 B}};
-        \node[bidang, fill=obeTealLight, minimum width=2.6cm]
-            (m) at (5.8,0) {\textbf{ModR/M}\\{\scriptsize 0--1 B}};
-        \node[bidang, fill=obeGreenLight, minimum width=2.6cm]
-            (d) at (8.9,0) {\textbf{Displacement}\\{\scriptsize 0--2 B}};
-        \node[bidang, fill=obeMaroonLight, minimum width=2.2cm]
-            (i) at (11.8,0) {\textbf{Immediate}\\{\scriptsize 0--2 B}};
+        \node[tahap] (a) {\file{.ASM}\\{\normalfont\scriptsize kode sumber}};
+        \node[tahap, right=of a, fill=obeTealLight, draw=obeTeal] (b)
+            {\file{.OBJ}\\{\normalfont\scriptsize berkas objek}};
+        \node[tahap, right=of b, fill=obeTealLight, draw=obeTeal] (c)
+            {\file{.EXE}/\file{.COM}\\{\normalfont\scriptsize siap dijalankan}};
+        \node[tahap, right=of c, fill=obeAmberLight, draw=obeAmber] (d)
+            {Memori\\{\normalfont\scriptsize program berjalan}};
 
-        \node[ket, below=0.1cm of p] {opsional};
-        \node[ket, below=0.1cm of o] {wajib};
-        \node[ket, below=0.1cm of m] {bila ada operand};
-        \node[ket, below=0.1cm of d] {bila alamat\\bergeser};
-        \node[ket, below=0.1cm of i] {bila operand\\berupa angka};
+        \draw[panah] (a) -- (b);
+        \draw[panah] (b) -- (c);
+        \draw[panah] (c) -- (d);
 
-        % --- baris kedua: contoh nyata ---
-        \node[bidang, fill=obeBlueLight, minimum width=2.0cm]
-            (o2) at (1.2,-2.9) {\hex{C7}};
-        \node[bidang, fill=obeTealLight, minimum width=2.0cm]
-            (m2) at (3.2,-2.9) {\hex{80}};
-        \node[bidang, fill=obeGreenLight, minimum width=2.6cm]
-            (d2) at (5.8,-2.9) {\hex{34 12}};
-        \node[bidang, fill=obeMaroonLight, minimum width=2.6cm]
-            (i2) at (8.4,-2.9) {\hex{78 56}};
-
-        \draw[-{Stealth[length=2.2mm]}, obeGray, line width=0.7pt]
-            (o.south) -- (o2.north);
-        \draw[-{Stealth[length=2.2mm]}, obeGray, line width=0.7pt]
-            (m.south) -- (m2.north);
-        \draw[-{Stealth[length=2.2mm]}, obeGray, line width=0.7pt]
-            (d.south) -- (d2.north);
-        \draw[-{Stealth[length=2.2mm]}, obeGray, line width=0.7pt]
-            (i.south) -- (i2.north);
-
-        \node[ket, left=0.1cm of o2, align=right]
-            {\code{MOV WORD PTR}\\\code{[BX+SI+1234h],}\\\code{5678h}};
-
-        \node[ket] at (6.2,-4.2)
-            {\hex{C7 80 34 12 78 56} --- enam byte, semua field terpakai};
+        \node[alat, below=0.12cm of a] {editor};
+        \node[alat, below=0.12cm of b] {assembler\\TASM};
+        \node[alat, below=0.12cm of c] {linker\\TLINK};
+        \node[alat, below=0.12cm of d] {loader\\DOS};
     \end{tikzpicture}
-    \caption{Susunan field instruksi 8086 dan contoh penerapannya
-    pada \code{MOV WORD PTR [BX+SI+1234h], 5678h}.}
-    \label{fig:format-instruksi}
+    \caption{Rantai proses dari kode sumber sampai program berjalan
+    di memori.}
+    \label{fig:toolchain}
 \end{figure}
 
-\subsection{Ukuran Instruksi Tidak Seragam}
+\subsection{Peran TASM dan TLINK}
 
-Karena field bersifat pilihan, panjang instruksi 8086 berkisar antara
-1 dan 6 byte. Intel membatasi panjang maksimum instruksi pada 6 byte,
-dan angka inilah yang menjadi alasan antrean pengambilan awal
-(\eng{prefetch queue}) pada 8086 berukuran 6 byte
-\cite{intel1979}. Tabel~\ref{tab:panjang-instruksi} memperlihatkan
-beberapa contoh nyata.
+\begin{description}
+    \item[TASM] Menerjemahkan setiap instruksi assembly menjadi kode
+          mesin dan menghasilkan berkas \file{.OBJ}. TASM juga
+          memeriksa penulisan instruksi, ukuran operand, dan
+          keberadaan label.
+
+    \item[TLINK] Menggabungkan satu atau beberapa berkas \file{.OBJ}
+          menjadi berkas program. TLINK menetapkan alamat akhir
+          segmen, menyelesaikan rujukan antarbagian, dan menghasilkan
+          \file{.EXE} atau \file{.COM}.
+\end{description}
+
+Perintah dasar yang dipakai pada praktikum adalah sebagai berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+TASM hello.asm       ; menghasilkan hello.obj
+TLINK hello.obj      ; menghasilkan hello.exe
+\end{lstlisting}
+
+Bila berkas sumber berupa program \file{.COM}, TLINK dijalankan
+dengan pilihan \code{/t}:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+TASM hello.asm
+TLINK /t hello.obj   ; menghasilkan hello.com
+\end{lstlisting}
+
+\subsection{Perbedaan Program COM dan EXE}
+
+DOS mengenal dua bentuk berkas program yang dapat dijalankan, yaitu
+\file{.COM} dan \file{.EXE}. Perbedaannya dirangkum pada
+Tabel~\ref{tab:com-vs-exe}.
 
 \begin{table}[H]
     \centering
-    \caption{Variasi panjang instruksi 8086 dan field yang
-    dipakainya.}
-    \label{tab:panjang-instruksi}
+    \caption{Perbandingan program \file{.COM} dan \file{.EXE}.}
+    \label{tab:com-vs-exe}
     \small
-    \begin{tabular}{@{}p{4.6cm}p{3.1cm}cp{3.6cm}@{}}
+    \begin{tabular}{@{}p{3.0cm}p{5.3cm}p{5.3cm}@{}}
         \toprule
-        \textbf{Instruksi} & \textbf{Kode mesin} &
-        \textbf{Byte} & \textbf{Field yang dipakai} \\
+        \textbf{Aspek} & \textbf{Program \file{.COM}} &
+        \textbf{Program \file{.EXE}} \\
         \midrule
-        \lstasm|NOP| & \hex{90} & 1 & Opcode \\
+        Segmen & Seluruh kode, data, dan \eng{stack} dalam satu
+        segmen & Kode, data, dan \eng{stack} dapat berada pada segmen
+        terpisah \\
         \addlinespace
-        \lstasm|PUSH AX| & \hex{50} & 1 & Opcode \\
+        Ukuran & Maksimum sekitar 64 KB &
+        Dapat lebih dari satu segmen \\
         \addlinespace
-        \lstasm|MOV AL, 5| & \hex{B0 05} & 2 & Opcode, immediate \\
+        Titik awal & Memakai \dir{ORG 100h} &
+        Ditentukan oleh label pada direktif \dir{END} \\
         \addlinespace
-        \lstasm|MOV AX, BX| & \hex{89 D8} & 2 & Opcode, ModR/M \\
+        Inisialisasi \reg{DS} & Tidak perlu; DOS sudah menetapkannya &
+        Perlu dilakukan sendiri \\
         \addlinespace
-        \lstasm|MOV AX, 1234h| & \hex{B8 34 12} & 3 &
-        Opcode, immediate 16 bit \\
-        \addlinespace
-        \lstasm|ADD AX, [SI+4]| & \hex{03 44 04} & 3 &
-        Opcode, ModR/M, displacement \\
-        \addlinespace
-        \lstasm|MOV WORD PTR| & & & \\
-        \lstasm|[BX+SI+1234h],| & \hex{C7 80 34} & & Opcode, ModR/M, \\
-        \lstasm|5678h| & \hex{12 78 56} & 6 &
-        displacement, immediate \\
+        Cara keluar & \lstasm|INT 20h| atau
+        \lstasm|INT 21h| fungsi \hex{4C} &
+        \lstasm|INT 21h| fungsi \hex{4C} \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\subsection{Membaca Kode Mesin dari Kiri ke Kanan}
+Pada program \file{.COM}, DOS menyediakan \eng{Program Segment
+Prefix} (PSP) sebesar 256 byte tepat sebelum program. Karena itu,
+program \file{.COM} selalu dimulai pada offset \hex{100}. Pada
+program \file{.EXE}, DOS membuat PSP tersendiri dan menetapkan
+register segmen berdasarkan informasi di berkas program.
 
-Byte kode mesin dieksekusi menurut urutan alamat, dari byte pertama
-sampai terakhir. Namun nilai 16 bit di dalamnya disimpan dengan
-urutan \term{little-endian}, yaitu byte bernilai rendah lebih
-dahulu. Akibatnya nilai \hex{1234} pada \lstasm|MOV AX, 1234h|
-tertulis sebagai \hex{34} lalu \hex{12}. Kesalahan membaca urutan ini
-termasuk kekeliruan yang paling sering terjadi pada analisis kode
-mesin \cite{carleton2011}.
+\begin{infobox}
+\vspace{1.1em}
+Program \file{.COM} lebih ringkas dan cepat dimuat, tetapi terbatas
+pada satu segmen. Program \file{.EXE} lebih fleksibel untuk program
+besar, tetapi memerlukan inisialisasi \reg{DS} dan struktur direktif
+yang lebih lengkap.
+\end{infobox}
+
+\subsection{Lingkungan Praktik}
+
+Praktik pada buku ini memakai TASM dan TLINK di dalam DOSBox. Berkas
+yang sudah dirakit dapat dijalankan langsung di DOSBox atau diperiksa
+dengan DEBUG. emu8086 dapat dipakai sebagai alternatif untuk menulis,
+ menjalankan, dan mengamati program tanpa menyiapkan DOSBox secara
+manual.

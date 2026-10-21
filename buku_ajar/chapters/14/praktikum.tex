@@ -2,134 +2,125 @@
 \label{sec:praktikum-bab14}
 
 \begin{praktikumbox}
-\textbf{Judul:} Operasi masukan/keluaran dengan \code{INT 21h} dan
-penelusuran stack pada pemanggilan \asm{INT}.\\[0.3em]
-\textbf{Sub-CPMK:} 2.4 \quad\textbullet\quad
+\vspace{1.1em}
+\textbf{Judul:} Menelusuri stack, prosedur berparameter, dan macro.\\[0.3em]
+\textbf{Sub-CPMK:} 3.5 \quad\textbullet\quad
 \textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
-\textbf{Bentuk:} individu \quad\textbullet\quad
-\textbf{Tugas 7 dikumpulkan pada praktikum ini.}
+\textbf{Bentuk:} individu
 \end{praktikumbox}
 
 \subsection{Tujuan Praktikum}
 
-Setelah menyelesaikan praktikum ini, mahasiswa mampu menulis program
-masukan/keluaran dengan \code{INT 21h} dan menunjukkan isi stack
-sebelum serta sesudah instruksi \asm{INT} dijalankan.
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menelusuri
+perubahan \reg{SP} dan \reg{BP} pada pemanggilan prosedur, membaca
+parameter melalui \eng{stack frame}, serta membuat dan memakai macro
+berparameter.
 
 \subsection{Alat dan Bahan}
 
 \begin{itemize}
-    \item Komputer dengan Emu8086, GUI Turbo Assembler, atau DOSBox
-          beserta DEBUG.
-    \item Berkas \file{input-nama.asm} dan \file{warna-layar.asm} dari
-          direktori \file{code/asm/}.
-    \item Jurnal praktikum untuk mencatat nilai register dan isi
-          stack.
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \file{prosedur-luas.asm} dan \file{param-bp.asm} dari
+          \file{code/asm/}.
+    \item Lembar pengamatan stack.
 \end{itemize}
 
 \subsection{Langkah Kerja}
 
-\subsubsection{A. Masukan/keluaran dengan \code{INT 21h}}
-
 \begin{enumerate}
-    \item Rakit dan jalankan \file{input-nama.asm} seperti pada
-          Kode~\ref{lst:input-nama}, lalu catat keluarannya.
-    \item Ubah kapasitas penyangga dari \dec{20} menjadi \dec{5}, lalu
-          ketik nama yang lebih panjang dari empat karakter dan
-          jelaskan hasilnya dengan mengacu pada
-          Kode~\ref{lst:buffer-0a}.
-    \item Hapus baris \lstasm|MOV BYTE PTR [SI], '$'|, rakit ulang, dan
-          jalankan. Amati keluarannya dan jelaskan penyebabnya.
-    \item Tambahkan satu baris keluaran yang mencetak NIM mahasiswa
-          memakai fungsi \hex{09}.
-\end{enumerate}
+    \item \textbf{Menguji prosedur berparameter stack.}
+    \begin{enumerate}
+        \item Rakit \file{prosedur-luas.asm} dengan TASM, lalu link
+              dengan TLINK.
+        \item Jalankan program. Program tidak mencetak keluaran;
+              hasilnya disimpan pada variabel \code{luas}.
+        \item Buka program pada emu8086 dan jalankan
+              \eng{single step} sampai \asm{CALL HitungLuas}.
+        \item Catat \reg{SP} sebelum dan sesudah \asm{PUSH tinggi},
+              \asm{PUSH lebar}, dan \asm{CALL}.
+        \item Masuk ke prosedur dan catat \reg{SP} serta \reg{BP}
+              setelah \asm{PUSH BP} dan \asm{MOV BP, SP}.
+        \item Catat nilai \code{[BP+4]} dan \code{[BP+6]}. Cocokkan
+              dengan \code{lebar} dan \code{tinggi}.
+    \end{enumerate}
 
-\subsubsection{B. Menelusuri Stack pada Pemanggilan \asm{INT}}
+    \item \textbf{Mengubah parameter.}
+    \begin{enumerate}
+        \item Ubah \code{lebar} menjadi 7 dan \code{tinggi} menjadi 6.
+        \item Rakit ulang dan jalankan program.
+        \item Periksa nilai \code{luas}; hasilnya harus 42.
+    \end{enumerate}
 
-\begin{enumerate}
-    \item Buka DOSBox, lakukan \file{mount} ke direktori kerja, lalu
-          rakit program dengan \file{tasm} dan \file{tlink}.
-    \item Jalankan \file{debug input-nama.exe} dan tampilkan instruksi
-          program dengan perintah \file{U}. Tandai alamat instruksi
-          \lstasm|INT 21h| yang memanggil fungsi \hex{09}.
-    \item Tampilkan register dengan perintah \file{R}, lalu catat
-          nilai \reg{SP}, \reg{CS}, \reg{IP}, dan \reg{FLAGS}.
-    \item Jalankan \file{T} sampai tepat sebelum \lstasm|INT 21h|,
-          catat nilai \reg{SP}, lalu tampilkan puncak stack dengan
-          \file{D SS:SP L 6} dan catat enam byte yang tampak.
-    \item Jalankan \file{T} satu kali untuk mengeksekusi
-          \lstasm|INT 21h|, lalu ulangi perintah \file{D SS:SP L 6}.
-    \item Bandingkan hasil langkah 4 dan 5, jelaskan mengapa \reg{SP}
-          berubah, dan tentukan nilai mana yang merupakan \reg{IP},
-          \reg{CS}, serta \reg{FLAGS}.
-    \item Ulangi langkah 4 dan 5 dengan \file{P} sebagai pembanding,
-          lalu bandingkan hasilnya dengan jendela \file{Stack} pada
-          Emu8086.
-\end{enumerate}
+    \item \textbf{Menguji akses parameter dengan BP.}
+    \begin{enumerate}
+        \item Rakit dan jalankan \file{param-bp.asm}.
+        \item Catat keluarannya.
+        \item Telusuri \asm{PUSH} dua parameter dan \asm{MOV BP, SP}.
+        \item Jelaskan mengapa \code{[BP+0]} berisi parameter pertama
+              dan \code{[BP+2]} berisi parameter kedua.
+        \item Jelaskan mengapa dua \asm{POP AX} diperlukan sebelum
+              program selesai.
+    \end{enumerate}
 
-\begin{infobox}
-Perintah \file{T} (\eng{trace}) menjalankan satu instruksi dan
-\emph{masuk} ke rutin penangan, sedangkan \file{P} (\eng{proceed})
-menjalankannya sampai selesai tanpa masuk ke penangan. Keduanya
-memanfaatkan \flag{TF} seperti dijelaskan pada
-Subbab~\ref{sec:konsep-interupsi}.
-\end{infobox}
+    \item \textbf{Membuat macro.}
+    \begin{enumerate}
+        \item Tulis macro \code{Cetak\_Kar} seperti pada
+              Kode~\ref{lst:macro-demo}.
+        \item Panggil macro dengan argumen \code{'A'}.
+        \item Rakit dan jalankan program; pastikan keluarannya
+              \code{AAA}.
+        \item Panggil macro dua kali dengan argumen berbeda. Bila
+              muncul kesalahan label ganda, jelaskan penyebabnya dan
+              perbaiki.
+    \end{enumerate}
 
-\subsubsection{C. Tugas 7: Sapaan Berwarna}
+    \item \textbf{Membandingkan prosedur dan macro.}
+    \begin{enumerate}
+        \item Catat ukuran berkas hasil program prosedur.
+        \item Catat ukuran berkas hasil program macro.
+        \item Jelaskan mengapa program dengan macro dapat lebih besar.
+    \end{enumerate}
 
-Tugas 7 menggabungkan kedua contoh program pada bab ini. Buatlah
-program baru bernama \file{tugas7.asm} dengan ketentuan berikut.
-
-\begin{enumerate}
-    \item Program meminta nama pengguna dengan \code{INT 21h} fungsi
-          \hex{0A} dan kapasitas penyangga \dec{30} karakter, lalu
-          meminta NIM pada penyangga terpisah.
-    \item Program menetapkan mode video \hex{03} dengan
-          \code{INT 10h} fungsi \hex{00}, lalu mencetak baris
-          \code{Halo, <nama>} dengan fungsi \hex{13} dan atribut
-          kuning.
-    \item Program mencetak baris \code{NIM: <nim>} dengan atribut
-          hijau terang, lalu menutup tampilan dengan garis merah
-          seperti pada \file{warna-layar.asm}.
-    \item Program diakhiri \code{INT 21h} fungsi \hex{4C} dan memuat
-          komentar berbahasa Indonesia pada setiap baris penting.
+    \item \textbf{Memeriksa stack dengan DEBUG.}
+    \begin{enumerate}
+        \item Jalankan \file{debug prosedur-luas.exe}.
+        \item Catat \reg{SS} dan \reg{SP} dengan perintah \file{r}.
+        \item Tampilkan isi stack dengan
+              \lstasm|D SS:SP L 10|.
+        \item Cocokkan isi stack dengan parameter dan alamat kembali.
+    \end{enumerate}
 \end{enumerate}
 
 \subsection{Hasil yang Dikumpulkan}
 
 \begin{enumerate}
-    \item Berkas \file{tugas7.asm} beserta hasil perakitan dan
-          tangkapan layar keluarannya.
-    \item Tangkapan layar keluaran program pada langkah A.3 beserta
-          penjelasan penyebabnya.
-    \item Tabel pengamatan nilai \reg{SP} dan isi puncak stack sebelum
-          serta sesudah \lstasm|INT 21h|, beserta jawaban langkah B.6
-          dan B.7.
+    \item Berkas \file{prosedur-luas.asm} versi modifikasi.
+    \item Tabel pengamatan \reg{SP}, \reg{BP}, dan isi stack.
+    \item Tangkapan layar keluaran \file{param-bp.asm}.
+    \item Berkas program macro dan tangkapan layar keluarannya.
+    \item Penjelasan perbedaan prosedur dan macro.
 \end{enumerate}
 
 \begin{asesmenbox}
-\textbf{Asesmen praktikum Bab~\ref{chap:interupsi} (bobot 10\% dari
-komponen praktikum).}
+\vspace{1.1em}
+\textbf{Asesmen praktikum 12 (bobot 5\% dari komponen praktikum).}
 
-\begin{tabular}{@{}p{5.9cm}cp{5.0cm}@{}}
+\begin{tabular}{@{}p{6.2cm}cp{4.6cm}@{}}
     \toprule
     \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
     \midrule
-    Program masukan/keluaran dengan \code{INT 21h} berjalan benar &
-    20\% & Ketiga fungsi (\hex{0A}, \hex{09}, \hex{02}) dipakai
-    dengan argumen yang tepat \\
+    Ketepatan penelusuran stack & 35\% &
+    Perubahan SP, BP, dan isi stack tercatat benar \\
     \addlinespace
-    Tugas 7 selesai sesuai ketentuan & 35\% & Seluruh ketentuan
-    terpenuhi dan teks berwarna tampil benar \\
+    Ketepatan akses parameter & 25\% &
+    \code{[BP+4]} dan \code{[BP+6]} ditafsirkan benar \\
     \addlinespace
-    Ketepatan tabel pengamatan stack & 25\% & Nilai \reg{SP} dan isi
-    stack tercatat benar pada setiap langkah \\
+    Program macro berjalan & 25\% &
+    Macro berparameter menghasilkan keluaran benar \\
     \addlinespace
-    Penjelasan hasil pengamatan & 10\% & Alasan perubahan \reg{SP}
-    dan makna \file{T} serta \file{P} dijelaskan dengan tepat \\
-    \addlinespace
-    Kerapian kode dan jurnal praktikum & 10\% & Komentar lengkap dan
-    jurnal dapat diulang orang lain \\
+    Analisis prosedur dan macro & 15\% &
+    Perbedaan ukuran dan pemanggilan dijelaskan \\
     \bottomrule
 \end{tabular}
 \end{asesmenbox}

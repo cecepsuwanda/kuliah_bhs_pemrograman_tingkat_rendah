@@ -4,16 +4,16 @@
 \subsection{Soal Pilihan Ganda}
 
 \begin{enumerate}
-    \item Setelah instruksi \lstasm|MOV AL, 20h| dijalankan pada
-          register \reg{AX} yang semula berisi \hex{1234}, isi
-          register \reg{AX} menjadi \dots
+    \item Setelah \lstasm|MOV AL, 20h| dijalankan pada register
+          \reg{AX} yang semula berisi \hex{1234}, isi \reg{AX}
+          menjadi \dots
           \begin{enumerate}
               \item \hex{1220} \item \hex{2034}
               \item \hex{0020} \item \hex{2020}
           \end{enumerate}
 
-    \item Register yang selalu berpasangan dengan \reg{CS} untuk
-          menentukan alamat instruksi berikutnya adalah \dots
+    \item Register yang berpasangan dengan \reg{CS} untuk menentukan
+          alamat instruksi berikutnya adalah \dots
           \begin{enumerate}
               \item \reg{SP} \item \reg{IP}
               \item \reg{DS} \item \reg{DI}
@@ -28,18 +28,17 @@
               \item \flag{CF} = 0 dan \flag{OF} = 0
           \end{enumerate}
 
-    \item Instruksi berikut yang \textbf{tidak} mengubah nilai
-          \eng{flag} adalah \dots
+    \item Register yang menunjuk puncak \eng{stack} adalah \dots
           \begin{enumerate}
-              \item \asm{ADD AX, BX} \item \asm{CMP AX, BX}
-              \item \asm{MOV AX, BX} \item \asm{INC AX}
+              \item \reg{BP} \item \reg{SP}
+              \item \reg{SI} \item \reg{DI}
           \end{enumerate}
 
-    \item Register yang tidak boleh diubah sembarangan karena
-          menentukan letak \eng{stack} adalah \dots
+    \item \eng{Flag} yang bernilai 1 ketika hasil operasi bernilai
+          nol adalah \dots
           \begin{enumerate}
-              \item \reg{AX} dan \reg{BX} \item \reg{SI} dan \reg{DI}
-              \item \reg{DS} dan \reg{ES} \item \reg{SS} dan \reg{SP}
+              \item \flag{CF} \item \flag{SF}
+              \item \flag{ZF} \item \flag{OF}
           \end{enumerate}
 \end{enumerate}
 
@@ -50,21 +49,20 @@
           menghasilkan keadaan register yang berbeda bila sebelumnya
           \reg{AH} tidak bernilai nol. Sertakan contoh angka.
 
-    \item Sebutkan peran khas \reg{BX}, \reg{CX}, dan \reg{DX},
-          lalu jelaskan mengapa peran tersebut muncul walaupun
-          keempat register umum sebenarnya sama-sama dapat menampung
-          nilai apa pun.
+    \item Sebutkan peran khas \reg{BX}, \reg{CX}, dan \reg{DX}.
+          Jelaskan mengapa peran tersebut muncul walaupun keempat
+          register umum sama-sama dapat menampung nilai.
 
-    \item Diberikan keadaan awal \reg{AL} = \hex{80} dan \reg{BL} =
-          \hex{80}. Tentukan hasil \lstasm|ADD AL, BL| beserta nilai
-          \flag{CF}, \flag{OF}, \flag{SF}, dan \flag{ZF}. Jelaskan
-          mengapa \flag{CF} dan \flag{OF} bernilai demikian, dan
-          mengapa hal itu tidak bertentangan.
+    \item Diberikan keadaan awal \reg{AL} = \hex{80} dan
+          \reg{BL} = \hex{80}. Tentukan hasil
+          \lstasm|ADD AL, BL| beserta nilai \flag{CF}, \flag{OF},
+          \flag{SF}, dan \flag{ZF}. Jelaskan mengapa \flag{CF} dan
+          \flag{OF} bernilai demikian.
 
-    \item Seorang mahasiswa mengubah isi \reg{SS} dan \reg{SP}
-          secara manual di dalam \eng{debugger} ketika program
-          sedang berjalan. Jelaskan akibat yang mungkin terjadi pada
-          instruksi \asm{RET} dan mengapa hal itu berbahaya.
+    \item Jelaskan peran \reg{CS}, \reg{DS}, \reg{SS}, dan \reg{ES}
+          beserta pasangan alamatnya. Jelaskan pula akibat yang
+          mungkin terjadi bila \reg{SS} dan \reg{SP} diubah secara
+          sembarangan.
 \end{enumerate}
 
 \subsection{Kisi-kisi Penilaian}
@@ -79,41 +77,38 @@
         \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
         \textbf{Bentuk soal} & \textbf{Bobot} \\
         \midrule
-        1.2 & Mengidentifikasi register umum dan akses byte &
+        1.3 & Mengidentifikasi register umum dan akses byte &
         Pilihan ganda 1; Uraian 1, 2 & 25\% \\
         \addlinespace
-        1.2 & Menjelaskan register segmen dan pasangannya &
-        Pilihan ganda 2; Uraian 4 & 20\% \\
+        1.3 & Menjelaskan register segmen dan pasangannya &
+        Pilihan ganda 2; Uraian 4 & 25\% \\
         \addlinespace
-        1.2 & Menjelaskan peran register \eng{pointer} dan
-        \eng{index} & Pilihan ganda 5 & 15\% \\
-        \addlinespace
-        1.2 & Menganalisis perubahan \eng{flag} hasil operasi &
-        Pilihan ganda 3; Uraian 3 & 25\% \\
-        \addlinespace
-        1.2 & Membedakan instruksi yang memengaruhi \eng{flag} &
+        1.3 & Menjelaskan register \eng{pointer} dan \eng{index} &
         Pilihan ganda 4 & 15\% \\
+        \addlinespace
+        1.3 & Menganalisis perubahan \eng{flag} hasil operasi &
+        Pilihan ganda 3, 5; Uraian 3 & 35\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \begin{checklistbox}
+\vspace{1.1em}
 \textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:register}}
 
-Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 1.2 apabila:
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 1.3 apabila:
 \begin{itemize}
     \item[\checked] dapat menyebutkan register umum beserta byte
-          rendah dan byte tingginya;
-    \item[\checked] dapat menjelaskan peran khas \reg{AX},
-          \reg{BX}, \reg{CX}, dan \reg{DX};
-    \item[\checked] dapat menjelaskan peran \reg{CS}, \reg{DS},
-          \reg{SS}, dan \reg{ES} pada pengalamatan memori;
-    \item[\checked] dapat menjelaskan tugas \reg{SP}, \reg{BP},
-          \reg{SI}, \reg{DI}, dan \reg{IP};
-    \item[\checked] dapat menyebutkan sembilan \eng{flag} beserta
-          posisi bitnya;
+          tinggi dan byte rendahnya;
+    \item[\checked] dapat menjelaskan peran khas AX, BX, CX, dan DX;
+    \item[\checked] dapat menjelaskan peran CS, DS, SS, dan ES pada
+          pengalamatan memori;
+    \item[\checked] dapat menjelaskan tugas SP, BP, SI, DI, dan IP;
+    \item[\checked] dapat menyebutkan sembilan \eng{flag} dan kapan
+          masing-masing bernilai 1;
     \item[\checked] dapat memprediksi perubahan \eng{flag} pada
-          operasi \asm{ADD} dan menjelaskan akibatnya bagi alur
-          program.
+          operasi penjumlahan;
+    \item[\checked] dapat menjelaskan pengaruh \eng{flag} terhadap
+          keputusan program.
 \end{itemize}
 \end{checklistbox}

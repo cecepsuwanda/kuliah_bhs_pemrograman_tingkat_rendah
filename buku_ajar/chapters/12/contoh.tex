@@ -1,96 +1,103 @@
-\section{Contoh Program}
+\section{Contoh}
 \label{sec:contoh-bab12}
 
-Bagian ini menyajikan dua program utuh yang memakai seluruh bahan pada
-bab ini: \asm{CMP} sebagai penyiap \eng{flag}, lompatan bersyarat,
-perulangan \asm{LOOP}, dan prosedur dengan \asm{CALL} serta \asm{RET}.
+Dua contoh berikut memperlihatkan penerapan mode pengalamatan.
+Contoh pertama adalah program utuh yang mengakses array dengan tiga
+mode berbeda. Contoh kedua membandingkan ketujuh mode untuk mengakses
+elemen yang sama.
 
-\subsection{Contoh 1: Mencari Nilai Maksimum Larik}
+\subsection{Contoh 1: Tiga Mode untuk Array yang Sama}
 
-Program pada Kode~\ref{lst:loop-maksimum} mencari nilai terbesar
-dalam sebuah larik bilangan 16-bit, lalu mencetaknya sebagai bilangan
-desimal.
-
-\lstinputlisting[
-    language=MASM,
-    caption={Program \file{loop-maksimum.asm} mencari nilai maksimum
-    dalam larik.},
-    label={lst:loop-maksimum}
-]{\CodeDir/loop-maksimum.asm}
-
-Alur programnya adalah sebagai berikut.
-
-\begin{enumerate}
-    \item \lstasm|LEA SI, deret| menempatkan alamat elemen pertama
-          pada \reg{SI}; karena elemen dideklarasikan dengan \dir{DW},
-          penunjuk dimajukan dengan \lstasm|ADD SI, 2|.
-    \item \lstasm|MOV CX, BANYAK - 1| menetapkan banyak pembandingan:
-          elemen pertama sudah menjadi kandidat, sehingga hanya $n-1$
-          elemen yang perlu diperiksa.
-    \item Di dalam label \code{CARI}, instruksi
-          \lstasm|CMP AX, [SI]| menyiapkan \eng{flag}, lalu
-          \asm{JAE LANJUT} mengambil keputusan. Pemakaian \asm{JAE}
-          dan bukan \asm{JGE} disengaja: data pada larik diperlakukan
-          sebagai bilangan \emph{tak bertanda}.
-    \item \asm{LOOP CARI} mengurangi \reg{CX} dan mengulang
-          perbandingan selama masih ada elemen yang belum diperiksa.
-    \item Setelah perulangan berakhir, \reg{AX} berisi nilai
-          maksimum yang dicetak prosedur \code{CETAK\_DESIMAL}
-          dengan layanan DOS fungsi \hex{02}.
-\end{enumerate}
-
-Prosedur \code{CETAK\_DESIMAL} membagi \reg{AX} dengan \dec{10} secara
-berulang, menyimpan sisa pembagian ke \eng{stack}, lalu mencetak
-digit tersebut dari depan ke belakang (Bab~\ref{chap:prosedur}).
-
-\begin{session}[caption={Keluaran program \file{loop-maksimum.asm}.},
-label={lst:keluaran-maksimum}]
-Nilai maksimum: 93
-\end{session}
-
-\subsection{Contoh 2: Pengurutan Gelembung}
-
-Program pada Kode~\ref{lst:bubble-sort} mengurutkan larik delapan byte
-secara menaik dengan algoritme pengurutan gelembung.
+Program pada Kode~\ref{lst:mode-array} menjumlahkan lima elemen array
+dengan tiga cara: \textit{direct memory}, \textit{direct index}, dan
+\textit{base relative}.
 
 \lstinputlisting[
     language=MASM,
-    caption={Program \file{bubble-sort.asm} mengurutkan larik dengan
-    algoritme gelembung.},
-    label={lst:bubble-sort}
-]{\CodeDir/bubble-sort.asm}
+    caption={Program \file{mode-array.asm} membandingkan tiga mode
+    pengalamatan.},
+    label={lst:mode-array}
+]{\CodeDir/mode-array.asm}
 
-Bagian terpenting program ini adalah perulangan bersarangnya.
+Bagian penting program:
 
 \begin{itemize}
-    \item \textbf{Perulangan luar} (\code{LINTASAN}) dijalankan
-          $n-1 = 7$ kali; setiap lintasan memastikan satu elemen
-          tambahan menempati posisi akhirnya.
-    \item \textbf{Perulangan dalam} (\code{BANDING}) membandingkan
-          pasangan bersebelahan; \reg{SI} menunjuk elemen kiri dan
-          \reg{DI} elemen kanan.
-    \item \asm{JBE TIDAK\_TUKAR} memeriksa apakah pasangan sudah
-          urut. Bila belum, ketiga instruksi berikutnya menukar isi
-          kedua posisi.
+    \item Cara pertama memakai \textit{direct memory}:
+          \lstasm|MOV AX, data1+0| sampai \lstasm|ADD AX, data1+8|.
+          Offset ditulis sebagai konstanta.
+    \item Cara kedua memakai \textit{direct index}:
+          \lstasm|ADD AX, data1[SI]|. \reg{SI} dinaikkan dua setiap
+          elemen karena satu word berukuran dua byte.
+    \item Cara ketiga memakai \textit{base relative}:
+          \lstasm|ADD AX, [BX+SI]|. \reg{BX} menunjuk awal array dan
+          \reg{SI} menjadi indeks.
+    \item Ketiga hasil dibandingkan dengan \asm{CMP}. Bila sama,
+          program mencetak \code{Ketiga hasil identik.}
 \end{itemize}
 
-Karena kedua perulangan memakai register \reg{CX} sebagai pencacah,
-nilai \reg{CX} milik perulangan luar harus diselamatkan lebih dahulu
-dengan \asm{PUSH CX}, lalu diambil kembali dengan \asm{POP CX} setelah
-perulangan dalam selesai. Bila langkah ini dilupakan, perulangan dalam
-akan menimpa pencacah luar sampai bernilai nol, lalu \asm{LOOP} luar
-menguranginya menjadi \hex{FFFF} dan perulangan berjalan tanpa henti.
+Keluaran program tampak pada Kode~\ref{lst:keluaran-mode}.
 
-\begin{session}[caption={Keluaran program \file{bubble-sort.asm}.},
-label={lst:keluaran-bubble}]
-Hasil pengurutan: 1 2 3 4 6 7 8 9
-\end{session}
+\begin{lstlisting}[
+    style=sessiongaya,
+    caption={Keluaran program \file{mode-array.asm}.},
+    label={lst:keluaran-mode}
+]
+Perbandingan tiga mode pengalamatan
+Ketiga hasil identik.
+\end{lstlisting}
+
+\subsection{Contoh 2: Tujuh Mode untuk Satu Elemen}
+
+Misalkan array \code{data1 DW 10,20,30,40,50} dan elemen yang dituju
+adalah elemen ke-2 (indeks 2, offset 4, nilai 30). Ketujuh mode dapat
+dipakai seperti pada Tabel~\ref{tab:tujuh-mode-contoh}.
+
+\begin{table}[H]
+    \centering
+    \caption{Tujuh mode pengalamatan untuk mengakses
+    \code{data1[2]}.}
+    \label{tab:tujuh-mode-contoh}
+    \small
+    \begin{tabular}{@{}p{2.6cm}p{6.2cm}p{4.2cm}@{}}
+        \toprule
+        \textbf{Mode} & \textbf{Potongan program} &
+        \textbf{Alamat efektif} \\
+        \midrule
+        \textit{Register} & \lstasm|MOV AX, BX| &
+        Tidak ada akses memori \\
+        \addlinespace
+        \textit{Immediate} & \lstasm|MOV AX, 30| &
+        Tidak ada akses memori \\
+        \addlinespace
+        \textit{Direct} & \lstasm|MOV AX, data1+4| &
+        offset \code{data1} $+ 4$ \\
+        \addlinespace
+        \textit{Indirect} & \lstasm|LEA SI, data1+4| lalu
+        \lstasm|MOV AX, [SI]| & offset \code{data1} $+ 4$ \\
+        \addlinespace
+        \textit{Base relative} & \lstasm|LEA BX, data1| lalu
+        \lstasm|MOV AX, [BX+4]| & offset \code{data1} $+ 4$ \\
+        \addlinespace
+        \textit{Direct index} & \lstasm|LEA SI, data1| lalu
+        \lstasm|MOV AX, [SI+4]| & offset \code{data1} $+ 4$ \\
+        \addlinespace
+        \textit{Based indexed} & \lstasm|LEA BX, data1|,
+        \lstasm|MOV SI, 4|, lalu \lstasm|MOV AX, [BX+SI]| &
+        offset \code{data1} $+ 4$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Kelima mode memori menghasilkan nilai yang sama, yaitu 30, karena
+alamat efektifnya sama. Yang berbeda adalah cara membentuk alamat
+tersebut. Mode \textit{register} dan \textit{immediate} tidak
+mengakses memori sama sekali.
 
 \begin{infobox}
-Kedua program di atas dapat ditelusuri langkah demi langkah pada
-Emu8086 dengan tombol \file{Single Step} (teknik \eng{debugging} yang
-diuraikan pada Bab~\ref{chap:debugging}). Perhatikan keadaan
-\flag{ZF} dan \flag{CF} tepat sebelum setiap lompatan bersyarat:
-inilah cara paling cepat untuk memastikan bahwa instruksi \asm{Jcc}
-yang dipilih memang sesuai dengan jenis data yang dibandingkan.
+\vspace{1.1em}
+Pada mode \textit{direct index}, perpindahan ditulis di dalam
+kurung siku bersama register indeks, misalnya \lstasm|[SI+4]|.
+Pada mode \textit{indirect}, kurung siku hanya berisi register,
+misalnya \lstasm|[SI]|. Perbedaan kecil ini menentukan apakah
+alamat efektif ditambah perpindahan atau tidak.
 \end{infobox}

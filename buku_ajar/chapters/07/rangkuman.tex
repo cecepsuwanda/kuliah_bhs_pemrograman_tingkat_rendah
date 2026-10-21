@@ -4,66 +4,66 @@
 Pada bab ini telah dibahas:
 
 \begin{itemize}
-    \item \eng{Mnemonic} assembly hanyalah simbol bagi kode mesin.
-          Satu mnemonic memiliki banyak bentuk \eng{encoding} karena
-          jenis operand, ukuran operand, arah perpindahan data, dan
-          mode pengalamatan.
+    \item Program assembly melewati rantai proses: berkas
+          \file{.ASM} ditulis di editor, dirakit oleh TASM menjadi
+          \file{.OBJ}, di-link oleh TLINK menjadi \file{.EXE} atau
+          \file{.COM}, lalu dimuat DOS ke memori.
 
-    \item Format instruksi 8086 tersusun dari lima field dengan urutan
-          tetap: byte awalan, \eng{opcode}, byte ModR/M,
-          \eng{displacement}, dan \eng{immediate}. Panjang totalnya
-          antara 1 sampai 6 byte.
+    \item TASM menerjemahkan instruksi dan direktif menjadi berkas
+          objek. TLINK menyelesaikan rujukan simbol dan menetapkan
+          alamat segmen.
 
-    \item Byte ModR/M terbagi menjadi field \code{mod} (2 bit),
-          \code{reg/opcode} (3 bit), dan \code{r/m} (3 bit). Nilai
-          \code{mod} menentukan letak operand dan panjang
-          \eng{displacement}.
+    \item Program \file{.COM} memakai satu segmen, berukuran
+          maksimum sekitar 64 KB, memakai \dir{ORG 100h}, dan tidak
+          memerlukan inisialisasi \reg{DS}. Program \file{.EXE}
+          dapat memakai beberapa segmen dan memerlukan inisialisasi
+          \reg{DS}.
 
-    \item Field \code{r/m} berperan ganda: nomor register ketika
-          \code{mod} = \bin{11}, dan penentu alamat efektif ketika
-          \code{mod} bernilai lain. Dua pengecualian harus diingat:
-          \code{mod} = \bin{00} dengan \code{r/m} = \bin{101} berarti
-          alamat langsung, sedangkan \code{r/m} = \bin{110} berarti
-          \lstasm|[BP]|.
+    \item Direktif \dir{.MODEL} menentukan model memori. Model
+          \code{TINY} dipakai untuk program \file{.COM}, sedangkan
+          \code{SMALL} dipakai untuk program \file{.EXE} sederhana.
 
-    \item \eng{Displacement} menggeser alamat efektif dan hanya
-          muncul pada operand memori; \eng{immediate} adalah nilai
-          konstanta yang menjadi operand langsung. Keduanya dapat
-          muncul bersamaan.
+    \item Kerangka program memuat \dir{.MODEL}, \dir{.STACK},
+          \dir{.DATA}, \dir{.CODE}, label titik masuk, dan
+          \dir{END}.
 
-    \item Setiap nilai 16 bit disimpan \eng{little-endian}, yaitu
-          byte bernilai rendah lebih dahulu.
+    \item \dir{ORG 100h} menetapkan awal program \file{.COM} pada
+          offset \hex{100} karena 256 byte pertama dipakai
+          \eng{Program Segment Prefix}.
 
-    \item Bentuk operand berpengaruh pada ukuran kode dan jumlah byte
-          yang diambil prosesor melalui antrean \eng{prefetch}
-          berukuran 6 byte.
+    \item Label menandai lokasi instruksi atau data. Komentar
+          ditulis setelah tanda \code{;} dan diabaikan assembler.
 
-    \item \eng{Disassembler}, misalnya perintah \code{U} pada
-          \file{DEBUG}, membalik kode mesin menjadi mnemonic. Hasilnya
-          harus diperiksa terhadap titik masuk dan alur kendali
-          program, karena disassembler tidak membedakan kode dari
-          data.
+    \item Direktif data \dir{DB}, \dir{DW}, dan \dir{DD} menentukan
+          ukuran data. \dir{EQU} memberi nama konstanta, sedangkan
+          \dir{DUP} mengulang pola data.
+
+    \item Kesalahan penulisan dilaporkan TASM beserta nomor baris.
+          Kesalahan logika tidak selalu dilaporkan dan harus dicari
+          dengan \eng{debugger}.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
-    \item[\checkbox] Saya dapat menjelaskan hubungan mnemonic dan
-          \eng{opcode} beserta alasan satu mnemonic memiliki banyak
-          bentuk \eng{encoding}.
-    \item[\checkbox] Saya dapat menyebutkan urutan field instruksi
-          8086 dan memperkirakan panjang sebuah instruksi.
-    \item[\checkbox] Saya dapat memecah byte ModR/M dan menentukan
-          nomor register 8086 pada field \code{reg} serta
-          \code{r/m}.
-    \item[\checkbox] Saya dapat membedakan peran
-          \eng{displacement} dan \eng{immediate}.
-    \item[\checkbox] Saya dapat mengurutkan nilai 16 bit secara
-          \eng{little-endian}.
-    \item[\checkbox] Saya dapat melakukan \eng{encoding} manual
-          instruksi sederhana dan memeriksanya dengan perintah
-          \code{U}.
+    \item[\checkbox] Saya dapat menjelaskan rantai proses
+          \file{.ASM} $\rightarrow$ \file{.OBJ} $\rightarrow$
+          \file{.EXE}/\file{.COM}.
+    \item[\checkbox] Saya dapat menjelaskan peran TASM dan TLINK.
+    \item[\checkbox] Saya dapat menyebutkan perbedaan program
+          \file{.COM} dan \file{.EXE}.
+    \item[\checkbox] Saya dapat menjelaskan fungsi \dir{.MODEL},
+          \dir{.STACK}, \dir{.DATA}, \dir{.CODE}, dan \dir{END}.
+    \item[\checkbox] Saya dapat menjelaskan peran \dir{ORG 100h}
+          pada program \file{.COM}.
+    \item[\checkbox] Saya dapat menulis label dan komentar dengan
+          benar.
+    \item[\checkbox] Saya dapat menggunakan \dir{DB}, \dir{DW},
+          \dir{DD}, \dir{EQU}, dan \dir{DUP}.
+    \item[\checkbox] Saya dapat meng-assemble, men-link, dan
+          menjalankan program sederhana.
 \end{itemize}
 
 \vspace{0.4em}
@@ -72,11 +72,9 @@ bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Uraian mengenai format instruksi, urutan
-register, dan batas panjang instruksi 8086 bersumber dari
-\cite{intel1979}. Penjelasan ringkas mengenai ModR/M dan \eng{opcode}
-kelompok tersedia pada \cite{carleton2011} dan \cite{evans2020}.
-Pembahasan keterbatasan hasil \eng{disassembly} dirujuk dari
-\cite{wikibooksdisasm}. Untuk penerapan lanjutan pada analisis kode,
-lihat Bab~\ref{chap:disassembly}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 4, hlm.~26--34, dan Bagian 8,
+hlm.~76--77, serta \cite{sto2001}, BAB V--VI, hlm.~21--26, dan
+BAB IX, hlm.~41--46.
 \end{infobox}

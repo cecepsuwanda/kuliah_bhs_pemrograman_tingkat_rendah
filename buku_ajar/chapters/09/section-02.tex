@@ -1,187 +1,107 @@
-\section{Direktif Simbol, Lokasi, dan Struktur Program}
-\label{sec:direktif-simbol-struktur}
+\section{Interupsi BIOS}
+\label{sec:interupsi-bios}
 
-Selain mengisi data, direktif juga dipakai untuk memberi nama pada
-nilai dan untuk menata letak bagian-bagian program. Keduanya
-menentukan bagaimana assembler menafsirkan berkas sumber.
+BIOS menyediakan layanan dasar untuk video, \eng{keyboard}, printer,
+dan perangkat lain. Layanan ini tersedia sejak komputer menyala,
+sebelum DOS dimuat. Bagian ini membahas dua layanan yang paling
+banyak dipakai pada program assembly: \code{INT 10h} untuk video dan
+\code{INT 16h} untuk \eng{keyboard}.
 
-\subsection{Konstanta Simbolik: \dir{EQU} dan \code{=}}
+Pembahasan diringkas dari \cite{gunawan2019}, Bagian 3,
+hlm.~19--25, dan Bagian 18, hlm.~190--202, serta \cite{sto2001},
+BAB XV, hlm.~78--84.
 
-Direktif \dir{EQU} memberi nama pada sebuah nilai agar program lebih
-mudah dibaca. Setelah \lstasm|KELUAR EQU 4Ch| ditulis, setiap
-kemunculan \code{KELUAR} digantikan \hex{4C} saat perakitan. Nama
-semacam ini disebut \term{konstanta simbolik}.
+\subsection{Layanan Video INT 10h}
 
-Direktif \code{=} memiliki bentuk penulisan serupa, yaitu
-\lstasm|URUTAN = 10|, tetapi sifatnya berbeda.
-Tabel~\ref{tab:equ-vs-sama-dengan} merangkum perbedaannya.
+\code{INT 10h} memakai register \reg{AH} untuk memilih fungsi.
+Register lain menyimpan argumen sesuai fungsi yang dipilih.
+Fungsi yang sering dipakai dirangkum pada
+Tabel~\ref{tab:int10h}.
 
 \begin{table}[H]
     \centering
-    \caption{Perbandingan direktif \dir{EQU} dan \code{=}.}
-    \label{tab:equ-vs-sama-dengan}
+    \caption{Fungsi \code{INT 10h} yang sering dipakai.}
+    \label{tab:int10h}
     \small
-    \begin{tabular}{@{}p{3.6cm}p{4.9cm}p{4.9cm}@{}}
+    \begin{tabular}{@{}p{1.6cm}p{7.2cm}p{5.0cm}@{}}
         \toprule
-        \textbf{Aspek} & \dir{EQU} & \code{=} \\
+        \textbf{AH} & \textbf{Fungsi} & \textbf{Register argumen} \\
         \midrule
-        Sifat simbol & Konstanta tetap sepanjang berkas &
-        Nilai yang boleh berubah \\
+        \hex{00} & Menetapkan mode video & \reg{AL} = nomor mode \\
         \addlinespace
-        Dapat didefinisikan ulang & Tidak; assembler melaporkan
-        \file{Symbol already defined} & Ya; definisi terakhir yang
-        berlaku \\
+        \hex{02} & Menetapkan posisi kursor &
+        \reg{DH} = baris, \reg{DL} = kolom, \reg{BH} = halaman \\
         \addlinespace
-        Jenis nilai yang boleh & Bilangan, alamat, teks, atau
-        ekspresi apa pun yang dapat dihitung assembler &
-        Wajib berupa bilangan \\
+        \hex{09} & Menulis karakter dan atributnya &
+        \reg{AL} = karakter, \reg{BL} = atribut, \reg{CX} = jumlah,
+        \reg{BH} = halaman \\
         \addlinespace
-        Pemakaian khas & Nama nomor fungsi DOS, ukuran tabel,
-        konstanta ASCII & Penghitung di dalam makro atau blok
-        yang diulang \\
+        \hex{13} & Menulis string dan atributnya &
+        \reg{ES}:\reg{BP} = string, \reg{CX} = panjang,
+        \reg{DH}:\reg{DL} = posisi, \reg{BL} = atribut \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Perbedaan ``tidak dapat diubah'' dan ``dapat didefinisikan ulang''
-paling jelas terlihat pada dua potongan program berikut.
+Contoh menetapkan mode teks 80 kolom $\times$ 25 baris berwarna:
 
-\begin{lstlisting}[
-    language=MASM,
-    caption={Definisi ulang \dir{EQU} yang menimbulkan kesalahan.},
-    label={lst:equ-salah}
-]
-LEBAR   EQU 80          ; definisi pertama
-LEBAR   EQU 40          ; **Error** Symbol already defined: LEBAR
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AH, 00h         ; fungsi set mode video
+MOV AL, 03h         ; mode teks 80x25 berwarna
+INT 10h
 \end{lstlisting}
 
-\begin{session}[caption={Pesan yang dikeluarkan TASM untuk Kode~\ref{lst:equ-salah}.}, label={lst:pesan-error-equ}]
-Turbo Assembler  Version 4.1
-**Error** equ-salah.asm(2) Symbol already defined: LEBAR
-**Error** equ-salah.asm(2) Cannot define symbol
-0 errors in pass 1
-2 errors
-\end{session}
+Contoh memindahkan kursor ke baris 7, kolom 10:
 
-Sebaliknya, pemakaian \code{=} pada baris kedua tidak menimbulkan
-kesalahan apa pun; nilai \code{URUTAN} berubah dari \dec{10} menjadi
-\dec{20}, dan pemakaian sesudahnya akan memakai nilai terakhir.
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={Definisi ulang \code{=} yang sah dan mengubah nilai terakhir.},
-    label={lst:sama-dengan}
-]
-URUTAN  = 10            ; nilai pertama
-    ; ... instruksi yang memakai URUTAN = 10
-URUTAN  = 20            ; sah: nilai sekarang menjadi 20
-    ; ... instruksi yang memakai URUTAN = 20
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AH, 02h         ; fungsi set posisi kursor
+MOV BH, 00h         ; halaman tampilan 0
+MOV DH, 07h         ; baris 7
+MOV DL, 0Ah         ; kolom 10
+INT 10h
 \end{lstlisting}
 
-\begin{infobox}
-Beberapa versi TASM mengizinkan \dir{EQU} ditulis ulang bila nilai
-barunya \emph{persis sama}. Untuk menghindari perbedaan perilaku
-antarversi, anggap saja \dir{EQU} tidak dapat didefinisikan ulang
-dan pakailah \code{=} bila membutuhkan nilai yang berubah.
-\end{infobox}
+Fungsi \hex{13} lebih praktis untuk menulis satu string sekaligus.
+Register \reg{ES}:\reg{BP} menunjuk string, \reg{CX} menyatakan
+jumlah karakter, dan \reg{BL} menyimpan atribut warna. Atribut
+\hex{0E} berarti kuning pada latar hitam, sedangkan \hex{0C} berarti
+merah terang pada latar hitam.
 
-\subsection{Direktif Lokasi dan Struktur}
+\subsection{Layanan Keyboard INT 16h}
 
-Direktif kelompok ini mengatur \emph{di mana} sesuatu diletakkan dan
-\emph{bagaimana} program dibagi menjadi bagian-bagian.
-
-\begin{description}
-    \item[\dir{ORG}] Menetapkan penghitung lokasi (\eng{location
-          counter}). Pada program \file{.COM}, \lstasm|ORG 100h|
-          wajib ditulis karena DOS memuat program pada
-          \eng{offset} \hex{100}.
-
-    \item[\dir{SEGMENT} dan \dir{ENDS}] Menandai awal dan akhir
-          sebuah segmen bernama. Setiap \dir{SEGMENT} harus ditutup
-          \dir{ENDS}. Bab~\ref{chap:pengenalan} telah menjelaskan
-          bahwa program \file{.COM} menyatukan seluruh bagian dalam
-          satu segmen, sedangkan program \file{.EXE}
-          memisahkannya.
-
-    \item[\dir{ASSUME}] Memberi tahu assembler register segmen mana
-          yang dianggap menunjuk ke segmen tertentu, sehingga
-          segmen \eng{default} sebuah label dapat ditentukan.
-          Direktif ini tidak mengubah isi register saat program
-          berjalan.
-
-    \item[\dir{END}] Menutup berkas sumber; baris sesudahnya
-          diabaikan. Bila diberi label, misalnya
-          \lstasm|END START|, assembler juga mencatat label itu
-          sebagai titik masuk (\eng{entry point}) program.
-\end{description}
-
-Kesalahan \eng{END} tanpa label pada bentuk \file{.EXE} sangat
-mudah dikenali: perakit selesai tanpa pesan kesalahan, tetapi
-linker mengeluh karena tidak menemukan titik masuk program.
-Pembahasan bentuk kedua berkas program ini dapat ditinjau kembali
-pada Bab~\ref{chap:pengenalan}.
-
-\subsection{Model Memori dan Struktur Prosedur}
-
-Direktif \dir{.MODEL} memberi tahu assembler berapa banyak segmen
-yang akan dipakai program sekaligus menetapkan simbol bawaan seperti
-\code{@DATA}.
+\code{INT 16h} dipakai untuk membaca tombol yang ditekan. Fungsi
+utamanya ditunjukkan pada Tabel~\ref{tab:int16h}.
 
 \begin{table}[H]
     \centering
-    \caption{Model memori \dir{.MODEL} dan pengaruhnya pada segmen.}
-    \label{tab:model-memori}
+    \caption{Fungsi \code{INT 16h} yang sering dipakai.}
+    \label{tab:int16h}
     \small
-    \begin{tabular}{@{}p{1.9cm}p{3.9cm}p{3.2cm}p{4.4cm}@{}}
+    \begin{tabular}{@{}p{1.6cm}p{6.8cm}p{5.4cm}@{}}
         \toprule
-        \textbf{Model} & \textbf{Batas kode} &
-        \textbf{Batas data} & \textbf{Jumlah segmen} \\
+        \textbf{AH} & \textbf{Fungsi} & \textbf{Hasil} \\
         \midrule
-        \file{TINY} & 64 KB & 64 KB & Satu segmen untuk kode,
-        data, dan \eng{stack}; dipakai untuk \file{.COM} \\
+        \hex{00} & Membaca tombol; menunggu sampai ada tombol ditekan &
+        \reg{AH} = kode scan, \reg{AL} = kode ASCII \\
         \addlinespace
-        \file{SMALL} & 64 KB & 64 KB & Satu segmen kode, satu
-        segmen data; pilihan lazim untuk pembelajaran \\
+        \hex{01} & Memeriksa apakah ada tombol ditekan &
+        \flag{ZF} = 0 bila ada tombol; kode di \reg{AX} \\
         \addlinespace
-        \file{MEDIUM} & Tidak dibatasi & 64 KB & Satu segmen data,
-        banyak segmen kode \\
-        \addlinespace
-        \file{COMPACT} & 64 KB & Tidak dibatasi & Satu segmen
-        kode, banyak segmen data \\
-        \addlinespace
-        \file{LARGE} & Tidak dibatasi & Tidak dibatasi & Banyak
-        segmen kode dan data; satu \eng{array} maksimum 64 KB \\
-        \addlinespace
-        \file{HUGE} & Tidak dibatasi & Tidak dibatasi & Seperti
-        \file{LARGE}, tetapi satu \eng{array} boleh melewati
-        batas 64 KB \\
+        \hex{02} & Membaca status tombol khusus &
+        \reg{AL} = status shift \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Semakin besar model, semakin banyak segmen yang harus diurus
-program. Pada model \file{MEDIUM} atau \file{LARGE}, prosedur di
-segmen kode lain harus dipanggil sebagai \eng{far procedure}
-sehingga register \reg{CS} ikut berubah.
+Fungsi \hex{00} bersifat menunggu (\eng{blocking}): program berhenti
+sampai pengguna menekan tombol. Fungsi \hex{01} bersifat tidak
+menunggu (\eng{non-blocking}) sehingga program dapat terus berjalan
+sambil memeriksa tombol.
 
-Bagian program yang berdiri sendiri dapat dibungkus dengan
-\dir{PROC} dan \dir{ENDP}. Keduanya tidak menghasilkan instruksi,
-melainkan hanya menandai batas sebuah prosedur sehingga assembler
-dapat menentukan jenis pemanggilan.
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={Direktif \dir{PROC} dan \dir{ENDP} dasar.},
-    label={lst:proc-endp}
-]
-cetak_judul PROC            ; awal prosedur
-    MOV AH, 09h
-    LEA DX, judul
-    INT 21h
-    RET                     ; kembali ke pemanggil
-cetak_judul ENDP            ; akhir prosedur
-\end{lstlisting}
-
-Layanan DOS yang dipanggil melalui \code{INT 21h} pada Kode~\ref{lst:proc-endp}
-merupakan \eng{interrupt} perangkat lunak. Mekanisme pemanggilan dan
-daftar lengkap layanannya dibahas pada Bab~\ref{chap:interupsi}.
+\begin{peringatanbox}
+\vspace{1.1em}
+Layanan \code{INT 16h} membaca tombol pada level BIOS, sedangkan
+\code{INT 21h} fungsi \hex{01} atau \hex{0A} membaca masukan melalui
+DOS. Keduanya tidak boleh dicampur tanpa alasan yang jelas karena
+dapat memengaruhi isi penyangga \eng{keyboard}.
+\end{peringatanbox}

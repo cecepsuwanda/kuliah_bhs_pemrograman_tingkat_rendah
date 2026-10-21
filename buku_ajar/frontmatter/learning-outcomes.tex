@@ -29,7 +29,7 @@ mata kuliah ini.
 
 \section*{2. Capaian Pembelajaran Mata Kuliah (CPMK)}
 
-\begin{longtable}{@{}p{1.7cm}p{9.9cm}p{2.8cm}@{}}
+\begin{longtable}{@{}p{1.95cm}p{9.35cm}p{2.7cm}@{}}
 \toprule
 \textbf{Kode} & \textbf{Rumusan CPMK} & \textbf{Mendukung} \\
 \midrule
@@ -41,28 +41,27 @@ mata kuliah ini.
 \bottomrule
 \endfoot
 \CPMK{01} & Menjelaskan arsitektur register dan manajemen memori
-level rendah. & CPL02, CPMK01 \\
+level rendah. & CPL02 \\
 \addlinespace
-\CPMK{02} & Memahami hubungan instruksi mesin dengan \textit{hardware}.
-& CPL02, CPMK02 \\
+\CPMK{02} & Memahami hubungan instruksi mesin dengan hardware.
+& CPL02 \\
 \addlinespace
-\CPMK{03} & Menulis kode assembly untuk operasi aritmatika dan logika.
-& CPL03, CPMK03 \\
+\CPMK{03} & Menulis kode Assembly untuk operasi aritmatika dan logika.
+& CPL03 \\
 \addlinespace
-\CPMK{04} & Melakukan \textit{debugging} pada level instruksi memori.
-& CPL03, CPMK04 \\
+\CPMK{04} & Melakukan debugging pada level instruksi memori.
+& CPL03 \\
 \bottomrule
 \end{longtable}
 
 \section*{3. Sub-CPMK dan Pemetaannya ke Bab}
 
-Tabel berikut menunjukkan Sub-CPMK yang harus dicapai mahasiswa,
-indikator ketercapaiannya, serta bab tempat kompetensi tersebut
-dibangun dan diukur.
+Sub-CPMK berikut disalin dari bagian 4 RPS. Tabel menunjukkan indikator
+ketercapaian serta bab tempat kompetensi tersebut dibangun dan diukur.
 
 \begingroup
 \small
-\begin{longtable}{@{}p{1.25cm}p{6.9cm}p{1.6cm}p{3.4cm}@{}}
+\begin{longtable}{@{}p{1.45cm}p{6.45cm}p{1.55cm}p{3.55cm}@{}}
 \toprule
 \textbf{Sub-CPMK} & \textbf{Indikator Pencapaian} &
 \textbf{CPMK} & \textbf{Bab} \\
@@ -75,65 +74,67 @@ dibangun dan diukur.
 \endhead
 \bottomrule
 \endfoot
-1.1 & Menjelaskan arsitektur dasar mikroprosesor 8086
-(\textit{Execution Unit} dan \textit{Bus Interface Unit}), peran bus
-alamat/data/kontrol, serta tahapan siklus instruksi
-(\textit{fetch--decode--execute}). & CPMK01 &
-Bab~III, Bab~IV \\
+1.1 & Menjelaskan peran bahasa assembly serta mengonversi bilangan
+biner, desimal, oktal, dan heksadesimal, termasuk membedakan bilangan
+bertanda dan tidak bertanda. & CPMK01 & Bab~III \\
 \addlinespace
-1.2 & Mengidentifikasi fungsi register umum (AX, BX, CX, DX),
-register segmen (CS, DS, SS, ES), register \textit{pointer}/\textit{index}
-(SP, BP, SI, DI), dan register \textit{flag} beserta pengaruhnya
-terhadap eksekusi program. & CPMK01 & Bab~V \\
+1.2 & Menjelaskan pembagian \textit{Bus Interface Unit} dan
+\textit{Execution Unit}, peran bus, \textit{queue} instruksi, dan ALU,
+serta urutan pengambilan dan eksekusi instruksi pada 8086. & CPMK01 &
+Bab~IV \\
 \addlinespace
-1.3 & Menerapkan konsep segmentasi memori: menghitung alamat fisik
-20-bit dari pasangan \textit{segment:offset}, menjelaskan paragraf
-16-byte, dan menganalisis skema pengalamatan 1 MB. & CPMK01 & Bab~VI \\
+1.3 & Mengidentifikasi register umum (AX--DX), register segmen (CS, DS,
+SS, ES), register \textit{pointer}/\textit{index} (SP, BP, SI, DI), IP,
+dan \textit{flag} beserta pengaruh \textit{flag} terhadap keputusan
+program. & CPMK01 & Bab~V \\
 \addlinespace
-2.1 & Menjelaskan format instruksi mesin (\textit{opcode}, byte
-ModR/M, \textit{displacement}/\textit{immediate}) dan mengaitkannya
-dengan operasi yang dieksekusi perangkat keras. & CPMK02 & Bab~VII \\
+1.4 & Menghitung alamat fisik dari pasangan \textit{segment:offset}
+serta menjelaskan pembagian memori 1 MB dan \textit{overlapping}
+segmen. & CPMK01 & Bab~VI \\
 \addlinespace
-2.2 & Menganalisis mode pengalamatan (\textit{immediate},
-\textit{direct}, \textit{register indirect}, \textit{indexed},
-\textit{base-relative}) dan menentukan segmen \textit{default} yang
-digunakan. & CPMK02 & Bab~VIII \\
+2.1 & Menjelaskan struktur program assembly (\texttt{.MODEL},
+\texttt{ORG 100h}, \texttt{.CODE}, \texttt{.DATA}, label, komentar)
+dan alur translasi \texttt{.ASM} $\rightarrow$ \texttt{.OBJ}
+$\rightarrow$ \texttt{.EXE}/\texttt{.COM}. & CPMK02 & Bab~VII \\
 \addlinespace
-2.3 & Menggunakan direktif assembler (DB, DW, DD, EQU, ORG, SEGMENT)
-dan menjelaskan alur translasi \textit{source} $\rightarrow$
-\textit{object} $\rightarrow$ \textit{executable} oleh assembler dan
-linker. & CPMK02 & Bab~IX \\
+2.2 & Menerapkan instruksi transfer data (MOV, LEA, LDS/LES, XCHG,
+CMP, XLAT, CBW, CWD) untuk memindahkan data antar register, memori, dan
+segmen. & CPMK02 & Bab~VIII \\
 \addlinespace
-2.4 & Menjelaskan mekanisme interupsi dan layanan BIOS/DOS (INT 10h,
-INT 21h) sebagai jembatan antara instruksi mesin dan perangkat
-keras/I/O. & CPMK02 & Bab~XIV \\
+2.3 & Menjelaskan mekanisme interupsi dan tabel vektor interupsi serta
+menggunakan layanan BIOS/DOS (INT 21h, INT 10h, INT 16h) untuk operasi
+masukan dan keluaran. & CPMK02 & Bab~IX \\
 \addlinespace
-3.1 & Menulis program assembly lengkap menggunakan instruksi
-transfer data (MOV, XCHG, LEA, PUSH/POP) dan instruksi aritmatika
-(ADD, SUB, INC, DEC, MUL, IMUL, DIV, IDIV). & CPMK03 & Bab~X \\
+3.1 & Menulis program dengan instruksi ADD, ADC, INC, SUB, SBB, DEC,
+MUL, dan DIV serta menjelaskan pengaruhnya terhadap \textit{flag}. &
+CPMK03 & Bab~X \\
 \addlinespace
-3.2 & Menerapkan operasi logika \textit{bitwise} dan operasi
-pergeseran/rotasi (AND, OR, XOR, NOT, TEST, SHL, SHR, SAL, SAR, ROL,
-ROR) untuk manipulasi bit. & CPMK03 & Bab~XI \\
+3.2 & Menerapkan operasi NOT, AND, OR, XOR, TEST, SHL, dan SHR untuk
+manipulasi bit. & CPMK03 & Bab~XI \\
 \addlinespace
-3.3 & Mengimplementasikan struktur kontrol (CMP, TEST, lompatan
-bersyarat Jcc, LOOP, dan prosedur dengan CALL/RET) dalam program
-assembly. & CPMK03 & Bab~XII \\
+3.3 & Menerapkan tujuh mode pengalamatan 8086 (\textit{register},
+\textit{immediate}, \textit{direct memory}, \textit{indirect memory},
+\textit{base relative}, \textit{direct index}, \textit{based indexed})
+pada instruksi transfer dan aritmatika. & CPMK03 & Bab~XII \\
 \addlinespace
-3.4 & Mengembangkan prosedur/subrutin dengan mekanisme
-\textit{parameter passing} dan mengelola \textit{stack frame} (PUSH,
-POP, BP, konvensi pemanggilan). & CPMK03 & Bab~XIII \\
+3.4 & Menyusun percabangan dan perulangan dengan label, JMP, CMP,
+lompatan bersyarat, dan LOOP. & CPMK03 & Bab~XIII \\
 \addlinespace
-4.1 & Melakukan penelusuran program pada level instruksi
-(\textit{single-step}, \textit{trace}, \textit{breakpoint}) dan
-memantau perubahan register serta \textit{flag}. & CPMK04 & Bab~XV \\
+3.5 & Menggunakan stack (PUSH/POP), prosedur (PROC/ENDP, CALL/RET),
+dan macro dalam program yang modular. & CPMK03 & Bab~XIV \\
 \addlinespace
-4.2 & Memeriksa dan menganalisis isi memori dan \textit{stack}
-(\textit{dump}) untuk menemukan kesalahan logika, kesalahan
-segmentasi, dan \textit{overflow}. & CPMK04 & Bab~XV \\
+3.6 & Mengolah array dan string serta mencetak bilangan desimal dan
+heksadesimal ke layar. & CPMK03 & Bab~XV \\
 \addlinespace
-4.3 & Menganalisis kode mesin hasil \textit{disassembly} dan
-menerapkan strategi optimasi program pada level instruksi. & CPMK04 &
+4.1 & Melakukan penelusuran program per instruksi (\textit{single
+step}/\textit{trace}) dan memantau perubahan register serta
+\textit{flag}. & CPMK04 & Bab~XVI \\
+\addlinespace
+4.2 & Memeriksa isi memori dan stack (\textit{dump}) untuk menemukan
+kesalahan sintaks dan kesalahan logika. & CPMK04 & Bab~XVI \\
+\addlinespace
+4.3 & Menganalisis penyebab program berhenti (\textit{hang}) dan
+memperbaiki kesalahan berdasarkan hasil penelusuran. & CPMK04 &
 Bab~XVI \\
 \bottomrule
 \end{longtable}
@@ -141,7 +142,7 @@ Bab~XVI \\
 
 \section*{4. Bobot Penilaian}
 
-\begin{longtable}{@{}p{3.4cm}p{7.4cm}p{2.3cm}c@{}}
+\begin{longtable}{@{}p{3.3cm}p{7.3cm}p{2.3cm}c@{}}
 \toprule
 \textbf{Komponen} & \textbf{Indikator/CPMK} & \textbf{Sub-CPMK} &
 \textbf{Bobot} \\
@@ -154,17 +155,18 @@ Bab~XVI \\
 \endhead
 \bottomrule
 \endfoot
-Tugas Individu & CPMK01, CPMK02 & 1.1--1.3, 2.1--2.3 & 15\% \\
+Tugas Individu & CPMK02, CPMK03 & 2.2, 3.1--3.6 & 15\% \\
 \addlinespace
-Praktikum & CPMK03, CPMK04 & 3.1--3.4, 4.1 & 20\% \\
+Praktikum & CPMK01, CPMK02, CPMK04 & 1.1--1.4, 2.1--2.3, 4.1--4.3 &
+20\% \\
 \addlinespace
-Kuis & CPMK01, CPMK02 & 1.2, 1.3, 2.1 & 10\% \\
+Kuis & CPMK01, CPMK02 & 1.1--1.4, 2.1--2.3 & 10\% \\
 \addlinespace
 UTS (Minggu 8) & CPMK01, CPMK02 & 1.1--2.3 & 20\% \\
 \addlinespace
 Proyek Akhir & CPMK03, CPMK04 & 3.1--4.3 & 15\% \\
 \addlinespace
-UAS (Minggu 16) & CPMK01--CPMK04 & 1.1--4.3 & 20\% \\
+UAS (Minggu 16) & CPMK03, CPMK04 & 3.1--4.3 & 20\% \\
 \midrule
 \textbf{Total} & & & \textbf{100\%} \\
 \bottomrule
@@ -175,9 +177,9 @@ UAS (Minggu 16) & CPMK01--CPMK04 & 1.1--4.3 & 20\% \\
 \begin{infobox}
 Penekanan penilaian mata kuliah ini adalah \textbf{70\% praktik} dan
 \textbf{30\% teori}. Komponen praktik menilai kemampuan menulis,
-merakit, menjalankan, dan melakukan \textit{debugging} program
-assembly; komponen teori menilai pemahaman konsep arsitektur,
-instruksi mesin, dan organisasi memori.
+meng-assemble, menjalankan, dan melakukan \textit{debugging} program
+assembly; komponen teori menilai pemahaman arsitektur, register,
+segmentasi memori, instruksi, dan interupsi.
 \end{infobox}
 
 \clearpage

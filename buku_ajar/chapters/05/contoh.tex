@@ -1,18 +1,18 @@
-\section{Contoh Program}
+\section{Contoh}
 \label{sec:contoh-bab5}
 
-Bagian ini menyajikan tiga contoh. Dua contoh pertama dapat langsung
-dirakit dan dijalankan, sedangkan contoh ketiga adalah potongan
-singkat untuk memperlihatkan perilaku register pada tingkat byte.
+Dua contoh berikut memperlihatkan dua sisi \eng{flag}: contoh
+pertama menunjukkan bagaimana \eng{flag} terbentuk, sedangkan contoh
+kedua menunjukkan bagaimana \eng{flag} dipakai untuk memilih jalur
+program.
 
 \subsection{Contoh 1: Memprediksi Flag Sebelum Menjalankan Program}
 
 Program pada Kode~\ref{lst:prediksi-flag} menjalankan dua
-penjumlahan yang sengaja dipilih untuk memicu kondisi \eng{flag}
-berbeda. Sebelum program dijalankan, mahasiswa diminta memprediksi
-nilai \flag{CF}, \flag{OF}, \flag{SF}, dan \flag{ZF} pada
-Tabel~\ref{tab:prediksi-flag}, lalu memeriksa hasil prediksinya
-melalui \eng{Single Step}.
+penjumlahan yang sengaja dipilih untuk memicu keadaan \eng{flag}
+berbeda. Sebelum program dijalankan, isi kolom prediksi pada
+Tabel~\ref{tab:prediksi-flag}; setelah itu periksa hasilnya dengan
+\eng{single step}.
 
 \lstinputlisting[
     language=MASM,
@@ -33,7 +33,7 @@ melalui \eng{Single Step}.
         \textbf{Kasus} & \textbf{Operasi} & \flag{CF} & \flag{OF} &
         \flag{SF} & \flag{ZF} & \textbf{Hasil (\reg{AX})} \\
         \midrule
-        1 & \hex{007F} $+$ \hex{0001} & \dots & \dots & \dots &
+        1 & \hex{7FFF} $+$ \hex{0001} & \dots & \dots & \dots &
         \dots & \dots \\
         \addlinespace
         2 & \hex{8000} $+$ \hex{8000} & \dots & \dots & \dots &
@@ -42,37 +42,38 @@ melalui \eng{Single Step}.
     \end{tabular}
 \end{table}
 
-Penjelasan potongan penting pada program tersebut adalah sebagai
-berikut.
+Bagian penting program tersebut adalah sebagai berikut.
 
 \begin{itemize}
-    \item \lstasm|MOV AX, 007Fh| memuat $+127$ ke akumulator tanpa
-          mengubah \eng{flag}.
-    \item \lstasm|ADD AX, BX| adalah instruksi yang mengubah
-          \eng{flag}. Kedua operand bernilai positif, tetapi
-          hasilnya \hex{0080} yang bit tandanya menyala. Inilah
-          \eng{overflow} bertanda, sehingga \flag{OF} bernilai 1.
-    \item \lstasm|MOV hasil1, AX| menyimpan salinan hasil ke segmen
-          data. Karena \asm{MOV} tidak menyentuh \eng{flag}, nilai
-          \eng{flag} hasil penjumlahan masih dapat diamati pada
-          \eng{debugger} setelah baris ini dijalankan.
-    \item Kasus kedua memakai nilai \hex{8000} pada kedua operand.
-          Hasilnya nol dengan simpanan keluar, sehingga
-          \flag{CF} dan \flag{ZF} bernilai 1 sekaligus.
+    \item \lstasm|MOV AX, 7FFFh| memuat $+32767$ ke akumulator
+          tanpa mengubah \eng{flag}.
+    \item \lstasm|ADD AX, BX| adalah instruksi yang memperbarui
+          \eng{flag}. Hasil \hex{8000} ditafsirkan sebagai $-32768$,
+          sehingga terjadi \eng{overflow} bertanda dan \flag{OF}
+          bernilai 1.
+    \item \lstasm|MOV hasil1, AX| menyalin hasil ke segmen data.
+          Karena \asm{MOV} tidak memperbarui \eng{flag}, keadaan
+          \eng{flag} hasil penjumlahan masih dapat diamati.
+    \item Kasus kedua memakai \hex{8000} pada kedua operand.
+          Hasilnya nol dengan simpanan keluar, sehingga \flag{CF} dan
+          \flag{ZF} bernilai 1 sekaligus.
 \end{itemize}
 
-\begin{session}[caption={Keluaran program \file{prediksi-flag.asm}.},
-label={lst:keluaran-prediksi-flag}]
+\begin{lstlisting}[
+    style=sessiongaya,
+    caption={Keluaran program \file{prediksi-flag.asm}.},
+    label={lst:keluaran-prediksi-flag}
+]
 Pengamatan flag selesai.
-\end{session}
+\end{lstlisting}
 
 \subsection{Contoh 2: Memilih Pesan Berdasarkan Flag}
 
 Contoh pertama memperlihatkan bagaimana \eng{flag} terbentuk.
 Contoh kedua, pada Kode~\ref{lst:pesan-flag}, memperlihatkan
-bagaimana \eng{flag} \emph{dipakai}. Program menjumlahkan
-\hex{F0} dan \hex{10} pada register \reg{AL} lalu mencetak pesan yang
-berbeda sesuai keadaan \eng{flag}.
+bagaimana \eng{flag} dipakai. Program menjumlahkan \hex{F0} dan
+\hex{10} pada register \reg{AL}, lalu mencetak pesan yang berbeda
+sesuai keadaan \eng{flag}.
 
 \lstinputlisting[
     language=MASM,
@@ -81,83 +82,40 @@ berbeda sesuai keadaan \eng{flag}.
     label={lst:pesan-flag}
 ]{\CodeDir/pesan-flag.asm}
 
-Bagian yang perlu diperhatikan adalah urutan pemeriksaan
-\eng{flag}. Setiap kali \lstasm|ADD AL, BL| selesai, register
-\reg{FLAGS} memuat seluruh penanda hasil operasi tersebut sekaligus.
-Program kemudian memeriksanya satu per satu:
+Setelah \lstasm|ADD AL, BL| selesai, register \reg{FLAGS} memuat
+seluruh penanda hasil operasi tersebut. Program kemudian memeriksa
+penanda itu satu per satu:
 
 \begin{enumerate}
     \item \lstasm|JNC tanpa_carry| melompat bila \flag{CF} bernilai
-          0. Bila \flag{CF} bernilai 1, instruksi berikutnya
-          mencetak pesan carry.
+          0. Bila \flag{CF} bernilai 1, program mencetak pesan
+          carry.
     \item \lstasm|JNZ bukan_nol| melompat bila \flag{ZF} bernilai 0.
           Bila hasilnya nol, program mencetak pesan hasil nol.
     \item \lstasm|JNS tanpa_negatif| melompat bila \flag{SF} bernilai
           0. Bila bit tanda menyala, program mencetak pesan hasil
           negatif.
     \item \lstasm|CMP AL, 0| dipakai untuk membangkitkan kembali
-          \eng{flag} berdasarkan isi \reg{AL} saat itu. Instruksi
-          ini tidak menyimpan hasil pengurangan, hanya meninggalkan
-          jejak pada \eng{flag}.
+          \eng{flag} berdasarkan isi \reg{AL} saat itu. Instruksi ini
+          tidak menyimpan hasil pengurangan, hanya memperbarui
+          \eng{flag}.
 \end{enumerate}
 
 Karena \hex{F0} ditambah \hex{10} menghasilkan \hex{100}, register
 \reg{AL} menyimpan \hex{00} dengan \flag{CF} bernilai 1 dan
 \flag{ZF} bernilai 1. Keluaran program tampak pada
-Sesi~\ref{lst:keluaran-pesan-flag}.
-
-\begin{session}[caption={Keluaran program \file{pesan-flag.asm}.},
-label={lst:keluaran-pesan-flag}]
-Terjadi carry, CF = 1.
-Hasil penjumlahan nol, ZF = 1.
-\end{session}
-
-\begin{infobox}
-Layanan \code{INT 21h} tidak merusak \eng{flag} hasil penjumlahan.
-Instruksi \asm{INT} menyimpan \reg{FLAGS} ke \eng{stack} dan
-\asm{IRET} mengembalikannya, sehingga pemeriksaan \flag{CF},
-\flag{ZF}, dan \flag{SF} secara berurutan tetap sah.
-\end{infobox}
-
-\subsection{Contoh 3: Akses Byte Rendah dan Byte Tinggi}
-
-Potongan pada Kode~\ref{lst:akses-byte} memperlihatkan bahwa satu
-register 16 bit dapat diperlakukan sebagai dua register 8 bit yang
-mandiri.
+Kode~\ref{lst:keluaran-pesan-flag}.
 
 \begin{lstlisting}[
-    language=MASM,
-    caption={Mengakses byte rendah dan byte tinggi register
-    \reg{AX}.},
-    label={lst:akses-byte}
+    style=sessiongaya,
+    caption={Keluaran program \file{pesan-flag.asm}.},
+    label={lst:keluaran-pesan-flag}
 ]
-.MODEL SMALL
-.STACK 100h
-
-.DATA
-    dummy DB 0          ; variabel penanda agar segmen data ada
-
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
-
-    MOV AX, 1234h       ; AH = 12h, AL = 34h
-    MOV BL, AH          ; BL = 12h (salin byte tinggi)
-    MOV BH, AL          ; BH = 34h (salin byte rendah)
-
-    ADD AL, BL          ; AL = 34h + 12h = 46h, AH tidak berubah
-    MOV CL, AL          ; CL = 46h
-
-    MOV AH, 4Ch
-    MOV AL, 00h
-    INT 21h
-
-END START
+Terjadi carry, CF = 1.
+Hasil penjumlahan nol, ZF = 1.
 \end{lstlisting}
 
-Setelah seluruh instruksi di atas dijalankan, isi register adalah
-\reg{AX} = \hex{1246}, \reg{BX} = \hex{3412}, dan \reg{CL} =
-\hex{46}. Perhatikan bahwa \lstasm|ADD AL, BL| hanya mengubah
-\reg{AL}; nilai \reg{AH} tetap \hex{12} karena \eng{flag} dan
-\reg{AH} tidak tersentuh oleh operasi 8 bit pada \reg{AL}.
+Lompatan bersyarat yang dipakai pada contoh ini akan dibahas lebih
+rinci pada bab tentang percabangan dan perulangan. Pada bab ini,
+yang perlu diperhatikan adalah bahwa keputusan program bergantung
+pada keadaan \eng{flag} yang dihasilkan operasi sebelumnya.

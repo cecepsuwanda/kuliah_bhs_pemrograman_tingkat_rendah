@@ -4,80 +4,63 @@
 Pada bab ini telah dibahas:
 
 \begin{itemize}
-    \item \term{Mode pengalamatan} adalah cara prosesor menyatakan
-          letak operand. Ia menjadi jembatan antara penulisan
-          simbolik programmer dan byte \eng{ModR/M} yang dihasilkan
-          assembler.
+    \item \asm{MOV} menyalin data dari sumber ke tujuan. Nilai
+          sumber tidak berubah; yang berubah hanya tujuan.
 
-    \item Tujuh mode pengalamatan 8086 adalah \eng{immediate},
-          \eng{register}, \eng{direct}, \eng{register indirect},
-          \eng{indexed}, \eng{base-relative}, dan
-          \eng{based-indexed}.
+    \item Ukuran operand \asm{MOV} harus sama. Pemindahan memori ke
+          memori tidak diperbolehkan dan harus melalui register.
+          Register segmen tidak dapat diisi nilai segera.
 
-    \item Mode \eng{immediate} dan \eng{register} tidak mengakses
-          memori sehingga paling cepat. Mode \eng{direct} memakai
-          offset tetap, sedangkan empat mode sisanya membentuk alamat
-          dari register penunjuk.
+    \item \asm{LEA} menyalin alamat offset sebuah operand ke
+          register, bukan isi operand tersebut.
 
-    \item \term{Alamat efektif} dihitung sebagai jumlah basis,
-          indeks, dan perpindahan: \code{EA = base + index + disp}.
-          Alamat fisik kemudian dibentuk dengan menambahkan basis
-          segmen, yaitu \code{(segmen x 16) + EA}.
+    \item \asm{LDS} dan \asm{LES} memuat \eng{far pointer} empat
+          byte: offset ke register tujuan dan segmen ke \reg{DS}
+          atau \reg{ES}.
 
-    \item Hanya \reg{BX}, \reg{BP}, \reg{SI}, dan \reg{DI} yang boleh
-          menjadi penunjuk alamat. Kombinasi seperti \code{[AX]},
-          \code{[BX+BP]}, \code{[SI+DI]}, dan \code{[BX+SI+DI]}
-          ditolak karena perangkat keras tidak menyediakan
-          \eng{encoding}-nya.
+    \item \asm{XCHG} menukar isi dua operand. \asm{CMP}
+          membandingkan dua operand dengan pengurangan, tetapi tidak
+          menyimpan hasilnya; hanya \eng{flag} yang berubah.
 
-    \item Segmen \eng{default} bergantung pada register penunjuk:
-          kelompok \reg{DS} untuk \reg{BX}, \reg{SI}, dan \reg{DI};
-          kelompok \reg{SS} untuk \reg{BP}. \eng{Segment override
-          prefix} seperti \code{ES:} mengubah segmen yang dipakai
-          tanpa mengubah nilai offsetnya.
+    \item \asm{XLAT} menerjemahkan indeks pada \reg{AL} melalui
+          tabel yang ditunjuk \reg{BX}, lalu menyimpan hasilnya
+          kembali ke \reg{AL}.
 
-    \item Efisiensi menurun seiring bertambahnya komponen alamat.
-          Mode \eng{register} memerlukan dua siklus, sedangkan mode
-          \eng{based-indexed} memerlukan sekitar sembilan belas
-          siklus untuk instruksi yang sama panjangnya.
+    \item \asm{CBW} memperluas \reg{AL} 8 bit bertanda menjadi
+          \reg{AX} 16 bit. \asm{CWD} memperluas \reg{AX} menjadi
+          pasangan \reg{DX}:\reg{AX} 32 bit.
 
-    \item Mode \eng{indexed} dipakai untuk menelusuri elemen array,
-          sedangkan mode \eng{base-relative} dipakai untuk membaca
-          medan \eng{record} dan parameter prosedur melalui
-          \code{[BP+disp]}.
+    \item \asm{CBW} dan \asm{CWD} hanya bermakna untuk bilangan
+          bertanda. Untuk bilangan tidak bertanda, bagian atas
+          diisi nol.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
-    \item[\checkbox] Saya dapat menyebutkan tujuh mode pengalamatan
-          8086 beserta contoh penulisannya.
-    \item[\checkbox] Saya dapat menentukan mode pengalamatan hanya
-          dari penulisan operandnya.
-    \item[\checkbox] Saya dapat menghitung alamat efektif dan alamat
-          fisik suatu operand.
-    \item[\checkbox] Saya dapat menjelaskan mengapa \code{[AX]} dan
-          \code{[SI+DI]} tidak diperbolehkan.
-    \item[\checkbox] Saya dapat menentukan segmen \eng{default} dan
-          menuliskan \eng{segment override prefix} dengan benar.
-    \item[\checkbox] Saya dapat memilih mode yang paling efisien untuk
-          mengakses elemen array dan medan \eng{record}.
-    \item[\checkbox] Saya berhasil menelusuri alamat efektif dengan
-          \eng{debugger} dan memverifikasinya pada jendela memori.
+    \item[\checkbox] Saya dapat menjelaskan aturan operand
+          \asm{MOV}.
+    \item[\checkbox] Saya dapat memindahkan data antarregister,
+          memori, dan segmen.
+    \item[\checkbox] Saya dapat membedakan \asm{LEA} dan \asm{MOV}.
+    \item[\checkbox] Saya dapat menggunakan \asm{LDS} dan \asm{LES}.
+    \item[\checkbox] Saya dapat menggunakan \asm{XCHG} dan
+          \asm{CMP}.
+    \item[\checkbox] Saya dapat menggunakan \asm{XLAT}.
+    \item[\checkbox] Saya dapat menggunakan \asm{CBW} dan
+          \asm{CWD} untuk bilangan bertanda.
 \end{itemize}
 
 \vspace{0.4em}
 Bila masih ada butir yang belum bertanda, ulangi bagian yang
-bersesuaian sebelum melanjutkan ke Bab~\ref{chap:translasi}.
+bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
-\cite{intel1979} untuk daftar \eng{encoding} dan waktu siklus,
-\cite{kader2014} untuk pengelompokan mode pengalamatan,
-\cite{evans2020} untuk aturan segmen \eng{default} dan
-\eng{override}, serta \cite{uva2024} untuk latihan penelusuran alamat
-efektif. Untuk pembahasan segmen secara lebih mendalam, lihat
-Bab~\ref{chap:segmentasi}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 5, hlm.~35--44, dan \cite{sto2001},
+BAB V, hlm.~21--24.
 \end{infobox}

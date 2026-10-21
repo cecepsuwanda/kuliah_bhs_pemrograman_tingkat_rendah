@@ -2,8 +2,9 @@
 \label{sec:praktikum-bab8}
 
 \begin{praktikumbox}
-\textbf{Judul:} Penelusuran mode pengalamatan dan verifikasi alamat
-efektif dengan \eng{debugger}.\\[0.3em]
+\vspace{1.1em}
+\textbf{Judul:} Menelusuri instruksi transfer data dengan
+\eng{single step}.\\[0.3em]
 \textbf{Sub-CPMK:} 2.2 \quad\textbullet\quad
 \textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
 \textbf{Bentuk:} individu
@@ -11,97 +12,112 @@ efektif dengan \eng{debugger}.\\[0.3em]
 
 \subsection{Tujuan Praktikum}
 
-Setelah menyelesaikan praktikum ini, mahasiswa mampu menelusuri
-eksekusi program satu instruksi demi satu, menghitung alamat efektif
-setiap operand memori, dan memverifikasinya melalui jendela memori.
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menjalankan
+instruksi \asm{MOV}, \asm{LEA}, \asm{XCHG}, \asm{CMP}, \asm{XLAT},
+\asm{CBW}, dan \asm{CWD}, lalu menjelaskan perubahan register dan
+\eng{flag} yang dihasilkan.
 
 \subsection{Alat dan Bahan}
 
 \begin{itemize}
-    \item Komputer dengan sistem operasi Windows.
-    \item Emu8086 (emulator dengan tampilan register dan memori).
-    \item DOSBox beserta \file{DEBUG} untuk penelusuran berbasis
-          teks, serta TASM dan TLINK untuk merakit program.
-    \item Berkas \file{mode-array.asm} dan \file{param-bp.asm} dari
-          \file{code/asm/}.
-    \item Lembar kerja pengamatan alamat efektif.
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \file{transfer-data.asm} dari \file{code/asm/}.
+    \item Lembar pengamatan register dan \eng{flag}.
 \end{itemize}
 
 \subsection{Langkah Kerja}
 
 \begin{enumerate}
-    \item \textbf{Menyiapkan program.} Rakit kedua berkas contoh
-          dengan TASM dan TLINK, lalu pastikan keluarannya sesuai
-          Kode~\ref{lst:keluaran-mode-array} dan
-          Kode~\ref{lst:keluaran-param-bp}.
-
-    \item \textbf{Menelusuri dengan Emu8086.}
+    \item \textbf{Merakit program.}
     \begin{enumerate}
-        \item Buka \file{mode-array.asm}, tekan \file{Compile and
-              Emulate}, lalu aktifkan tombol \file{Single Step}.
-        \item Catat nilai \reg{DS}, \reg{BX}, \reg{SI}, dan \reg{BP}
-              sebelum setiap instruksi memori dieksekusi, lalu hitung
-              alamat efektifnya secara manual.
-        \item Bandingkan hasil hitungan Anda dengan alamat yang
-              ditampilkan emulator.
+        \item Buka DOSBox, lalu masuk ke direktori kerja.
+        \item Rakit dengan \file{tasm transfer-data.asm}.
+        \item Link dengan \file{tlink transfer-data.obj}.
+        \item Jalankan \file{transfer-data}. Program tidak mencetak
+              keluaran; hasilnya diperiksa pada register.
     \end{enumerate}
 
-    \item \textbf{Menelusuri dengan \file{DEBUG}.}
+    \item \textbf{Menelusuri dengan emu8086.}
     \begin{enumerate}
-        \item Jalankan DOSBox, lalu ketik
-              \file{debug mode-array.exe}.
-        \item Tekan \file{u} untuk melihat \eng{disassembly} dan
-              \file{r} untuk melihat isi register.
-        \item Tekan \file{t} beberapa kali dan catat perubahan
-              register setiap instruksi.
-        \item Tampilkan \file{d ds:0} dan \file{d ss:0}, lalu
-              verifikasi alamat yang ditunjuk benar-benar berisi nilai
-              array, bukan nol atau karakter sampah.
+        \item Buka \file{transfer-data.asm} pada emu8086.
+        \item Pilih \file{Compile and Emulate}, lalu tampilkan
+              jendela \file{Registers} dan \file{Flags}.
+        \item Tekan \file{Single Step} satu kali untuk setiap
+              instruksi.
+        \item Catat \reg{AX}, \reg{BX}, \reg{CX}, \reg{DX},
+              \reg{SI}, dan \eng{flag} pada
+              Tabel~\ref{tab:pengamatan-transfer}.
     \end{enumerate}
 
-    \item \textbf{Membandingkan \code{[BX]} dan \code{[BP]}.}
+    \item \textbf{Menguji LEA dan MOV.}
     \begin{enumerate}
-        \item Pada \file{param-bp.asm}, jalankan sampai
-              \lstasm|MOV BP, SP|, lalu catat nilai \reg{SS} dan
-              \reg{SP}.
-        \item Ubah \lstasm|MOV AX, [BP+0]| menjadi
-              \lstasm|MOV AX, [BX+0]| dengan \reg{BX} bernilai nol.
-        \item Rakit ulang dan jelaskan mengapa keluarannya berubah,
-              dengan mengaitkannya pada
-              Tabel~\ref{tab:segmen-default}.
+        \item Bandingkan hasil \lstasm|LEA SI, nilai1| dengan
+              \lstasm|MOV SI, nilai1|.
+        \item Jelaskan mengapa keduanya menghasilkan nilai berbeda.
+        \item Kembalikan program ke bentuk semula.
     \end{enumerate}
 
-    \item \textbf{Mengisi lembar pengamatan.} Lengkapi
-          Tabel~\ref{tab:pengamatan-ea} berdasarkan hasil penelusuran,
-          lalu kerjakan Kuis 2 pada akhir praktikum.
+    \item \textbf{Menguji XLAT.}
+    \begin{enumerate}
+        \item Sebelum \asm{XLATB}, catat \reg{AL} dan \reg{BX}.
+        \item Setelah \asm{XLATB}, catat \reg{AL}.
+        \item Ubah indeks dari 4 menjadi 9, rakit ulang, lalu
+              pastikan \reg{AL} berisi karakter \code{'9'}.
+    \end{enumerate}
+
+    \item \textbf{Menguji CBW dan CWD.}
+    \begin{enumerate}
+        \item Catat \reg{AX} setelah \asm{CBW}.
+        \item Catat \reg{DX} setelah \asm{CWD}.
+        \item Ulangi dengan nilai \hex{7F} dan \hex{7FFF}. Jelaskan
+              perbedaan hasil untuk bilangan positif dan negatif.
+    \end{enumerate}
+
+    \item \textbf{Menguji CMP.}
+    \begin{enumerate}
+        \item Catat \eng{flag} setelah \lstasm|CMP AX, nilai2|.
+        \item Tentukan apakah \reg{AX} lebih kecil, sama, atau lebih
+              besar dari \code{nilai2} secara tidak bertanda.
+    \end{enumerate}
+
+    \item \textbf{Memodifikasi data.}
+    \begin{enumerate}
+        \item Ubah \code{nilai1} menjadi \hex{5678} dan
+              \code{nilai2} menjadi \hex{1234}.
+        \item Rakit ulang dan ulangi penelusuran.
+        \item Jelaskan perubahan hasil \asm{XCHG} dan \asm{CMP}.
+    \end{enumerate}
 \end{enumerate}
+
+\subsection{Tabel Pengamatan}
 
 \begin{table}[H]
     \centering
-    \caption{Lembar pengamatan alamat efektif yang harus diisi
-    mahasiswa.}
-    \label{tab:pengamatan-ea}
+    \caption{Lembar pengamatan register dan flag pada praktikum
+    transfer data.}
+    \label{tab:pengamatan-transfer}
     \small
-    \begin{tabular}{@{}p{0.7cm}p{3.7cm}p{2.7cm}p{1.7cm}p{2.2cm}p{1.8cm}@{}}
+    \begin{tabular}{@{}p{4.6cm}p{1.7cm}p{1.7cm}p{1.7cm}p{1.7cm}@{}}
         \toprule
-        \textbf{No} & \textbf{Instruksi} & \textbf{EA terhitung} &
-        \textbf{Segmen} & \textbf{Isi memori} &
-        \textbf{Sesuai} \\
+        \textbf{Instruksi} & \reg{AX} & \reg{BX} & \reg{CX} &
+        \reg{DX} \\
         \midrule
-        1 & \lstasm|MOV AX, data1+0| & \code{offset data1} & \reg{DS}
-        & \hex{000A} (10) & Ya \\
+        \lstasm|MOV AX, nilai1| & \dots & \dots & \dots & \dots \\
         \addlinespace
-        2 & \lstasm|MOV AX, data1[SI]|, \reg{SI} = 2 &
-        \dots & \dots & \dots & \dots \\
+        \lstasm|MOV BX, nilai2| & \dots & \dots & \dots & \dots \\
         \addlinespace
-        3 & \lstasm|MOV AX, [BX+SI]|, \reg{SI} = 4 &
-        \dots & \dots & \dots & \dots \\
+        \lstasm|XCHG AX, BX| & \dots & \dots & \dots & \dots \\
         \addlinespace
-        4 & \lstasm|MOV AX, [BP+0]| pada \file{param-bp.asm} &
-        \dots & \dots & \dots & \dots \\
+        \lstasm|LEA SI, nilai1| & \dots & \dots & \dots & \dots \\
         \addlinespace
-        5 & \lstasm|MOV AX, [BP+2]| pada \file{param-bp.asm} &
-        \dots & \dots & \dots & \dots \\
+        \lstasm|MOV CX, [SI]| & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        \lstasm|XLATB| & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        \lstasm|CBW| & \dots & \dots & \dots & \dots \\
+        \addlinespace
+        \lstasm|CWD| & \dots & \dots & \dots & \dots \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -109,60 +125,33 @@ setiap operand memori, dan memverifikasinya melalui jendela memori.
 \subsection{Hasil yang Dikumpulkan}
 
 \begin{enumerate}
-    \item Tabel~\ref{tab:pengamatan-ea} yang telah dilengkapi.
-    \item Tangkapan layar jendela register dan memori Emu8086 untuk
-          minimal tiga instruksi berbeda.
-    \item Tangkapan layar sesi \file{DEBUG} dengan perintah
-          \file{u}, \file{t}, dan \file{d}, serta lembar jawaban
-          Kuis 2.
-\end{enumerate}
-
-\subsection{Kuis 2}
-
-Kuis 2 dilaksanakan pada 15 menit terakhir praktikum secara individu
-tanpa membuka catatan.
-
-\begin{enumerate}
-    \item Tentukan mode pengalamatan dari lima penulisan berikut:
-          \lstasm|MOV AX, 20|, \lstasm|MOV AX, BX|,
-          \lstasm|MOV AX, [BX]|, \lstasm|MOV AX, [SI+4]|, dan
-          \lstasm|MOV AX, [BX+DI+2]|.
-
-    \item Diketahui \reg{DS} = \hex{2000}, \reg{BX} = \hex{0100},
-          \reg{SI} = \hex{0004}, dan \reg{SS} = \hex{3000}.
-          Hitung alamat efektif dan alamat fisik untuk
-          \lstasm|MOV AX, [BX+SI+8]| serta
-          \lstasm|MOV AX, [BP]| dengan \reg{BP} = \hex{0010}.
-
-    \item Program membaca variabel segmen data dengan
-          \lstasm|MOV AX, [BP+2]| dan hasilnya salah. Jelaskan
-          penyebabnya dan tuliskan dua cara memperbaikinya tanpa
-          mengubah nilai perpindahannya.
+    \item Tabel~\ref{tab:pengamatan-transfer} yang telah terisi.
+    \item Berkas \file{transfer-data.asm} versi modifikasi.
+    \item Tangkapan layar jendela register dan \eng{flag}.
+    \item Penjelasan perbedaan \asm{LEA} dan \asm{MOV}.
+    \item Analisis hasil \asm{CBW} dan \asm{CWD} untuk bilangan
+          positif dan negatif.
 \end{enumerate}
 
 \begin{asesmenbox}
-\textbf{Asesmen praktikum 2 dan Kuis 2 (bobot 10\% dari komponen
-praktikum).}
+\vspace{1.1em}
+\textbf{Asesmen praktikum 6 (bobot 5\% dari komponen praktikum).}
 
-\begin{tabular}{@{}p{5.9cm}cp{4.9cm}@{}}
+\begin{tabular}{@{}p{6.2cm}cp{4.6cm}@{}}
     \toprule
     \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
     \midrule
-    Ketepatan perhitungan alamat efektif & 25\% &
-    Seluruh baris lembar pengamatan terisi benar \\
+    Ketepatan pengamatan register & 35\% &
+    Nilai register tercatat benar pada setiap langkah \\
     \addlinespace
-    Verifikasi melalui jendela memori & 20\% &
-    Alamat dan isi memori yang dicatat sesuai dengan
-    \eng{debugger} \\
+    Ketepatan analisis LEA dan MOV & 20\% &
+    Perbedaan alamat dan isi dijelaskan dengan tepat \\
     \addlinespace
-    Analisis perbedaan \code{[BX]} dan \code{[BP]} & 15\% &
-    Penjelasan menyebut peran segmen \reg{DS} dan \reg{SS} \\
+    Ketepatan analisis CBW dan CWD & 25\% &
+    Perluasan tanda dijelaskan dengan benar \\
     \addlinespace
-    Kuis 2 & 30\% &
-    Minimal tiga dari empat bagian soal terjawab benar \\
-    \addlinespace
-    Kerapian dokumentasi praktikum & 10\% &
-    Tangkapan layar lengkap dan langkah kerja dapat diulang \\
+    Ketepatan analisis CMP & 20\% &
+    Nilai \eng{flag} dan maknanya ditafsirkan dengan benar \\
     \bottomrule
 \end{tabular}
 \end{asesmenbox}

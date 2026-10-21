@@ -1,208 +1,92 @@
-\section{Mengenali Pola Hasil Disassembly dan Metrik Optimasi}
-\label{sec:pola-disassembly}
+\section{Menelusuri Program per Instruksi}
+\label{sec:trace}
 
-Hasil \eng{disassembly} pada awalnya tampak seperti deretan instruksi
-yang tidak berhubungan. Setelah beberapa kali berlatih, mahasiswa
-akan menyadari bahwa kompilator dan programmer menghasilkan pola yang
-berulang. Mengenali pola tersebut memungkinkan seseorang membaca
-program tanpa kode sumber: struktur perulangan, pemilihan,
-pemanggilan prosedur, dan interaksi dengan sistem operasi dapat
-ditebak dari bentuk instruksinya.
+Penelusuran per instruksi (\eng{single step}) menjalankan satu
+instruksi, lalu berhenti. Setelah setiap langkah, isi register dan
+\eng{flag} dapat dibaca. Dengan cara ini, alur program yang salah
+dapat dilihat langsung, bukan ditebak dari hasil akhir.
 
-\subsection{Pola-Pola yang Sering Dijumpai}
+\subsection{Menyiapkan Penelusuran}
 
-Tabel~\ref{tab:pola-disassembly} merangkum sembilan pola yang paling
-sering muncul, lengkap dengan bentuk hasil \eng{disassembly} dan
-cara mengenalinya. Kolom ketiga sengaja memusatkan perhatian pada
-\emph{ciri} yang membedakan pola tersebut dari pola lain, karena
-itulah yang dipakai saat membaca program yang belum dikenal.
-
-\begin{table}[H]
-    \centering
-    \caption{Pola kode sumber dan bentuknya pada hasil
-    \eng{disassembly}.}
-    \label{tab:pola-disassembly}
-    \small
-    \begin{tabular}{@{}p{2.7cm}p{4.9cm}p{6.9cm}@{}}
-        \toprule
-        \textbf{Pola kode sumber} & \textbf{Bentuk hasil
-        \eng{disassembly}} & \textbf{Cara mengenalinya} \\
-        \midrule
-        Pembandingan dan percabangan & \lstasm|CMP AX,0064h| +
-        \lstasm|JE 0140h| & \asm{CMP} atau \asm{TEST} selalu diikuti
-        lompatan bersyarat \\
-        \addlinespace
-        Perulangan berpenghitung & \lstasm|LOOP 0109h| atau
-        \lstasm|DEC CX| + \lstasm|JNZ| & Lompatan mundur yang
-        dikendalikan \reg{CX} \\
-        \addlinespace
-        Perulangan uji-di-akhir & \lstasm|CMP SI,0014h| +
-        \lstasm|JB 0100h| & Lompatan mundur setelah pembandingan
-        batas \\
-        \addlinespace
-        \eng{Prologue} prosedur & \lstasm|PUSH BP| +
-        \lstasm|MOV BP,SP| & Menyimpan bingkai \eng{stack} lama lalu
-        menyediakan variabel lokal \\
-        \addlinespace
-        \eng{Epilogue} prosedur & \lstasm|POP BP| + \lstasm|RET| &
-        \asm{RET} selalu menjadi instruksi terakhir \\
-        \addlinespace
-        Inisialisasi segmen & \lstasm|MOV AX,1D2Fh| +
-        \lstasm|MOV DS,AX| & Pemindahan ke register segmen selalu
-        melalui register umum \\
-        \addlinespace
-        Pemanggilan interupsi & \lstasm|MOV AH,09h| +
-        \lstasm|INT 21h| & Nomor fungsi dimuat ke \reg{AH} tepat
-        sebelum \asm{INT} \\
-        \addlinespace
-        Perkalian pangkat dua & \lstasm|SHL AX,1| atau
-        \lstasm|SHL AX,CL| & Pergeseran menggantikan \asm{MUL}; tidak
-        ada operand pengali \\
-        \addlinespace
-        Pengosongan register & \lstasm|XOR AX,AX| & Kedua operand
-        sama; hasilnya selalu nol \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-Hubungan pola-pola tersebut dengan materi bab sebelumnya dapat
-ditelusuri kembali: pembandingan dan percabangan pada
-Bab~\ref{chap:kontrol}, inisialisasi segmen pada
-Bab~\ref{chap:segmentasi}, serta \eng{prologue} dan \eng{epilogue}
-prosedur pada Bab~\ref{chap:prosedur}.
-
-Kode~\ref{lst:pola-bongkar} memperlihatkan potongan hasil
-\eng{disassembly} yang memuat tiga pola sekaligus: inisialisasi
-segmen, perulangan dengan penghitung, dan pemanggilan interupsi.
-
-\begin{session}[caption={Tiga pola dalam satu potongan hasil
-\eng{disassembly}.}, label={lst:pola-bongkar}]
-1D2F:0100 B82F1D          MOV     AX,1D2F
-1D2F:0103 8ED8            MOV     DS,AX
-1D2F:0105 B90A00          MOV     CX,000A
-1D2F:0108 0304            ADD     AX,[SI]
-1D2F:010A 83C602          ADD     SI,+02
-1D2F:010D E2F9            LOOP    0108
-1D2F:010F B409            MOV     AH,09
-1D2F:0111 BA1001          MOV     DX,0110
-1D2F:0114 CD21            INT     21
-\end{session}
-
-Perhatikan bahwa perintah \code{LOOP 0108} menunjuk ke alamat
-\hex{0108}, yaitu alamat yang lebih kecil daripada dirinya sendiri
-(\hex{010D}). Lompatan mundur semacam ini adalah tanda perulangan
-yang paling dapat diandalkan. Sebaliknya, lompatan maju yang jauh
-biasanya menandai percabangan pemilihan.
-
-\subsection{Metrik Optimasi}
-
-Sebelum memperbaiki sesuatu, ukuran keberhasilan harus ditetapkan.
-Empat metrik berikut dipakai sepanjang bab ini.
+Langkah umum:
 
 \begin{enumerate}
-    \item \textbf{Jumlah instruksi.} Banyaknya instruksi yang
-          \emph{dieksekusi} (bukan yang tertulis di kode). Metrik ini
-          diperoleh dengan menghitung iterasi.
-    \item \textbf{Perkiraan jumlah siklus.} Jumlah siklus \eng{clock}
-          yang dibutuhkan. Nilainya dihitung dari tabel siklus tiap
-          instruksi, bukan diukur langsung.
-    \item \textbf{Ukuran kode dalam byte.} Panjang kode mesin yang
-          dihasilkan. Metrik ini penting pada sistem tertanam dengan
-          memori terbatas.
-    \item \textbf{Jumlah akses memori.} Banyaknya pembacaan dan
-          penulisan ke memori. Akses memori jauh lebih mahal daripada
-          akses register, sehingga pengurangan satu akses saja sudah
-          berarti.
+    \item rakit dan link program;
+    \item jalankan di bawah DEBUG, emu8086, atau Turbo Debugger;
+    \item catat keadaan awal register dan \eng{flag};
+    \item jalankan satu instruksi dengan \file{T} (DEBUG) atau
+          \file{F7} (Turbo Debugger);
+    \item catat perubahan register dan \eng{flag};
+    \item ulangi sampai kesalahan ditemukan.
 \end{enumerate}
 
-Tabel~\ref{tab:siklus-8086-perkiraan} memuat perkiraan siklus
-beberapa instruksi 8086 yang paling sering muncul. Angka-angka ini
-berasal dari lembar data Intel dan berlaku untuk kondisi ideal: tanpa
-\eng{wait state}, operand di register, dan \eng{prefetch queue} tidak
-pernah kosong.
+Gunakan \file{P} atau \file{F8} untuk melewati prosedur yang sudah
+dipercaya. Gunakan \file{T} atau \file{F7} bila ingin masuk ke dalam
+prosedur.
+
+\subsection{Contoh: Perulangan Tak Berujung}
+
+Program \file{bug-loop.asm} dimaksudkan menjumlahkan bilangan 1
+sampai 5. Hasil yang benar adalah 15. Program ini sengaja mengandung
+kesalahan: \reg{CX} dinaikkan di dalam perulangan, padahal
+\asm{LOOP} selalu menurunkannya.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+XOR AX, AX
+MOV CX, 5
+ULANG:
+    ADD AX, CX
+    INC CX          ; kesalahan: CX dinaikkan
+    LOOP ULANG      ; CX diturunkan, lalu lompat bila belum nol
+\end{lstlisting}
+
+Setelah \lstasm|INC CX| dijalankan, \asm{LOOP} menurunkan \reg{CX}
+kembali ke nilai sebelumnya. Akibatnya \reg{CX} tidak pernah mencapai
+nol dan perulangan berjalan terus.
+
+Tabel~\ref{tab:trace-bug-loop} memperlihatkan penelusuran beberapa
+iterasi pertama.
 
 \begin{table}[H]
     \centering
-    \caption{Perkiraan siklus instruksi 8086 yang sering dipakai.}
-    \label{tab:siklus-8086-perkiraan}
+    \caption{Penelusuran beberapa iterasi \file{bug-loop.asm}.}
+    \label{tab:trace-bug-loop}
     \small
-    \begin{tabular}{@{}p{4.6cm}p{1.7cm}p{2.4cm}p{4.2cm}@{}}
+    \begin{tabular}{@{}cp{2.6cm}p{1.4cm}p{1.4cm}p{4.8cm}@{}}
         \toprule
-        \textbf{Instruksi} & \textbf{Byte} &
-        \textbf{Siklus (perkiraan)} & \textbf{Keterangan} \\
+        \textbf{Iterasi} & \textbf{Instruksi} & \reg{AX} &
+        \reg{CX} & \textbf{Keterangan} \\
         \midrule
-        \lstasm|MOV reg, reg| & 2 & 2 & Paling murah \\
+        1 & \asm{ADD AX, CX} & 5 & 5 & AX = 0 + 5 \\
         \addlinespace
-        \lstasm|MOV reg, imm16| & 3 & 4 & Memuat konstanta \\
+        1 & \asm{INC CX} & 5 & 6 & CX naik \\
         \addlinespace
-        \lstasm|ADD reg, reg| & 2 & 3 & Aritmatika register \\
+        1 & \asm{LOOP ULANG} & 5 & 5 & CX turun kembali; lompat \\
         \addlinespace
-        \lstasm|XOR reg, reg| & 2 & 3 & Sama dengan \asm{MOV reg,0}
-        tetapi lebih pendek \\
+        2 & \asm{ADD AX, CX} & 10 & 5 & AX = 5 + 5 \\
         \addlinespace
-        \lstasm|ADD AX, [SI]| & 2 & 9 + 5 = 14 & EA \lstasm|[SI]| = 5
-        siklus \\
+        2 & \asm{INC CX} & 10 & 6 & CX naik lagi \\
         \addlinespace
-        \lstasm|ADD AX, [SI+2]| & 3 & 9 + 8 = 17 & EA dengan
-        \eng{displacement} lebih mahal \\
-        \addlinespace
-        \lstasm|MOV mem, reg| & 4 & 9 + 6 = 15 & Alamat langsung \\
-        \addlinespace
-        \lstasm|SHL reg, 1| & 2 & 2 & Pergeseran satu bit \\
-        \addlinespace
-        \lstasm|SHL reg, CL| & 2 & 8 + 4$\cdot$CL & Naik seiring
-        nilai \reg{CL} \\
-        \addlinespace
-        \lstasm|MUL reg16| & 2 & 118--133 & Sangat mahal \\
-        \addlinespace
-        \lstasm|DIV reg16| & 2 & $\approx$150 & Paling mahal \\
-        \addlinespace
-        \lstasm|LOOP label| & 2 & 17 (lompat) / 5 (berhenti) &
-        Overhead perulangan \\
-        \addlinespace
-        \lstasm|PUSH reg| & 1 & 11 & Akses \eng{stack} \\
-        \addlinespace
-        \lstasm|LEA reg, [SI+2]| & 3 & 2 + 8 = 10 & Tidak mengubah
-        \eng{flag}; lebih ringkas daripada \asm{MOV} + \asm{ADD} \\
+        2 & \asm{LOOP ULANG} & 10 & 5 & CX tidak pernah nol \\
         \bottomrule
     \end{tabular}
 \end{table}
 
+Perbaikan dilakukan dengan menghapus \lstasm|INC CX|. Setelah itu
+\reg{CX} menurun dari 5 sampai 0 dan hasilnya 15. Versi perbaikan
+tersedia pada \file{bug-loop-fix.asm}.
+
+\begin{peringatanbox}
+\vspace{1.1em}
+Jangan menelusuri perulangan tak berujung tanpa batas. Hentikan
+penelusuran setelah beberapa iterasi, catat polanya, lalu perbaiki
+penyebabnya. Menekan \file{T} terus-menerus hanya menghabiskan waktu.
+\end{peringatanbox}
+
 \begin{infobox}
-Angka pada Tabel~\ref{tab:siklus-8086-perkiraan} hanya berlaku bila
-operand memang berada di register atau memori seperti tertulis.
-Penambahan \eng{wait state}, kegagalan \eng{prefetch}, dan akses ke
-memori yang lambat dapat menggandakan waktu sesungguhnya. Itulah
-sebabnya satu-satunya bukti optimasi yang sah adalah pengukuran pada
-mesin yang dipakai, bukan perhitungan di atas kertas. Hal ini sejalan
-dengan prosedur pengukuran pada Bab~\ref{chap:debugging}.
+\vspace{1.1em}
+Pada emu8086, tombol \eng{Single Step} menampilkan perubahan
+register dan \eng{flag} secara langsung. Pada DEBUG, gunakan
+perintah \file{R} untuk menampilkan register dan perintah \file{T}
+untuk menjalankan satu instruksi.
 \end{infobox}
-
-\subsection{Tanpa Pengukuran, Optimasi Hanyalah Dugaan}
-
-Seorang programmer sering merasa yakin bahwa perubahan tertentu pasti
-mempercepat program, misalnya mengganti sebuah \asm{MUL} dengan
-pergeseran. Keyakinan itu belum tentu salah, tetapi belum terbukti.
-Tiga hal membuat dugaan mudah meleset.
-
-\begin{itemize}
-    \item \textbf{Hambatan yang berbeda.} Perbaikan hanya berguna bila
-          menyerang bagian yang benar-benar paling banyak dieksekusi.
-          Mempercepat instruksi yang dijalankan seratus kali tidak
-          berarti apa-apa bila ada perulangan yang berjalan sejuta
-          kali.
-    \item \textbf{Metrik yang bertentangan.} Suatu perubahan dapat
-          mempercepat program tetapi memperbesar kode. Bila target
-          program adalah ukuran, perubahan tersebut justru merugikan.
-    \item \textbf{Lingkungan yang berbeda.} Hasil yang cepat pada
-          emulator belum tentu cepat pada perangkat keras
-          sesungguhnya, dan sebaliknya.
-\end{itemize}
-
-\begin{aktivitasbox}
-Ambil satu program yang telah Anda tulis pada bab sebelumnya. Tuliskan
-dugaan Anda tentang bagian mana yang paling lambat, lengkap dengan
-alasannya. Setelah itu, bongkar program tersebut dengan perintah
-\code{U}, lalu bandingkan dugaan Anda dengan kenyataan. Catat pada
-jurnal praktikum: berapa kali dugaan Anda benar?
-\end{aktivitasbox}

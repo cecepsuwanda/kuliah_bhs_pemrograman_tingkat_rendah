@@ -2,18 +2,18 @@
 
 \begin{document}
 
-\chapter{Mode Pengalamatan}
-\label{chap:mode-pengalamatan}
+\chapter{Instruksi Transfer Data}
+\label{chap:transfer-data}
 
 % =========================================================
 % OUTCOME PEMBELAJARAN KHUSUS BAB
 % =========================================================
 
 \begin{subcpmkbox}
-\SubCPMK{2.2} --- Menganalisis mode pengalamatan (\eng{immediate},
-\eng{direct}, \eng{register indirect}, \eng{indexed},
-\eng{base-relative}, dan \eng{based-indexed}) serta menentukan
-segmen \eng{default} yang digunakan setiap mode.
+\vspace{1.1em}
+\SubCPMK{2.2} --- Menerapkan instruksi transfer data (MOV, LEA,
+LDS/LES, XCHG, CMP, XLAT, CBW, CWD) untuk memindahkan data antar
+register, memori, dan segmen.
 
 \vspace{0.4em}
 \textbf{CPMK yang didukung:} \CPMK{02} \quad\textbullet\quad
@@ -21,38 +21,33 @@ segmen \eng{default} yang digunakan setiap mode.
 \end{subcpmkbox}
 
 \begin{tujuanbox}
+\vspace{1.1em}
 Setelah mempelajari bab ini, mahasiswa mampu:
 \begin{enumerate}
-    \item menjelaskan peran mode pengalamatan dalam menentukan letak
-          operand;
-    \item mengenali mode pengalamatan hanya dari penulisan
-          operandnya;
-    \item menghitung alamat efektif (\eng{effective address}) dan
-          alamat fisik suatu operand;
-    \item menentukan segmen \eng{default} setiap mode serta menuliskan
-          \eng{segment override prefix} yang tepat;
-    \item memilih mode yang paling efisien untuk mengakses elemen
-          array dan medan \eng{record};
-    \item menuliskan satu operasi yang sama dalam beberapa mode
-          berbeda.
+    \item menjelaskan aturan operand pada instruksi \asm{MOV};
+    \item memindahkan data antarregister, antara register dan memori,
+          serta antara register dan segmen;
+    \item menggunakan \asm{LEA} untuk memperoleh alamat offset;
+    \item menggunakan \asm{LDS} dan \asm{LES} untuk memuat
+          \eng{far pointer};
+    \item menggunakan \asm{XCHG} dan \asm{CMP};
+    \item menggunakan \asm{XLAT} untuk menerjemahkan isi tabel;
+    \item menggunakan \asm{CBW} dan \asm{CWD} untuk konversi ukuran
+          bilangan bertanda.
 \end{enumerate}
 \end{tujuanbox}
 
 \begin{materibox}
+\vspace{1.1em}
 \begin{enumerate}
-    \item Konsep operand sumber dan tujuan serta alasan mode
-          pengalamatan diperlukan.
-    \item Mode \eng{immediate}, \eng{register}, dan \eng{direct}
-          (memori langsung).
-    \item Mode \eng{register indirect}: \code{[BX]}, \code{[SI]},
-          \code{[DI]}, dan \code{[BP]}.
-    \item Mode \eng{indexed}, \eng{base-relative}, dan
-          \eng{based-indexed}.
-    \item Kombinasi register yang legal dan yang ilegal.
-    \item Segmen \eng{default} dan \eng{segment override prefix}
-          (\code{CS:}, \code{DS:}, \code{SS:}, \code{ES:}).
-    \item Perbandingan efisiensi: jumlah byte dan siklus relatif.
-    \item Studi kasus akses array satu dimensi dan \eng{record}.
+    \item Aturan dan bentuk instruksi \asm{MOV}.
+    \item Pemindahan data antarregister dan memori.
+    \item \asm{LEA} dan pemuatan alamat offset.
+    \item \asm{LDS} dan \asm{LES} untuk memuat \eng{far pointer}.
+    \item \asm{XCHG} untuk menukar isi operand.
+    \item \asm{CMP} untuk membandingkan operand.
+    \item \asm{XLAT} untuk menerjemahkan isi tabel.
+    \item \asm{CBW} dan \asm{CWD} untuk konversi bilangan bertanda.
 \end{enumerate}
 \end{materibox}
 

@@ -1,123 +1,154 @@
-\section{Interupsi BIOS: Video, Keyboard, dan Printer}
-\label{sec:bios}
+\section{Prosedur dan Penyampaian Data}
+\label{sec:prosedur}
 
-\subsection{Kedudukan BIOS}
+Prosedur adalah sekelompok instruksi bernama yang dapat dipanggil
+dari bagian lain program. Prosedur membuat program lebih mudah
+dibaca, diuji, dan digunakan ulang.
 
-\term{BIOS} (\eng{Basic Input/Output System}) adalah kumpulan rutin
-yang tersimpan pada cip memori baca-saja dan dipetakan ke alamat
-\hex{F000} pada ruang memori. Rutin ini berbicara langsung dengan
-pengendali video, pengendali keyboard, dan port printer, lalu
-menyajikan antarmuka yang seragam bagi program di atasnya
-\cite{brown2000}. Karena perbedaan perangkat keras disembunyikan di
-sini, program tidak perlu mengenal nomor port perangkat.
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 13.1,
+hlm.~118--121, dan \cite{sto2001}, BAB XVI, hlm.~85--87.
 
-\begin{infobox}
-Seluruh layanan BIOS memakai konvensi yang sama: \reg{AH} berisi nomor
-fungsi, register lain berisi argumen, dan hasil dikembalikan pada
-register.
-\end{infobox}
+\subsection{PROC, ENDP, CALL, dan RET}
 
-\subsection{\code{INT 10h}: Layanan Video}
+Prosedur didefinisikan dengan \asm{PROC} dan diakhiri \asm{ENDP}.
+Pemanggil menggunakan \asm{CALL}, sedangkan prosedur mengakhiri
+dirinya dengan \asm{RET}.
 
-Interupsi \hex{10} melayani keperluan tampilan. Fungsi yang paling
-sering dipakai pada praktikum dirangkum pada Tabel~\ref{tab:int10h}.
+\begin{lstlisting}[language=MASM, numbers=none]
+HitungLuas PROC
+    ; isi prosedur
+    RET
+HitungLuas ENDP
+
+; program utama
+CALL HitungLuas
+\end{lstlisting}
+
+\asm{CALL} menyimpan alamat instruksi sesudah \asm{CALL} ke stack,
+lalu memindahkan kendali ke prosedur. \asm{RET} mengambil alamat itu
+dari stack dan memuatnya kembali ke \reg{IP}.
 
 \begin{table}[H]
     \centering
-    \caption{Fungsi \code{INT 10h} yang dipakai pada bab ini.}
-    \label{tab:int10h}
+    \caption{Pemanggilan dekat dan jauh pada 8086.}
+    \label{tab:call-near-far}
     \small
-    \begin{tabular}{@{}cp{3.9cm}p{2.9cm}p{4.6cm}@{}}
+    \begin{tabular}{@{}p{3.2cm}p{5.0cm}p{5.0cm}@{}}
         \toprule
-        \textbf{Fungsi} & \textbf{Register masukan} &
-        \textbf{Register keluaran} & \textbf{Keterangan} \\
+        \textbf{Aspek} & \textbf{\asm{CALL} dekat} &
+        \textbf{\asm{CALL} jauh} \\
         \midrule
-        \hex{00} & \reg{AL} = nomor mode video & --- &
-        Menetapkan mode; \hex{03} berarti teks $80 \times 25$ berwarna,
-        dan layar dibersihkan \\
+        Alamat yang disimpan & \reg{IP} (2 byte) &
+        \reg{CS} dan \reg{IP} (4 byte) \\
         \addlinespace
-        \hex{02} & \reg{BH} = halaman; \reg{DH} = baris;
-        \reg{DL} = kolom & --- &
-        Memindahkan posisi kursor tanpa mencetak apa pun \\
+        Instruksi kembali & \asm{RET} & \asm{RETF} \\
         \addlinespace
-        \hex{03} & \reg{BH} = halaman &
-        \reg{DH}, \reg{DL} = posisi kursor; \reg{CX} = bentuk kursor &
-        Membaca posisi kursor, berguna untuk menyimpan lalu memulihkan
-        posisi \\
-        \addlinespace
-        \hex{06} & \reg{AL} = jumlah baris gulung; \reg{BH} = atribut;
-        \reg{CH}, \reg{CL}, \reg{DH}, \reg{DL} = batas jendela & --- &
-        Menggulung jendela ke atas; \reg{AL} = \hex{00} menggulung
-        seluruh jendela \\
-        \addlinespace
-        \hex{09} & \reg{AL} = karakter; \reg{BH} = halaman;
-        \reg{BL} = atribut; \reg{CX} = jumlah penulisan & --- &
-        Menulis karakter berwarna berulang; kursor \emph{tidak}
-        bergeser \\
-        \addlinespace
-        \hex{0A} & \reg{AL} = karakter; \reg{BH} = halaman;
-        \reg{CX} = jumlah penulisan & --- &
-        Menulis karakter memakai atribut yang sudah ada di layar;
-        kursor juga tidak bergeser \\
-        \addlinespace
-        \hex{13} & \reg{AL} = mode tulis; \reg{BH} = halaman;
-        \reg{BL} = atribut; \reg{CX} = panjang string; \reg{DH},
-        \reg{DL} = posisi; \reg{ES}:\reg{BP} = alamat string & --- &
-        Menulis seluruh string sekaligus; mode \reg{AL} = \hex{01}
-        memindahkan kursor ke akhir string \\
+        Pemakaian & Prosedur pada segmen kode yang sama &
+        Prosedur pada segmen kode lain \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Fungsi \hex{09} menulis satu karakter yang dapat diulang sebanyak nilai
-\reg{CX} tanpa menggeser kursor, sehingga tepat untuk membuat blok
-warna. Fungsi \hex{13} mencetak seluruh string pada
-\reg{ES}:\reg{BP}, sehingga \reg{DS} harus disalin ke \reg{ES} lebih
-dahulu.
+Seluruh contoh pada bab ini memakai pemanggilan dekat karena
+prosedur dan pemanggil berada pada satu segmen kode.
 
-\subsection{Byte Atribut Warna}
+\subsection{Stack Frame dan Register BP}
 
-Warna pada mode teks ditentukan satu byte \term{atribut} dengan susunan
-bit yang tetap: bit 3--0 menentukan warna huruf (\eng{foreground}),
-bit 6--4 menentukan warna latar (\eng{background}), dan bit 7
-menentukan apakah huruf berkedip. Nilai \hex{07} berarti abu-abu
-terang pada latar hitam (bawaan DOS), \hex{0E} kuning, \hex{1F} putih
-pada latar biru, dan \hex{4E} kuning pada latar merah. Pemakaian
-\code{INT 10h} lebih aman daripada menulis langsung ke memori video
-pada alamat \hex{B800}, karena BIOS sudah mengurus alamat karakter dan
-atributnya.
+Parameter yang dikirim melalui stack dapat diakses dengan register
+\reg{BP}. Sebelum mengakses parameter, prosedur menyimpan \reg{BP}
+lama dan menyalin \reg{SP} ke \reg{BP}:
 
-\subsection{\code{INT 16h}: Layanan Keyboard}
+\begin{lstlisting}[language=MASM, numbers=none]
+PUSH BP             ; simpan BP pemanggil
+MOV BP, SP          ; BP menunjuk puncak stack frame
+\end{lstlisting}
 
-Interupsi \hex{16} menyediakan tiga fungsi utama.
+Setelah itu, isi stack frame dapat diakses dengan mode
+\textit{base relative}:
 
-\begin{description}
-    \item[Fungsi \hex{00} --- baca tombol.] Prosesor menunggu sampai
-          ada tombol ditekan, lalu mengembalikan \reg{AH} =
-          \eng{scan code} dan \reg{AL} = kode ASCII. Untuk tombol
-          panah, kode ASCII bernilai nol sehingga \reg{AH} yang harus
-          diperiksa.
+\begin{itemize}
+    \item \code{[BP+0]}: nilai \reg{BP} lama;
+    \item \code{[BP+2]}: alamat kembali;
+    \item \code{[BP+4]}: parameter pertama;
+    \item \code{[BP+6]}: parameter kedua.
+\end{itemize}
 
-    \item[Fungsi \hex{01} --- periksa status tombol.] Fungsi ini tidak
-          menunggu. Bila ada tombol pada penyangga keyboard, \flag{ZF}
-          bernilai nol dan \reg{AX} berisi tombol tersebut tanpa
-          mengeluarkannya.
+Susunan stack frame ditunjukkan pada Gambar~\ref{fig:stack-frame}.
 
-    \item[Fungsi \hex{02} --- status tombol pengubah.] Fungsi ini
-          mengembalikan keadaan \file{Shift}, \file{Ctrl}, \file{Alt},
-          dan \file{Caps Lock} pada \reg{AL}.
-\end{description}
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        sel/.style={
+            draw=obeBlue, line width=0.7pt, minimum width=4.6cm,
+            minimum height=0.65cm, align=center, font=\small,
+            inner sep=2pt
+        },
+        param/.style={sel, fill=obeAmberLight, draw=obeAmber},
+        kendali/.style={sel, fill=obeTealLight, draw=obeTeal},
+        lama/.style={sel, fill=obeGrayLight, draw=obeGray},
+        ket/.style={font=\scriptsize, text=obeGray, anchor=west}
+    ]
+        \node[param] (p2) at (0,0) {parameter kedua \quad [BP+6]};
+        \node[param] (p1) [below=0pt of p2] {parameter pertama \quad [BP+4]};
+        \node[kendali] (ret) [below=0pt of p1]
+            {alamat kembali \quad [BP+2]};
+        \node[lama] (bp) [below=0pt of ret] {BP lama \quad [BP+0]};
+        \node[sel, fill=obeBlueLight] (lokal) [below=0pt of bp]
+            {variabel lokal / ruang bebas};
 
-Masukan DOS melakukan \eng{echo} ke layar dan menghormati tombol
-\file{Ctrl}+\file{C}, sedangkan masukan BIOS tidak melakukan keduanya.
-Program yang memakai BIOS bertanggung jawab mencetak sendiri karakter
-yang dibaca.
+        \node[ket] at (2.45,0) {alamat tinggi};
+        \node[ket] at (2.45,-3.25) {alamat rendah};
+        \node[font=\scriptsize, text=obeMaroon, anchor=east]
+            at (-2.5,-1.95) {BP dan SP};
+        \draw[-{Stealth[length=2.2mm]}, line width=0.9pt, obeMaroon]
+            (-2.5,-1.95) -- (-2.35,-1.95);
+    \end{tikzpicture}
+    \caption{Stack frame prosedur: parameter, alamat kembali, BP lama,
+    dan ruang lokal.}
+    \label{fig:stack-frame}
+\end{figure}
 
-\subsection{\code{INT 17h}: Layanan Printer}
+\subsection{Penyampaian Data}
 
-Interupsi \hex{17} mengirim satu byte ke printer melalui port paralel:
-fungsi \hex{00} mencetak karakter pada \reg{AL}, fungsi \hex{01}
-menginisialisasi printer, dan fungsi \hex{02} membaca statusnya.
-Nilai balikan pada \reg{AH} berupa bit status, antara lain bit 1 waktu
-tunggu habis, bit 3 kesalahan masukan/keluaran, bit 5 kertas habis, dan
-bit 7 printer sibuk.
+Data dapat disampaikan ke prosedur melalui tiga cara.
+
+\begin{table}[H]
+    \centering
+    \caption{Cara penyampaian data ke prosedur.}
+    \label{tab:parameter}
+    \small
+    \begin{tabular}{@{}p{2.6cm}p{4.6cm}p{5.8cm}@{}}
+        \toprule
+        \textbf{Cara} & \textbf{Contoh} & \textbf{Keterangan} \\
+        \midrule
+        Register & \lstasm|MOV AX, lebar| lalu \lstasm|CALL Hitung| &
+        Cepat; jumlah parameter terbatas \\
+        \addlinespace
+        \eng{Stack} & \lstasm|PUSH lebar| lalu \lstasm|CALL Hitung| &
+        Cocok untuk banyak parameter; prosedur mengakses
+        \code{[BP+4]} \\
+        \addlinespace
+        Variabel & \lstasm|MOV lebar, 5| lalu \lstasm|CALL Hitung| &
+        Sederhana; prosedur bergantung pada variabel global \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Bila parameter dikirim melalui stack, pemanggil mendorong parameter
+sebelum \asm{CALL}. Prosedur dapat membersihkan parameter dengan
+\asm{RET} \code{n}, dengan $n$ adalah jumlah byte parameter.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+PUSH tinggi         ; parameter kedua
+PUSH lebar          ; parameter pertama
+CALL HitungLuas
+; prosedur memakai RET 4 untuk membuang dua parameter
+\end{lstlisting}
+
+\begin{peringatanbox}
+\vspace{1.1em}
+Prosedur sebaiknya menyimpan register yang dipakainya dengan
+\asm{PUSH} di awal dan memulihkannya dengan \asm{POP} di akhir.
+Tanpa itu, pemanggil dapat kehilangan nilai register yang masih
+dibutuhkan. Pastikan pula jumlah \asm{PUSH} dan \asm{POP} seimbang.
+\end{peringatanbox}

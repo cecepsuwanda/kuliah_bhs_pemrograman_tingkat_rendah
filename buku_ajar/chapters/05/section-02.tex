@@ -1,38 +1,37 @@
 \section{Register Pointer, Index, dan Instruction Pointer}
 \label{sec:register-pointer}
 
-Kelompok register ketiga berjumlah empat buah: \reg{SP}, \reg{BP},
-\reg{SI}, dan \reg{DI}. Keempatnya berukuran 16 bit dan secara
-teknis dapat dipakai seperti register umum, tetapi peran khasnya
-adalah menyimpan \eng{offset} --- yaitu jarak sebuah lokasi dari
-awal segmen. Karena itulah kelompok ini disebut register
-\eng{pointer} dan \eng{index}.
+Kelompok register berikutnya berjumlah empat buah: \reg{SP}, \reg{BP},
+\reg{SI}, dan \reg{DI}. Keempatnya berukuran 16 bit dan menyimpan
+\eng{offset}, yaitu jarak suatu lokasi dari awal segmen. Karena itu,
+kelompok ini disebut register \eng{pointer} dan \eng{index}.
+Pembahasan berikut diringkas dari \cite{gunawan2019}, Bagian 2,
+hlm.~13--18, dan \cite{sto2001}, BAB IV, hlm.~17--20.
 
 \subsection{Stack Pointer dan Base Pointer}
 
-\term{Stack} adalah daerah memori yang bekerja seperti tumpukan
-piring: data yang terakhir dimasukkan adalah yang pertama diambil
+\eng{Stack} adalah daerah memori yang bekerja seperti tumpukan:
+data yang terakhir dimasukkan adalah data yang pertama diambil
 (\eng{last in, first out}). Instruksi \asm{PUSH} menaruh data ke
 \eng{stack}, sedangkan \asm{POP} mengambilnya kembali.
 
 \begin{description}
-    \item[\reg{SP} (\eng{Stack Pointer})] Selalu menunjuk ke puncak
-          \eng{stack} saat ini. Setiap \asm{PUSH} mengurangi \reg{SP}
-          sebesar 2, dan setiap \asm{POP} menambahnya sebesar 2,
-          karena satu kata (\eng{word}) berukuran 2 byte. Nilai
-          \reg{SP} berpasangan dengan \reg{SS}.
+    \item[\reg{SP} (\eng{Stack Pointer})] Menunjuk puncak
+          \eng{stack} yang aktif. Pasangannya adalah \reg{SS},
+          sehingga alamat puncak \eng{stack} ditulis sebagai
+          \reg{SS}:\reg{SP}. Nilai \reg{SP} berubah ketika
+          \asm{PUSH} dan \asm{POP} dijalankan.
 
-    \item[\reg{BP} (\eng{Base Pointer})] Menjadi titik acuan tetap di
-          dalam \eng{stack}. Berbeda dengan \reg{SP} yang bergerak
-          terus, \reg{BP} biasanya disetel sekali di awal prosedur,
-          lalu dipakai untuk menjangkau parameter dan variabel lokal
-          tanpa terganggu oleh \asm{PUSH} dan \asm{POP}. Pemakaian
-          \reg{BP} dibahas pada Bab~\ref{chap:prosedur}.
+    \item[\reg{BP} (\eng{Base Pointer})] Menjadi titik acuan di
+          dalam \eng{stack}. Pasangannya juga \reg{SS}, sehingga
+          alamatnya ditulis \reg{SS}:\reg{BP}. \reg{BP} berguna
+          untuk menunjuk data pada \eng{stack} tanpa terpengaruh
+          perubahan \reg{SP}.
 \end{description}
 
-Karena \reg{SP} menunjukkan puncak \eng{stack} yang aktif, mengubah
-\reg{SP} secara sembarangan berarti memindahkan seluruh tumpukan.
-Akibatnya, instruksi \asm{RET} dapat melompat ke alamat yang salah.
+Karena \reg{SP} menunjukkan puncak \eng{stack}, mengubah nilainya
+secara sembarangan berarti memindahkan seluruh tumpukan. Akibatnya,
+instruksi \asm{RET} dapat melompat ke alamat yang salah.
 
 \subsection{Source Index dan Destination Index}
 
@@ -40,31 +39,30 @@ Dua register berikutnya dipakai untuk mengakses deretan data,
 misalnya string atau \eng{array}.
 
 \begin{description}
-    \item[\reg{SI} (\eng{Source Index})] Menunjuk alamat \emph{sumber}
-          pada operasi string. Pasangannya adalah \reg{DS},
-          sehingga alamat sumber ditulis sebagai \reg{DS}:\reg{SI}.
+    \item[\reg{SI} (\eng{Source Index})] Menunjuk alamat sumber pada
+          operasi string. Pasangannya adalah \reg{DS}, sehingga
+          alamat sumber ditulis \reg{DS}:\reg{SI}.
 
-    \item[\reg{DI} (\eng{Destination Index})] Menunjuk alamat
-          \emph{tujuan} pada operasi string. Pasangannya adalah
-          \reg{ES}, sehingga alamat tujuan ditulis sebagai
-          \reg{ES}:\reg{DI}.
+    \item[\reg{DI} (\eng{Destination Index})] Menunjuk alamat tujuan
+          pada operasi string. Pasangannya adalah \reg{ES}, sehingga
+          alamat tujuan ditulis \reg{ES}:\reg{DI}.
 \end{description}
 
-Instruksi \asm{MOVSB}, \asm{MOVSW}, dan \asm{REP MOVSB} memindahkan
-data dari \reg{DS}:\reg{SI} ke \reg{ES}:\reg{DI} sambil menyesuaikan
-kedua register tersebut secara otomatis, sehingga keduanya harus
-diisi lebih dahulu.
+Pada operasi string, \reg{SI} dan \reg{DI} dapat berubah secara
+otomatis mengikuti arah pemrosesan. Karena itu, kedua register harus
+diisi dengan alamat yang benar sebelum operasi dijalankan.
 
-\subsection{Instruction Pointer dan Register yang Rawan}
+\subsection{Instruction Pointer}
 
-Register terakhir yang perlu dikenal adalah \reg{IP} (\eng{Instruction
-Pointer}). Register ini menyimpan \eng{offset} instruksi berikutnya
-yang akan diambil dan dieksekusi. Pasangan \reg{CS}:\reg{IP}
-menentukan alamat instruksi tersebut. Nilai \reg{IP} bertambah
-sendiri setiap kali satu instruksi selesai dijalankan.
-Programmer hampir tidak pernah menulis \reg{IP} secara langsung;
-perubahan \reg{IP} terjadi melalui \asm{JMP}, \asm{CALL}, \asm{RET},
-dan \asm{INT}.
+Register terakhir yang perlu dikenal adalah \reg{IP}
+(\eng{Instruction Pointer}). Register ini menyimpan \eng{offset}
+instruksi berikutnya yang akan diambil dan dieksekusi. Pasangan
+\reg{CS}:\reg{IP} menentukan alamat instruksi tersebut. Nilai
+\reg{IP} bertambah sendiri setiap kali instruksi diambil.
+
+Programmer hampir tidak pernah menulis \reg{IP} secara langsung.
+Perubahan \reg{IP} terjadi melalui instruksi seperti \asm{JMP},
+\asm{CALL}, \asm{RET}, dan \asm{INT}.
 
 Gambar~\ref{fig:organisasi-register} merangkum pembagian keempat
 belas register 8086 ke dalam kelompoknya.
@@ -87,7 +85,8 @@ belas register 8086 ke dalam kelompoknya.
         regs/.style={reg, fill=obeAmberLight, draw=obeAmber},
         regf/.style={reg, fill=obeGrayLight, draw=obeGray},
         judul/.style={font=\small\bfseries\sffamily, text=obeBlue},
-        ket/.style={font=\scriptsize\itshape, text=obeGray, align=center}
+        ket/.style={font=\scriptsize\itshape, text=obeGray,
+                    align=center, text width=1.45cm}
     ]
         % --- kelompok 1: register umum ---
         \node[judul] at (0,4.6) {Register umum};
@@ -96,7 +95,7 @@ belas register 8086 ke dalam kelompoknya.
         \node[reg, right=0.25cm of bx] (cx) {CX};
         \node[reg, right=0.25cm of cx] (dx) {DX};
         \node[ket, below=0.10cm of ax] {akumulator};
-        \node[ket, below=0.10cm of bx] {basis};
+        \node[ket, below=0.10cm of bx] {offset};
         \node[ket, below=0.10cm of cx] {pencacah};
         \node[ket, below=0.10cm of dx] {data};
 
@@ -146,113 +145,77 @@ belas register 8086 ke dalam kelompoknya.
     \label{fig:organisasi-register}
 \end{figure}
 
-\subsection{Daftar Lengkap Register 8086}
+\subsection{Daftar Ringkas Register 8086}
 
 Tabel~\ref{tab:daftar-register} merangkum seluruh register beserta
-ukuran, kelompok, dan fungsi utamanya. Tabel ini dapat dipakai
-sebagai acuan cepat selama praktikum.
+kelompok dan fungsi utamanya.
 
 \begin{table}[H]
     \centering
-    \caption{Daftar lengkap register 8086: nama, ukuran, kelompok,
-    dan fungsi utama.}
+    \caption{Daftar ringkas register 8086.}
     \label{tab:daftar-register}
     \small
-    \begin{tabular}{@{}llp{2.9cm}p{6.2cm}@{}}
+    \begin{tabular}{@{}llp{2.6cm}p{6.8cm}@{}}
         \toprule
         \textbf{Register} & \textbf{Ukuran} & \textbf{Kelompok} &
         \textbf{Fungsi utama} \\
         \midrule
         \reg{AX} & 16 bit & Umum &
-        Akumulator; operand wajib \asm{MUL}/\asm{DIV} dan layanan DOS;
-        dapat diakses sebagai \reg{AH} dan \reg{AL} \\
+        Akumulator; dapat diakses sebagai \reg{AH} dan \reg{AL} \\
         \addlinespace
         \reg{BX} & 16 bit & Umum &
-        Register basis; satu-satunya register umum yang boleh menjadi
-        basis pengalamatan langsung; dapat diakses sebagai \reg{BH}
+        Penunjuk alamat \eng{offset}; dapat diakses sebagai \reg{BH}
         dan \reg{BL} \\
         \addlinespace
         \reg{CX} & 16 bit & Umum &
-        Pencacah pengulangan \asm{LOOP} dan \asm{REP}, jumlah
-        pergeseran pada \asm{SHL}/\asm{SHR}; \reg{CL} dipakai
-        sebagai penghitung bit \\
+        Pencacah pengulangan; dapat diakses sebagai \reg{CH} dan
+        \reg{CL} \\
         \addlinespace
         \reg{DX} & 16 bit & Umum &
-        Pasangan \reg{AX} pada operasi 32 bit; alamat port I/O;
-        penunjuk string pada layanan DOS; dapat diakses sebagai
+        Data pendukung dan sisa pembagian; dapat diakses sebagai
         \reg{DH} dan \reg{DL} \\
         \addlinespace
         \reg{CS} & 16 bit & Segmen &
         Menunjuk segmen kode; berpasangan dengan \reg{IP} \\
         \addlinespace
         \reg{DS} & 16 bit & Segmen &
-        Menunjuk segmen data; pasangan bagi hampir semua akses
-        variabel \\
+        Menunjuk segmen data \\
         \addlinespace
         \reg{SS} & 16 bit & Segmen &
         Menunjuk segmen \eng{stack}; berpasangan dengan \reg{SP} dan
         \reg{BP} \\
         \addlinespace
         \reg{ES} & 16 bit & Segmen &
-        Segmen tambahan; menjadi segmen tujuan \reg{ES}:\reg{DI} pada
-        operasi string \\
+        Segmen tambahan; berpasangan dengan \reg{DI} pada operasi
+        string \\
         \addlinespace
         \reg{SP} & 16 bit & Pointer &
-        Menunjuk puncak \eng{stack}; otomatis berubah pada
-        \asm{PUSH} dan \asm{POP} \\
+        Menunjuk puncak \eng{stack} \\
         \addlinespace
         \reg{BP} & 16 bit & Pointer &
-        Titik acuan tetap di dalam \eng{stack} untuk parameter dan
-        variabel lokal \\
+        Titik acuan data di dalam \eng{stack} \\
         \addlinespace
         \reg{SI} & 16 bit & Index &
-        Indeks sumber \reg{DS}:\reg{SI} untuk operasi string \\
+        Indeks sumber \reg{DS}:\reg{SI} \\
         \addlinespace
         \reg{DI} & 16 bit & Index &
-        Indeks tujuan \reg{ES}:\reg{DI} untuk operasi string \\
+        Indeks tujuan \reg{ES}:\reg{DI} \\
         \addlinespace
         \reg{IP} & 16 bit & Kendali &
         \eng{Offset} instruksi berikutnya; berpasangan dengan
-        \reg{CS}; berubah melalui \asm{JMP}, \asm{CALL}, \asm{RET},
-        dan \asm{INT} \\
+        \reg{CS} \\
         \addlinespace
         \reg{FLAGS} & 16 bit & Status &
-        Sembilan \eng{flag} kondisi dan kendali; menentukan hasil
-        keputusan program \\
+        Sembilan \eng{flag} kondisi dan kendali \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\subsection{Register yang Tidak Boleh Diubah Sembarangan}
-
-Tidak semua register bebas diubah. Empat register berikut sangat
-rawan karena mengendalikan alur program dan posisi \eng{stack}.
-
-\begin{enumerate}
-    \item \reg{CS} dan \reg{IP} menentukan instruksi berikutnya yang
-          akan dieksekusi. Bila salah satu diubah tanpa alasan yang
-          benar, prosesor akan mengambil instruksi dari alamat yang
-          salah. Akibatnya program dapat macet, menjalankan data
-          sebagai instruksi, atau membuat komputer \eng{hang}.
-          Perubahan \reg{CS} dan \reg{IP} sebaiknya dilakukan hanya
-          melalui \asm{JMP} jauh, \asm{CALL} jauh, \asm{RET}, dan
-          \asm{INT}.
-
-    \item \reg{SS} dan \reg{SP} menentukan letak \eng{stack}. Bila
-          keduanya diubah, nilai kembali prosedur dan alamat
-          \eng{interrupt} yang tersimpan di sana menjadi tidak
-          terjangkau. Instruksi \asm{RET} lalu melompat ke alamat
-          acak dan program berhenti dengan kesalahan.
-
-    \item \reg{DS} dapat diubah, tetapi harus dikembalikan ke nilai
-          semula sebelum program mengakses variabel pada segmen data
-          asal.
-\end{enumerate}
-
 \begin{infobox}
-Aturan praktis: register umum (\reg{AX}--\reg{DX}) bebas dipakai
-untuk perhitungan; \reg{SI}, \reg{DI}, dan \reg{BX} boleh menjadi
-penunjuk alamat selama isinya dicatat; \reg{CS}, \reg{IP}, \reg{SS},
-dan \reg{SP} hanya diubah melalui instruksi yang memang dirancang
-untuk itu.
+\vspace{1.1em}
+Aturan praktis: register umum \reg{AX}--\reg{DX} bebas dipakai untuk
+perhitungan; \reg{SI}, \reg{DI}, dan \reg{BX} dapat menjadi penunjuk
+alamat selama isinya dicatat; \reg{CS}, \reg{IP}, \reg{SS}, dan
+\reg{SP} hanya diubah melalui instruksi yang memang dirancang untuk
+itu.
 \end{infobox}

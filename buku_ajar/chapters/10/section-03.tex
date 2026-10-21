@@ -1,272 +1,115 @@
-\section{Perkalian, Pembagian, dan Aritmatika Bertingkat}
-\label{sec:perkalian-pembagian}
+\section{Flag, Tanda Bilangan, dan Verifikasi Hasil}
+\label{sec:flag-verifikasi}
 
-Penjumlahan dan pengurangan memakai dua operand yang ditulis
-berdampingan. Perkalian dan pembagian tidak demikian: keduanya
-memakai \eng{operand implisit}, yaitu operand yang sudah ditentukan
-prosesor dan tidak ditulis di dalam instruksi. Aturan ini terasa
-berbelit pada awalnya, tetapi menyederhanakan penulisan program
-setelah dipahami.
+Hasil aritmatika tidak hanya berupa angka pada register tujuan.
+Prosesor juga mencatat keadaan hasil melalui \eng{flag}. Catatan
+inilah yang dipakai program untuk menentukan apakah hasil masih sah,
+apakah terjadi luapan, atau apakah dua nilai sama besar.
 
-\subsection{Aturan Operand Implisit}
+\subsection{CF untuk Tak Bertanda, OF untuk Bertanda}
 
-Instruksi perkalian hanya menuliskan satu operand. Operand satunya
-diambil dari \reg{AX} atau \reg{AL}, sedangkan hasilnya ditaruh pada
-pasangan register tetap. Aturan yang sama berlaku untuk pembagian,
-dengan tambahan pasangan \reg{DX}:\reg{AX} sebagai penampung
-bilangan yang dibagi. Gambar~\ref{fig:operand-implisit}
-memperlihatkan keempat aturan tersebut.
+\flag{CF} dan \flag{OF} sering membingungkan karena keduanya
+menandai luapan. Perbedaannya terletak pada tafsiran bilangan.
 
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        font=\small,
-        kotak/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-            minimum width=1.5cm, minimum height=0.75cm, align=center,
-            inner sep=2pt},
-        hasil/.style={draw=obeAmber, line width=0.8pt, fill=obeAmberLight,
-            minimum width=2.0cm, minimum height=0.75cm, align=center,
-            inner sep=2pt},
-        op/.style={draw=obeTeal, line width=1pt, fill=obeTealLight,
-            rounded corners=2pt, minimum width=1.4cm,
-            minimum height=0.75cm, align=center, font=\bfseries,
-            inner sep=2pt},
-        panah/.style={-{Stealth[length=2mm]}, line width=0.8pt, obeGray},
-        baris/.style={font=\bfseries\small, text=obeBlue, align=right,
-            anchor=east},
-        ket/.style={font=\scriptsize, text=obeGray, align=left,
-            anchor=west}
-    ]
-        \node[baris] at (-0.3, 5.0) {MUL\\r/m8};
-        \node[kotak] (a1) at (1.3, 5.5) {AL};
-        \node[kotak] (a2) at (1.3, 4.5) {r/m8};
-        \node[op]    (a3) at (4.1, 5.0) {MUL};
-        \node[hasil] (a4) at (7.0, 5.0) {AX};
-        \draw[panah] (a1.east) -- (a3.west);
-        \draw[panah] (a2.east) -- (a3.west);
-        \draw[panah] (a3.east) -- (a4.west);
-        \node[ket] at (8.1, 5.0) {hasil 16 bit};
+\begin{itemize}
+    \item \flag{CF} dipakai untuk bilangan tidak bertanda. Flag ini
+          bernilai 1 bila hasil melewati batas atas 8 bit atau 16 bit.
+    \item \flag{OF} dipakai untuk bilangan bertanda. Flag ini
+          bernilai 1 bila hasil keluar dari jangkauan bilangan
+          bertanda, misalnya dua bilangan positif menghasilkan
+          bilangan negatif.
+\end{itemize}
 
-        \node[baris] at (-0.3, 3.2) {MUL\\r/m16};
-        \node[kotak] (b1) at (1.3, 3.7) {AX};
-        \node[kotak] (b2) at (1.3, 2.7) {r/m16};
-        \node[op]    (b3) at (4.1, 3.2) {MUL};
-        \node[hasil] (b4) at (7.0, 3.2) {DX:AX};
-        \draw[panah] (b1.east) -- (b3.west);
-        \draw[panah] (b2.east) -- (b3.west);
-        \draw[panah] (b3.east) -- (b4.west);
-        \node[ket] at (8.1, 3.2) {hasil 32 bit};
+Contoh pada 8 bit:
 
-        \node[baris] at (-0.3, 1.4) {DIV\\r/m8};
-        \node[kotak] (c1) at (1.3, 1.4) {AX};
-        \node[kotak] (c2) at (1.3, 0.4) {r/m8};
-        \node[op]    (c3) at (4.1, 1.4) {DIV};
-        \node[hasil] (c4) at (7.0, 1.75) {AL};
-        \node[hasil] (c5) at (7.0, 0.65) {AH};
-        \draw[panah] (c1.east) -- (c3.west);
-        \draw[panah] (c2.east) -- (c3.west);
-        \draw[panah] (c3.east) -- (c4.west);
-        \draw[panah] (c3.east) -- (c5.west);
-        \node[ket] at (8.1, 1.75) {hasil bagi};
-        \node[ket] at (8.1, 0.65) {sisa};
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AL, 0FFh
+ADD AL, 1           ; AL = 00h, CF = 1, OF = 0
+MOV AL, 7Fh
+ADD AL, 1           ; AL = 80h, CF = 0, OF = 1
+MOV AL, 80h
+ADD AL, 80h         ; AL = 00h, CF = 1, OF = 1
+\end{lstlisting}
 
-        \node[baris] at (-0.3, -0.4) {DIV\\r/m16};
-        \node[kotak] (d1) at (1.3, -0.4) {DX:AX};
-        \node[kotak] (d2) at (1.3, -1.4) {r/m16};
-        \node[op]    (d3) at (4.1, -0.4) {DIV};
-        \node[hasil] (d4) at (7.0, -0.05) {AX};
-        \node[hasil] (d5) at (7.0, -1.15) {DX};
-        \draw[panah] (d1.east) -- (d3.west);
-        \draw[panah] (d2.east) -- (d3.west);
-        \draw[panah] (d3.east) -- (d4.west);
-        \draw[panah] (d3.east) -- (d5.west);
-        \node[ket] at (8.1, -0.05) {hasil bagi};
-        \node[ket] at (8.1, -1.15) {sisa};
-    \end{tikzpicture}
-    \caption{Aturan operand implisit pada \code{MUL}, \code{IMUL},
-    \code{DIV}, dan \code{IDIV}.}
-    \label{fig:operand-implisit}
-\end{figure}
+Kasus pertama adalah luapan tidak bertanda: 255 + 1 = 256, tidak muat
+di 8 bit. Kasus kedua adalah luapan bertanda: 127 + 1 = 128, melewati
+batas bilangan bertanda 8 bit. Kasus ketiga memicu keduanya.
 
-Tabel~\ref{tab:operand-muldiv} merangkum aturan tersebut dalam bentuk
-yang lebih ringkas.
+\subsection{Flag Lain}
+
+\begin{itemize}
+    \item \flag{ZF} bernilai 1 bila hasilnya nol. Flag ini dipakai
+          untuk memeriksa apakah dua operand sama besar setelah
+          \asm{CMP}.
+    \item \flag{SF} bernilai 1 bila bit tanda hasil menyala, yaitu
+          hasil bertanda negatif.
+    \item \flag{AF} menandai simpanan dari empat bit rendah. Flag ini
+          dipakai pada operasi BCD.
+    \item \flag{PF} menandai paritas byte rendah hasil operasi.
+\end{itemize}
+
+\asm{INC} dan \asm{DEC} memperbarui \flag{ZF}, \flag{SF},
+\flag{OF}, \flag{AF}, dan \flag{PF}, tetapi tidak mengubah
+\flag{CF}. Karena itu, keduanya tidak dapat menggantikan \asm{ADD}
+atau \asm{SUB} pada aritmatika bertingkat.
+
+\subsection{Verifikasi dengan Debugger}
+
+Hasil operasi dapat diperiksa dengan \eng{single step} pada emu8086
+atau DEBUG. Langkah yang dilakukan:
+
+\begin{enumerate}
+    \item jalankan program sampai instruksi aritmatika yang diamati;
+    \item catat isi register tujuan sebelum dan sesudah instruksi;
+    \item catat \flag{CF}, \flag{OF}, \flag{ZF}, dan \flag{SF};
+    \item bandingkan hasilnya dengan perhitungan manual.
+\end{enumerate}
+
+Program \file{operasi-aritmatika.asm} menyimpan hasil setiap operasi
+ke segmen data. Nilai tersebut dapat dibaca dengan perintah
+\lstasm|D DS:0000|. Perkiraan hasilnya dirangkum pada
+Tabel~\ref{tab:trace-aritmatika}.
 
 \begin{table}[H]
     \centering
-    \caption{Operand implisit dan ukuran hasil pada perkalian dan
-    pembagian.}
-    \label{tab:operand-muldiv}
+    \caption{Perkiraan hasil operasi pada
+    \file{operasi-aritmatika.asm}.}
+    \label{tab:trace-aritmatika}
     \small
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabular}{@{}p{1.7cm}p{2.4cm}p{4.3cm}p{5.3cm}@{}}
+    \begin{tabular}{@{}p{4.6cm}p{3.0cm}p{5.6cm}@{}}
         \toprule
-        \textbf{Instruksi} & \textbf{Operand} &
-        \textbf{Yang dihitung} & \textbf{Letak hasil} \\
+        \textbf{Operasi} & \textbf{Hasil} &
+        \textbf{Keterangan} \\
         \midrule
-        \asm{MUL} & r/m8 & \reg{AL} $\times$ operand &
-        \reg{AX}; \flag{CF} = \flag{OF} = 1 bila \reg{AH} tidak nol \\
+        \hex{0001FFFF} + \hex{00020001} &
+        \hex{0004}:\hex{0000} &
+        \asm{ADD} menghasilkan \flag{CF} = 1; \asm{ADC} membawanya \\
         \addlinespace
-        \asm{MUL} & r/m16 & \reg{AX} $\times$ operand &
-        \reg{DX}:\reg{AX}; \flag{CF} = \flag{OF} = 1 bila \reg{DX}
-        tidak nol \\
+        \hex{00050000} $-$ \hex{00020001} &
+        \hex{0002}:\hex{FFFF} &
+        \asm{SUB} menghasilkan pinjaman; \asm{SBB} melanjutkannya \\
         \addlinespace
-        \asm{IMUL} & r/m8 & \reg{AL} $\times$ operand (bertanda) &
-        \reg{AX}; \flag{OF} = 1 bila hasil tidak muat di \reg{AL} \\
+        $25 \times 4$ & \hex{0064} &
+        \asm{MUL} 8 bit; hasil di \reg{AX} \\
         \addlinespace
-        \asm{IMUL} & r/m16 & \reg{AX} $\times$ operand (bertanda) &
-        \reg{DX}:\reg{AX}; \flag{OF} = 1 bila tidak muat di \reg{AX} \\
-        \addlinespace
-        \asm{DIV} & r/m8 & \reg{AX} $\div$ operand &
-        hasil bagi di \reg{AL}, sisa di \reg{AH} \\
-        \addlinespace
-        \asm{DIV} & r/m16 & \reg{DX}:\reg{AX} $\div$ operand &
-        hasil bagi di \reg{AX}, sisa di \reg{DX} \\
+        $1000 \div 7$ & \hex{008E}, sisa \hex{0006} &
+        \asm{DIV} 8 bit; hasil bagi di \reg{AL}, sisa di \reg{AH} \\
         \bottomrule
     \end{tabular}
 \end{table}
-
-Hasil perkalian selalu berukuran dua kali operand, sehingga \asm{MUL}
-tidak pernah kehilangan data. Yang ada hanyalah penanda \flag{CF} dan
-\flag{OF} bila separuh hasil yang tinggi tidak nol.
-
-\subsection{Kesalahan \eng{Divide Overflow}}
-
-Pembagian berperilaku sebaliknya: hasil bagi harus muat pada register
-tujuan yang ukurannya hanya separuh operand. Bila tidak muat,
-prosesor membangkitkan kesalahan \eng{divide overflow} dan program
-DOS umumnya berhenti mendadak.
-
-Syarat aman dapat diperiksa sebelum \asm{DIV} dijalankan. Karena
-hasil bagi 8 bit diletakkan pada \reg{AL}, pembagian
-\lstasm|DIV BL| aman hanya bila \reg{AH} lebih kecil daripada
-\reg{BL}. Untuk pembagian 16 bit, syaratnya \reg{DX} lebih kecil
-daripada operand pembagi. Pemeriksaan seperti ini ditunjukkan pada
-Contoh~2.
 
 \begin{infobox}
-Luapan pembagian bukan kesalahan sintaks, sehingga tidak dilaporkan
-assembler; kesalahan baru muncul ketika program dijalankan. Setiap
-pembagian yang pembaginya berasal dari masukan pengguna wajib
-didahului pemeriksaan keselamatan.
+\vspace{1.1em}
+Bila hasil \asm{DIV} tidak sesuai, periksa lebih dahulu apakah
+\reg{AH} (untuk pembagian 8 bit) atau \reg{DX} (untuk pembagian
+16 bit) lebih kecil daripada pembagi. Kesalahan \eng{divide
+overflow} membuat program berhenti sebelum hasil sempat disimpan.
 \end{infobox}
 
-\subsection{Perkalian dan Pembagian Bertanda}
-
-Pasangan \asm{IMUL} dan \asm{IDIV} menafsirkan operand sebagai
-bilangan bertanda dalam komplemen dua. Sebelum \asm{IDIV}, bilangan
-yang dibagi harus diperluas tandanya: \asm{CBW} memperluas tanda
-\reg{AL} ke \reg{AX}, sedangkan \asm{CWD} memperluas tanda \reg{AX}
-ke \reg{DX}:\reg{AX}.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-    MOV AX, 1000            ; AX = 03E8h
-    MOV BX, 7               ; BX = 0007h
-    CWD                     ; DX = 0000h, memperluas tanda AX
-    IDIV BX                 ; AX = 142, DX = 6
-\end{lstlisting}
-
-Bila \asm{CWD} dihilangkan, hasil pada contoh di atas kebetulan tetap
-benar karena \reg{AX} bernilai positif. Kesalahannya baru terlihat
-pada bilangan negatif, ketika \reg{DX} seharusnya bernilai \hex{FFFF}
-agar tafsiran bertanda menjadi benar.
-
-\subsection{Aritmatika Bertingkat dengan \asm{ADC} dan \asm{SBB}}
-
-Bilangan 32 bit dipecah menjadi word rendah (bit 0--15) dan word
-tinggi (bit 16--31). Penjumlahan dilakukan dari word rendah ke word
-tinggi, dan word tinggi dijumlahkan dengan \asm{ADC} agar
-\eng{carry} dari word rendah ikut diperhitungkan. Pemisahan kedua
-word biasanya dilakukan dengan instruksi pergeseran seperti
-\asm{SHR} dan \asm{SHL} yang dibahas pada Bab~\ref{chap:logika}.
-Tabel~\ref{tab:penjumlahan-32bit} memperlihatkan propagasi
-\eng{carry} pada penjumlahan \hex{89ABCDEF} dengan \hex{01234567}.
-
-\begin{table}[H]
-    \centering
-    \caption{Propagasi \eng{carry} pada penjumlahan 32 bit dengan
-    \asm{ADC}.}
-    \label{tab:penjumlahan-32bit}
-    \small
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabular}{@{}p{2.5cm}p{1.8cm}p{1.8cm}p{1.7cm}p{1.3cm}p{1.7cm}p{1.7cm}@{}}
-        \toprule
-        \textbf{Tahap} & \textbf{Bilangan A} & \textbf{Bilangan B} &
-        \textbf{Carry masuk} & \textbf{Inst.} & \textbf{Hasil} &
-        \textbf{Carry keluar} \\
-        \midrule
-        Word rendah & \hex{CDEF} & \hex{4567} & 0 (dimulai bersih) &
-        \asm{ADD} & \hex{1356} & \flag{CF} = 1 \\
-        \addlinespace
-        Word tinggi & \hex{89AB} & \hex{0123} & 1 (dari tahap
-        sebelumnya) & \asm{ADC} & \hex{8ACF} & \flag{CF} = 0 \\
-        \addlinespace
-        Hasil akhir & \multicolumn{6}{l}{\hex{8ACF}, \hex{1356} atau
-        $0x8ACF1356$} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{lstlisting}[language=MASM, numbers=none]
-    MOV AX, rendahA         ; word rendah bilangan A
-    ADD AX, rendahB         ; AX = 1356h, CF = 1
-    MOV hasilRendah, AX     ; simpan word rendah hasil
-
-    MOV AX, tinggiA         ; word tinggi bilangan A
-    ADC AX, tinggiB         ; AX = 8ACFh (termasuk carry tadi)
-    MOV hasilTinggi, AX     ; simpan word tinggi hasil
-\end{lstlisting}
-
-Bila instruksi kedua ditulis \asm{ADD}, hasilnya menjadi \hex{8ACE}
-dan satu nilai hilang, karena \flag{CF} dari tahap pertama tidak
-dibawa. Pengurangan 32 bit memakai pola yang sama dengan pasangan
-\asm{SUB} dan \asm{SBB}.
-
-\subsection{Mengubah Bilangan Biner Menjadi Digit Desimal}
-
-Nilai di dalam register selalu berbentuk biner, sedangkan layanan DOS
-\code{INT 21h} fungsi \hex{02} hanya mencetak satu karakter pada satu
-waktu. Program karena itu harus memecah bilangan menjadi digit
-terlebih dahulu, dengan pembagian berulang sepuluh. Setiap sisa
-pembagian adalah satu digit, dan digit-digit itu terbentuk dari yang
-paling belakang sehingga harus disimpan sementara pada \eng{stack}
-agar urutan cetaknya terbalik menjadi benar
-(Kode~\ref{lst:konversi-desimal}).
-
-\begin{pseudocode}[caption={Algoritma mengubah nilai biner menjadi digit desimal.}, label={lst:konversi-desimal}]
-cacah <- 0
-selama nilai > 0 lakukan
-    sisa  <- nilai MOD 10
-    simpan sisa pada stack
-    nilai <- nilai DIV 10
-    cacah <- cacah + 1
-selama cacah > 0 lakukan
-    ambil sisa dari stack
-    cetak karakter (sisa + 30h)
-    cacah <- cacah - 1
-\end{pseudocode}
-
-Penambahan \hex{30} mengubah nilai digit $0$--$9$ menjadi kode ASCII
-karakter \code{'0'}--\code{'9'}. Prosedur \code{CETAK\_AX} pada
-Contoh~1 dan Contoh~2 adalah penerapan langsung algoritma tersebut,
-sedangkan layanan masukan fungsi \hex{01} mengerjakan kebalikannya
-(Bab~\ref{chap:interupsi}).
-
-\begin{studikasusbox}
-\textbf{Kalkulator empat operasi sederhana.}
-
-Kerangka program kalkulator mencakup tiga hal sekaligus: masukan
-pengguna, pemilihan operasi, dan pencetakan hasil.
-\begin{enumerate}
-    \item Tampilkan menu: \code{1} tambah, \code{2} kurang,
-          \code{3} kali, \code{4} bagi.
-    \item Baca pilihan, lalu arahkan alur program dengan \asm{CMP}
-          dan lompatan bersyarat seperti pada Bab~\ref{chap:kontrol}.
-    \item Baca dua bilangan satu digit.
-    \item Jalankan operasi yang dipilih: \asm{ADD}, \asm{SUB},
-          \asm{MUL}, atau \asm{DIV}.
-    \item Untuk pembagian, periksa pembagi nol dan hasil bagi yang
-          tidak muat sebelum \asm{DIV} dijalankan.
-    \item Cetak hasil dengan prosedur konversi desimal.
-\end{enumerate}
-Kerangka ini menjadi dasar Tugas~4 pada bagian praktikum.
-\end{studikasusbox}
+\begin{peringatanbox}
+\vspace{1.1em}
+Jangan menyimpulkan hasil dari satu \eng{flag} saja. \flag{CF} = 1
+belum tentu berarti hasil salah; itu hanya berarti hasil tidak
+bertanda melewati kapasitas. Tafsirkan \eng{flag} sesuai jenis
+bilangan yang sedang diolah.
+\end{peringatanbox}

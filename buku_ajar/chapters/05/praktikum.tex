@@ -2,9 +2,10 @@
 \label{sec:praktikum-bab5}
 
 \begin{praktikumbox}
+\vspace{1.1em}
 \textbf{Judul:} Pengamatan register dan \eng{flag} dengan
-\eng{Single Step} pada Emu8086.\\[0.3em]
-\textbf{Sub-CPMK:} 1.2 \quad\textbullet\quad
+\eng{single step}.\\[0.3em]
+\textbf{Sub-CPMK:} 1.3 \quad\textbullet\quad
 \textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
 \textbf{Bentuk:} individu
 \end{praktikumbox}
@@ -12,16 +13,17 @@
 \subsection{Tujuan Praktikum}
 
 Setelah menyelesaikan praktikum ini, mahasiswa mampu mengamati isi
-setiap register 8086, membaca keadaan \eng{flag} setelah operasi
-aritmatika, dan menjelaskan akibat perubahan nilai register secara
-manual terhadap jalannya program.
+register 8086, membaca keadaan \eng{flag} setelah operasi
+aritmatika, dan menjelaskan pengaruh \eng{flag} terhadap jalannya
+program.
 
 \subsection{Alat dan Bahan}
 
 \begin{itemize}
-    \item Komputer dengan Emu8086 terpasang.
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \file{prediksi-flag.asm} dan \file{pesan-flag.asm}
-          dari direktori \file{code/asm/}.
+          dari \file{code/asm/}.
     \item Lembar kerja pengamatan register dan \eng{flag}.
 \end{itemize}
 
@@ -30,72 +32,63 @@ manual terhadap jalannya program.
 \begin{enumerate}
     \item \textbf{Menyiapkan program pengamatan.}
     \begin{enumerate}
-        \item Buka Emu8086, lalu buka berkas
-              \file{prediksi-flag.asm}.
-        \item Tekan \file{Compile and Emulate}, kemudian tahan pada
-              jendela emulator tanpa menjalankan program.
-        \item Pastikan jendela \file{Registers} dan jendela
-              \file{Flags} terlihat. Bila belum, aktifkan melalui
-              menu \file{View}.
+        \item Buka \file{prediksi-flag.asm} pada emu8086.
+        \item Pilih \file{Compile and Emulate}, lalu tampilkan
+              jendela \file{Registers} dan \file{Flags}.
     \end{enumerate}
 
-    \item \textbf{Mengamati register dengan \eng{Single Step}.}
+    \item \textbf{Mengamati register dengan \eng{single step}.}
     \begin{enumerate}
-        \item Tekan tombol \file{Single Step} satu kali untuk
-              menjalankan instruksi pertama.
-        \item Catat nilai \reg{AX}, \reg{BX}, \reg{CX}, \reg{DX},
-              \reg{DS}, \reg{SP}, dan \reg{IP} pada
-              Tabel~\ref{tab:pengamatan-register} setiap kali satu
-              instruksi selesai.
-        \item Berhenti pada instruksi \lstasm|ADD AX, BX| dan catat
-              keadaan \eng{flag} sebelum instruksi dijalankan.
-        \item Jalankan instruksi \lstasm|ADD AX, BX| satu langkah,
-              lalu catat keadaan \eng{flag} sesudahnya.
-        \item Lanjutkan sampai program selesai dan catat keadaan
-              \eng{flag} pada akhir kasus pertama dan kasus kedua.
+        \item Catat nilai awal \reg{AX}, \reg{BX}, \reg{CX},
+              \reg{DX}, \reg{DS}, \reg{SP}, dan \reg{IP}.
+        \item Tekan \file{Single Step} satu kali untuk setiap
+              instruksi. Catat perubahan register pada
+              Tabel~\ref{tab:pengamatan-register}.
+        \item Berhenti sebelum \lstasm|ADD AX, BX| dan catat keadaan
+              \eng{flag}.
+        \item Jalankan \lstasm|ADD AX, BX| satu langkah, lalu catat
+              \flag{CF}, \flag{OF}, \flag{SF}, dan \flag{ZF}.
+        \item Lanjutkan sampai kasus kedua selesai.
     \end{enumerate}
 
-    \item \textbf{Mengisi tabel pengamatan \eng{flag}.}
+    \item \textbf{Mengisi tabel prediksi.}
     \begin{enumerate}
         \item Isi kolom prediksi pada Tabel~\ref{tab:prediksi-flag}
-              \emph{sebelum} menjalankan kasus yang bersangkutan.
+              sebelum menjalankan setiap kasus.
         \item Bandingkan prediksi dengan hasil pengamatan.
-        \item Untuk setiap prediksi yang salah, tuliskan penjelasan
-              mengapa \eng{flag} tersebut bernilai demikian.
+        \item Jelaskan setiap prediksi yang tidak sesuai.
     \end{enumerate}
 
-    \item \textbf{Mengubah nilai register secara manual.}
+    \item \textbf{Mengamati pengaruh \eng{flag} pada keputusan.}
     \begin{enumerate}
-        \item Pada jendela \file{Registers}, klik ganda nilai
-              \reg{AX}, ubah menjadi \hex{FFFF}, lalu tekan
-              \file{Enter}.
-        \item Jalankan satu instruksi berikutnya dan amati pengaruh
-              nilai baru tersebut terhadap hasil dan \eng{flag}.
-        \item Ubah nilai \reg{AL} saja menjadi \hex{00} dan amati
-              bahwa \reg{AH} tidak ikut berubah.
-        \item Ulangi langkah serupa untuk \reg{BX} dan catat
-              perbedaannya.
+        \item Jalankan \file{pesan-flag.asm} dengan
+              \eng{single step}.
+        \item Catat keadaan \flag{CF}, \flag{ZF}, dan \flag{SF}
+              setelah \lstasm|ADD AL, BL|.
+        \item Catat pesan yang tercetak dan jelaskan mengapa pesan
+              itu yang dipilih.
     \end{enumerate}
 
-    \item \textbf{Menguji pengaruh perubahan register kendali.}
+    \item \textbf{Mengubah nilai operand.}
     \begin{enumerate}
-        \item Jalankan berkas \file{pesan-flag.asm} dengan
-              \eng{Single Step}.
-        \item Pada jendela \file{Flags}, ubah nilai \flag{CF} secara
-              manual dari 1 menjadi 0, lalu lanjutkan eksekusi.
-        \item Amati pesan mana yang tercetak dan jelaskan sebabnya
-              berdasarkan urutan pemeriksaan \eng{flag}.
-        \item Kembalikan nilai \flag{CF} dan ulangi percobaan untuk
-              \flag{ZF}.
+        \item Pada \file{prediksi-flag.asm}, ubah kasus pertama
+              menjadi \hex{7FFE} $+$ \hex{0002}.
+        \item Rakit ulang, lalu prediksikan \eng{flag} sebelum
+              menjalankan.
+        \item Periksa hasil prediksi dengan \eng{single step}.
+        \item Ulangi untuk kasus kedua dengan nilai \hex{7FFF} dan
+              \hex{0001}.
     \end{enumerate}
 
-    \item \textbf{Mengamati register \reg{SP} dan \reg{SS}.}
+    \item \textbf{Memeriksa dengan DEBUG.}
     \begin{enumerate}
-        \item Tuliskan potongan program singkat berisi
-              \lstasm|MOV AX, 1234h| lalu \lstasm|PUSH AX|.
-        \item Jalankan program dengan \eng{Single Step} dan catat
-              nilai \reg{SP} sebelum dan sesudah \asm{PUSH}.
-        \item Jelaskan mengapa \reg{SP} berubah sebesar 2, bukan 1.
+        \item Dari DOSBox, rakit program dengan
+              \file{tasm prediksi-flag.asm}, lalu link dengan
+              \file{tlink prediksi-flag.obj}.
+        \item Jalankan \file{debug prediksi-flag.exe}, lalu ketik
+              \file{r} untuk melihat register dan \eng{flag}.
+        \item Ketik \file{t} untuk menjalankan satu instruksi dan
+              bandingkan hasilnya dengan emu8086.
     \end{enumerate}
 \end{enumerate}
 
@@ -115,7 +108,7 @@ manual terhadap jalannya program.
         \addlinespace
         \lstasm|MOV DS, AX| & \dots & \dots & \dots & \dots \\
         \addlinespace
-        \lstasm|MOV AX, 007Fh| & \dots & \dots & \dots & \dots \\
+        \lstasm|MOV AX, 7FFFh| & \dots & \dots & \dots & \dots \\
         \addlinespace
         \lstasm|MOV BX, 0001h| & \dots & \dots & \dots & \dots \\
         \addlinespace
@@ -129,18 +122,19 @@ manual terhadap jalannya program.
 \subsection{Hasil yang Dikumpulkan}
 
 \begin{enumerate}
-    \item Tabel~\ref{tab:pengamatan-register} yang telah terisi
-          lengkap.
+    \item Tabel~\ref{tab:pengamatan-register} yang telah terisi.
     \item Tabel~\ref{tab:prediksi-flag} yang telah terisi prediksi
           dan hasil pengamatan.
     \item Tangkapan layar jendela \file{Registers} dan
-          \file{Flags} pada saat \lstasm|ADD AX, BX| selesai
-          dijalankan.
-    \item Catatan hasil percobaan mengubah \flag{CF} dan \flag{ZF}
-          secara manual beserta penjelasan sebabnya.
+          \file{Flags} setelah \lstasm|ADD AX, BX|.
+    \item Catatan hasil percobaan \file{pesan-flag.asm} beserta
+          penjelasan pemilihan pesan.
+    \item Analisis singkat tentang perbedaan \flag{CF} dan \flag{OF}.
 \end{enumerate}
 
+\clearpage
 \begin{asesmenbox}
+\vspace{1.1em}
 \textbf{Asesmen praktikum 3 (bobot 5\% dari komponen praktikum).}
 
 \begin{tabular}{@{}p{6.2cm}cp{4.6cm}@{}}
@@ -154,8 +148,9 @@ manual terhadap jalannya program.
     Nilai \flag{CF}, \flag{OF}, \flag{SF}, \flag{ZF} sesuai hasil
     pengamatan \\
     \addlinespace
-    Analisis perubahan manual & 25\% &
-    Penjelasan sebab perubahan hasil dan \eng{flag} logis dan tepat \\
+    Analisis pengaruh \eng{flag} & 25\% &
+    Pemilihan pesan dijelaskan dengan tepat berdasarkan
+    \eng{flag} \\
     \addlinespace
     Kerapian dokumentasi & 15\% &
     Lembar kerja lengkap, rapi, dan dapat diulang \\

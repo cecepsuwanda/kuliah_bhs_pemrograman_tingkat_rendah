@@ -17,12 +17,11 @@ bagian dari buku utuh. Arsitektur lengkapnya dijelaskan pada
 |---|---|
 | Bab I | Pendahuluan dan Orientasi Buku |
 | Bab II | Landasan Teori dan Konsep Dasar |
-| Bab III--IX | Unit materi CPMK01--CPMK02 (Sub-CPMK 1.1--2.3) |
-| Bab X--XIII | Unit materi CPMK03 (Sub-CPMK 3.1--3.4) |
-| Bab XIV | Interupsi BIOS/DOS (Sub-CPMK 2.4) |
-| Bab XV--XVI | Unit materi CPMK04 (Sub-CPMK 4.1--4.3) |
+| Bab III--IX | Unit CPMK01--CPMK02 (Sub-CPMK 1.1--2.3): sistem bilangan, arsitektur BIU/EU, register dan flag, segmentasi memori, memulai assembly, instruksi transfer data, serta interupsi BIOS/DOS |
+| Bab X--XV | Unit CPMK03 (Sub-CPMK 3.1--3.6): operasi aritmatika, operasi logika dan shift, tujuh mode pengalamatan, percabangan dan perulangan, stack/prosedur/macro, serta array/string dan pencetakan bilangan |
+| Bab XVI | Unit CPMK04 (Sub-CPMK 4.1--4.3): debugging level instruksi |
 | Bab XVII | Evaluasi, Refleksi, dan Integrasi Kompetensi |
-| Lampiran A--D | Rubrik, contoh tugas, glosarium, referensi tambahan |
+| Lampiran A--D | Rubrik, contoh tugas, glosarium, dan referensi |
 
 Dokumen perencanaan:
 
@@ -39,7 +38,7 @@ buku_ajar/
 ├── main.tex              # master document
 ├── preamble.tex          # penghubung konfigurasi + resolusi path
 ├── metadata.tex          # metadata buku
-├── references.bib        # bibliografi bersama
+├── references.bib        # bibliografi bersama (dua buku sumber)
 │
 ├── config/               # KONFIGURASI (tanpa materi)
 │   ├── packages.tex      commands.tex     environments.tex
@@ -49,7 +48,7 @@ buku_ajar/
 │                         # acknowledgements, learning-outcomes
 ├── chapters/NN/          # 17 bab; setiap bab 9 berkas + figures/
 ├── appendices/           # appendix-a.tex .. appendix-d.tex
-├── code/asm/             # 30 berkas contoh program assembly
+├── code/asm/             # berkas contoh program assembly
 ├── assets/               # images, diagrams, logos
 ├── build/                # keluaran build (opsional)
 └── scripts/              # build-all.bat, build-chapter.bat, clean.bat
@@ -71,6 +70,8 @@ latihan.tex   rangkuman.tex        evaluasi.tex figures/
   `listings`, `booktabs`, `longtable`, `enumitem`, `tikz`, `subfiles`,
   `natbib`, `hyperref`, `lmodern`.
 - **Tidak** memakai `colortbl` (lihat catatan teknis di bawah).
+- Perangkat praktik: TASM, TLINK, DEBUG, emu8086, DOSBox, dan Turbo
+  Debugger.
 
 ---
 
@@ -114,12 +115,12 @@ atau dari akar repositori:
 compile_bab.bat
 ```
 
-Komplikasi mandiri **harus dijalankan dari dalam direktori bab**,
+Kompilasi mandiri **harus dijalankan dari dalam direktori bab**,
 karena `preamble.tex` menghitung path relatif dari sana:
 
 ```bat
 cd chapters\05
-latexmk -pdf chapter.tex
+pdflatex -interaction=nonstopmode chapter.tex
 ```
 
 Hasil: `chapter.pdf` (satu bab).
@@ -151,9 +152,9 @@ LaTeX yang dipakai. Semuanya didokumentasikan di tempatnya:
    dua potongan kotak dalam grup berbeda. Lihat komentar di
    `config/environments.tex`.
 
-5. **Sitasi memakai gaya numerik** `[1]`, `[2]`, sesuai penomoran
-   Daftar Referensi RPS. Gaya author-year tidak dipakai karena
-   sebagian sumber resmi tidak mencantumkan tahun terbit.
+5. **Sitasi memakai gaya numerik** `[1]`, `[2]` sesuai penomoran
+   Daftar Referensi RPS. Hanya dua buku sumber yang dimuat pada
+   `references.bib`: `gunawan2019` [1] dan `sto2001` [2].
 
 ---
 
@@ -162,5 +163,14 @@ LaTeX yang dipakai. Semuanya didokumentasikan di tempatnya:
 Isi buku diturunkan dari Rencana Pembelajaran Semester (RPS) berbasis
 OBE pada `../rps_silabus/silabus.tex`, dengan pemetaan
 CPL $\rightarrow$ CPMK $\rightarrow$ Sub-CPMK $\rightarrow$ bab.
-Prosesor acuan: Intel 8086 (mode real, 16-bit), assembler MASM/TASM,
-lingkungan Emu8086 / GUI Turbo Assembler / DOSBox.
+Prosesor acuan: Intel 8086 (mode real, 16-bit), assembler TASM/TLINK,
+serta lingkungan DEBUG, emu8086, DOSBox, dan Turbo Debugger.
+
+Bahan kajian bersumber hanya pada dua buku lokal:
+
+1. Indra Gunawan. (2019). *Pemrograman Bahasa Assembly Mikroprosesor
+   8086*. Guepedia.
+2. S'to. (2001). *Pemrograman dengan Bahasa Assembly, Edisi Online
+   Versi 1.0*. IlmuKomputer.Com.
+
+Tidak ada sumber daring yang digunakan.

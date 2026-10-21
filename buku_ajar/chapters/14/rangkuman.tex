@@ -4,77 +4,67 @@
 Pada bab ini telah dibahas:
 
 \begin{itemize}
-    \item Interupsi memaksa prosesor menghentikan sementara alur
-          program untuk melayani suatu kejadian, lalu melanjutkannya
-          kembali. Mekanisme ini lebih hemat daripada \eng{polling}.
+    \item Stack adalah daerah memori dengan aturan \eng{last in,
+          first out}. Stack 8086 ditunjuk \reg{SS}:\reg{SP} dan
+          tumbuh ke alamat yang lebih rendah.
 
-    \item Berdasarkan sumbernya, interupsi dibagi menjadi interupsi
-          perangkat keras (\file{INTR} dan \file{NMI}), interupsi
-          perangkat lunak (\lstasm|INT n|), dan pengecualian yang
-          dibangkitkan prosesor, misalnya pembagian dengan nol.
+    \item \asm{PUSH} mengurangi \reg{SP} dua dan menyimpan satu word.
+          \asm{POP} mengambil satu word dan menambah \reg{SP} dua.
 
-    \item Tabel vektor interupsi menempati alamat \hex{0000} sampai
-          \hex{03FF} pada segmen nol. Setiap vektor berukuran 4 byte
-          (2 byte offset dan 2 byte segmen penangan), sehingga alamat
-          entri vektor ke-$n$ adalah $n \times 4$.
+    \item Prosedur didefinisikan dengan \asm{PROC} dan \asm{ENDP}.
+          Pemanggil memakai \asm{CALL}, sedangkan prosedur kembali
+          dengan \asm{RET}.
 
-    \item Instruksi \lstasm|INT n| menyimpan \reg{FLAGS}, \reg{CS},
-          lalu \reg{IP} ke stack, mengosongkan \flag{IF} dan
-          \flag{TF}, kemudian memuat \reg{CS}:\reg{IP} dari entri
-          vektor. Instruksi \lstasm|IRET| mengembalikan ketiganya
-          dalam urutan terbalik, setara \lstasm|RET| ditambah
-          \lstasm|POPF|.
+    \item \asm{CALL} menyimpan alamat kembali ke stack. \asm{RET}
+          mengambil alamat itu dan memuatnya kembali ke \reg{IP}.
 
-    \item BIOS melayani perangkat keras (\code{INT 10h} video,
-          \code{INT 16h} keyboard, \code{INT 17h} printer), sedangkan
-          \code{INT 21h} melayani keperluan tingkat program: masukan
-          (\hex{01}, \hex{0A}), keluaran (\hex{02}, \hex{09}),
-          pengelolaan vektor (\hex{25}, \hex{35}), dan terminasi
-          (\hex{4C}).
+    \item \eng{Stack frame} dibentuk dengan \asm{PUSH BP} dan
+          \asm{MOV BP, SP}. Parameter pertama berada pada
+          \code{[BP+4]}, parameter kedua pada \code{[BP+6]}.
 
-    \item Fungsi \hex{0A} memakai penyangga yang tata letaknya
-          ditentukan DOS: byte 0 berisi kapasitas, byte 1 diisi jumlah
-          karakter, dan byte 2 dan seterusnya berisi karakter yang
-          diketik. Tanda \code{'\$'} harus disisipkan program bila isi
-          penyangga akan dicetak dengan fungsi \hex{09}.
+    \item Data dapat disampaikan ke prosedur melalui register,
+          \eng{stack}, atau variabel. \asm{RET} \code{n} membuang
+          $n$ byte parameter setelah kembali.
 
-    \item Isi vektor interupsi dapat diganti melalui fungsi \hex{25}.
-          Penangan baru wajib menyimpan register yang dipakainya dan
-          diakhiri \asm{IRET}, sedangkan vektor lama wajib dipulihkan.
+    \item Macro didefinisikan dengan \asm{MACRO} dan diakhiri
+          \asm{ENDM}. Macro dapat memiliki parameter dan disalin ke
+          tempat pemakaian pada saat perakitan.
+
+    \item Prosedur menekankan ukuran program dan modularitas,
+          sedangkan macro menekankan kemudahan parameter dan
+          menghilangkan biaya \asm{CALL}/\asm{RET}.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
-    \item[\checkbox] Saya dapat menjelaskan alasan diperlukannya
-          interupsi dan membedakan ketiga jenisnya.
-    \item[\checkbox] Saya dapat menghitung alamat entri vektor ke-$n$
-          dan menyebutkan vektor penting beserta kegunaannya.
-    \item[\checkbox] Saya dapat menuliskan isi stack sesudah
-          \lstasm|INT| dijalankan beserta urutan pengambilan oleh
-          \lstasm|IRET|.
-    \item[\checkbox] Saya dapat menjelaskan hubungan \flag{TF} dengan
-          fasilitas eksekusi satu langkah pada \eng{debugger}.
-    \item[\checkbox] Saya dapat memakai \code{INT 10h} dan
-          \code{INT 21h} untuk menampilkan teks berwarna serta membaca
-          masukan pengguna.
-    \item[\checkbox] Saya dapat menjelaskan perbedaan \lstasm|INT 20h|
-          dan \code{INT 21h} fungsi \hex{4C}.
-    \item[\checkbox] Saya dapat memasang dan memulihkan sebuah vektor
-          interupsi dengan aman.
+    \item[\checkbox] Saya dapat menjelaskan sifat LIFO pada stack.
+    \item[\checkbox] Saya dapat menggunakan \asm{PUSH} dan
+          \asm{POP}.
+    \item[\checkbox] Saya dapat menjelaskan perubahan \reg{SP} pada
+          operasi stack.
+    \item[\checkbox] Saya dapat menulis prosedur dengan
+          \asm{PROC}/\asm{ENDP}.
+    \item[\checkbox] Saya dapat menggunakan \asm{CALL} dan
+          \asm{RET}.
+    \item[\checkbox] Saya dapat mengakses parameter melalui
+          \eng{stack frame} dan \reg{BP}.
+    \item[\checkbox] Saya dapat mendefinisikan dan memakai macro
+          berparameter.
+    \item[\checkbox] Saya dapat membedakan prosedur dan macro.
 \end{itemize}
 
 \vspace{0.4em}
 Bila masih ada butir yang belum bertanda, ulangi bagian yang
-bersesuaian.
+bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Daftar lengkap vektor interupsi beserta setiap
-fungsinya dapat ditelusuri pada \cite{brown2000}. Penjelasan resmi
-mekanisme interupsi pada prosesor 8086 terdapat pada \cite{intel1979},
-sedangkan contoh penggunaan \eng{debugger} untuk menelusuri interupsi
-dibahas pada \cite{ebrahim2018}. Keterangan praktis mengenai emulator
-yang dipakai pada praktikum tersedia pada \cite{emu8086help}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 12--13, hlm.~115--126, dan
+\cite{sto2001}, BAB XIV, hlm.~73--77, serta BAB XVI--XVII,
+hlm.~85--92.
 \end{infobox}

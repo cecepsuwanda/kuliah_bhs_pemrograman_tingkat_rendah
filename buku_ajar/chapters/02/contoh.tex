@@ -125,9 +125,6 @@ representasi yang sama menghasilkan tafsiran berbeda.
 
 .CODE
 START:
-    MOV AX, @DATA
-    MOV DS, AX
-
     MOV AL, 0FFh        ; 255 tak bertanda, atau -1 bertanda
     ADD AL, 01h         ; 255 + 1
 
@@ -146,15 +143,19 @@ rentang). Tafsiran \eng{carry} dan \eng{overflow} bergantung pada
 apakah program bermaksud memperlakukan \hex{FF} sebagai
 \dec{255} atau sebagai $-1$.
 
-\begin{session}[caption={Pengamatan register dan flag pada
-Kode~\ref{lst:flag-uji}.}]
+\begin{lstlisting}[
+    style=sessiongaya,
+    caption={Pengamatan register dan flag pada
+    Kode~\ref{lst:flag-uji}.},
+    label={lst:keluaran-flag-uji}
+]
 -R
 AX=00FF  BX=0000  CX=0000  DX=0000  SP=FFFE  BP=0000  SI=0000  DI=0000
 DS=0700  ES=0700  SS=0700  CS=0700  IP=0106   NV UP EI PL NZ NA PO NC
 -T
 AX=0000  BX=0000  CX=0000  DX=0000  SP=FFFE  BP=0000  SI=0000  DI=0000
 DS=0700  ES=0700  SS=0700  CS=0700  IP=0108   NV UP EI PL ZR AC PE CY
-\end{session}
+\end{lstlisting}
 
 Baris pertama memperlihatkan keadaan sebelum \asm{ADD AL, 01h}:
 \reg{AL} berisi \hex{FF} dan seluruh flag utama bernilai 0, yang pada

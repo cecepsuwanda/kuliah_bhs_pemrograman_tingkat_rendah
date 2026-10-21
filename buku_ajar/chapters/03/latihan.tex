@@ -2,76 +2,52 @@
 \label{sec:latihan-bab3}
 
 \begin{enumerate}
-    \item \textbf{Konseptual.} Jelaskan dengan kalimat Anda sendiri
-          perbedaan antara bahasa mesin, bahasa assembly, dan bahasa
-          tingkat tinggi. Sertakan satu contoh penulisan operasi yang
-          sama pada ketiga tingkat tersebut.
+    \item \textbf{Konseptual.} Jelaskan perbedaan bahasa mesin, bahasa
+          assembly, dan bahasa tingkat tinggi. Sertakan satu contoh
+          operasi sederhana yang ditulis pada ketiga tingkat tersebut.
 
     \item \textbf{Konseptual.} Mengapa hubungan antara bahasa assembly
-          dan bahasa mesin disebut \eng{one-to-one}, sedangkan
-          hubungan bahasa tingkat tinggi dengan bahasa mesin tidak
-          demikian?
+          dan bahasa mesin disebut \eng{one-to-one}? Bandingkan dengan
+          hubungan bahasa tingkat tinggi dan bahasa mesin.
 
-    \item \textbf{Rantai proses.} Sebuah berkas \file{program.asm}
-          harus melalui tahapan apa saja sampai dapat dijalankan?
-          Jelaskan apa yang dikerjakan assembler dan apa yang
-          dikerjakan linker.
+    \item \textbf{Konversi.} Ubah 156 desimal menjadi biner, oktal,
+          dan heksadesimal. Tuliskan langkah pembagian atau
+          pengelompokan bit yang Anda pakai.
 
-    \item \textbf{Perbandingan bentuk program.} Sebutkan tiga
-          perbedaan penting antara program \file{.COM} dan
-          \file{.EXE}. Mengapa program \file{.COM} tidak memerlukan
-          instruksi \lstasm|MOV AX, @DATA|?
+    \item \textbf{Konversi dan tafsir.} Diberikan \bin{10110110}.
+          Tentukan nilai desimalnya sebagai bilangan tidak bertanda
+          dan sebagai bilangan bertanda 8 bit. Jelaskan perbedaan
+          hasilnya.
 
-    \item \textbf{Analisis kode.} Perhatikan potongan program berikut.
+    \item \textbf{Two's complement.} Tentukan bentuk 8 bit dari $-45$
+          dengan langkah membalik bit dan menambahkan 1. Periksa
+          hasilnya dengan mengurangkan 256 dari nilai tidak
+          bertandanya.
 
-\begin{lstlisting}[language=MASM, numbers=none]
-.MODEL SMALL
-.STACK 100h
-.DATA
-    nilai DW 1234h
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
-    MOV AX, nilai
-    MOV AH, 4Ch
-    INT 21h
-END START
-\end{lstlisting}
+    \item \textbf{Literal assembler.} Jelaskan mengapa \code{0F3H}
+          ditulis dengan nol di depan, sedangkan \code{F3H} dapat
+          menimbulkan kesalahan. Sebutkan pula dua kesalahan lain
+          dalam penulisan literal bilangan.
 
-          \begin{enumerate}
-              \item Apakah program ini akan berjalan dengan benar?
-              \item Nilai apa yang berada pada \reg{AX} setelah
-                    instruksi \lstasm|MOV AX, nilai|?
-              \item Apa yang terjadi bila baris \lstasm|MOV DS, AX|
-                    dihapus? Jelaskan alasannya.
-          \end{enumerate}
+    \item \textbf{Penulisan data.} Tulislah potongan segmen data yang
+          mendefinisikan nilai 156 dalam bentuk desimal, biner, dan
+          heksadesimal, lalu satu byte karakter \code{'Z'}.
+          Prediksikan empat byte yang akan tampil pada DEBUG.
 
-    \item \textbf{Penulisan program.} Tulislah program lengkap yang
-          mencetak tiga baris teks berturut-turut dengan layanan DOS
-          \code{INT 21h} fungsi \hex{09}. Setiap baris diakhiri
-          pindah baris.
-
-    \item \textbf{Penulisan program.} Tulislah program yang mencetak
-          inisial nama Anda menggunakan layanan \code{INT 21h}
-          fungsi \hex{02} (satu karakter per pemanggilan).
-
-    \item \textbf{Analisis kesalahan.} Diberikan pesan assembler
-          \file{Undefined symbol: PESAN} pada program yang
-          sebenarnya sudah mendeklarasikan \code{pesan DB 'Halo\$'}.
-          Sebutkan dua kemungkinan penyebabnya dan cara
-          memeriksanya.
+    \item \textbf{Analisis.} Sebuah pemeriksaan memori menghasilkan
+          \code{C8 C8 C8 5A}. Jelaskan makna setiap byte, baik sebagai
+          bilangan tidak bertanda maupun sebagai karakter.
 \end{enumerate}
 
 \begin{refleksibox}
+\vspace{1.1em}
 Jawab pertanyaan berikut pada jurnal praktikum Anda.
 \begin{enumerate}
-    \item Bagian mana dari bab ini yang paling sulit dipahami?
-          Apa yang Anda lakukan untuk mengatasinya?
-    \item Setelah menjalankan program pertama, apakah pemahaman Anda
-          tentang ``cara kerja komputer'' berubah? Jelaskan bagian
-          mana yang paling mengejutkan.
-    \item Konsep apa yang Anda rasa masih perlu dijelaskan ulang
-          sebelum masuk ke bab berikutnya?
+    \item Bagian konversi mana yang paling sulit Anda kerjakan?
+          Langkah apa yang membantu Anda menyelesaikannya?
+    \item Setelah memeriksa memori dengan DEBUG, apakah pemahaman Anda
+          tentang hubungan bilangan dan data berubah? Jelaskan.
+    \item Konsep apa yang masih perlu Anda ulangi sebelum mempelajari
+          arsitektur 8086 pada bab berikutnya?
 \end{enumerate}
 \end{refleksibox}

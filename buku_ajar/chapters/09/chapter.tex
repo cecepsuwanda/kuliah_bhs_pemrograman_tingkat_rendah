@@ -2,19 +2,18 @@
 
 \begin{document}
 
-\chapter{Direktif Assembler dan Alur Translasi Program}
-\label{chap:translasi}
+\chapter{Interupsi BIOS/DOS}
+\label{chap:interupsi}
 
 % =========================================================
 % OUTCOME PEMBELAJARAN KHUSUS BAB
 % =========================================================
 
 \begin{subcpmkbox}
-\SubCPMK{2.3} --- Menggunakan direktif assembler (\dir{DB},
-\dir{DW}, \dir{DD}, \dir{EQU}, \dir{ORG}, \dir{SEGMENT}) dan
-menjelaskan alur translasi \eng{source} $\rightarrow$
-\eng{object} $\rightarrow$ \eng{executable} oleh assembler dan
-linker.
+\vspace{1.1em}
+\SubCPMK{2.3} --- Menjelaskan mekanisme interupsi dan tabel vektor
+interupsi serta menggunakan layanan BIOS/DOS (INT 21h, INT 10h,
+INT 16h) untuk operasi masukan dan keluaran.
 
 \vspace{0.4em}
 \textbf{CPMK yang didukung:} \CPMK{02} \quad\textbullet\quad
@@ -22,49 +21,36 @@ linker.
 \end{subcpmkbox}
 
 \begin{tujuanbox}
+\vspace{1.1em}
 Setelah mempelajari bab ini, mahasiswa mampu:
 \begin{enumerate}
-    \item membedakan instruksi mesin dan direktif assembler serta
-          menjelaskan mengapa direktif tidak menghasilkan kode
-          mesin;
-    \item menggunakan direktif data \dir{DB}, \dir{DW}, \dir{DD},
-          dan \dir{DT} beserta literal string, operator \dir{DUP},
-          penanda \code{?}, dan pengaruh urutan \eng{little-endian};
-    \item membedakan direktif \dir{EQU} dan \code{=} beserta
-          akibatnya bila simbol didefinisikan ulang;
-    \item menggunakan direktif lokasi dan struktur \dir{ORG},
-          \dir{SEGMENT}/\dir{ENDS}, \dir{ASSUME}, dan \dir{END}
-          sesuai bentuk program \file{.COM} maupun \file{.EXE};
-    \item memilih model memori \dir{.MODEL} yang tepat dan
-          menjelaskan pengaruhnya pada jumlah segmen;
-    \item menjelaskan tugas assembler (tabel simbol dan
-          penghitungan \eng{offset}) serta tugas linker
-          (\eng{relocation} dan resolusi simbol eksternal);
-    \item menelusuri alur \file{.asm} $\rightarrow$ \file{.obj}
-          $\rightarrow$ \file{.exe} dengan perintah TASM dan TLINK
-          yang konkret, serta memperbaiki kesalahan perakitan yang
-          umum terjadi.
+    \item menjelaskan pengertian interupsi perangkat keras dan
+          perangkat lunak;
+    \item menjelaskan tabel vektor interupsi dan cara menentukan
+          alamat handler;
+    \item menjelaskan penyimpanan dan pemulihan keadaan prosesor
+          pada interupsi;
+    \item menggunakan layanan video BIOS \code{INT 10h};
+    \item menggunakan layanan \eng{keyboard} BIOS \code{INT 16h};
+    \item menggunakan layanan DOS \code{INT 21h} untuk mencetak
+          karakter, mencetak string, membaca masukan, dan mengakhiri
+          program;
+    \item membedakan \code{INT 20h} dan \code{INT 21h} fungsi
+          \hex{4C}.
 \end{enumerate}
 \end{tujuanbox}
 
 \begin{materibox}
+\vspace{1.1em}
 \begin{enumerate}
-    \item Perbedaan mendasar instruksi mesin dan direktif assembler.
-    \item Direktif data: \dir{DB}, \dir{DW}, \dir{DD}, \dir{DT};
-          literal string; operator \dir{DUP}; penanda \code{?};
-          tabel dan \eng{array}; urutan \eng{little-endian}.
-    \item Direktif simbol dan konstanta: \dir{EQU} dan \code{=}.
-    \item Direktif lokasi dan struktur: \dir{ORG},
-          \dir{SEGMENT}/\dir{ENDS}, \dir{ASSUME}, \dir{END}.
-    \item Model memori \dir{.MODEL} dan direktif \dir{PROC}/
-          \dir{ENDP} dasar.
-    \item Peran assembler: tabel simbol, penghitungan \eng{offset},
-          penanganan direktif; berkas \file{.lst}.
-    \item Peran linker: resolusi simbol eksternal,
-          \eng{relocation}, alamat akhir, penggabungan objek dan
-          pustaka; berkas \file{.map}.
-    \item Alur lengkap perakitan dan pengaitan dengan TASM dan
-          TLINK; kesalahan umum.
+    \item Pengertian interupsi perangkat keras dan perangkat lunak.
+    \item Tabel vektor interupsi 1 KB dan susunan vektornya.
+    \item Mekanisme \code{INT} dan \code{IRET}.
+    \item BIOS interrupt: \code{INT 10h} dan \code{INT 16h}.
+    \item DOS interrupt: \code{INT 21h} fungsi \hex{01}, \hex{02},
+          \hex{09}, \hex{0A}, dan \hex{4C}.
+    \item \code{INT 20h} dan pengakhiran program.
+    \item Operasi masukan dan keluaran dengan BIOS/DOS.
 \end{enumerate}
 \end{materibox}
 

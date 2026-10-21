@@ -1,218 +1,138 @@
-\section{Disassembly: Mengembalikan Kode Mesin ke Mnemonic}
-\label{sec:disassembly-mesin}
+\section{Jenis Kesalahan dan Alat Debugging}
+\label{sec:jenis-kesalahan}
 
-Seperti yang telah dibahas pada Bab~\ref{chap:translasi}, assembler
-bekerja searah: ia menerjemahkan \eng{mnemonic} menjadi kode mesin.
-Pekerjaan sebaliknya, yaitu mengubah deretan byte kode mesin kembali
-menjadi \eng{mnemonic} yang dapat dibaca manusia, disebut
-\term{disassembly}. Kemampuan ini penting karena program yang beredar
-di masyarakat hampir selalu tersedia hanya dalam bentuk biner:
-berkas \file{.exe}, \file{.com}, \file{.dll}, atau bahkan
-\eng{firmware}. Tanpa \eng{disassembly}, isi berkas tersebut hanyalah
-deretan angka heksadesimal yang tidak berarti.
+Program assembly dapat gagal karena tiga kelompok penyebab. Kelompok
+pertama ditemukan sebelum program dijalankan, kelompok kedua baru
+terlihat dari hasil yang salah, dan kelompok ketiga membuat program
+berhenti sama sekali. Memilih alat dan langkah yang tepat bergantung
+pada jenis kesalahannya.
 
-\subsection{Mengapa Disassembly Diperlukan}
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 4.2--4.3,
+hlm.~29--32, dan \cite{sto2001}, BAB XXVII, hlm.~194--202.
 
-Ada empat situasi yang menuntut kemampuan membaca kode mesin.
+\subsection{Tiga Jenis Kesalahan}
 
-\begin{enumerate}
-    \item \textbf{Analisis perangkat lunak pihak ketiga.} Bila kode
-          sumber tidak tersedia, satu-satunya cara memahami perilaku
-          program adalah membongkar kode mesinnya.
-    \item \textbf{Analisis keamanan.} Pemeriksa keamanan membongkar
-          program mencurigakan untuk menemukan instruksi yang
-          berbahaya; keterampilan ini juga dipakai pada analisis
-          \eng{malware}.
-    \item \textbf{Verifikasi hasil kompilasi.} Programmer memastikan
-          bahwa kompilator benar-benar menghasilkan instruksi yang
-          dikehendaki, bukan sekadar ``percaya'' pada kompilator.
-    \item \textbf{Optimasi terarah.} Untuk memperbaiki kecepatan
-          program, hambatan yang sesungguhnya harus ditemukan lebih
-          dahulu pada kode mesin, bukan pada kode sumber.
-\end{enumerate}
+\begin{description}
+    \item[Kesalahan sintaks] Kesalahan penulisan yang dilaporkan
+          assembler, misalnya label belum didefinisikan, ukuran
+          operand tidak sama, atau direktif salah tulis. Program tidak
+          menghasilkan berkas \file{.OBJ}.
 
-Hubungan antara \eng{assembly} dan \eng{disassembly} bersifat
-\important{searah tetapi tidak dapat dibalik sepenuhnya}. Proses
-\eng{assembly} membuang sejumlah informasi: nama label diganti alamat
-numerik, komentar dihapus, dan makro dijabarkan. Karena informasi itu
-tidak disimpan di dalam berkas biner, \eng{disassembly} tidak dapat
-mengembalikannya. Hasil \eng{disassembly} karena itu selalu lebih
-miskin daripada kode sumber aslinya.
+    \item[Kesalahan logika] Program berhasil dirakit dan berjalan,
+          tetapi hasilnya tidak sesuai rancangan. Contohnya
+          penghitung perulangan dinaikkan padahal seharusnya
+          diturunkan, atau nilai dibagi dengan pembagi yang salah.
 
-\subsection{Perintah \code{U} pada DEBUG dan Perkakas Sejenis}
-
-Perkakas paling sederhana untuk membongkar kode mesin adalah perintah
-\code{U} (\eng{unassemble}) pada MS-DEBUG yang telah dibahas pada
-Bab~\ref{chap:debugging}. Perintah ini membaca sejumlah byte mulai
-dari alamat tertentu, menerjemahkannya menjadi \eng{mnemonic}, lalu
-menampilkan alamat, byte mesin, dan instruksinya berdampingan.
-Kode~\ref{lst:debug-u} memperlihatkan bentuk keluaran perintah
-\code{U}.
-
-\begin{session}[caption={Keluaran perintah \code{U 100 108} pada DEBUG.}, label={lst:debug-u}]
--U 100 108
-1D2F:0100 B90A00        MOV     CX,000A
-1D2F:0103 BE0000        MOV     SI,0000
-1D2F:0106 B80000        MOV     AX,0000
-\end{session}
-
-Kolom pertama adalah alamat (\code{1D2F:0100}), kolom kedua adalah
-byte kode mesin (\code{B90A00}), dan kolom ketiga adalah
-\eng{mnemonic} hasil terjemahan (\lstasm|MOV CX, 000A|). Perhatikan
-bahwa byte mesin selalu dicetak lebih dahulu, karena itulah data yang
-sesungguhnya tersimpan di memori; \eng{mnemonic} adalah hasil
-penafsiran DEBUG atas byte tersebut.
-
-DEBUG memiliki tiga bentuk perintah \code{U}:
-
-\begin{lstlisting}[language=MASM, numbers=none]
-U                   ; bongkar 32 byte mulai CS:IP
-U 100 108           ; bongkar dari offset 100h sampai 108h
-U 100 L 8           ; bongkar 8 byte mulai offset 100h
-\end{lstlisting}
-
-Selain DEBUG, tersedia beberapa perkakas lain dengan kemampuan yang
-lebih besar. Tabel~\ref{tab:perkakas-disassembly} membandingkannya.
+    \item[Program berhenti (\eng{hang})] Program tidak pernah selesai
+          atau melompat ke alamat yang salah. Penyebab yang sering
+          terjadi adalah perulangan tak berujung dan stack yang tidak
+          seimbang.
+\end{description}
 
 \begin{table}[H]
     \centering
-    \caption{Perkakas \eng{disassembly} untuk program 8086.}
-    \label{tab:perkakas-disassembly}
+    \caption{Jenis kesalahan dan cara menemukannya.}
+    \label{tab:jenis-kesalahan}
     \small
-    \begin{tabular}{@{}p{3.1cm}p{4.1cm}p{5.7cm}@{}}
+    \begin{tabular}{@{}p{3.0cm}p{5.0cm}p{5.0cm}@{}}
         \toprule
-        \textbf{Perkakas} & \textbf{Perintah} &
-        \textbf{Kegunaan utama} \\
+        \textbf{Jenis} & \textbf{Gejala} & \textbf{Alat utama} \\
         \midrule
-        MS-DEBUG & \code{U [alamat] [L n]} & Bongkar kode di dalam
-        memori; tersedia di DOSBox tanpa pemasangan tambahan \\
+        Sintaks & Pesan kesalahan TASM; tidak ada \file{.OBJ} &
+        Daftar kesalahan assembler \\
         \addlinespace
-        Emu8086 & tombol \file{Disassembler} & Menampilkan kode
-        mesin dan \eng{mnemonic} berdampingan dengan tampilan
-        register dan memori \\
+        Logika & Program selesai, hasil salah &
+        \eng{Single step}, pemeriksaan register \\
         \addlinespace
-        GUI Turbo Assembler & menu \file{Disassemble} &
-        Membongkar berkas \file{.exe} lengkap dengan navigasi
-        prosedur \\
-        \addlinespace
-        \code{ndisasm} (NASM) & \code{ndisasm -b 16 prog.com} &
-        Membongkar berkas biner secara massal; keluaran berupa teks
-        yang dapat disalin \\
-        \addlinespace
-        \code{objdump} (GNU) & \code{objdump -d -M intel prog.o} &
-        Membongkar berkas objek hasil kompilator; berguna pada
-        arsitektur modern \\
+        \eng{Hang} & Program tidak kembali ke DOS &
+        \eng{Single step}, pemeriksaan stack \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Gambar~\ref{fig:alur-disassembly} menunjukkan alur kerja
-\eng{disassembly}: deretan byte dibaca, opcode-nya dicocokkan dengan
-tabel instruksi, panjang instruksi ditentukan dari byte
-\eng{ModR/M} (lihat Bab~\ref{chap:format-instruksi}), lalu
-\eng{mnemonic} beserta operand dicetak.
+\subsection{Alat Debugging}
+
+\begin{description}
+    \item[DEBUG] \eng{Debugger} baris perintah pada DOS. Perintah
+          \file{R} menampilkan register, \file{T} menjalankan satu
+          instruksi, \file{P} menjalankan satu instruksi dan melewati
+          prosedur, \file{D} menampilkan isi memori, dan \file{G}
+          menjalankan program sampai alamat tertentu.
+
+    \item[emu8086] Menyediakan tombol \eng{Single Step} serta jendela
+          register, \eng{flag}, dan memori. Perubahan nilai dapat
+          langsung dilihat setelah setiap instruksi.
+
+    \item[Turbo Debugger] Menyediakan tampilan register, \eng{flag},
+          memori, dan stack. Tombol \file{F7} menjalankan satu
+          instruksi, sedangkan \file{F8} melewati pemanggilan
+          prosedur.
+\end{description}
+
+\begin{table}[H]
+    \centering
+    \caption{Perintah debugging yang sering dipakai.}
+    \label{tab:perintah-debug}
+    \small
+    \begin{tabular}{@{}p{1.8cm}p{5.6cm}p{5.4cm}@{}}
+        \toprule
+        \textbf{Perintah} & \textbf{Fungsi} & \textbf{Pemakaian} \\
+        \midrule
+        \file{R} & Menampilkan isi register dan \eng{flag} &
+        Memeriksa keadaan sebelum dan sesudah instruksi \\
+        \addlinespace
+        \file{T} & Menjalankan satu instruksi &
+        Masuk ke dalam prosedur \\
+        \addlinespace
+        \file{P} & Menjalankan satu instruksi, melewati prosedur &
+        Menghindari penelusuran prosedur yang sudah benar \\
+        \addlinespace
+        \file{D} & Menampilkan isi memori &
+        Memeriksa variabel, string, dan stack \\
+        \addlinespace
+        \file{G} & Menjalankan sampai alamat tertentu &
+        Melewati bagian yang tidak dicurigai \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Langkah Debugging}
+
+Debugging dilakukan secara sistematis, bukan dengan menebak.
 
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        node distance=0.5cm,
-        kotak/.style={
-            draw=obeBlue,
-            line width=0.8pt,
-            fill=obeBlueLight,
-            rounded corners=3pt,
-            minimum width=2.7cm,
-            minimum height=1.2cm,
-            align=center,
-            font=\small,
-            inner sep=4pt
+        tahap/.style={
+            draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+            rounded corners=3pt, minimum width=3.1cm,
+            minimum height=1.0cm, align=center, font=\small,
+            inner sep=3pt
         },
-        kotak2/.style={
-            draw=obeTeal,
-            line width=0.8pt,
-            fill=obeTealLight,
-            rounded corners=3pt,
-            minimum width=2.7cm,
-            minimum height=1.2cm,
-            align=center,
-            font=\small,
-            inner sep=4pt
-        },
-        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt, obeTeal}
+        panah/.style={-{Stealth[length=2.2mm]}, line width=0.9pt,
+            obeTeal}
     ]
-        \node[kotak] (byte) {Deretan byte\\{\scriptsize \hex{B9 0A 00}}};
-        \node[kotak, right=of byte] (op) {Tabel opcode\\{\scriptsize \hex{B9} = \asm{MOV CX,imm16}}};
-        \node[kotak2, right=of op] (dec) {Tentukan panjang\\{\scriptsize 1 + 2 = 3 byte}};
-        \node[kotak2, right=of dec] (out) {\eng{Mnemonic}\\{\scriptsize \asm{MOV CX, 000A}}};
+        \node[tahap] (rep) {Reproduksi\\kesalahan};
+        \node[tahap, right=0.5cm of rep] (iso) {Isolasi\\bagian};
+        \node[tahap, right=0.5cm of iso] (hip) {Susun\\hipotesis};
+        \node[tahap, right=0.5cm of hip] (uji) {Uji dengan\\\eng{trace}};
+        \node[tahap, below=0.8cm of uji] (fix) {Perbaiki};
+        \node[tahap, left=0.5cm of fix] (ver) {Verifikasi};
 
-        \draw[panah] (byte) -- (op);
-        \draw[panah] (op) -- (dec);
-        \draw[panah] (dec) -- (out);
-
-        \node[below=0.75cm of op, font=\scriptsize, text=obeMaroon,
-              align=center, draw=obeMaroon, dashed, rounded corners=2pt,
-              fill=obeMaroonLight, inner sep=4pt, minimum width=4.6cm]
-              (amb) {byte data yang salah ditafsirkan\\menghasilkan \eng{mnemonic} palsu};
-        \draw[-{Stealth[length=2mm]}, obeMaroon, dashed, line width=0.7pt]
-            (amb.north) -- (op.south);
+        \draw[panah] (rep) -- (iso);
+        \draw[panah] (iso) -- (hip);
+        \draw[panah] (hip) -- (uji);
+        \draw[panah] (uji) -- (fix);
+        \draw[panah] (fix) -- (ver);
     \end{tikzpicture}
-    \caption{Alur \eng{disassembly} dari deretan byte menjadi
-    \eng{mnemonic}, beserta kemungkinan salah tafsir.}
-    \label{fig:alur-disassembly}
+    \caption{Alur debugging: reproduksi, isolasi, hipotesis, uji,
+    perbaikan, dan verifikasi.}
+    \label{fig:alur-debugging}
 \end{figure}
 
-\subsection{Keterbatasan Disassembly}
-
-\eng{Disassembly} bukan kebalikan sempurna dari \eng{assembly}. Empat
-keterbatasan berikut harus selalu diingat agar mahasiswa tidak
-terlalu percaya pada hasilnya.
-
-\begin{description}
-    \item[Kode dan data sulit dibedakan] Di dalam memori, instruksi
-          dan data sama-sama berupa deretan byte. Byte \hex{48}
-          dapat berarti instruksi \asm{DEC AX} atau huruf
-          \code{'H'} pada sebuah string. Disassembler bekerja dengan
-          asumsi sederhana: semua byte adalah instruksi. Akibatnya,
-          daerah data yang ikut terbongkar akan tampil sebagai
-          \eng{mnemonic} acak yang menyesatkan.
-
-    \item[Alamat relatif dan displacement] Lompatan pendek disimpan
-          sebagai selisih relatif, bukan alamat tujuan. Perintah
-          \code{LOOP 0109} di dalam memori sesungguhnya berisi byte
-          \hex{E2 F7}, yaitu ``mundur 9 byte''. Disassembler
-          menghitung kembali alamat tujuannya, tetapi hasil hitungan
-          itu hanya benar bila instruksi berada di posisi yang tepat.
-
-    \item[Nama simbolik hilang] Variabel \code{larik} dan label
-          \code{ULANG} tidak tersimpan di dalam berkas biner.
-          Alamatnya muncul sebagai angka: alamat relatif
-          \lstasm|[SI+01F4]| menggantikan \lstasm|larik[SI]|. Karena
-          itu hasil \eng{disassembly} hampir tidak mungkin
-          dikembalikan menjadi kode sumber yang sama.
-
-    \item[Sulit dibaca dan dipelihara] Hasil \eng{disassembly} tidak
-          dapat dipakai langsung sebagai kode sumber: komentar
-          hilang, makro sudah dijabarkan, dan tidak ada satu pun
-          nama yang bermakna.
-\end{description}
-
-\begin{peringatanbox}
-Jangan pernah menganggap seluruh keluaran \eng{disassembly} sebagai
-kode. Bila Anda memakai perintah \code{U} pada DEBUG untuk membongkar
-daerah yang sesungguhnya berisi data, DEBUG akan menampilkan
-\eng{mnemonic} yang tampak masuk akal tetapi sama sekali palsu.
-Selalu periksa batas segmen kode terlebih dahulu, misalnya dengan
-mencatat nilai \reg{CS} dan \reg{IP} pada saat program dimulai.
-\end{peringatanbox}
-
-\begin{instruksibox}
-Tiga hal yang harus diingat sebelum membongkar kode:
-\begin{itemize}
-    \item \code{U} pada DEBUG mencetak alamat, byte mesin, dan
-          \eng{mnemonic} sekaligus; byte mesin adalah acuan yang
-          benar.
-    \item Hanya bongkar daerah yang benar-benar berisi kode.
-    \item Hasil \eng{disassembly} adalah penafsiran, bukan kebenaran;
-          ia harus diuji dengan menelusuri eksekusinya.
-\end{itemize}
-\end{instruksibox}
+\begin{infobox}
+\vspace{1.1em}
+Satu-satunya bukti bahwa perbaikan berhasil adalah program berjalan
+benar dan diuji kembali. Menghapus satu baris yang dicurigai tanpa
+memahami penyebabnya hanya memindahkan kesalahan ke tempat lain.
+\end{infobox}

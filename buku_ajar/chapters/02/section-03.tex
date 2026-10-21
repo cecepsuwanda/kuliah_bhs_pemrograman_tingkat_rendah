@@ -110,9 +110,7 @@ operasi masukan/keluaran pada 8086.
     \item[BCD (\eng{Binary Coded Decimal})] Setiap digit desimal
           disandikan dalam empat bit. Angka \dec{47} menjadi
           \bin{0100\,0111}, bukan \bin{0010\,1111}. Penyandian ini
-          memudahkan pengubahan ke tampilan desimal, dan operasi
-          koreksinya disediakan oleh instruksi \asm{DAA} dan
-          \asm{DAS}.
+          memudahkan pengubahan ke tampilan desimal.
 
     \item[ASCII] Setiap karakter disandikan dalam tujuh atau delapan
           bit. Huruf \code{A} adalah \hex{41}, huruf \code{a} adalah
@@ -129,17 +127,16 @@ yang sangat sering terjadi pada pemrograman assembly. Menulis
 berarti menyimpan \hex{07}. Untuk mencetak sebuah bilangan,
 program harus lebih dahulu mengubah nilai biner menjadi deretan
 sandian karakter. Algoritmanya dibahas pada
-Bab~\ref{chap:aritmatika}.
+Bab~\ref{chap:array-string}.
 \end{infobox}
 
 \subsection{Peta Konsep Buku}
 
 Gambar~\ref{fig:peta-konsep} memperlihatkan bagaimana bab-bab buku
 ini saling bergantung. Bab~III--VI membangun pemahaman tentang
-mesin, Bab~VII--IX menjelaskan bagaimana instruksi berhubungan
-dengan perangkat keras, Bab~X--XIII melatih penulisan program,
-Bab~XIV melengkapi dengan operasi masukan/keluaran, dan
-Bab~XV--XVI menutup dengan kemampuan analisis serta perbaikan.
+mesin, Bab~VII--IX menjelaskan hubungan program dengan perangkat
+keras, Bab~X--XV melatih penulisan program, dan Bab~XVI menutup
+dengan debugging level instruksi.
 
 \begin{figure}[H]
     \centering
@@ -158,17 +155,17 @@ Bab~XV--XVI menutup dengan kemampuan analisis serta perbaikan.
         \node[klaster, fill=obeAmberLight, draw=obeAmber,
               right=0.5cm of k1] (k2) {
             {\small\bfseries CPMK02 --- Instruksi}\\[0.3em]
-            {\scriptsize Bab VII--IX, XIV\\format instruksi, mode\\pengalamatan, interupsi}
+            {\scriptsize Bab VII--IX\\struktur program, transfer\\data, interupsi}
         };
         \node[klaster, fill=obeTealLight, draw=obeTeal,
               below=0.6cm of k1] (k3) {
             {\small\bfseries CPMK03 --- Menulis}\\[0.3em]
-            {\scriptsize Bab X--XIII\\aritmatika, logika,\\kontrol, prosedur}
+            {\scriptsize Bab X--XV\\aritmatika, logika,\\pengalamatan, kontrol,\\prosedur, array/string}
         };
         \node[klaster, fill=obeGreenLight, draw=obeGreen,
               right=0.5cm of k3] (k4) {
             {\small\bfseries CPMK04 --- Perbaikan}\\[0.3em]
-            {\scriptsize Bab XV--XVI\\debugging, disassembly,\\optimasi}
+            {\scriptsize Bab XVI\\debugging level\\instruksi}
         };
 
         \draw[hub] (k1) -- (k2);

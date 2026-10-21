@@ -1,82 +1,89 @@
-\section{Contoh Program}
+\section{Contoh}
 \label{sec:contoh-bab13}
 
-Bagian ini menyajikan dua program utuh yang memakai prosedur
-berparameter dan mengembalikan nilainya melalui register \reg{AX}.
-Keduanya dapat dirakit dengan Emu8086, TASM, maupun MASM.
+Dua contoh berikut memakai percabangan dan perulangan pada program
+utuh. Contoh pertama mencari nilai maksimum dengan \asm{LOOP} dan
+\asm{JAE}. Contoh kedua mengurutkan array dengan perulangan
+bersarang dan \asm{JBE}.
 
-\subsection{Contoh 1: Prosedur \code{HitungLuas}}
+\subsection{Contoh 1: Mencari Nilai Maksimum}
 
-Program pada Kode~\ref{lst:prosedur-luas} menghitung luas persegi
-panjang melalui prosedur \code{HitungLuas} yang menerima dua
-parameter melalui stack.
-
-\lstinputlisting[
-    language=MASM,
-    caption={Program \file{prosedur-luas.asm}: prosedur berparameter
-    melalui stack dengan nilai balik di \reg{AX}.},
-    label={lst:prosedur-luas}
-]{\CodeDir/prosedur-luas.asm}
-
-Alur program ini mengikuti pola yang telah dibahas pada
-Subbab~\ref{sec:stack-frame}:
-
-\begin{enumerate}
-    \item Pemanggil mendorong \code{tinggi} lebih dahulu, lalu
-          \code{lebar}. Akibatnya \code{lebar} berada pada
-          \code{[BP+4]} dan \code{tinggi} pada \code{[BP+6]}.
-    \item \asm{CALL} \code{HitungLuas} menyimpan alamat kembali dan
-          melompat ke prosedur, yang membangun bingkainya melalui
-          \eng{prologue}.
-    \item \lstasm|MOV AX, [BP+4]| mengambil lebar, dan
-          \lstasm|MUL WORD PTR [BP+6]| mengalikannya dengan tinggi.
-          Hasil \dec{16} bit berada pada \reg{AX}.
-    \item \eng{Epilogue} memulihkan \reg{BP}, dan \asm{RET} \code{4}
-          kembali ke pemanggil sekaligus membuang kedua parameter.
-          Karena itu pemanggil \emph{tidak} perlu menambahkan
-          \lstasm|ADD SP, 4|.
-\end{enumerate}
-
-Hasil perhitungannya adalah $5 \times 10 = \dec{50}$, atau
-\hex{0032}. Prosedur ini sengaja hanya merusak \reg{AX}, sehingga
-\reg{BX}, \reg{CX}, \reg{DX}, \reg{SI}, dan \reg{DI} tetap utuh bagi
-pemanggilnya sesuai Tabel~\ref{tab:register-simpan}.
-
-\subsection{Contoh 2: Faktorial Rekursif}
-
-Program pada Kode~\ref{lst:faktorial} menghitung $5!$ secara
-rekursif. Program ini memperlihatkan bahwa rekursi pada assembly
-bukan fitur bahasa, melainkan akibat langsung dari penumpukan
-bingkai stack.
+Program pada Kode~\ref{lst:loop-maksimum} memeriksa setiap elemen
+array dan menyimpan nilai terbesar pada \reg{AX}.
 
 \lstinputlisting[
     language=MASM,
-    caption={Program \file{faktorial.asm}: prosedur rekursif dengan
-    nilai balik pada \reg{AX}.},
-    label={lst:faktorial}
-]{\CodeDir/faktorial.asm}
+    caption={Program \file{loop-maksimum.asm} mencari nilai
+    maksimum array.},
+    label={lst:loop-maksimum}
+]{\CodeDir/loop-maksimum.asm}
 
-Hal penting yang perlu diperhatikan pada program ini:
+Alur percabangannya:
 
 \begin{itemize}
-    \item Setiap pemanggilan \code{Faktorial} menambah satu bingkai
-          baru berukuran \dec{6} byte. Untuk $5!$ terbentuk lima
-          bingkai, sehingga total pemakaian stack sekitar
-          \dec{30} byte.
-    \item Kasus basis $n \le 1$ ditangani oleh label \code{basis}
-          yang mengembalikan nilai \dec{1}. Tanpa kasus basis,
-          rekursi tidak akan berhenti dan stack akan melampaui
-          batasnya.
-    \item Pada jalur rekursif dipakai \lstasm|ADD SP, 2| setelah
-          \asm{CALL}, sedangkan pemanggilan tingkat atas tidak
-          menambahkan apa pun karena prosedurnya memakai \asm{RET}
-          biasa. Kedua jalur tetap seimbang karena masing-masing
-          membuang argumen tepat satu kali.
-    \item Nilai balik selalu berada pada \reg{AX} saat \asm{RET}
-          dijalankan, baik pada jalur basis maupun jalur rekursif.
+    \item \lstasm|LEA SI, deret| menunjuk elemen pertama.
+    \item \lstasm|MOV CX, BANYAK - 1| menyiapkan cacah perbandingan.
+    \item \lstasm|CMP AX, [SI]| membandingkan kandidat dengan elemen
+          saat ini.
+    \item \lstasm|JAE LANJUT| melompat bila kandidat lebih besar atau
+          sama. Lompatan ini memakai tafsiran tidak bertanda.
+    \item \lstasm|MOV AX, [SI]| mengganti kandidat bila elemen lebih
+          besar.
+    \item \lstasm|LOOP CARI| mengulang sampai semua elemen diperiksa.
 \end{itemize}
 
-Bila pekerjaan yang sama ditulis secara iteratif, pemakaian stacknya
-tetap sebanyak satu bingkai saja, tanpa biaya \asm{CALL}, dan
-\eng{prologue} pada setiap tingkat. Karena itu rekursi baru dipakai
-bila persoalannya memang bercabang, misalnya penelusuran pohon.
+Keluaran program tampak pada Kode~\ref{lst:keluaran-maksimum}.
+
+\begin{lstlisting}[
+    style=sessiongaya,
+    caption={Keluaran program \file{loop-maksimum.asm}.},
+    label={lst:keluaran-maksimum}
+]
+Nilai maksimum: 93
+\end{lstlisting}
+
+\subsection{Contoh 2: Pengurutan Gelembung}
+
+Program pada Kode~\ref{lst:bubble-sort} mengurutkan array byte
+secara menaik dengan algoritme pengurutan gelembung.
+
+\lstinputlisting[
+    language=MASM,
+    caption={Program \file{bubble-sort.asm} mengurutkan array
+    dengan perulangan bersarang.},
+    label={lst:bubble-sort}
+]{\CodeDir/bubble-sort.asm}
+
+Bagian penting program:
+
+\begin{itemize}
+    \item Perulangan luar memakai \reg{CX} untuk menentukan banyak
+          lintasan.
+    \item Pencacah luar disimpan dengan \asm{PUSH CX} sebelum
+          perulangan dalam memakai \reg{CX}.
+    \item Perulangan dalam membandingkan pasangan elemen yang
+          berdekatan dengan \asm{CMP} dan \asm{JBE}.
+    \item Bila elemen kiri lebih besar dari elemen kanan, kedua elemen
+          ditukar.
+    \item \asm{POP CX} memulihkan pencacah luar sebelum
+          \asm{LOOP LINTASAN}.
+\end{itemize}
+
+Keluaran program tampak pada Kode~\ref{lst:keluaran-bubble}.
+
+\begin{lstlisting}[
+    style=sessiongaya,
+    caption={Keluaran program \file{bubble-sort.asm}.},
+    label={lst:keluaran-bubble}
+]
+Hasil pengurutan: 1 2 3 4 6 7 8 9
+\end{lstlisting}
+
+\begin{infobox}
+\vspace{1.1em}
+Kedua contoh memakai prosedur pembantu dan \eng{stack} untuk
+pencetakan serta penyimpanan pencacah. Mekanisme \asm{CALL},
+\asm{RET}, \asm{PUSH}, dan \asm{POP} dibahas pada bab berikutnya.
+Pada bab ini, perhatian diarahkan pada alur \asm{CMP}, \asm{Jcc},
+dan \asm{LOOP}.
+\end{infobox}

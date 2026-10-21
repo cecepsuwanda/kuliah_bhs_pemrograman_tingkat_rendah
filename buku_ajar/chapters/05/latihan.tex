@@ -2,70 +2,57 @@
 \label{sec:latihan-bab5}
 
 \begin{enumerate}
-    \item \textbf{Konseptual.} Jelaskan apa yang dimaksud dengan
-          register, lalu sebutkan empat kelompok register 8086
-          beserta satu contoh register pada setiap kelompok.
+    \item \textbf{Identifikasi.} Sebutkan keempat belas register
+          8086 dan kelompokkan menjadi register umum, segmen,
+          \eng{pointer}/\eng{index}, kendali, dan status.
 
-    \item \textbf{Konseptual.} Sebuah register \reg{AX} berisi
-          \hex{ABCD}. Tentukan nilai \reg{AH} dan \reg{AL} setelah
-          instruksi \lstasm|MOV AL, 55h| dijalankan. Jelaskan
-          mengapa \reg{AH} tidak berubah.
+    \item \textbf{Akses byte.} Register \reg{AX} semula berisi
+          \hex{1234}. Tentukan isi \reg{AH} dan \reg{AL}. Setelah
+          \lstasm|MOV AL, 20h| dijalankan, tentukan isi \reg{AX}.
+          Jelaskan mengapa \reg{AH} tidak berubah.
 
-    \item \textbf{Analisis peran register.} Seorang programmer ingin
-          menjumlahkan dua nilai, menyimpan hasilnya, lalu
-          mengulangi proses sebanyak sepuluh kali. Register mana
-          yang paling tepat dipakai untuk menampung hasil dan
-          register mana yang tepat menjadi pencacah pengulangan?
-          Jelaskan alasan pemilihan Anda.
+    \item \textbf{Peran khas.} Jelaskan peran khas \reg{AX},
+          \reg{BX}, \reg{CX}, dan \reg{DX}. Mengapa peran itu ada
+          walaupun keempat register sama-sama berukuran 16 bit?
 
-    \item \textbf{Register segmen.} Jelaskan perbedaan peran
-          \reg{CS}, \reg{DS}, \reg{SS}, dan \reg{ES}. Mengapa
-          register \reg{DS} harus diinisialisasi pada awal program
-          \file{.EXE}, sedangkan \reg{CS} tidak perlu diubah?
+    \item \textbf{Register segmen.} Jelaskan peran \reg{CS},
+          \reg{DS}, \reg{SS}, dan \reg{ES}. Tuliskan pasangan alamat
+          yang dibentuk oleh masing-masing register segmen.
 
-    \item \textbf{Analisis flag.} Untuk setiap kasus berikut,
-          tentukan nilai \flag{CF}, \flag{OF}, \flag{SF}, dan
-          \flag{ZF} setelah instruksi \lstasm|ADD AL, BL|
-          dijalankan. Sertakan penjelasan singkat.
+    \item \textbf{Pointer dan index.} Jelaskan tugas \reg{SP},
+          \reg{BP}, \reg{SI}, \reg{DI}, dan \reg{IP}. Sebutkan
+          pasangan segmen untuk setiap register tersebut.
+
+    \item \textbf{Flag.} Jelaskan arti \flag{CF}, \flag{PF},
+          \flag{AF}, \flag{ZF}, \flag{SF}, \flag{OF}, \flag{TF},
+          \flag{IF}, dan \flag{DF}. Kelompokkan menjadi \eng{flag}
+          status dan \eng{flag} kendali.
+
+    \item \textbf{Prediksi.} Diberikan dua kasus penjumlahan 16 bit.
           \begin{enumerate}
-              \item \reg{AL} = \hex{7F}, \reg{BL} = \hex{01}
-              \item \reg{AL} = \hex{80}, \reg{BL} = \hex{80}
-              \item \reg{AL} = \hex{FF}, \reg{BL} = \hex{01}
-              \item \reg{AL} = \hex{05}, \reg{BL} = \hex{05}
+              \item \hex{7FFF} $+$ \hex{0001}
+              \item \hex{8000} $+$ \hex{8000}
           \end{enumerate}
+          Untuk setiap kasus, tentukan hasil 16 bit serta nilai
+          \flag{CF}, \flag{OF}, \flag{SF}, dan \flag{ZF}. Jelaskan
+          alasan setiap nilai.
 
-    \item \textbf{Penulisan program.} Tulislah program lengkap yang
-          memuat nilai \hex{1234} ke register \reg{AX} dan
-          \hex{5678} ke register \reg{BX}, kemudian menukar isi
-          kedua register tersebut dengan satu instruksi \asm{XCHG}.
-          Setelah itu, tuliskan versi kedua yang menukar keduanya
-          melalui \asm{PUSH} dan \asm{POP}, lalu jelaskan register
-          mana yang berperan pada versi kedua tersebut.
-
-    \item \textbf{Penulisan program.} Tulislah potongan program yang
-          memuat \hex{F0} ke \reg{AL} dan \hex{10} ke \reg{BL},
-          menjalankan \lstasm|ADD AL, BL|, lalu mencetak pesan
-          ``NOL'' bila \flag{ZF} bernilai 1 dan pesan ``BUKAN NOL''
-          bila \flag{ZF} bernilai 0. Gunakan instruksi \asm{JZ} dan
-          \asm{JMP}.
-
-    \item \textbf{Analisis kesalahan.} Sebuah program berisi urutan
-          \lstasm|MOV SP, 0000h| sebelum memanggil prosedur.
-          Jelaskan mengapa tindakan itu berbahaya dan apa yang akan
-          terjadi saat instruksi \asm{RET} dijalankan.
+    \item \textbf{Keputusan.} Setelah \lstasm|CMP AL, 0|, program
+          menjalankan \lstasm|JNZ bukan_nol|. Jelaskan \eng{flag}
+          yang diperiksa, kapan lompatan terjadi, dan apa artinya
+          bagi alur program.
 \end{enumerate}
 
 \begin{refleksibox}
+\vspace{1.1em}
 Jawab pertanyaan berikut pada jurnal praktikum Anda.
 \begin{enumerate}
-    \item Dari empat kelompok register, kelompok mana yang paling
-          sulit Anda pahami? Bagian mana yang masih membingungkan?
-    \item Ketika memprediksi \eng{flag} pada
-          Tabel~\ref{tab:prediksi-flag}, berapa banyak prediksi Anda
-          yang benar? Kesalahan Anda paling banyak terjadi pada
-          \eng{flag} apa, dan apa penyebabnya?
-    \item Setelah mengamati perubahan register secara langsung,
-          konsep apa yang menurut Anda paling penting untuk diingat
-          sebelum mempelajari bab berikutnya?
+    \item Bagian mana dari pembagian register yang paling sulit Anda
+          ingat? Cara apa yang Anda pakai untuk mengingatnya?
+    \item Setelah mengamati \eng{flag} dengan \eng{single step},
+          apakah Anda dapat memprediksi hasil operasi berikutnya
+          dengan lebih baik? Jelaskan.
+    \item Konsep apa yang perlu Anda ulangi sebelum mempelajari
+          segmentasi memori pada bab berikutnya?
 \end{enumerate}
 \end{refleksibox}
