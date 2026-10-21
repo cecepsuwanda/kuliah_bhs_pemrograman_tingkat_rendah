@@ -3,76 +3,81 @@
 
 \subsection{Kisi-kisi Ujian Tengah Semester}
 
-Ujian Tengah Semester diselenggarakan pada minggu ke-8 dan mencakup
-\CPMK{01} serta \CPMK{02}, yaitu materi minggu 1 sampai 7.
+UTS diselenggarakan pada Minggu 8 dan mencakup CPMK01 serta CPMK02,
+yaitu materi Minggu 1--7.
 
 \begin{table}[H]
     \centering
     \caption{Kisi-kisi Ujian Tengah Semester.}
     \label{tab:kisi-uts}
     \small
-    \begin{tabular}{@{}p{1.5cm}p{6.2cm}p{3.4cm}c@{}}
+    \begin{tabular}{@{}p{1.5cm}p{6.0cm}p{3.4cm}c@{}}
         \toprule
         \textbf{Sub-CPMK} & \textbf{Indikator yang diuji} &
         \textbf{Bentuk soal} & \textbf{Bobot} \\
         \midrule
-        1.1 & Arsitektur BIU/EU dan siklus instruksi &
-        Esai dan diagram & 20\% \\
+        1.1 & Konversi bilangan dan peran assembly &
+        Esai dan hitungan & 15\% \\
         \addlinespace
-        1.2 & Fungsi register dan prediksi \eng{flag} &
-        Esai dan analisis & 20\% \\
+        1.2 & Arsitektur BIU/EU dan urutan instruksi &
+        Esai dan diagram & 15\% \\
         \addlinespace
-        1.3 & Perhitungan alamat fisik &
-        Soal hitungan & 20\% \\
+        1.3 & Register dan prediksi \eng{flag} &
+        Esai dan analisis & 15\% \\
         \addlinespace
-        2.1 & \eng{Encoding} dan pembacaan \eng{opcode} &
-        Soal analisis & 15\% \\
+        1.4 & Alamat fisik dan \eng{overlapping} &
+        Soal hitungan & 15\% \\
         \addlinespace
-        2.2 & Penentuan mode pengalamatan dan alamat efektif &
-        Soal analisis & 15\% \\
+        2.1 & Struktur program dan translasi &
+        Esai dan \eng{coding} terbatas & 15\% \\
         \addlinespace
-        2.3 & Direktif assembler dan alur translasi &
-        Esai dan \eng{coding} terbatas & 10\% \\
+        2.2 & Instruksi transfer data &
+        Analisis dan \eng{coding} & 15\% \\
+        \addlinespace
+        2.3 & Interupsi BIOS/DOS &
+        Analisis dan \eng{coding} & 10\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \subsection{Kisi-kisi Ujian Akhir Semester}
 
-Ujian Akhir Semester diselenggarakan pada minggu ke-16 dan mencakup
-\CPMK{03} serta \CPMK{04} secara komprehensif, dengan penekanan
-pada kemampuan menulis dan memperbaiki program.
+UAS diselenggarakan pada Minggu 16 dan mencakup CPMK03 serta CPMK04,
+yaitu materi Minggu 9--15.
 
 \begin{table}[H]
     \centering
     \caption{Kisi-kisi Ujian Akhir Semester.}
     \label{tab:kisi-uas}
     \small
-    \begin{tabular}{@{}p{1.5cm}p{6.2cm}p{3.4cm}c@{}}
+    \begin{tabular}{@{}p{1.5cm}p{6.0cm}p{3.4cm}c@{}}
         \toprule
         \textbf{Sub-CPMK} & \textbf{Indikator yang diuji} &
         \textbf{Bentuk soal} & \textbf{Bobot} \\
         \midrule
-        3.1 & Menulis program aritmatika dan transfer data &
-        \eng{Coding} & 20\% \\
-        \addlinespace
-        3.2 & Manipulasi bit dan pemilihan instruksi geser &
+        3.1 & Operasi aritmatika dan \eng{flag} &
         \eng{Coding} dan analisis & 15\% \\
         \addlinespace
-        3.3 & Penerjemahan struktur kontrol &
-        \eng{Coding} & 20\% \\
-        \addlinespace
-        3.4 & Prosedur berparameter dan \eng{stack frame} &
-        \eng{Coding} dan analisis stack & 15\% \\
-        \addlinespace
-        2.4 & Penggunaan interupsi untuk masukan/keluaran &
+        3.2 & Operasi logika dan \eng{shift} &
         \eng{Coding} & 10\% \\
         \addlinespace
-        4.1, 4.2 & Menemukan bug dari tabel \eng{trace} &
+        3.3 & Mode pengalamatan dan alamat efektif &
+        Analisis & 15\% \\
+        \addlinespace
+        3.4 & Percabangan dan perulangan &
+        \eng{Coding} & 15\% \\
+        \addlinespace
+        3.5 & Stack, prosedur, dan macro &
+        \eng{Coding} dan analisis stack & 15\% \\
+        \addlinespace
+        3.6 & Array, string, dan pencetakan bilangan &
+        \eng{Coding} & 10\% \\
+        \addlinespace
+        4.1--4.2 & Penelusuran dan pemeriksaan memori/stack &
         Analisis kasus & 10\% \\
         \addlinespace
-        4.3 & Membaca \eng{disassembly} dan usulan optimasi &
-        Analisis & 10\% \\
+        4.3 & Analisis dan perbaikan \eng{hang} &
+        Analisis kasus & 10\% \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -81,83 +86,72 @@ pada kemampuan menulis dan memperbaiki program.
 
 Proyek akhir adalah asesmen puncak mata kuliah ini. Mahasiswa memilih
 satu dari empat pilihan berikut, mengerjakannya secara individual
-atau berpasangan, lalu mempresentasikannya pada minggu ke-15.
+atau berpasangan, lalu mempresentasikannya pada Minggu 15.
 
 \begin{enumerate}
-    \item \textbf{Kalkulator dengan validasi masukan.} Menerima dua
-          bilangan dan satu operator dari pengguna, memvalidasi
-          masukan, menghitung hasil, dan menampilkan keluaran.
-          Wajib menangani pembagian dengan nol.
+    \item \textbf{Kalkulator sederhana.} Menerima dua bilangan dan
+          satu operator, menghitung hasil dengan ADD/SUB/MUL/DIV, dan
+          menampilkan keluaran. Wajib menangani pembagian dengan nol.
 
-    \item \textbf{Pengolah string.} Mencari, mengurutkan, dan
-          mengganti bagian string. Wajib memakai prosedur dengan
-          parameter dan manipulasi memori melalui mode pengalamatan
-          tidak langsung.
+    \item \textbf{Pengolah array/string.} Menjumlahkan atau mencari
+          elemen array, menyalin string, dan menampilkan hasil.
+          Wajib memakai prosedur dengan parameter melalui stack.
 
-    \item \textbf{Manipulasi bit untuk enkripsi sederhana.}
-          Mengenkripsi dan mendekripsi berkas atau string dengan
-          operasi XOR dan rotasi. Wajib menjelaskan mengapa
-          enkripsi tersebut \emph{tidak} aman untuk keperluan nyata.
+    \item \textbf{Konversi dan pencetakan bilangan.} Mengubah
+          bilangan menjadi desimal dan heksadesimal, lalu
+          mencetaknya dengan layanan DOS.
 
-    \item \textbf{\eng{Utility} pemeriksa memori dan register.}
-          Menampilkan isi area memori dan nilai register dalam
-          format heksadesimal dan ASCII, menyerupai perintah
-          \file{D} dan \file{R} pada DEBUG.
+    \item \textbf{Menu teks dengan interupsi BIOS/DOS.} Menampilkan
+          menu, membaca pilihan, dan menjalankan salah satu operasi
+          dari pilihan 1--3.
 \end{enumerate}
 
-Setiap proyek wajib memenuhi syarat minimum berikut:
+Syarat minimum proyek:
 
 \begin{itemize}
     \item ditulis dalam assembly 8086 sintaks MASM/TASM dan dapat
           dirakit tanpa kesalahan;
-    \item memuat minimal dua prosedur dengan \eng{parameter passing}
+    \item memuat minimal dua prosedur, salah satunya berparameter
           melalui stack;
-    \item memuat komentar yang menjelaskan setiap bagian penting;
-    \item disertai laporan singkat berisi tujuan, rancangan,
-          kendala, dan cara pengujian;
-    \item disertai bukti pengujian, termasuk setidaknya satu kasus
-          masukan yang salah.
+    \item memuat komentar pada bagian penting;
+    \item disertai laporan tujuan, rancangan, kendala, dan pengujian;
+    \item disertai bukti pengujian, termasuk satu kasus masukan salah.
 \end{itemize}
 
-\subsection{Rubrik Penilaian Komprehensif}
+\subsection{Rubrik Penilaian Proyek}
 
 \begin{table}[H]
     \centering
     \caption{Rubrik penilaian proyek akhir berbasis OBE.}
     \label{tab:rubrik-proyek}
     \footnotesize
-    \begin{tabular}{@{}p{3.1cm}p{3.5cm}p{3.5cm}p{3.3cm}@{}}
+    \begin{tabular}{@{}p{3.0cm}p{3.4cm}p{3.4cm}p{3.4cm}@{}}
         \toprule
         \textbf{Kriteria} & \textbf{Sangat baik (4)} &
         \textbf{Baik (3)} & \textbf{Cukup (2)} \\
         \midrule
-        Kebenaran fungsi (\CPMK{03}) & Semua fitur berjalan benar,
-        termasuk penanganan kasus salah & Fitur utama berjalan,
-        sebagian kasus salah belum ditangani & Fitur utama berjalan
-        dengan bantuan \\
+        Kebenaran fungsi (\CPMK{03}) & Semua fitur benar, termasuk
+        kasus salah & Fitur utama benar, sebagian kasus salah belum
+        ditangani & Fitur utama berjalan dengan bantuan \\
         \addlinespace
-        Kualitas kode (\CPMK{03}) & Struktur prosedur jelas,
-        komentar lengkap, tanpa kode berulang & Struktur cukup jelas,
-        komentar sebagian & Kode panjang tanpa prosedur \\
+        Kualitas kode (\CPMK{03}) & Prosedur jelas, komentar lengkap,
+        tanpa duplikasi & Struktur cukup, komentar sebagian & Kode
+        panjang tanpa prosedur \\
         \addlinespace
-        Penggunaan instruksi (\CPMK{02}) & Instruksi dan mode
-        pengalamatan dipilih tepat dan efisien & Sebagian besar
-        tepat, ada pilihan kurang efisien & Banyak pilihan instruksi
-        tidak tepat \\
+        Instruksi dan pengalamatan (\CPMK{02}, \CPMK{03}) &
+        Instruksi dan mode dipilih tepat & Sebagian besar tepat &
+        Banyak pilihan tidak tepat \\
         \addlinespace
         Pengujian dan \eng{debugging} (\CPMK{04}) & Semua bug
-        ditemukan dengan bukti tabel \eng{trace} & Sebagian bug
-        ditemukan dengan bukti memadai & Bug ditemukan dengan
-        bantuan dosen \\
+        ditemukan dengan bukti \eng{trace} & Sebagian bug ditemukan
+        dengan bukti & Bug ditemukan dengan bantuan \\
         \addlinespace
-        Laporan dan presentasi & Laporan lengkap, presentasi
-        jelas dan meyakinkan & Laporan lengkap, presentasi cukup &
-        Laporan kurang lengkap \\
+        Laporan dan presentasi & Lengkap dan meyakinkan & Lengkap,
+        presentasi cukup & Kurang lengkap \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Nilai proyek dihitung dari rata-rata kelima kriteria dengan bobot
-yang sama. Proyek yang tidak memenuhi syarat minimum pada
-Bagian~\ref{sec:asesmen-akhir} tidak dapat memperoleh nilai lebih
-dari kategori ``cukup''.
+Nilai proyek dihitung dari rata-rata kelima kriteria. Proyek yang
+tidak memenuhi syarat minimum tidak dapat memperoleh nilai lebih dari
+kategori ``cukup''.

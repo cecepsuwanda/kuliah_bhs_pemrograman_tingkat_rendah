@@ -2,7 +2,7 @@
 
 \begin{document}
 
-\chapter{Arsitektur Mikroprosesor 8086}
+\chapter{Arsitektur Mikroprosesor 8086: BIU dan EU}
 \label{chap:arsitektur-8086}
 
 % =========================================================
@@ -10,10 +10,10 @@
 % =========================================================
 
 \begin{subcpmkbox}
-\SubCPMK{1.1} --- Menjelaskan arsitektur dasar mikroprosesor 8086
-(\textit{Execution Unit} dan \textit{Bus Interface Unit}), peran bus
-alamat/data/kontrol, serta tahapan siklus instruksi
-(\eng{fetch}--\eng{decode}--\eng{execute}).
+\vspace{1.1em}
+\SubCPMK{1.2} --- Menjelaskan pembagian \textit{Bus Interface Unit}
+dan \textit{Execution Unit}, peran bus, \textit{queue} instruksi, dan
+ALU, serta urutan pengambilan dan eksekusi instruksi pada 8086.
 
 \vspace{0.4em}
 \textbf{CPMK yang didukung:} \CPMK{01} \quad\textbullet\quad
@@ -21,36 +21,36 @@ alamat/data/kontrol, serta tahapan siklus instruksi
 \end{subcpmkbox}
 
 \begin{tujuanbox}
+\vspace{1.1em}
 Setelah mempelajari bab ini, mahasiswa mampu:
 \begin{enumerate}
-    \item menjelaskan kedudukan mikroprosesor 8086 sebagai dasar
-          arsitektur keluarga x86 beserta evolusi singkatnya;
-    \item membedakan arsitektur internal dan arsitektur eksternal
-          sebuah mikroprosesor;
-    \item menguraikan pembagian tugas antara \eng{Bus Interface Unit}
-          (BIU) dan \eng{Execution Unit} (EU) pada 8086;
-    \item menjelaskan cara kerja \eng{instruction queue} enam byte
-          dan pengaruh \eng{pipelining} terhadap kinerja;
-    \item menyebutkan fungsi bus alamat 20-bit, bus data 16-bit, dan
-          bus kontrol beserta sinyal-sinyal utamanya;
-    \item menelusuri satu instruksi melalui tahapan
-          \eng{fetch}--\eng{decode}--\eng{execute}--\eng{store}
-          langkah demi langkah.
+    \item menjelaskan kedudukan mikroprosesor 8086 dan alasan
+          pembagian internalnya menjadi dua unit;
+    \item menjelaskan tugas \eng{Bus Interface Unit} (BIU) beserta
+          komponen bus, \eng{queue} instruksi, register segmen, dan
+          \eng{Instruction Pointer};
+    \item menjelaskan tugas \eng{Execution Unit} (EU) beserta ALU,
+          \eng{flag}, \eng{instruction decoder and control}, dan
+          register yang terlibat;
+    \item menghitung alamat fisik dari pasangan \eng{segment:offset}
+          sebagai bagian dari kerja BIU;
+    \item menelusuri urutan pengambilan, penerjemahan, dan eksekusi
+          satu instruksi;
+    \item membedakan instruksi yang seluruhnya bekerja di register
+          dari instruksi yang memerlukan akses memori melalui BIU.
 \end{enumerate}
 \end{tujuanbox}
 
 \begin{materibox}
+\vspace{1.1em}
 \begin{enumerate}
-    \item Evolusi mikroprosesor dan kedudukan 8086 sebagai dasar
-          arsitektur x86; arsitektur internal dan eksternal.
-    \item Diagram blok 8086: BIU dan EU, tugas masing-masing,
-          \eng{instruction queue} enam byte, dan peran segmentasi.
-    \item \eng{Pipelining} instruksi dan dampaknya pada kinerja.
-    \item Bus eksternal: bus alamat 20-bit, bus data 16-bit, bus
-          kontrol, \eng{multiplexing} AD0--AD15, dan sinyal kendali.
-    \item Siklus instruksi: \eng{fetch} $\rightarrow$ \eng{decode}
-          $\rightarrow$ \eng{execute} $\rightarrow$ \eng{store}.
-    \item Register internal yang terlibat (sekilas).
+    \item Kedudukan 8086 dan pembagian unit internal.
+    \item \eng{Bus Interface Unit}: tugas dan komponen.
+    \item Bus alamat, bus data, dan bus kontrol.
+    \item \eng{Instruction queue} enam byte dan pengisiannya.
+    \item \eng{Execution Unit}: ALU, \eng{flag}, \eng{operand}, dan
+          decoder.
+    \item Urutan \eng{fetch}--\eng{decode}--\eng{execute}.
 \end{enumerate}
 \end{materibox}
 

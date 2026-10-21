@@ -2,112 +2,120 @@
 \label{sec:praktikum-bab10}
 
 \begin{praktikumbox}
-\textbf{Judul:} Membangun kalkulator sederhana (masukan--proses--keluaran).\\[0.3em]
+\vspace{1.1em}
+\textbf{Judul:} Menelusuri operasi aritmatika dan memeriksa
+hasilnya.\\[0.3em]
 \textbf{Sub-CPMK:} 3.1 \quad\textbullet\quad
 \textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
-\textbf{Bentuk:} individu \quad\textbullet\quad
-\textbf{Tugas:} \textbf{Tugas 4} dikumpulkan pada praktikum ini
+\textbf{Bentuk:} individu
 \end{praktikumbox}
 
 \subsection{Tujuan Praktikum}
 
-Setelah menyelesaikan praktikum ini, mahasiswa mampu menulis program
-assembly utuh yang menerima masukan pengguna, menjalankan operasi
-aritmatika, dan menampilkan hasil dalam bentuk bilangan desimal.
+Setelah menyelesaikan praktikum ini, mahasiswa mampu menjalankan
+instruksi aritmatika, mencatat perubahan register dan \eng{flag},
+serta memverifikasi hasil operasi dengan DEBUG dan emu8086.
 
 \subsection{Alat dan Bahan}
 
 \begin{itemize}
-    \item Komputer dengan Emu8086, GUI Turbo Assembler, atau DOSBox.
-    \item Berkas contoh \file{aritmatika.asm} dan \file{kali-bagi.asm}
-          dari direktori \file{code/asm/}.
-    \item Lembar kerja Tugas~4 dan jurnal praktikum.
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \file{operasi-aritmatika.asm} dari \file{code/asm/}.
+    \item Lembar pengamatan register dan \eng{flag}.
 \end{itemize}
 
 \subsection{Langkah Kerja}
 
 \begin{enumerate}
-    \item \textbf{Pengamatan program contoh.}
+    \item \textbf{Merakit dan menjalankan program.}
     \begin{enumerate}
-        \item Rakit dan jalankan \file{aritmatika.asm}. Catat
-              keluarannya pada jurnal.
-        \item Jalankan kembali dengan \file{Single Step}, lalu amati
-              nilai \reg{AX}, \reg{BX}, \flag{CF}, dan \reg{SP} pada
-              setiap langkah.
-        \item Catat nilai \flag{CF} dan \flag{OF} tepat setelah
-              instruksi \asm{ADD} dan \asm{SUB} dijalankan.
-        \item Ulangi langkah yang sama untuk \file{kali-bagi.asm},
-              lalu catat isi \reg{AH} dan \reg{AL} setelah setiap
-              \asm{DIV} berhasil.
+        \item Buka DOSBox, lalu masuk ke direktori kerja.
+        \item Rakit dengan \file{tasm operasi-aritmatika.asm}.
+        \item Link dengan \file{tlink operasi-aritmatika.obj}.
+        \item Jalankan program. Program tidak mencetak keluaran.
     \end{enumerate}
 
-    \item \textbf{Percobaan luapan.}
+    \item \textbf{Memeriksa hasil di segmen data.}
     \begin{enumerate}
-        \item Pada \file{kali-bagi.asm}, hapus sementara pemeriksaan
-              \lstasm|CMP AH, BL| dan lompatan sesudahnya.
-        \item Rakit ulang, jalankan, lalu catat apa yang terjadi
-              ketika program menghitung $1000 \div 3$.
-        \item Kembalikan pemeriksaan tersebut dan pastikan program
-              kembali berjalan normal.
+        \item Jalankan \file{debug operasi-aritmatika.exe}.
+        \item Ketik \file{d ds:0000 L 20} untuk melihat isi segmen
+              data.
+        \item Catat nilai \code{hasil\_lo}, \code{hasil\_hi},
+              \code{kurang\_lo}, \code{kurang\_hi}, \code{kali},
+              \code{bagi}, dan \code{sisa}.
+        \item Bandingkan dengan Tabel~\ref{tab:hasil-program}.
     \end{enumerate}
 
-    \item \textbf{Menyusun kalkulator empat operasi (Tugas~4).}
+    \item \textbf{Menelusuri dengan emu8086.}
     \begin{enumerate}
-        \item Salin kerangka \file{aritmatika.asm} menjadi berkas
-              baru bernama \file{kalkulator.asm}.
-        \item Tambahkan menu empat pilihan: \code{1} tambah,
-              \code{2} kurang, \code{3} kali, \code{4} bagi.
-        \item Baca pilihan pengguna, lalu arahkan alur program dengan
-              \asm{CMP} dan lompatan bersyarat seperti pada
-              Bab~\ref{chap:kontrol}.
-        \item Baca dua bilangan satu digit, kemudian jalankan operasi
-              yang dipilih.
-        \item Untuk pilihan bagi, periksa pembagi nol dengan
-              \asm{CMP} sebelum \asm{DIV}, dan periksa \reg{AH}
-              terhadap \reg{BL} sebelum \asm{DIV BL} dijalankan.
-        \item Cetak hasil dengan prosedur \code{CETAK\_AX};
-              untuk perkalian, tampilkan hasil 16 bit secara utuh.
-        \item Uji setiap pilihan dengan bilangan terbesar yang masih
-              diterima, misalnya $9$ dan $9$, serta dengan pembagi
-              nol.
+        \item Buka program pada emu8086.
+        \item Jalankan \file{Single Step} sampai instruksi
+              \lstasm|ADD AX, b_lo|.
+        \item Catat \reg{AX}, \reg{BX}, dan \eng{flag} sebelum dan
+              sesudah setiap instruksi.
+        \item Ulangi untuk \lstasm|ADC AX, b_hi|,
+              \lstasm|SUB AX, d_lo|, dan \lstasm|SBB AX, d_hi|.
+    \end{enumerate}
+
+    \item \textbf{Menguji MUL dan DIV.}
+    \begin{enumerate}
+        \item Catat \reg{AX} setelah \lstasm|MUL BL|.
+        \item Catat \reg{AL} dan \reg{AH} setelah \lstasm|DIV BL|.
+        \item Jelaskan perbedaan letak hasil bagi dan sisa.
+    \end{enumerate}
+
+    \item \textbf{Mengubah nilai untuk memicu flag.}
+    \begin{enumerate}
+        \item Ubah \code{a\_lo} menjadi \hex{7FFF} dan \code{b\_lo}
+              menjadi \hex{0001}.
+        \item Rakit ulang, lalu periksa \flag{CF}, \flag{OF}, dan
+              \flag{SF} setelah \asm{ADD}.
+        \item Ulangi dengan \code{a\_lo} = \hex{8000} dan
+              \code{b\_lo} = \hex{8000}.
+        \item Jelaskan mengapa \flag{CF} dan \flag{OF} dapat berbeda.
+    \end{enumerate}
+
+    \item \textbf{Menguji divide overflow.}
+    \begin{enumerate}
+        \item Ubah pembagi pada bagian \asm{DIV} menjadi 3 dan
+              nilai yang dibagi tetap 1000.
+        \item Hitung hasil bagi seharusnya.
+        \item Jelaskan mengapa program harus memeriksa \reg{AH}
+              sebelum \asm{DIV}.
+        \item Tunjukkan baris mana yang mencegah kesalahan tersebut.
     \end{enumerate}
 \end{enumerate}
 
 \subsection{Hasil yang Dikumpulkan}
 
 \begin{enumerate}
-    \item Berkas \file{kalkulator.asm} yang lengkap dan dapat
-          dirakit tanpa kesalahan.
-    \item Tangkapan layar keluaran program untuk keempat operasi.
-    \item Tangkapan layar pesan kesalahan ketika pembagi bernilai
-          nol.
-    \item Tabel pengamatan nilai \reg{AX}, \flag{CF}, \flag{ZF}, dan
-          \flag{OF} untuk setiap operasi.
-    \item Jurnal praktikum berisi refleksi singkat.
+    \item Berkas \file{operasi-aritmatika.asm} versi modifikasi.
+    \item Tabel pengamatan register dan \eng{flag}.
+    \item Tangkapan layar isi segmen data pada DEBUG.
+    \item Analisis perbedaan \flag{CF} dan \flag{OF}.
+    \item Penjelasan syarat aman pembagian.
 \end{enumerate}
 
 \begin{asesmenbox}
-\textbf{Asesmen praktikum 3 (Tugas 4, bobot 10\% dari komponen
-praktikum).}
+\vspace{1.1em}
+\textbf{Asesmen praktikum 8 (bobot 5\% dari komponen praktikum).}
 
-\begin{tabular}{@{}p{6.0cm}cp{4.6cm}@{}}
+\begin{tabular}{@{}p{6.2cm}cp{4.6cm}@{}}
     \toprule
     \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
     \midrule
-    Kelengkapan empat operasi aritmatika & 30\% &
-    Keempat pilihan menu menghasilkan nilai yang benar \\
+    Ketepatan hasil ADD/ADC dan SUB/SBB & 30\% &
+    Nilai 32 bit dan flag tercatat benar \\
     \addlinespace
-    Ketepatan penanganan luapan dan pembagi nol & 25\% &
-    Program menampilkan pesan, bukan berhenti mendadak \\
+    Ketepatan hasil MUL dan DIV & 25\% &
+    Hasil bagi, sisa, dan letak register benar \\
     \addlinespace
-    Ketepatan pencetakan hasil desimal & 20\% &
-    Hasil multi-digit tercetak dengan urutan digit yang benar \\
+    Analisis flag & 25\% &
+    Perbedaan CF dan OF dijelaskan dengan tepat \\
     \addlinespace
-    Struktur program dan kerapian kode & 15\% &
-    Prosedur dipakai ulang, komentar jelas, register dipulihkan \\
-    \addlinespace
-    Dokumentasi dan jurnal praktikum & 10\% &
-    Tabel pengamatan lengkap dan dapat dipertanggungjawabkan \\
+    Analisis divide overflow & 20\% &
+    Syarat aman dan baris pencegahannya dijelaskan \\
     \bottomrule
 \end{tabular}
 \end{asesmenbox}

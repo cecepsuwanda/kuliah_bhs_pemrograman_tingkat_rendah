@@ -10,11 +10,11 @@
 % =========================================================
 
 \begin{subcpmkbox}
-\SubCPMK{1.2} --- Mengidentifikasi fungsi register umum (\reg{AX},
-\reg{BX}, \reg{CX}, \reg{DX}), register segmen (\reg{CS}, \reg{DS},
-\reg{SS}, \reg{ES}), register \eng{pointer}/\eng{index} (\reg{SP},
-\reg{BP}, \reg{SI}, \reg{DI}), dan register \eng{flag} beserta
-pengaruhnya terhadap eksekusi program.
+\vspace{1.1em}
+\SubCPMK{1.3} --- Mengidentifikasi register umum (AX--DX), register
+segmen (CS, DS, SS, ES), register \eng{pointer}/\eng{index} (SP, BP,
+SI, DI), IP, dan \eng{flag} beserta pengaruh \eng{flag} terhadap
+keputusan program.
 
 \vspace{0.4em}
 \textbf{CPMK yang didukung:} \CPMK{01} \quad\textbullet\quad
@@ -22,42 +22,35 @@ pengaruhnya terhadap eksekusi program.
 \end{subcpmkbox}
 
 \begin{tujuanbox}
+\vspace{1.1em}
 Setelah mempelajari bab ini, mahasiswa mampu:
 \begin{enumerate}
-    \item menyebutkan register umum 8086 beserta akses byte rendah
-          dan byte tingginya;
-    \item menjelaskan peran khas setiap register umum dan alasan
-          historis di balik peran tersebut;
-    \item menjelaskan fungsi register segmen dalam pengalamatan
-          memori;
-    \item menjelaskan peran register \eng{pointer} dan \eng{index}
-          serta register \reg{IP};
-    \item mengidentifikasi sembilan \eng{flag} pada register
-          \reg{FLAGS}, menyebutkan posisi bitnya, dan menjelaskan
-          kapan setiap \eng{flag} bernilai 1;
+    \item mengidentifikasi keempat belas register 8086 dan
+          kelompoknya;
+    \item menjelaskan register umum AX, BX, CX, DX beserta akses byte
+          tinggi dan byte rendah;
+    \item menjelaskan peran khas setiap register umum;
+    \item menjelaskan register segmen CS, DS, SS, ES dan pasangan
+          alamat yang dibentuknya;
+    \item menjelaskan register \eng{pointer}/\eng{index} SP, BP, SI,
+          DI serta register IP;
+    \item mengidentifikasi sembilan \eng{flag} dan menjelaskan kapan
+          masing-masing bernilai 1;
     \item memprediksi perubahan \eng{flag} akibat operasi aritmatika
-          dan menjelaskan akibatnya bagi alur program;
-    \item menjelaskan mengapa register \reg{CS}, \reg{IP}, \reg{SS},
-          dan \reg{SP} tidak boleh diubah sembarangan.
+          dan menjelaskan pengaruhnya terhadap keputusan program.
 \end{enumerate}
 \end{tujuanbox}
 
 \begin{materibox}
+\vspace{1.1em}
 \begin{enumerate}
-    \item Register umum \reg{AX}, \reg{BX}, \reg{CX}, \reg{DX} dan
-          akses byte rendah/tinggi (\reg{AL}/\reg{AH},
-          \reg{BL}/\reg{BH}, \reg{CL}/\reg{CH}, \reg{DL}/\reg{DH}).
-    \item Register segmen \reg{CS}, \reg{DS}, \reg{SS}, \reg{ES} dan
-          perannya pada pengalamatan memori.
-    \item Register \eng{pointer} dan \eng{index}: \reg{SP}, \reg{BP},
-          \reg{SI}, \reg{DI}, serta register \reg{IP}.
-    \item Register \eng{flag} 16-bit: \flag{CF}, \flag{PF},
-          \flag{AF}, \flag{ZF}, \flag{SF}, \flag{TF}, \flag{IF},
-          \flag{DF}, \flag{OF} beserta posisi bitnya.
-    \item Pengaruh \eng{flag} terhadap keputusan program melalui
-          lompatan bersyarat.
-    \item Register yang tidak boleh diubah sembarangan dan
-          akibatnya.
+    \item Register umum AX, BX, CX, DX dan akses byte tinggi/rendah.
+    \item Peran khas setiap register umum.
+    \item Register segmen CS, DS, SS, ES dan pasangan alamatnya.
+    \item Register \eng{pointer}/\eng{index} SP, BP, SI, DI.
+    \item Register \eng{Instruction Pointer} (IP).
+    \item Register \eng{flag}: CF, PF, AF, ZF, SF, TF, IF, DF, OF.
+    \item Pengaruh \eng{flag} terhadap keputusan program.
 \end{enumerate}
 \end{materibox}
 

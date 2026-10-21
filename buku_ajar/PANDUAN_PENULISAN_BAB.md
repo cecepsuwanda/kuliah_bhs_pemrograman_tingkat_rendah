@@ -232,35 +232,30 @@ Setiap bab inti (Bab III--XVI) dianggap selesai bila memenuhi:
 |:---:|:---:|---|
 | I | 01 | `chap:pendahuluan` |
 | II | 02 | `chap:landasan-teori` |
-| III | 03 | `chap:pengenalan` |
+| III | 03 | `chap:pengantar-assembly` |
 | IV | 04 | `chap:arsitektur-8086` |
 | V | 05 | `chap:register` |
 | VI | 06 | `chap:segmentasi` |
-| VII | 07 | `chap:format-instruksi` |
-| VIII | 08 | `chap:mode-pengalamatan` |
-| IX | 09 | `chap:translasi` |
+| VII | 07 | `chap:memulai-assembly` |
+| VIII | 08 | `chap:transfer-data` |
+| IX | 09 | `chap:interupsi` |
 | X | 10 | `chap:aritmatika` |
 | XI | 11 | `chap:logika` |
-| XII | 12 | `chap:kontrol` |
-| XIII | 13 | `chap:prosedur` |
-| XIV | 14 | `chap:interupsi` |
-| XV | 15 | `chap:debugging` |
-| XVI | 16 | `chap:disassembly` |
+| XII | 12 | `chap:mode-pengalamatan` |
+| XIII | 13 | `chap:kontrol` |
+| XIV | 14 | `chap:prosedur` |
+| XV | 15 | `chap:array-string` |
+| XVI | 16 | `chap:debugging` |
 | XVII | 17 | `chap:evaluasi-akhir` |
 
 ---
 
 ## 8. Kunci Sitasi yang Tersedia (`references.bib`)
 
-`intel1979`, `intel2024`, `bartlett2004`, `bartlett2023`, `hyde2010`,
-`wikibooksx86`, `wikibooksdisasm`, `brown2000`, `bodur`, `ebrahim2018`,
-`irvine1999`, `emu8086help`, `kader2014`, `courses2103`, `carleton2011`,
-`evans2020`, `uva2024`, `nasm2024`, `guitasm`, `emu8086site`, `dosbox`,
-`irvine2011`, `stallings2016`, `tanenbaum2013`, `brey2009`,
-`abdelghany2020`, `gunawan2023`.
+`gunawan2019`, `sto2001`.
 
-Gunakan `\cite{kunci}`. Setiap bab memuat 3--5 sitasi, termasuk pada
-`rangkuman.tex` di dalam `infobox` "Rujukan bab".
+Gunakan `\cite{kunci}`. Setiap bab memuat 3--5 sitasi dari kedua
+sumber, termasuk pada `rangkuman.tex` di dalam `infobox` "Rujukan bab".
 
 ---
 

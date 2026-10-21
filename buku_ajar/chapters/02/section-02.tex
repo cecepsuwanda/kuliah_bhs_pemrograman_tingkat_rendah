@@ -1,130 +1,109 @@
 \section{Konsep dan Definisi Kunci}
 \label{sec:konsep-kunci}
 
-Bagian ini menetapkan istilah yang akan dipakai terus-menerus
-sepanjang buku. Membaca definisi berikut dengan cermat akan
-menghemat banyak kebingungan di bab-bab berikutnya.
+Bagian ini menetapkan istilah yang dipakai sepanjang buku.
 
-\subsection{Instruction Set Architecture (ISA)}
+\subsection{Instruction Set Architecture}
 
 \begin{definisi}[Instruction Set Architecture]
-\term{Instruction Set Architecture} (ISA) adalah kumpulan lengkap
-instruksi yang dapat dijalankan sebuah prosesor, beserta aturan
-penggunaannya: format instruksi, register yang tersedia, mode
-pengalamatan, dan cara kerja interupsi.
+\term{Instruction Set Architecture} (ISA) adalah kumpulan instruksi
+yang dapat dijalankan sebuah prosesor beserta aturan penggunaannya:
+register, mode pengalamatan, dan mekanisme interupsi.
 \end{definisi}
 
-ISA adalah \emph{kontrak} antara perangkat lunak dan perangkat
-keras. Selama sebuah program hanya memakai instruksi yang ada pada
-ISA, program itu akan berjalan pada setiap prosesor yang
-mengimplementasikan ISA tersebut --- meskipun rancangan internal
-prosesornya berbeda. Keluarga x86 modern, misalnya, tetap dapat
-menjalankan program 8086 karena mempertahankan kompatibilitas ISA-nya.
+ISA adalah kontrak antara perangkat lunak dan perangkat keras. Selama
+program hanya memakai instruksi yang ada pada ISA, program itu dapat
+dijalankan pada prosesor yang mengimplementasikan ISA tersebut.
 
-\subsection{Opcode, Operand, dan Mnemonic}
+\subsection{Instruksi, Operand, dan Mnemonic}
 
-\begin{definisi}[Opcode dan Operand]
-\term{Opcode} (\eng{operation code}) adalah bagian instruksi yang
-menyatakan \emph{operasi apa} yang harus dilakukan. \term{Operand}
-adalah bagian instruksi yang menyatakan \emph{data apa} yang
-dikenai operasi, baik berupa nilai, register, maupun alamat memori.
+\begin{definisi}[Instruksi dan operand]
+\term{Instruksi} adalah perintah yang dijalankan prosesor.
+\term{Operand} adalah data atau tempat data yang dikenai instruksi,
+baik berupa nilai, register, maupun alamat memori.
 \end{definisi}
 
 \begin{definisi}[Mnemonic]
-\term{Mnemonic} adalah nama pendek yang mewakili sebuah opcode dalam
-bahasa assembly, misalnya \asm{MOV} untuk \eng{move} dan \asm{ADD}
-untuk \eng{add}. Satu mnemonic dapat memiliki beberapa bentuk
-\eng{encoding} bergantung pada jenis operandnya.
+\term{Mnemonic} adalah nama pendek yang mewakili sebuah instruksi
+dalam bahasa assembly, misalnya \asm{MOV} untuk memindahkan data dan
+\asm{ADD} untuk menjumlahkan.
 \end{definisi}
 
-Perhatikan istilah ``mnemonic'' pada
-Tabel~\ref{tab:mnemonic-opcode}. Baris pertama dan baris kedua
-memiliki \eng{opcode} yang berbeda, tetapi keduanya memakai bentuk
-penulisan yang sama: \emph{mnemonic}, \emph{tujuan}, \emph{sumber}.
-Keseragaman bentuk penulisan ini adalah salah satu alasan assembly
-lebih mudah dibaca daripada kode mesin.
+Contohnya, pada \lstasm|ADD AX, 5|, \asm{ADD} adalah mnemonic
+instruksi, sedangkan \reg{AX} dan 5 adalah operand.
 
 \subsection{Register}
 
 \begin{definisi}[Register]
-\term{Register} adalah tempat penyimpanan berukuran sangat kecil
-(umumnya 8 atau 16 bit) yang berada \emph{di dalam} prosesor.
-Akses ke register berlangsung jauh lebih cepat daripada akses ke
-memori.
+\term{Register} adalah tempat penyimpanan kecil (8 atau 16 bit) yang
+berada di dalam prosesor. Akses ke register jauh lebih cepat daripada
+akses ke memori.
 \end{definisi}
 
-Jumlah register pada 8086 sangat terbatas, sehingga programmer
-harus mengelolanya secara sadar. Inilah perbedaan mendasar dengan
-pemrograman tingkat tinggi, di mana jumlah variabel praktis tidak
-terbatas. Pembahasan lengkap mengenai register terdapat pada
-Bab~\ref{chap:register}.
+Jumlah register 8086 terbatas, sehingga programmer harus
+mengelolanya secara sadar. Pembahasan lengkap ada pada bab tentang
+register dan \eng{flag}.
 
-\subsection{Siklus Instruksi dan Siklus Mesin}
+\subsection{Siklus Instruksi}
 
-\begin{definisi}[Siklus instruksi dan siklus mesin]
-\term{Siklus instruksi} (\eng{instruction cycle}) adalah rangkaian
-\eng{fetch}, \eng{decode}, dan \eng{execute} untuk satu instruksi.
-\term{Siklus mesin} (\eng{machine cycle}) atau siklus bus adalah satu
-kali pengaksesan bus oleh prosesor untuk membaca atau menulis satu
-kata data.
+\begin{definisi}[Siklus instruksi]
+\term{Siklus instruksi} adalah rangkaian \eng{fetch}, \eng{decode},
+dan \eng{execute} untuk satu instruksi.
 \end{definisi}
 
-Pembedaan ini penting untuk mengukur kinerja. Satu instruksi dapat
-memerlukan beberapa siklus mesin. Instruksi yang mengakses memori
-umumnya lebih mahal daripada instruksi yang hanya bekerja pada
-register.
+Satu instruksi dapat melibatkan beberapa kali pengaksesan bus.
+Instruksi yang mengakses memori umumnya lebih mahal daripada
+instruksi yang hanya bekerja pada register.
 
 \subsection{Memory-Mapped I/O dan Port I/O}
 
 \begin{definisi}[Memory-mapped I/O dan port I/O]
-\term{\eng{Memory-mapped I/O}} adalah teknik menghubungkan perangkat
-masukan/keluaran ke ruang alamat memori, sehingga perangkat diakses
-dengan instruksi pemindahan data biasa. \term{\eng{Port I/O}} adalah
-teknik alternatif yang memakai ruang alamat terpisah dan instruksi
-khusus \asm{IN} serta \asm{OUT}.
+\term{Memory-mapped I/O} adalah teknik menghubungkan perangkat
+masukan/keluaran ke ruang alamat memori. \term{Port I/O} adalah
+teknik yang memakai ruang alamat terpisah dan instruksi khusus
+masukan/keluaran.
 \end{definisi}
 
-Keluarga x86 memakai kedua teknik. Perangkat keras diakses melalui
-\eng{port I/O} dengan instruksi \asm{IN}/\asm{OUT}, sedangkan area
-video pada alamat \hex{B8000} adalah contoh \eng{memory-mapped I/O}:
-menulis byte ke alamat itu langsung mengubah tampilan layar. Hal ini
-akan dipakai pada Bab~\ref{chap:interupsi}.
+Kedua teknik dipakai pada keluarga 8086. Area video, misalnya, dapat
+diakses melalui alamat memori, sedangkan perangkat lain diakses
+melalui port. Pembahasan operasionalnya ada pada bab tentang
+interupsi BIOS/DOS.
 
 \subsection{Ringkasan Definisi}
 
 \begin{table}[H]
     \centering
-    \caption{Ringkasan istilah kunci dan padanannya.}
+    \caption{Ringkasan istilah kunci dan tempat pembahasannya.}
     \label{tab:istilah-kunci}
     \small
-    \begin{tabular}{@{}p{4.0cm}p{5.6cm}p{3.6cm}@{}}
+    \begin{tabular}{@{}p{3.6cm}p{5.8cm}p{4.0cm}@{}}
         \toprule
         \textbf{Istilah} & \textbf{Pengertian singkat} &
         \textbf{Dibahas di} \\
         \midrule
         ISA & Kontrak instruksi antara perangkat lunak dan keras &
-        Bab~\ref{chap:arsitektur-8086} \\
+        Bab tentang arsitektur 8086 \\
         \addlinespace
-        Opcode & Bagian instruksi penanda operasi &
-        Bab~\ref{chap:format-instruksi} \\
-        \addlinespace
-        Operand & Bagian instruksi penanda data &
-        Bab~\ref{chap:mode-pengalamatan} \\
+        Operand & Data atau tempat data yang dikenai instruksi &
+        Bab tentang mode pengalamatan \\
         \addlinespace
         Register & Penyimpan kecil di dalam prosesor &
-        Bab~\ref{chap:register} \\
+        Bab tentang register \\
         \addlinespace
         Siklus instruksi & \eng{Fetch}, \eng{decode},
-        \eng{execute} & Bab~\ref{chap:arsitektur-8086} \\
+        \eng{execute} & Bab tentang arsitektur 8086 \\
         \addlinespace
         Segmentasi & Pembagian memori menjadi segmen 64 KB &
-        Bab~\ref{chap:segmentasi} \\
+        Bab tentang segmentasi \\
         \addlinespace
         Interupsi & Mekanisme memanggil layanan sistem &
-        Bab~\ref{chap:interupsi} \\
+        Bab tentang interupsi BIOS/DOS \\
         \addlinespace
-        \eng{Disassembly} & Mengubah kode mesin menjadi mnemonic &
-        Bab~\ref{chap:disassembly} \\
+        \eng{Stack} & Penyimpan sementara dengan aturan LIFO &
+        Bab tentang stack dan prosedur \\
+        \addlinespace
+        Array dan string & Kumpulan data berurutan di memori &
+        Bab tentang array dan string \\
         \bottomrule
     \end{tabular}
 \end{table}

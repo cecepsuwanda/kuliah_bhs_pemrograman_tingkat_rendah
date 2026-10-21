@@ -2,17 +2,18 @@
 
 \begin{document}
 
-\chapter{Pengenalan Pemrograman Tingkat Rendah dan Lingkungan Kerja}
-\label{chap:pengenalan}
+\chapter{Pengantar Assembly dan Sistem Bilangan}
+\label{chap:pengantar-assembly}
 
 % =========================================================
 % OUTCOME PEMBELAJARAN KHUSUS BAB
 % =========================================================
 
 \begin{subcpmkbox}
-\SubCPMK{1.1} --- Menjelaskan perbedaan bahasa tingkat tinggi dan
-tingkat rendah, peran bahasa assembly, gambaran \eng{toolchain}, serta
-menyiapkan lingkungan kerja pemrograman assembly (TASM/Emu8086/DOSBox).
+\vspace{1.1em}
+\SubCPMK{1.1} --- Menjelaskan peran bahasa assembly serta mengonversi
+bilangan biner, desimal, oktal, dan heksadesimal, termasuk membedakan
+bilangan bertanda dan tidak bertanda.
 
 \vspace{0.4em}
 \textbf{CPMK yang didukung:} \CPMK{01} \quad\textbullet\quad
@@ -20,29 +21,34 @@ menyiapkan lingkungan kerja pemrograman assembly (TASM/Emu8086/DOSBox).
 \end{subcpmkbox}
 
 \begin{tujuanbox}
+\vspace{1.1em}
 Setelah mempelajari bab ini, mahasiswa mampu:
 \begin{enumerate}
-    \item menjelaskan perbedaan mendasar antara bahasa pemrograman
-          tingkat tinggi dan bahasa pemrograman tingkat rendah;
-    \item menjelaskan kedudukan bahasa assembly di antara
-          \eng{machine code} dan bahasa tingkat tinggi;
-    \item menguraikan tahapan rantai proses (\eng{toolchain})
-          \file{.asm} $\rightarrow$ \file{.obj} $\rightarrow$
-          \file{.exe};
-    \item memasang dan mengonfigurasi Emu8086, GUI Turbo Assembler,
-          dan DOSBox pada komputer kerja;
-    \item menulis, merakit, dan menjalankan program assembly pertama
-          yang mencetak teks ke layar.
+    \item menjelaskan kedudukan bahasa assembly di antara bahasa mesin
+          dan bahasa tingkat tinggi;
+    \item menjelaskan peran bahasa assembly dalam pemrograman sistem
+          dan kendali perangkat keras;
+    \item mengonversi bilangan biner, desimal, oktal, dan heksadesimal
+          beserta langkah kerjanya;
+    \item menuliskan literal bilangan yang diterima oleh assembler;
+    \item membedakan bilangan bertanda dan tidak bertanda serta
+          menerapkan \eng{two's complement};
+    \item menjelaskan hubungan kode ASCII dengan data yang disimpan di
+          memori.
 \end{enumerate}
 \end{tujuanbox}
 
 \begin{materibox}
+\vspace{1.1em}
 \begin{enumerate}
-    \item Perbandingan bahasa tingkat tinggi dan tingkat rendah.
-    \item Peran bahasa assembly dan kedudukannya dalam abstraksi mesin.
-    \item Rantai proses: editor, assembler, linker, dan \eng{loader}.
-    \item Lingkungan kerja: Emu8086, GUI Turbo Assembler, DOSBox.
-    \item Struktur program assembly minimal dan alur eksekusinya.
+    \item Tingkat abstraksi bahasa pemrograman.
+    \item Peran dan kedudukan bahasa assembly 8086.
+    \item Sistem bilangan biner, desimal, oktal, dan heksadesimal.
+    \item Konversi antarjenis bilangan.
+    \item Penulisan literal bilangan pada assembler.
+    \item Bilangan bertanda, bilangan tidak bertanda, dan
+          \eng{two's complement}.
+    \item Kode ASCII dan representasi data satu byte.
 \end{enumerate}
 \end{materibox}
 

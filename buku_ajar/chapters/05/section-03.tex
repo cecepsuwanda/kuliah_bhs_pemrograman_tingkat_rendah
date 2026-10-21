@@ -1,221 +1,104 @@
-\section{Register Flag}
+\section{Register Flag dan Pengaruhnya pada Keputusan}
 \label{sec:register-flag}
 
-Kelompok register terakhir adalah register \eng{flag}. Register ini
-tidak menyimpan angka yang dihitung, melainkan \emph{keterangan
-keadaan} hasil operasi terakhir. Setiap keterangan menempati satu
-bit, dan bit itu disebut \eng{flag} atau penanda. Prosesor 8086
-memiliki sebuah register 16 bit bernama \reg{FLAGS} yang juga sering
-disebut \eng{Program Status Word} (PSW) \cite{brey2009}.
+Register \eng{flag} tidak menyimpan angka yang dihitung, melainkan
+keterangan keadaan hasil operasi terakhir. Setiap keterangan
+menempati satu bit dan disebut \eng{flag}. Prosesor 8086 memiliki
+register 16 bit bernama \reg{FLAGS}; sembilan bit di antaranya
+dipakai sebagai penanda.
 
-Perhatikan contoh berikut. Instruksi \lstasm|ADD AL, BL| menjumlahkan
-\reg{AL} dan \reg{BL}. Hasilnya tentu disimpan di \reg{AL}, tetapi
-prosesor juga mencatat beberapa hal: apakah ada simpanan keluar
-(\eng{carry}), apakah hasilnya nol, apakah bit tandanya menyala, dan
-seterusnya. Semua catatan itu masuk ke register \reg{FLAGS}.
-Instruksi berikutnya --- misalnya lompatan bersyarat --- membaca
-catatan tersebut untuk mengambil keputusan.
+Contohnya, instruksi \lstasm|ADD AX, BX| menyimpan hasil di \reg{AX},
+tetapi prosesor juga mencatat apakah terjadi simpanan keluar, apakah
+hasilnya nol, apakah bit tandanya menyala, dan sebagainya. Catatan
+itu masuk ke \reg{FLAGS}. Instruksi berikutnya, misalnya lompatan
+bersyarat, membaca catatan tersebut untuk mengambil keputusan.
 
-\subsection{Peta Bit Register Flag}
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 2, hlm.~15--18,
+dan \cite{sto2001}, BAB IV, hlm.~17--20. Kaitan \eng{flag} dengan
+lompatan bersyarat diperkuat oleh \cite{sto2001}, BAB XIII,
+hlm.~68--72.
 
-Dari 16 bit yang tersedia, hanya sembilan bit yang dipakai. Bit
-sisanya dicadangkan dan nilainya tidak ditentukan. Peta lengkapnya
-ditunjukkan pada Gambar~\ref{fig:peta-bit-flag} dan
-Tabel~\ref{tab:peta-bit-flag}.
+\subsection{Sembilan Flag pada 8086}
 
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        bit/.style={
-            draw=obeBlue,
-            line width=0.7pt,
-            minimum width=0.72cm,
-            minimum height=0.70cm,
-            align=center,
-            font=\scriptsize\ttfamily,
-            inner sep=0pt
-        },
-        aktif/.style={bit, fill=obeBlueLight},
-        cadangan/.style={bit, fill=obeGrayLight, draw=obeGray},
-        nomor/.style={font=\scriptsize\ttfamily, text=obeGray}
-    ]
-        \foreach \i/\nama/\tipe in {
-            15/--/cadangan, 14/--/cadangan, 13/--/cadangan,
-            12/--/cadangan, 11/OF/aktif, 10/DF/aktif, 9/IF/aktif,
-            8/TF/aktif, 7/SF/aktif, 6/ZF/aktif, 5/--/cadangan,
-            4/AF/aktif, 3/--/cadangan, 2/PF/aktif, 1/--/cadangan,
-            0/CF/aktif}
-        {
-            \node[\tipe] (b\i) at ({(15-\i)*0.80}, 0) {\nama};
-            \node[nomor] at ({(15-\i)*0.80}, -0.60) {\i};
-        }
-        \node[font=\scriptsize\itshape, text=obeGray] at (0, 0.80)
-            {bit tinggi};
-        \draw[obeGray, line width=0.6pt, -{Stealth[length=1.8mm]}]
-            (0, 0.62) -- (0, 0.44);
-        \node[font=\scriptsize\itshape, text=obeGray] at (12, 0.80)
-            {bit rendah (LSB)};
-        \draw[obeGray, line width=0.6pt, -{Stealth[length=1.8mm]}]
-            (12, 0.62) -- (12, 0.44);
-    \end{tikzpicture}
-    \caption{Peta bit register \reg{FLAGS} 8086. Bit berlatar biru
-    adalah bit yang aktif dipakai; bit berlatar abu-abu
-    dicadangkan.}
-    \label{fig:peta-bit-flag}
-\end{figure}
+Sembilan \eng{flag} tersebut terbagi menjadi dua golongan. Enam
+\eng{flag} status ditentukan oleh hasil operasi, sedangkan tiga
+\eng{flag} kendali mengatur cara prosesor bekerja. Arti setiap
+\eng{flag} dirangkum pada Tabel~\ref{tab:flag-ringkas}.
 
 \begin{table}[H]
     \centering
-    \caption{Posisi bit dan arti setiap \eng{flag} pada register
-    \reg{FLAGS}.}
-    \label{tab:peta-bit-flag}
-    \small
-    \begin{tabular}{@{}cp{1.1cm}p{2.2cm}p{7.0cm}@{}}
-        \toprule
-        \textbf{Bit} & \textbf{Nama} & \textbf{Kelompok} &
-        \textbf{Arti singkat} \\
-        \midrule
-        0 & \flag{CF} & Status & \eng{Carry}: simpanan keluar dari
-        bit paling tinggi pada operasi tak bertanda \\
-        \addlinespace
-        1 & --- & Cadangan & Tidak dipakai \\
-        \addlinespace
-        2 & \flag{PF} & Status & \eng{Parity}: paritas byte rendah
-        hasil operasi \\
-        \addlinespace
-        3 & --- & Cadangan & Tidak dipakai \\
-        \addlinespace
-        4 & \flag{AF} & Status & \eng{Auxiliary Carry}: simpanan
-        keluar dari empat bit rendah (nibble rendah) \\
-        \addlinespace
-        5 & --- & Cadangan & Tidak dipakai \\
-        \addlinespace
-        6 & \flag{ZF} & Status & \eng{Zero}: hasil operasi bernilai
-        nol \\
-        \addlinespace
-        7 & \flag{SF} & Status & \eng{Sign}: bit tanda hasil
-        (bit ke-7 untuk byte, bit ke-15 untuk kata) \\
-        \addlinespace
-        8 & \flag{TF} & Kendali & \eng{Trap}: eksekusi satu
-        instruksi per langkah untuk \eng{debugging} \\
-        \addlinespace
-        9 & \flag{IF} & Kendali & \eng{Interrupt}: izin menerima
-        \eng{interrupt} yang dapat ditutup \\
-        \addlinespace
-        10 & \flag{DF} & Kendali & \eng{Direction}: arah gerak
-        \reg{SI}/\reg{DI} pada operasi string \\
-        \addlinespace
-        11 & \flag{OF} & Status & \eng{Overflow}: hasil operasi
-        bertanda di luar jangkauan \\
-        \addlinespace
-        12--15 & --- & Cadangan & Tidak dipakai \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\subsection{Arti dan Pengaruh Setiap Flag}
-
-Sembilan \eng{flag} terbagi menjadi dua golongan. Enam \eng{flag}
-pertama (\flag{CF}, \flag{PF}, \flag{AF}, \flag{ZF}, \flag{SF},
-\flag{OF}) adalah \term{flag status}: nilainya ditentukan oleh
-prosesor sebagai laporan hasil operasi. Tiga \eng{flag} berikutnya
-(\flag{TF}, \flag{IF}, \flag{DF}) adalah \term{flag kendali}:
-nilainya ditentukan oleh programmer melalui instruksi khusus, dan
-mempengaruhi cara prosesor bekerja.
-
-Tabel~\ref{tab:flag-ringkas} merinci setiap \eng{flag} beserta
-kondisi yang membuatnya bernilai 1 dan instruksi yang
-memengaruhinya.
-
-\begin{table}[H]
-    \centering
-    \caption{Arti setiap \eng{flag}, kapan bernilai 1, dan instruksi
-    yang memengaruhinya.}
+    \caption{Sembilan \eng{flag} pada 8086 dan kapan bernilai 1.}
     \label{tab:flag-ringkas}
     \small
-    \begin{tabular}{@{}cp{5.5cm}p{5.6cm}@{}}
+    \begin{tabular}{@{}cp{4.0cm}p{2.2cm}p{5.4cm}@{}}
         \toprule
-        \textbf{Flag} & \textbf{Bernilai 1 bila \dots} &
-        \textbf{Instruksi yang memengaruhi} \\
+        \textbf{Flag} & \textbf{Nama} & \textbf{Kelompok} &
+        \textbf{Bernilai 1 bila \dots} \\
         \midrule
-        \flag{CF} & Hasil operasi \emph{tak bertanda} menghasilkan
-        simpanan keluar dari bit tertinggi, atau bit yang digeser
-        keluar & \asm{ADD}, \asm{SUB}, \asm{CMP}, \asm{ADC},
-        \asm{SBB}, \asm{MUL}, \asm{NEG}, \asm{SHL}, \asm{SHR},
-        \asm{ROL}, \asm{ROR}, \asm{STC}, \asm{CLC}, \asm{CMC} \\
+        \flag{CF} & \eng{Carry Flag} & Status &
+        Operasi tak bertanda menghasilkan simpanan keluar dari bit
+        tertinggi \\
         \addlinespace
-        \flag{PF} & Byte rendah hasil operasi memuat jumlah bit 1
-        yang \emph{genap} & Semua instruksi aritmatika dan logika
-        yang mengubah \reg{AL} atau byte rendah lain \\
+        \flag{PF} & \eng{Parity Flag} & Status &
+        Jumlah bit 1 pada byte rendah hasil operasi genap \\
         \addlinespace
-        \flag{AF} & Terjadi simpanan keluar dari bit ke-3 (nibble
-        rendah) & \asm{ADD}, \asm{ADC}, \asm{SUB}, \asm{SBB},
-        \asm{CMP}, \asm{INC}, \asm{DEC} \\
+        \flag{AF} & \eng{Auxiliary Flag} & Status &
+        Terjadi simpanan keluar dari empat bit rendah \\
         \addlinespace
-        \flag{ZF} & Hasil operasi tepat sama dengan nol &
-        \asm{ADD}, \asm{SUB}, \asm{CMP}, \asm{AND}, \asm{OR},
-        \asm{XOR}, \asm{TEST}, \asm{INC}, \asm{DEC}, \asm{NEG} \\
+        \flag{ZF} & \eng{Zero Flag} & Status &
+        Hasil operasi bernilai nol \\
         \addlinespace
-        \flag{SF} & Bit paling tinggi hasil operasi bernilai 1
-        (hasil ditafsirkan negatif) & \asm{ADD}, \asm{SUB},
-        \asm{CMP}, \asm{AND}, \asm{OR}, \asm{XOR}, \asm{TEST},
-        \asm{INC}, \asm{DEC}, \asm{NEG}, \asm{SHL}, \asm{SAR} \\
+        \flag{SF} & \eng{Sign Flag} & Status &
+        Bit tanda hasil operasi bernilai 1 (hasil negatif) \\
         \addlinespace
-        \flag{OF} & Hasil operasi \emph{bertanda} di luar jangkauan
-        ($-128\ldots127$ untuk byte, $-32768\ldots32767$ untuk kata)
-        & \asm{ADD}, \asm{SUB}, \asm{CMP}, \asm{IMUL}, \asm{IDIV},
-        \asm{NEG}, \asm{SHL}, \asm{SAL}, \asm{INC}, \asm{DEC} \\
+        \flag{OF} & \eng{Overflow Flag} & Status &
+        Hasil operasi bertanda berada di luar jangkauan \\
         \addlinespace
-        \flag{TF} & Prosesor diminta berhenti setelah setiap
-        instruksi & \asm{PUSHF}, \asm{POPF}; disetel oleh
-        \eng{debugger} \\
+        \flag{TF} & \eng{Trap Flag} & Kendali &
+        Prosesor diminta berhenti setelah setiap instruksi untuk
+        \eng{debugging} \\
         \addlinespace
-        \flag{IF} & \eng{Interrupt} yang dapat ditutup diizinkan &
-        \asm{STI} (menyalakan), \asm{CLI} (mematikan), \asm{INT},
-        \asm{IRET} \\
+        \flag{IF} & \eng{Interrupt Flag} & Kendali &
+        Interupsi yang dapat ditutup diizinkan \\
         \addlinespace
-        \flag{DF} & Operasi string bergerak\emph{menurun}
-        (dari alamat besar ke kecil) & \asm{STD} (menyalakan),
-        \asm{CLD} (mematikan), \asm{INT}, \asm{IRET} \\
+        \flag{DF} & \eng{Direction Flag} & Kendali &
+        Operasi string bergerak menurun, dari alamat besar ke kecil \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\begin{infobox}
-Instruksi pemindahan data seperti \asm{MOV}, \asm{LEA}, \asm{PUSH},
-dan \asm{POP} \textbf{tidak} mengubah \eng{flag}. Karena itu,
-\eng{flag} hasil \lstasm|ADD AL, BL| tetap utuh walaupun sesudahnya
-dijalankan \lstasm|MOV AH, 09h| atau \lstasm|LEA DX, pesan|.
-Pengecualiannya adalah \asm{POPF} dan \asm{SAHF} yang memang
-dirancang untuk menulis \eng{flag}.
-\end{infobox}
+\eng{Flag} status dibaca oleh program untuk mengetahui keadaan hasil
+operasi. \eng{Flag} kendali diatur oleh programmer atau oleh
+\eng{debugger} untuk mengubah cara prosesor bekerja. Pada bab ini,
+perhatian utama diberikan pada enam \eng{flag} status karena
+\eng{flag} tersebut yang paling sering dipakai untuk mengambil
+keputusan.
 
-\subsection{Contoh Perubahan Flag pada \lstasm{ADD AL, BL}}
+\subsection{Contoh Perubahan Flag pada Penjumlahan}
 
 Cara paling cepat memahami \eng{flag} adalah mengamati beberapa
 kasus penjumlahan yang berbeda. Tabel~\ref{tab:contoh-flag-add}
-memuat tiga kasus yang wajib dipahami.
+memuat tiga kasus pada register 16 bit.
 
 \begin{table}[H]
     \centering
-    \caption{Perubahan \eng{flag} pada tiga kasus
-    \lstasm{ADD AL, BL}. Tanda ``--'' berarti \eng{flag} bernilai 0.}
+    \caption{Perubahan \eng{flag} pada tiga kasus penjumlahan 16 bit.
+    Tanda ``--'' berarti \eng{flag} bernilai 0.}
     \label{tab:contoh-flag-add}
     \small
-    \begin{tabular}{@{}ccccccp{4.5cm}@{}}
+    \begin{tabular}{@{}ccccccp{4.6cm}@{}}
         \toprule
-        \textbf{AL} & \textbf{BL} & \textbf{AL baru} &
+        \textbf{Operand 1} & \textbf{Operand 2} & \textbf{Hasil} &
         \flag{CF} & \flag{OF} & \flag{SF} & \textbf{Alasan singkat} \\
         \midrule
-        \hex{7F} & \hex{01} & \hex{80} & -- & 1 & 1 &
-        Tanpa simpanan keluar, tetapi penjumlahan bertanda melampaui
-        batas 127 \\
+        \hex{7FFF} & \hex{0001} & \hex{8000} & -- & 1 & 1 &
+        Dua bilangan positif menghasilkan bilangan negatif \\
         \addlinespace
-        \hex{80} & \hex{80} & \hex{00} & 1 & 1 & -- &
-        Simpanan keluar terjadi; dua bilangan negatif menghasilkan
-        nol \\
+        \hex{8000} & \hex{8000} & \hex{0000} & 1 & 1 & -- &
+        Simpanan keluar tak bertanda; dua bilangan negatif
+        menghasilkan nol \\
         \addlinespace
-        \hex{FF} & \hex{01} & \hex{00} & 1 & -- & -- &
+        \hex{FFFF} & \hex{0001} & \hex{0000} & 1 & -- & -- &
         Simpanan keluar terjadi, tetapi hasil bertanda tepat nol \\
         \bottomrule
     \end{tabular}
@@ -224,49 +107,42 @@ memuat tiga kasus yang wajib dipahami.
 Penjelasan ketiga kasus tersebut adalah sebagai berikut.
 
 \begin{enumerate}
-    \item \textbf{\hex{7F} $+$ \hex{01} = \hex{80}.}
-          Sebagai bilangan tak bertanda, \hex{7F} (\dec{127}) ditambah
-          \hex{01} menghasilkan \dec{128}, yang masih muat di satu
-          byte. Jadi \flag{CF} bernilai 0. Namun sebagai bilangan
-          bertanda, \hex{7F} adalah $+127$ dan hasilnya \hex{80}
-          ditafsirkan sebagai $-128$. Dua operand positif menghasilkan
-          hasil negatif --- inilah tanda \eng{overflow} --- sehingga
-          \flag{OF} bernilai 1. Bit tertinggi hasil menyala, maka
-          \flag{SF} juga bernilai 1. Hasilnya bukan nol, sehingga
-          \flag{ZF} bernilai 0. Nibble rendah \hex{F} ditambah
-          \hex{1} menghasilkan \hex{10}, sehingga \flag{AF} bernilai 1.
+    \item \textbf{\hex{7FFF} $+$ \hex{0001} = \hex{8000}.}
+          Sebagai bilangan tak bertanda, hasilnya masih muat dalam
+          16 bit sehingga \flag{CF} bernilai 0. Sebagai bilangan
+          bertanda, \hex{7FFF} adalah $+32767$ dan hasil \hex{8000}
+          ditafsirkan sebagai $-32768$. Dua operand positif
+          menghasilkan hasil negatif, sehingga \flag{OF} bernilai 1.
+          Bit tanda hasil menyala, sehingga \flag{SF} juga bernilai 1.
 
-    \item \textbf{\hex{80} $+$ \hex{80} = \hex{100}.}
-          Secara tak bertanda, \dec{128} ditambah \dec{128} sama
-          dengan \dec{256}, sehingga muncul simpanan keluar dan
-          \flag{CF} bernilai 1. Sisa satu byte hasilnya adalah
-          \hex{00}, sehingga \flag{ZF} bernilai 1 dan \flag{SF}
-          bernilai 0. Secara bertanda, dua bilangan negatif
-          ($-128$ dan $-128$) menghasilkan nol, padahal jumlah
-          sebenarnya $-256$ berada di luar jangkauan byte. Karena
-          itu \flag{OF} bernilai 1.
+    \item \textbf{\hex{8000} $+$ \hex{8000} = \hex{10000}.}
+          Sebagai bilangan tak bertanda, hasilnya melebihi 16 bit
+          sehingga \flag{CF} bernilai 1. Sisa 16 bit hasilnya adalah
+          \hex{0000}, sehingga \flag{ZF} bernilai 1 dan \flag{SF}
+          bernilai 0. Sebagai bilangan bertanda, dua bilangan negatif
+          menghasilkan nol, padahal jumlah sebenarnya di luar
+          jangkauan, sehingga \flag{OF} bernilai 1.
 
-    \item \textbf{\hex{FF} $+$ \hex{01} = \hex{100}.}
-          Kasus ini menyerupai kasus kedua, tetapi tafsir bertandanya
-          berbeda. Sebagai bilangan bertanda, \hex{FF} adalah $-1$
-          dan \hex{01} adalah $+1$. Hasil sebenarnya $0$ berada di
-          dalam jangkauan, sehingga \flag{OF} bernilai 0. Simpanan
-          keluar tetap muncul, sehingga \flag{CF} bernilai 1 dan
+    \item \textbf{\hex{FFFF} $+$ \hex{0001} = \hex{10000}.}
+          Simpanan keluar terjadi sehingga \flag{CF} bernilai 1.
+          Sebagai bilangan bertanda, \hex{FFFF} adalah $-1$ dan
+          \hex{0001} adalah $+1$; hasilnya nol dan masih berada di
+          dalam jangkauan, sehingga \flag{OF} bernilai 0 dan
           \flag{ZF} bernilai 1.
 \end{enumerate}
 
-Kasus ketiga menunjukkan hal penting: \flag{CF} dan \flag{OF}
+Kasus pertama dan kedua menunjukkan bahwa \flag{CF} dan \flag{OF}
 menjawab pertanyaan yang berbeda. \flag{CF} berlaku untuk bilangan
-tak bertanda, sedangkan \flag{OF} berlaku untuk bilangan bertanda.
-Keduanya tidak boleh dipertukarkan.
+tidak bertanda, sedangkan \flag{OF} berlaku untuk bilangan
+bertanda. Keduanya tidak boleh dipertukarkan.
 
 \subsection{Pengaruh Flag terhadap Keputusan Program}
 
 \eng{Flag} baru bermakna ketika dipakai untuk mengambil keputusan.
-Instruksi \asm{CMP} membandingkan dua nilai dengan cara mengurangi
-keduanya tanpa menyimpan hasil, lalu meninggalkan jejaknya pada
-\eng{flag}. Instruksi lompatan bersyarat kemudian membaca
-\eng{flag} tersebut.
+Program dapat memeriksa \eng{flag} setelah operasi aritmatika atau
+setelah instruksi \asm{CMP}, lalu memilih jalur eksekusi berdasarkan
+keadaan \eng{flag} tersebut. Pasangan \eng{flag} dan lompatan yang
+umum dipakai ditunjukkan pada Tabel~\ref{tab:flag-lompat}.
 
 \begin{table}[H]
     \centering
@@ -274,19 +150,18 @@ keduanya tanpa menyimpan hasil, lalu meninggalkan jejaknya pada
     memakainya.}
     \label{tab:flag-lompat}
     \small
-    \begin{tabular}{@{}cp{4.6cm}p{6.5cm}@{}}
+    \begin{tabular}{@{}cp{4.0cm}p{5.6cm}@{}}
         \toprule
-        \textbf{Flag} & \textbf{Lompatan} &
-        \textbf{Makna} \\
+        \textbf{Flag} & \textbf{Lompatan} & \textbf{Makna} \\
         \midrule
-        \flag{ZF} & \asm{JE}, \asm{JZ} & Lompat bila hasil nol
-        (kedua nilai sama) \\
+        \flag{ZF} & \asm{JE}, \asm{JZ} & Lompat bila hasil nol atau
+        kedua nilai sama \\
         \addlinespace
         \flag{ZF} & \asm{JNE}, \asm{JNZ} & Lompat bila hasil tidak
-        nol (kedua nilai berbeda) \\
+        nol atau kedua nilai berbeda \\
         \addlinespace
         \flag{CF} & \asm{JC}, \asm{JB} & Lompat bila ada simpanan
-        keluar (nilai pertama lebih kecil secara tak bertanda) \\
+        keluar atau nilai pertama lebih kecil secara tak bertanda \\
         \addlinespace
         \flag{CF} & \asm{JNC}, \asm{JAE} & Lompat bila tidak ada
         simpanan keluar \\
@@ -296,34 +171,29 @@ keduanya tanpa menyimpan hasil, lalu meninggalkan jejaknya pada
         \addlinespace
         \flag{OF} & \asm{JO}, \asm{JNO} & Lompat bila terjadi
         \eng{overflow} bertanda atau tidak \\
-        \addlinespace
-        \flag{PF} & \asm{JP}, \asm{JNP} & Lompat berdasarkan paritas
-        byte rendah hasil \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 Rincian cara kerja lompatan bersyarat dan pola perbandingan
-\texttt{CMP} diuraikan pada Bab~\ref{chap:kontrol}. Sementara itu,
-Bab~\ref{chap:aritmatika} membahas bagaimana \eng{flag}
-dimanfaatkan pada penjumlahan bersimpan (\asm{ADC}) dan pengurangan
-bersimpan (\asm{SBB}) untuk membentuk aritmatika banyak byte.
+\asm{CMP} dibahas pada bab tentang percabangan dan perulangan. Pada
+bab ini, yang perlu dipahami adalah bahwa \eng{flag} menyimpan
+keadaan hasil operasi dan bahwa keadaan itu dapat dibaca untuk
+menentukan langkah berikutnya.
 
 \begin{peringatanbox}
-Tiga kesalahan yang paling sering terjadi pada pemakaian
-\eng{flag}.
-\begin{enumerate}
-    \item \textbf{Menganggap \asm{MOV} mengubah \eng{flag}.}
-          \asm{MOV} sama sekali tidak memengaruhi \eng{flag}.
-          Menyisipkan \lstasm|MOV| di antara \lstasm|CMP| dan
-          lompatan bersyarat adalah aman.
-    \item \textbf{Tertukar antara \flag{CF} dan \flag{OF}.}
-          Memakai \asm{JC} untuk memeriksa hasil bilangan bertanda
-          adalah salah; yang tepat adalah \asm{JO} atau \asm{JS}.
-    \item \textbf{Lupa bahwa \asm{INC} dan \asm{DEC} tidak mengubah
-          \flag{CF}.} Kedua instruksi ini mengubah \flag{ZF},
-          \flag{SF}, \flag{OF}, dan \flag{AF}, tetapi membiarkan
-          \flag{CF} apa adanya. Untuk menambah 1 dengan tetap
-          memperbarui \flag{CF}, gunakan \lstasm|ADD AL, 1|.
-\end{enumerate}
+\vspace{1.1em}
+Kesalahan yang sering terjadi adalah menukar \flag{CF} dengan
+\flag{OF}. \flag{CF} dipakai untuk operasi bilangan tidak bertanda,
+sedangkan \flag{OF} dipakai untuk operasi bilangan bertanda. Memakai
+\asm{JC} untuk memeriksa hasil bilangan bertanda dapat memberi
+kesimpulan yang salah.
 \end{peringatanbox}
+
+\begin{infobox}
+\vspace{1.1em}
+Instruksi pemindahan data seperti \asm{MOV} tidak memperbarui
+\eng{flag} hasil operasi aritmatika. Karena itu, \eng{flag} hasil
+\lstasm|ADD AX, BX| masih dapat diperiksa walaupun sesudahnya
+dijalankan \lstasm|MOV hasil, AX|.
+\end{infobox}

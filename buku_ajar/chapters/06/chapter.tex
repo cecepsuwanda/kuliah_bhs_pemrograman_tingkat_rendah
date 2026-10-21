@@ -10,9 +10,10 @@
 % =========================================================
 
 \begin{subcpmkbox}
-\SubCPMK{1.3} --- Menerapkan konsep segmentasi memori: menghitung
-alamat fisik 20-bit dari pasangan \eng{segment:offset}, menjelaskan
-paragraf 16-byte, dan menganalisis skema pengalamatan 1 MB.
+\vspace{1.1em}
+\SubCPMK{1.4} --- Menghitung alamat fisik dari pasangan
+\eng{segment:offset} serta menjelaskan pembagian memori 1 MB dan
+\eng{overlapping} segmen.
 
 \vspace{0.4em}
 \textbf{CPMK yang didukung:} \CPMK{01} \quad\textbullet\quad
@@ -20,49 +21,34 @@ paragraf 16-byte, dan menganalisis skema pengalamatan 1 MB.
 \end{subcpmkbox}
 
 \begin{tujuanbox}
+\vspace{1.1em}
 Setelah mempelajari bab ini, mahasiswa mampu:
 \begin{enumerate}
-    \item menjelaskan mengapa prosesor 8086 yang berbus alamat 20 bit
-          tetap memakai register segmen 16 bit;
+    \item menjelaskan alasan 8086 memakai register segmen 16 bit
+          walaupun bus alamatnya 20 bit;
     \item membedakan alamat logis (\eng{segment:offset}) dan alamat
-          fisik, serta menuliskan keduanya dengan notasi yang benar;
-    \item menghitung alamat fisik 20-bit dari pasangan
-          \eng{segment:offset} memakai rumus
-          $(\text{segmen} \times \hex{10}) + \text{offset}$;
-    \item menjelaskan makna paragraf 16-byte dan hubungannya dengan
-          ukuran segmen 64 KB;
-    \item menghitung banyaknya pasangan \eng{segment:offset} yang
-          menunjuk satu alamat fisik yang sama
-          (\eng{overlapping segment});
-    \item menyebutkan pembagian peta memori 1 MB beserta kegunaan
-          setiap area (vektor interupsi, memori konvensional, area
-          video, dan ROM BIOS);
-    \item menganalisis kasus batas perhitungan alamat yang melewati
-          batas 1 MB (\eng{wrap-around});
-    \item memverifikasi hasil perhitungan alamat dengan
-          \eng{debugger} Emu8086 atau DEBUG.
+          fisik;
+    \item menghitung alamat fisik dari pasangan
+          \eng{segment:offset};
+    \item menjelaskan paragraf 16 byte dan struktur segmen 64 KB;
+    \item menjelaskan \eng{overlapping} segmen dan banyaknya pasangan
+          yang menunjuk satu alamat fisik;
+    \item menyebutkan pembagian memori 1 MB;
+    \item memverifikasi hasil perhitungan alamat dengan DEBUG atau
+          emu8086.
 \end{enumerate}
 \end{tujuanbox}
 
 \begin{materibox}
+\vspace{1.1em}
 \begin{enumerate}
-    \item Masalah yang melahirkan segmentasi: register 16-bit
-          (maksimum 64 KB) berhadapan dengan bus alamat 20-bit
-          (1 MB).
-    \item Alamat logis (\eng{segment:offset}) dan alamat fisik;
-          notasi penulisan \code{1234h:5678h}.
-    \item Rumus alamat fisik
-          $(\text{segmen} \times \hex{10}) + \text{offset}$ dan
-          alasan penggunaan pengali 16.
-    \item Paragraf 16-byte dan struktur segmen 64 KB.
-    \item \eng{Overlapping segment}: banyak pasangan menunjuk satu
-          alamat fisik; cara menghitung jumlah kemungkinannya.
-    \item Peta memori 1 MB: tabel vektor interupsi, area data BIOS,
-          memori konvensional 640 KB, area video, dan ROM BIOS.
-    \item Kasus batas: alamat yang melewati batas 1 MB dan
-          \eng{wrap-around}.
-    \item Verifikasi alamat dengan DEBUG dan Emu8086
-          (\lstasm|D segmen:offset|).
+    \item Masalah pengalamatan: register 16 bit dan bus alamat 20 bit.
+    \item Alamat logis dan alamat fisik.
+    \item Rumus alamat fisik dan perhitungan bertingkat.
+    \item Paragraf 16 byte dan segmen 64 KB.
+    \item \eng{Overlapping} segmen.
+    \item Pembagian memori 1 MB.
+    \item Verifikasi alamat dengan DEBUG dan emu8086.
 \end{enumerate}
 \end{materibox}
 

@@ -4,71 +4,57 @@
 Pada bab ini telah dibahas:
 
 \begin{itemize}
-    \item Segmentasi lahir dari pertemuan dua kenyataan yang tidak
-          sepadan: register 16-bit hanya menjangkau 64 KB, sedangkan
-          bus alamat 20 bit harus menjangkau 1 MB. Segmentasi
-          menjembatani keduanya tanpa mengubah lebar register
-          maupun lebar instruksi.
+    \item Register 16 bit hanya menjangkau 64 KB, sedangkan bus
+          alamat 8086 selebar 20 bit menjangkau 1 MB. Segmentasi
+          menjembatani kedua sisi tersebut.
 
     \item Alamat logis ditulis sebagai pasangan
-          \eng{segment:offset}, misalnya \code{1234h:5678h},
-          sedangkan alamat fisik adalah alamat 20-bit yang dikirim
-          ke bus alamat.
+          \eng{segment:offset}, misalnya \code{1234h:5678h}.
+          Alamat fisik adalah alamat 20 bit yang dikirim ke bus
+          alamat.
 
     \item Alamat fisik dihitung dengan rumus
-          $(\text{segmen} \times \hex{10}) + \text{offset}$. Pengali
-          \hex{10} adalah bilangan heksadesimal yang bernilai
-          $16$ desimal, yaitu panjang satu paragraf.
+          $(\text{segmen} \times \hex{10}) + \text{offset}$.
+          Pengali \hex{10} sama dengan 16 desimal.
 
-    \item \term{Paragraf} adalah blok 16 byte; nilai segmen
-          menyatakan nomor paragraf, sehingga alamat dasar segmen
-          selalu berakhir dengan digit \hex{0} dan segmen selalu
-          mencakup jendela 64 KB.
+    \item Memori dibagi menjadi paragraf berukuran 16 byte. Nilai
+          segmen menyatakan nomor paragraf, sehingga alamat dasar
+          segmen selalu kelipatan 16.
 
-    \item Satu alamat fisik dapat dinyatakan oleh banyak pasangan
-          \eng{segment:offset} (\eng{overlapping segment}). Jumlah
-          pasangan untuk alamat $F$ di bawah \hex{10000} adalah
-          $\lfloor F / 16 \rfloor + 1$, dan tidak pernah melebihi
-          4096 pasangan untuk alamat mana pun.
+    \item Satu segmen menjangkau 64 KB, dari offset \hex{0000}
+          sampai \hex{FFFF}. Enam belas segmen menutupi 1 MB.
 
-    \item Peta memori 1 MB terbagi menjadi tabel vektor interupsi
-          (\hex{00000}--\hex{003FF}), area data BIOS
-          (\hex{00400}--\hex{004FF}), memori konvensional 640 KB
-          sampai \hex{9FFFF}, area video pada \hex{A0000}--\hex{BFFFF}
-          dengan buffer teks warna mulai \hex{B8000}, ROM adaptor,
-          serta ROM BIOS pada \hex{F0000}--\hex{FFFFF}.
+    \item \eng{Overlapping} segmen membuat satu alamat fisik dapat
+          dinyatakan oleh banyak pasangan \eng{segment:offset}.
+          Jumlah pasangan untuk alamat $F$ di bawah \hex{10000}
+          adalah $\lfloor F/16 \rfloor + 1$, dan maksimumnya 4.096.
 
-    \item Perhitungan yang melampaui \hex{FFFFF} memunculkan bit
-          ke-21 yang dibuang oleh 8086, sehingga alamat berputar
-          (\eng{wrap-around}) ke awal ruang memori. Pada 80286 ke
-          atas, wilayah \hex{100000}--\hex{10FFEF} dapat dipakai
-          sebagai segmen tinggi melalui jalur \eng{A20 gate}.
+    \item Memori 1 MB terbagi menjadi memori konvensional 640 KB,
+          buffer video, ROM adaptor, dan ROM BIOS.
 
-    \item Hasil perhitungan alamat dapat diverifikasi dengan
-          perintah \lstasm|D segmen:offset| pada DEBUG, atau melalui
-          jendela \file{Memory} pada Emu8086.
+    \item Alamat fisik dapat diverifikasi dengan DEBUG atau
+          emu8086. Perintah \lstasm|D segmen:offset| menampilkan
+          alamat logis; alamat fisiknya dihitung dengan rumus.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
-    \item[\checkbox] Saya dapat menjelaskan alasan munculnya
-          segmentasi pada prosesor 8086.
+    \item[\checkbox] Saya dapat menjelaskan alasan segmentasi pada
+          8086.
     \item[\checkbox] Saya dapat membedakan alamat logis dan alamat
-          fisik beserta notasi penulisannya.
-    \item[\checkbox] Saya dapat menghitung alamat fisik 20-bit dari
-          pasangan \eng{segment:offset} tanpa kesalahan.
-    \item[\checkbox] Saya dapat menjelaskan makna paragraf 16-byte
-          dan hubungannya dengan segmen 64 KB.
-    \item[\checkbox] Saya dapat menghitung banyaknya pasangan yang
+          fisik.
+    \item[\checkbox] Saya dapat menghitung alamat fisik dari
+          \eng{segment:offset}.
+    \item[\checkbox] Saya dapat menjelaskan paragraf 16 byte dan
+          segmen 64 KB.
+    \item[\checkbox] Saya dapat menentukan banyaknya pasangan yang
           menunjuk satu alamat fisik.
-    \item[\checkbox] Saya dapat menyebutkan pembagian peta memori
-          1 MB beserta kegunaan setiap area.
-    \item[\checkbox] Saya dapat menjelaskan mengapa alamat di atas
-          \hex{FFFFF} berputar kembali ke awal memori.
-    \item[\checkbox] Saya dapat memverifikasi hasil perhitungan
-          alamat dengan DEBUG atau Emu8086.
+    \item[\checkbox] Saya dapat menyebutkan pembagian memori 1 MB.
+    \item[\checkbox] Saya dapat memverifikasi alamat dengan DEBUG
+          atau emu8086.
 \end{itemize}
 
 \vspace{0.4em}
@@ -77,11 +63,8 @@ bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Penjelasan mengenai segmentasi, paragraf
-16-byte, dan pembentukan alamat fisik 20-bit bersumber dari
-\cite{intel1979}, \cite{kader2014}, \cite{courses2103}, dan
-\cite{tanenbaum2013}. Untuk pembahasan yang lebih luas mengenai
-peta memori dan organisasi memori berlapis, lihat
-\cite{tanenbaum2013}, sedangkan rincian perintah \eng{debugger}
-dapat ditelusuri pada \cite{courses2103}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 2.1.1, hlm.~13--15, dan \cite{sto2001},
+BAB II, hlm.~9--13.
 \end{infobox}

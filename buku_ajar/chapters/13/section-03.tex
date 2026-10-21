@@ -1,248 +1,154 @@
-\section{Stack Frame, Konvensi Pemanggilan, dan Rekursi}
-\label{sec:stack-frame}
+\section{Perulangan}
+\label{sec:perulangan}
 
-Tabel~\ref{tab:trace-stack} memperlihatkan bahwa prosedur selalu
-mengerjakan empat hal: membangun bingkai, mengakses parameter,
-menghasilkan nilai balik, lalu membongkar bingkai. Pola bakunya
-disebut \term{stack frame} standar \cite{bartlett2004}.
+Perulangan adalah percabangan yang kembali ke titik awal selama
+syarat tertentu terpenuhi. Prosesor 8086 menyediakan instruksi
+\asm{LOOP} yang memakai register \reg{CX} sebagai pencacah.
 
-\subsection{\eng{Prologue} dan \eng{Epilogue}}
+\subsection{Instruksi LOOP}
 
-Bagian pembuka prosedur, atau \term{prologue}, terdiri atas dua
-instruksi; bagian penutupnya, atau \term{epilogue}, juga dua
-instruksi.
+\asm{LOOP} mengurangi \reg{CX} dengan satu, lalu melompat ke label
+tujuan bila \reg{CX} belum nol.
 
-\begin{lstlisting}[
-    language=MASM,
-    caption={Kerangka baku \eng{prologue} dan \eng{epilogue} prosedur
-    \eng{near}.},
-    label={lst:prologue-epilogue}
-]
-HitungLuas PROC
-    PUSH BP                 ; prologue : simpan BP pemanggil
-    MOV  BP, SP             ; prologue : BP <- titik acuan bingkai
-
-    ; --- badan prosedur ---
-    ; parameter diakses sebagai [BP+4], [BP+6], ...
-
-    POP  BP                 ; epilogue : pulihkan BP pemanggil
-    RET                     ; epilogue : kembali ke pemanggil
-HitungLuas ENDP
-\end{lstlisting}
-
-Instruksi \lstasm|PUSH BP| wajib ada karena \reg{BP} hanya ada satu
-buah; tanpa menyimpannya, prosedur akan menimpa \reg{BP} milik
-pemanggil sehingga akses parameter pemanggil menjadi salah.
-Pasangan \lstasm|PUSH BP| dan \lstasm|POP BP| harus seimbang pada
-setiap jalur keluar prosedur.
-
-\subsection{Mengakses Parameter dan Variabel Lokal}
-
-Setelah \lstasm|MOV BP, SP|, susunan bingkai selalu sama dengan
-Gambar~\ref{fig:isi-stack-call}, sehingga jarak setiap isi dari
-\reg{BP} bersifat tetap:
-
-\begin{itemize}
-    \item \code{[BP+0]} --- nilai \reg{BP} milik pemanggil;
-    \item \code{[BP+2]} --- alamat kembali (\reg{IP});
-    \item \code{[BP+4]} --- parameter pertama (yang didorong terakhir);
-    \item \code{[BP+6]} --- parameter kedua;
-    \item \code{[BP+8]} --- parameter ketiga, dan seterusnya.
-\end{itemize}
-
-Karena pemanggil mendorong parameter kedua lebih dahulu, parameter
-pertama-lah yang berada pada \code{[BP+4]}. Bila urutan \asm{PUSH}
-dibalik tanpa mengubah badan prosedur, kedua nilai akan tertukar
-tanpa pesan kesalahan apa pun.
-
-Variabel lokal disimpan di bawah \reg{BP}, misalnya pada
-\code{[BP-2]}, dengan mengurangi \reg{SP} pada akhir
-\eng{prologue} dan memulihkannya pada awal \eng{epilogue}:
+\begin{center}
+\lstasm|LOOP tujuan|
+\end{center}
 
 \begin{lstlisting}[language=MASM, numbers=none]
-    PUSH BP                 ; prologue
-    MOV  BP, SP
-    SUB  SP, 4              ; sediakan dua variabel lokal 16-bit
-
-    MOV  WORD PTR [BP-2], 0 ; variabel lokal pertama
-    MOV  WORD PTR [BP-4], 0 ; variabel lokal kedua
-
-    MOV  SP, BP             ; epilogue : buang variabel lokal
-    POP  BP
-    RET
+MOV CX, 5           ; ulangi lima kali
+ULANG:
+    ; badan perulangan
+    LOOP ULANG      ; CX := CX - 1; lompat bila CX <> 0
 \end{lstlisting}
 
-\subsection{Konvensi Pemanggilan}
+Karena pengujian dilakukan setelah pengurangan, badan perulangan
+selalu dijalankan paling sedikit satu kali. Bila \reg{CX} bernilai
+nol pada awal perulangan, \asm{LOOP} akan mengulang sebanyak
+65.536 kali. Karena itu, periksa \reg{CX} dengan \asm{JCXZ} bila
+cacah perulangan mungkin nol.
 
-\term{Konvensi pemanggilan} (\eng{calling convention}) adalah
-kesepakatan antara pemanggil dan prosedur mengenai tiga hal: letak
-parameter, letak nilai balik, dan siapa yang membersihkan stack.
-Tanpa kesepakatan ini, prosedur yang ditulis satu orang tidak dapat
-dipakai oleh program orang lain \cite{uva2024}. Tiga cara pengiriman
-parameter yang lazim dipakai dirangkum pada Tabel~\ref{tab:konvensi}.
+\subsection{Varian LOOP}
 
 \begin{table}[H]
     \centering
-    \caption{Perbandingan cara pengiriman parameter kepada prosedur.}
-    \label{tab:konvensi}
+    \caption{Keluarga instruksi perulangan pada 8086.}
+    \label{tab:loop}
     \small
-    \begin{tabular}{@{}p{2.4cm}p{3.6cm}p{3.7cm}p{3.5cm}@{}}
+    \begin{tabular}{@{}p{3.2cm}p{5.6cm}p{5.2cm}@{}}
         \toprule
-        \textbf{Cara} & \textbf{Kelebihan} &
-        \textbf{Kekurangan} & \textbf{Contoh} \\
+        \textbf{Instruksi} & \textbf{Aksi} & \textbf{Kegunaan} \\
         \midrule
-        Melalui register & Tidak ada akses memori; paling cepat dan
-        paling ringkas & Jumlah parameter terbatas oleh jumlah
-        register; prosedur menjadi kurang umum &
-        \lstasm|MOV AX, 5| lalu \lstasm|CALL Tulis| \\
+        \asm{LOOP} & \reg{CX} $\leftarrow$ \reg{CX} $-1$; lompat
+        bila \reg{CX} $\neq 0$ & Perulangan dengan cacah diketahui \\
         \addlinespace
-        Melalui stack & Jumlah parameter tidak terbatas; pemanggil
-        tidak perlu tahu register mana yang dipakai prosedur &
-        Lebih lambat karena setiap parameter menimbulkan akses
-        memori; rawan stack tidak seimbang &
-        \lstasm|PUSH 5| lalu \lstasm|CALL HitungLuas| \\
+        \asm{LOOPE} / \asm{LOOPZ} & Seperti \asm{LOOP}, tetapi
+        hanya lompat bila \flag{ZF} $=1$ & Mencari ketidakcocokan \\
         \addlinespace
-        Melalui variabel global & Prosedur sangat sederhana; tidak
-        ada instruksi tambahan sebelum pemanggilan & Prosedur tidak
-        dapat dipakai ulang; sulit ditelusuri saat kesalahan terjadi
-        & \lstasm|MOV lebar, 5| lalu \lstasm|CALL HitungLuas| \\
+        \asm{LOOPNE} / \asm{LOOPNZ} & Seperti \asm{LOOP}, tetapi
+        hanya lompat bila \flag{ZF} $=0$ & Pencarian berhenti saat
+        nilai ditemukan \\
+        \addlinespace
+        \asm{JCXZ} & Lompat bila \reg{CX} $=0$; tidak mengubah
+        \reg{CX} & Menangani cacah nol \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Siapa yang membersihkan stack dari parameter? Bila prosedur yang
-membersihkannya, \eng{epilogue} berakhir dengan \asm{RET} \code{n}
-yang mengambil \reg{IP} lalu menambahkan \code{n} pada \reg{SP}
-sekaligus. Bila pemanggil yang membersihkannya, prosedur memakai
-\asm{RET} biasa dan pemanggil menambahkan \lstasm|ADD SP, 4|
-setelah \asm{CALL}. Keduanya tidak boleh dipakai bersama-sama:
-\asm{RET} \code{4} yang disusul \lstasm|ADD SP, 4| membuat \reg{SP}
-naik \dec{8} byte padahal hanya \dec{4} byte yang perlu dibuang.
+Perulangan juga dapat dibentuk dengan \asm{DEC} dan \asm{JNZ}:
 
-Pertanyaan ketiga menyangkut register. Pada 8086 tidak ada aturan
-perangkat keras yang memaksa, sehingga kesepakatan dibuat di tingkat
-program; pembagian yang lazim mengikuti Microsoft C untuk 8086
-dirangkum pada Tabel~\ref{tab:register-simpan}.
-
-\begin{table}[H]
-    \centering
-    \caption{Pembagian tanggung jawab penyimpanan register pada
-    konvensi pemanggilan 8086.}
-    \label{tab:register-simpan}
-    \small
-    \begin{tabular}{@{}p{3.3cm}p{2.6cm}p{3.5cm}p{3.8cm}@{}}
-        \toprule
-        \textbf{Golongan} & \textbf{Register} &
-        \textbf{Tanggung jawab} & \textbf{Akibat bila dilanggar} \\
-        \midrule
-        Boleh dirusak (\eng{caller-saved}) & \reg{AX}, \reg{BX},
-        \reg{CX}, \reg{DX}, \reg{ES} & Pemanggil menyimpan sendiri
-        bila nilainya masih diperlukan setelah pemanggilan &
-        Pemanggil memakai nilai yang sudah berubah \\
-        \addlinespace
-        Wajib dipulihkan (\eng{callee-saved}) & \reg{BP}, \reg{SI},
-        \reg{DI}, \reg{DS}, \reg{SS} & Prosedur menyimpan pada
-        \eng{prologue} dan memulihkan pada \eng{epilogue} &
-        Pemanggil kehilangan nilai lama; akses data dapat salah
-        alamat \\
-        \addlinespace
-        Selalu dipulihkan & \reg{SP} & Stack harus seimbang saat
-        \asm{RET} dijalankan & \asm{RET} mengambil alamat yang salah;
-        program berhenti tak terkendali \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\subsection{Nilai Balik Prosedur}
-
-Nilai balik dikembalikan melalui register, bukan melalui stack:
-hasil \dec{8} bit pada \reg{AL}, hasil \dec{16} bit pada \reg{AX},
-dan hasil \dec{32} bit pada pasangan \reg{DX}:\reg{AX}. Pola
-\reg{DX}:\reg{AX} muncul secara alami karena \asm{MUL} dan
-\asm{IMUL} memang menyimpan hasil kalinya pada kedua register itu
-(Bab~\ref{chap:aritmatika}). \reg{AX} termasuk register yang boleh
-dirusak, sehingga prosedur tidak wajib memulihkannya.
-
-\subsection{Rekursi pada Assembly}
-
-\term{Rekursi} adalah pemanggilan prosedur oleh dirinya sendiri.
-Pada bahasa tingkat tinggi rekursi tampak sebagai fitur bahasa; pada
-assembly rekursi tampak jelas sebagai penumpukan bingkai stack.
-Setiap pemanggilan menambah satu bingkai baru yang berisi parameter,
-alamat kembali, dan \reg{BP} sendiri.
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={Prosedur faktorial rekursif (bagian inti).},
-    label={lst:faktorial-inti}
-]
-Faktorial PROC
-    PUSH BP                 ; prologue
-    MOV  BP, SP
-
-    MOV  AX, [BP+4]         ; AX <- n
-    CMP  AX, 1              ; apakah n <= 1 ?
-    JBE  basis              ; ya -> kasus basis
-
-    DEC  AX                 ; AX <- n - 1
-    PUSH AX                 ; dorong argumen (n-1)
-    CALL Faktorial          ; rekursi : AX <- (n-1)!
-    ADD  SP, 2              ; bersihkan argumen rekursif
-
-    MUL  WORD PTR [BP+4]    ; DX:AX <- (n-1)! * n
-
-    POP  BP                 ; epilogue
-    RET
-
-basis:
-    MOV  AX, 1              ; 0! = 1! = 1
-    POP  BP                 ; epilogue
-    RET
-Faktorial ENDP
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV CX, 5
+ULANG2:
+    ; badan perulangan
+    DEC CX
+    JNZ ULANG2      ; ulangi bila CX belum nol
 \end{lstlisting}
 
-Setiap bingkai rekursif memerlukan \dec{6} byte stack: \dec{2} byte
-parameter, \dec{2} byte alamat kembali, dan \dec{2} byte \reg{BP}
-lama. Untuk menghitung $5!$ diperlukan lima bingkai, yaitu sekitar
-\dec{30} byte, sehingga kebutuhan stack tumbuh sebanding dengan
-kedalaman rekursi atau setara $O(n)$.
+Kedua bentuk setara. \asm{LOOP} lebih ringkas, sedangkan pasangan
+\asm{DEC} dan \asm{JNZ} lebih luwes karena pencacah tidak harus
+\reg{CX}.
 
-Fibonacci rekursif $F(n) = F(n-1) + F(n-2)$ jauh lebih berat karena
-setiap tingkat memanggil dirinya dua kali. Untuk $n = \dec{20}$ saja
-jumlah pemanggilannya melebihi \dec{10.000}, sedangkan versi
-iteratifnya cukup memakai satu perulangan dengan stack tetap. Karena
-itu Fibonacci jauh lebih baik ditulis secara iteratif pada assembly.
+\subsection{Pola while dan for}
+
+Perulangan \code{while} memeriksa syarat sebelum badan perulangan.
+Bila syarat tidak terpenuhi, badan tidak dijalankan sama sekali.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+; while (AX < 10) { AX = AX + 1 }
+ULANG_WHILE:
+    CMP AX, 10
+    JGE SELESAI_WHILE
+    INC AX
+    JMP ULANG_WHILE
+SELESAI_WHILE:
+\end{lstlisting}
+
+Perulangan \code{for} dengan cacah tetap lebih ringkas memakai
+\asm{LOOP}:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+; for (CX = 8; CX > 0; CX--) { proses }
+MOV CX, 8
+ULANG_FOR:
+    ; badan perulangan
+    LOOP ULANG_FOR
+\end{lstlisting}
+
+\subsection{Perulangan Bersarang}
+
+Perulangan bersarang memerlukan dua pencacah. Karena \asm{LOOP}
+selalu memakai \reg{CX}, pencacah luar harus disimpan sementara
+sebelum perulangan dalam dimulai. Penyimpanan tersebut biasanya
+memakai \eng{stack} dengan \asm{PUSH} dan \asm{POP}.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV CX, 3           ; pencacah luar
+LUAR:
+    PUSH CX         ; simpan pencacah luar
+    MOV CX, 4       ; pencacah dalam
+DALAM:
+    ; badan perulangan dalam
+    LOOP DALAM
+    POP CX          ; pulihkan pencacah luar
+    LOOP LUAR
+\end{lstlisting}
+
+Pola ini dipakai pada pengurutan gelembung: perulangan luar
+menentukan banyak lintasan, perulangan dalam membandingkan pasangan
+elemen yang berdekatan.
+
+\subsection{Contoh Pola: Nilai Maksimum}
+
+Pola pencarian nilai maksimum memakai \asm{CMP} dan \asm{JAE}.
+Kandidat maksimum disimpan di \reg{AX}; setiap elemen dibandingkan
+dengan kandidat.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+LEA SI, deret
+MOV CX, BANYAK - 1
+MOV AX, [SI]
+ADD SI, 2
+CARI:
+    CMP AX, [SI]
+    JAE LANJUT          ; kandidat >= elemen: tidak diganti
+    MOV AX, [SI]
+LANJUT:
+    ADD SI, 2
+    LOOP CARI
+\end{lstlisting}
 
 \begin{peringatanbox}
-Bahaya terbesar rekursi pada 8086 adalah \term{stack overflow}.
-Prosesor 8086 tidak memiliki pengaman batas stack. Bila rekursi
-terlalu dalam atau kasus basis tidak pernah tercapai, \reg{SP} akan
-terus turun melewati batas bawah ruang \dir{.STACK}, lalu mulai
-menimpa segmen data atau segmen kode. Kerusakannya terjadi tanpa
-pesan kesalahan, dan program berhenti dengan perilaku yang sulit
-ditelusuri. Pemeriksaan isi stack dengan \eng{debugger} dibahas pada
-Bab~\ref{chap:debugging}.
+\vspace{1.1em}
+\asm{LOOP} mengubah \reg{CX}. Bila \reg{CX} sedang dipakai untuk
+keperluan lain, simpan nilainya terlebih dahulu atau gunakan
+pasangan \asm{DEC} dan \asm{JNZ} dengan register lain. Kesalahan
+paling sering pada perulangan bersarang adalah lupa memulihkan
+pencacah luar.
 \end{peringatanbox}
 
-\subsection{Kesalahan Umum Pengelolaan Stack}
-
-Empat kesalahan berikut paling sering dijumpai.
-
-\begin{enumerate}
-    \item \textbf{Stack tidak seimbang.} Jumlah \asm{PUSH} tidak
-          sama dengan jumlah \asm{POP} pada setiap jalur eksekusi,
-          sehingga \asm{RET} mengambil alamat yang salah.
-
-    \item \textbf{\asm{RET} ke alamat yang salah.} Pemanggilan
-          \eng{near} ditutup dengan \asm{RETF} atau sebaliknya,
-          sehingga jumlah byte yang diambil dari stack tidak cocok.
-
-    \item \textbf{Lupa menyimpan register yang dipakai.} Prosedur
-          memakai \reg{SI} atau \reg{DI} tanpa menyimpannya,
-          sehingga pemanggil kehilangan nilai lama register itu.
-
-    \item \textbf{Kerusakan \eng{stack frame}.} \reg{BP} diubah di
-          tengah prosedur, atau jalur keluar prosedur melompati
-          \lstasm|POP BP|, sehingga epilogue memulihkan nilai yang
-          salah.
-\end{enumerate}
+\begin{infobox}
+\vspace{1.1em}
+Perulangan \asm{LOOP} dan lompatan bersyarat hanya mengubah alur
+eksekusi. Keduanya tidak mengubah isi array atau variabel kecuali
+instruksi di dalam badan perulangan memang melakukannya.
+\end{infobox}

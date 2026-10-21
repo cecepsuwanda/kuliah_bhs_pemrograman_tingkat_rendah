@@ -20,17 +20,29 @@ menurut abjad Indonesia.
 \endfoot
 
 Alamat efektif & \eng{effective address} & Alamat yang dihasilkan
-dari perhitungan base + index + displacement pada mode pengalamatan
+dari perhitungan basis + indeks + perpindahan pada mode pengalamatan
 tertentu. \\
 \addlinespace
 Alamat fisik & \eng{physical address} & Alamat 20-bit yang benar-benar
 dikirim ke bus alamat, hasil perhitungan segmen dan offset. \\
 \addlinespace
+Array & \eng{array} & Kumpulan data bertipe sama yang disimpan
+berurutan di memori. \\
+\addlinespace
+ASCII & \eng{ASCII} & Penyandian karakter satu byte yang dipakai
+lingkungan DOS. \\
+\addlinespace
 Assembler & \eng{assembler} & Program yang menerjemahkan kode sumber
 assembly menjadi kode mesin dan berkas objek. \\
 \addlinespace
+BCD & \eng{Binary Coded Decimal} & Penyandian setiap digit desimal
+dalam empat bit. \\
+\addlinespace
 Bilangan bertanda & \eng{signed number} & Bilangan yang dapat bernilai
-negatif, disandikan dengan \eng{two's complement} pada x86. \\
+negatif, disandikan dengan \eng{two's complement} pada 8086. \\
+\addlinespace
+Debugging & \eng{debugging} & Proses menelusuri dan memperbaiki
+kesalahan program dengan \eng{debugger}. \\
 \addlinespace
 Digit biner & \eng{bit} & Satuan informasi terkecil, bernilai 0 atau 1. \\
 \addlinespace
@@ -48,20 +60,20 @@ ditulis programmer. \\
 Lompatan bersyarat & \eng{conditional jump} & Instruksi lompatan yang
 hanya dijalankan bila kondisi flag tertentu terpenuhi. \\
 \addlinespace
+Macro & \eng{macro} & Bagian program bernama yang disalin ke tempat
+pemakaian oleh assembler dan dapat menerima parameter. \\
+\addlinespace
 Memori konvensional & \eng{conventional memory} & 640 KB pertama
 ruang memori yang dapat dipakai program DOS. \\
 \addlinespace
 Mode pengalamatan & \eng{addressing mode} & Cara penulisan operand
 yang menentukan bagaimana alamat operand dihitung. \\
 \addlinespace
-Mnemonic & \eng{mnemonic} & Nama pendek yang mewakili sebuah opcode
-dalam bahasa assembly, misalnya \asm{MOV}. \\
+Mnemonic & \eng{mnemonic} & Nama pendek yang mewakili sebuah
+instruksi dalam bahasa assembly, misalnya \asm{MOV}. \\
 \addlinespace
 Nibble & \eng{nibble} & Kelompok empat bit, setara dengan satu digit
 heksadesimal. \\
-\addlinespace
-Opcode & \eng{opcode} & Bagian instruksi yang menyatakan operasi yang
-harus dilakukan. \\
 \addlinespace
 Operand & \eng{operand} & Bagian instruksi yang menyatakan data yang
 dikenai operasi. \\
@@ -78,28 +90,20 @@ masukan atau keluaran. \\
 Perakitan & \eng{assembling} & Proses menerjemahkan kode sumber
 assembly menjadi berkas objek. \\
 \addlinespace
-Pergeseran aritmetika & \eng{arithmetic shift} & Pergeseran yang
-mempertahankan bit tanda pada bilangan bertanda. \\
-\addlinespace
 Pergeseran logis & \eng{logical shift} & Pergeseran yang mengisi bit
 kosong dengan nol. \\
 \addlinespace
-Pipelining & \eng{pipelining} & Teknik menjalankan tahapan instruksi
-berbeda secara tumpang tindih untuk menaikkan kinerja. \\
-\addlinespace
 Port I/O & \eng{port I/O} & Akses perangkat melalui ruang alamat
 terpisah memakai instruksi \asm{IN} dan \asm{OUT}. \\
+\addlinespace
+Prosedur & \eng{procedure} & Bagian program bernama yang dipanggil
+dengan \asm{CALL} dan kembali dengan \asm{RET}. \\
 \addlinespace
 Register & \eng{register} & Penyimpan kecil berkecepatan tinggi di
 dalam prosesor. \\
 \addlinespace
 Register flag & \eng{flag register} & Register yang menampung bit-bit
 status hasil operasi sebelumnya. \\
-\addlinespace
-Rekursi & \eng{recursion} & Prosedur yang memanggil dirinya sendiri. \\
-\addlinespace
-Rotasi & \eng{rotate} & Pergeseran yang memindahkan bit yang keluar
-kembali ke ujung yang lain. \\
 \addlinespace
 Segmen & \eng{segment} & Blok memori berukuran maksimum 64 KB yang
 ditunjuk sebuah register segmen. \\
@@ -118,6 +122,9 @@ Stack & \eng{stack} & Area memori yang dikelola secara
 \addlinespace
 Stack frame & \eng{stack frame} & Susunan data di stack selama satu
 pemanggilan prosedur, biasanya ditunjuk register \reg{BP}. \\
+\addlinespace
+String & \eng{string} & Deretan karakter yang disimpan sebagai byte
+berurutan dan diakhiri penanda tertentu. \\
 \addlinespace
 Tabel vektor interupsi & \eng{interrupt vector table} & Tabel pada
 alamat 0000h--03FFh yang memuat alamat setiap penangan interupsi. \\

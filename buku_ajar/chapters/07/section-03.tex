@@ -1,211 +1,142 @@
-\section{Encoding Manual dan Disassembler}
-\label{sec:encoding-manual}
+\section{Direktif Data dan Alur Translasi}
+\label{sec:direktif-translasi}
 
-Setelah format instruksi dipahami, langkah berikutnya adalah
-melakukan pekerjaan assembler secara manual: menentukan sendiri byte
-kode mesin dari sebuah instruksi. Kemampuan ini melatih ketelitian
-sekaligus menjadi dasar untuk membaca hasil \eng{disassembly}.
+Di dalam berkas \file{.ASM} terdapat dua jenis pernyataan yang harus
+dibedakan. \term{Instruksi} adalah perintah yang akan dijalankan
+prosesor, misalnya \asm{MOV} atau \asm{ADD}. \term{Direktif} adalah
+perintah kepada assembler, misalnya untuk menyediakan data atau
+menentukan model memori. Direktif tidak diterjemahkan menjadi
+instruksi yang dieksekusi.
 
-\subsection{Langkah-langkah Encoding Manual}
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 4,
+hlm.~26--34, dan Bagian 8, hlm.~76--77, serta \cite{sto2001},
+BAB V--VI, hlm.~21--26, dan BAB IX, hlm.~41--46.
 
-Untuk mengubah satu instruksi assembly menjadi byte kode mesin,
-dapat ditempuh lima langkah berikut.
+\subsection{Direktif Data}
 
-\begin{prosedur}
-\begin{enumerate}
-    \item Tentukan operasi dan bentuk operandnya: apakah register,
-          memori, atau nilai segera, serta berapa ukurannya
-          (8 bit atau 16 bit).
-    \item Cari \eng{opcode} dasar yang sesuai pada tabel
-          \eng{opcode}. Perhatikan arah perpindahan data, karena
-          \hex{8B} dan \hex{89} memiliki arti berlawanan.
-    \item Hitung byte ModR/M bila instruksi melibatkan register atau
-          memori. Susun field \code{mod}, \code{reg}, dan \code{r/m}
-          sesuai operand, lalu gabungkan menjadi satu byte.
-    \item Tambahkan \eng{displacement} bila operand memori bergeser,
-          dan tambahkan \eng{immediate} bila operandnya berupa angka.
-    \item Tuliskan seluruh byte berurutan menurut alamat, dengan setiap
-          nilai 16 bit dalam urutan \eng{little-endian}.
-\end{enumerate}
-\end{prosedur}
-
-\subsection{Contoh Encoding Byte demi Byte}
-
-Tabel~\ref{tab:encoding-contoh} memuat lima instruksi yang diuraikan
-byte demi byte. Instruksi pertama sampai keempat adalah bentuk yang
-paling sering dijumpai, sedangkan instruksi kelima menunjukkan
-bagaimana instruksi tanpa ModR/M dikodekan.
+Direktif data menentukan isi segmen data. Bentuk yang paling sering
+dipakai dirangkum pada Tabel~\ref{tab:direktif-data}.
 
 \begin{table}[H]
     \centering
-    \caption{Encoding lima instruksi 8086 beserta rincian setiap
-    byte.}
-    \label{tab:encoding-contoh}
-    \footnotesize
-    \begin{tabular}{@{}p{3.3cm}p{1.7cm}p{8.2cm}@{}}
-        \toprule
-        \textbf{Instruksi} & \textbf{Byte lengkap} &
-        \textbf{Rincian} \\
-        \midrule
-        \lstasm|MOV AX, BX| & \hex{89 D8} &
-        Opcode \hex{89} = ``r/m16 $\leftarrow$ r16''.
-        ModR/M \hex{D8} = \bin{11 011 000}: \code{mod} = \bin{11}
-        (register), \code{reg} = \bin{011} (\reg{BX}, sumber),
-        \code{r/m} = \bin{000} (\reg{AX}, tujuan) \\
-        \addlinespace
-        \lstasm|MOV AL, 5| & \hex{B0 05} &
-        Opcode \hex{B0} = ``r8 $\leftarrow$ imm8''.
-        Nomor register \reg{AL} = \dec{0}, sehingga
-        \hex{B0} $+$ \dec{0} = \hex{B0}. Byte kedua \hex{05} adalah
-        \eng{immediate} 8 bit \\
-        \addlinespace
-        \lstasm|MOV AX, 1234h| & \hex{B8 34 12} &
-        Opcode \hex{B8} = ``r16 $\leftarrow$ imm16''.
-        Nomor register \reg{AX} = \dec{0}, sehingga
-        \hex{B8} $+$ \dec{0} = \hex{B8}. \eng{Immediate}
-        \hex{1234} disimpan \eng{little-endian} menjadi
-        \hex{34} lalu \hex{12} \\
-        \addlinespace
-        \lstasm|ADD AX, [SI+4]| & \hex{03 44 04} &
-        Opcode \hex{03} = ``r16 $\leftarrow$ r16 $+$ r/m16''.
-        ModR/M \hex{44} = \bin{01 000 100}: \code{mod} = \bin{01}
-        (\eng{disp8}), \code{reg} = \bin{000} (\reg{AX}),
-        \code{r/m} = \bin{100} (\lstasm|[SI]|). Byte ketiga
-        \hex{04} adalah \eng{displacement} \\
-        \addlinespace
-        \lstasm|INT 21h| & \hex{CD 21} &
-        Opcode \hex{CD} = ``panggil interupsi''.
-        Instruksi ini tidak memakai ModR/M; byte \hex{21} adalah
-        nomor interupsi sebagai \eng{immediate} 8 bit \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-Dua pola penting terlihat pada tabel tersebut. Pertama, sebagian
-opcode memakai tiga bit \code{reg} sebagai penambah \eng{opcode},
-seperti \hex{B0} dan \hex{B8} yang nomor register-nya disisipkan pada
-bit terendah. Kedua, instruksi yang tidak melibatkan register atau
-memori sama sekali tidak memerlukan byte ModR/M.
-
-\subsection{Tabel Ringkas Opcode Instruksi Umum}
-
-Menghafal seluruh \eng{opcode} 8086 tidak diperlukan, tetapi
-mengenali pola kelompoknya sangat membantu. Tabel~\ref{tab:opcode-umum}
-merangkum \eng{opcode} instruksi yang paling sering dipakai pada
-bab-bab berikutnya.
-
-\begin{table}[H]
-    \centering
-    \caption{Ringkasan opcode instruksi umum 8086.}
-    \label{tab:opcode-umum}
+    \caption{Direktif data yang sering dipakai pada program 8086.}
+    \label{tab:direktif-data}
     \small
-    \begin{tabular}{@{}p{2.2cm}p{2.6cm}p{5.0cm}c@{}}
+    \begin{tabular}{@{}lp{3.8cm}p{7.0cm}@{}}
         \toprule
-        \textbf{Instruksi} & \textbf{Opcode} &
-        \textbf{Bentuk operand} & \textbf{Byte} \\
+        \textbf{Direktif} & \textbf{Ukuran} & \textbf{Kegunaan} \\
         \midrule
-        \asm{MOV} & \hex{88}--\hex{8B} &
-        Antar \code{r/m} dan register & 2--4 \\
+        \dir{DB} & 1 byte & Mendefinisikan byte, karakter, atau
+        string \\
         \addlinespace
-        \asm{MOV} & \hex{B0}--\hex{B7} &
-        Register 8 bit, \eng{immediate} 8 bit & 2 \\
+        \dir{DW} & 2 byte & Mendefinisikan satu kata (\eng{word}) \\
         \addlinespace
-        \asm{MOV} & \hex{B8}--\hex{BF} &
-        Register 16 bit, \eng{immediate} 16 bit & 3 \\
+        \dir{DD} & 4 byte & Mendefinisikan bilangan 32 bit \\
         \addlinespace
-        \asm{MOV} & \hex{C6}/\hex{C7} &
-        \code{r/m}, \eng{immediate} & 3--6 \\
+        \dir{EQU} & --- & Memberi nama pada konstanta \\
         \addlinespace
-        \asm{ADD} & \hex{00}--\hex{03} &
-        Antar \code{r/m} dan register & 2--4 \\
+        \dir{DUP} & sesuai data & Mengulang pola data beberapa kali \\
         \addlinespace
-        \asm{ADD} & \hex{04}/\hex{05} &
-        \reg{AL}/\reg{AX} dengan \eng{immediate} & 2--3 \\
+        \code{?} & sesuai direktif & Menyediakan ruang tanpa nilai
+        awal \\
         \addlinespace
-        \asm{SUB} & \hex{28}--\hex{2D} &
-        Pengurangan, pola sama dengan \asm{ADD} & 2--4 \\
-        \addlinespace
-        \asm{CMP} & \hex{38}--\hex{3D} &
-        Pembandingan, hanya mengubah \eng{flag} & 2--4 \\
-        \addlinespace
-        \asm{JMP} & \hex{EB} &
-        Lompat pendek, \eng{rel8} & 2 \\
-        \addlinespace
-        \asm{JMP} & \hex{E9} &
-        Lompat dekat, \eng{rel16} & 3 \\
-        \addlinespace
-        \asm{CALL} & \hex{E8} &
-        Panggil dekat, \eng{rel16} & 3 \\
-        \addlinespace
-        \asm{INT} & \hex{CC} &
-        \code{INT 3}, titik henti \eng{debugger} & 1 \\
-        \addlinespace
-        \asm{INT} & \hex{CD} &
-        Interupsi dengan nomor 8 bit & 2 \\
-        \addlinespace
-        \asm{PUSH} & \hex{50}--\hex{57} &
-        Dorong register 16 bit ke \eng{stack} & 1 \\
-        \addlinespace
-        \asm{POP} & \hex{58}--\hex{5F} &
-        Ambil register 16 bit dari \eng{stack} & 1 \\
+        \dir{ORG} & --- & Menetapkan offset awal program atau data \\
         \bottomrule
     \end{tabular}
 \end{table}
+
+Contoh pemakaian:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+pesan   DB  'Halo', 0Dh, 0Ah, '$'   ; string dan kode kendali
+nilai   DW  1234h                    ; satu kata
+besar   DD  12345678h                ; empat byte
+PANJANG EQU 20                       ; konstanta
+bintang DB  4 DUP('*')               ; empat karakter bintang
+buffer  DB  8 DUP(?)                 ; ruang kosong delapan byte
+\end{lstlisting}
+
+String pada \dir{DB} disimpan sebagai byte-byte berurutan. Karakter
+\code{0Dh} dan \code{0Ah} dipakai untuk pindah baris, sedangkan
+\code{'\$'} menandai akhir string untuk layanan DOS fungsi
+\hex{09}. Konstanta \dir{EQU} tidak menempati memori; nilainya
+disisipkan assembler ketika nama tersebut dipakai.
+
+\subsection{Model Memori dan Direktif Struktur}
+
+Direktif \dir{.MODEL} menggantikan penulisan \dir{SEGMENT} dan
+\dir{ASSUME} yang panjang pada program sederhana. Model \code{SMALL}
+menyediakan satu segmen kode dan satu segmen data. Model \code{TINY}
+menggabungkan kode, data, dan \eng{stack} dalam satu segmen untuk
+program \file{.COM}.
+
+Direktif \dir{ORG 100h} pada program \file{.COM} menetapkan bahwa
+program dimuat mulai offset \hex{100}. Pada program \file{.EXE},
+direktif ini tidak dipakai karena linker yang menentukan alamat awal
+berdasarkan informasi program.
 
 \begin{infobox}
-Penulisan \hex{00}--\hex{03} berarti empat opcode berurutan, masing-masing
-untuk satu kombinasi arah dan ukuran operand: \hex{00} untuk 8 bit
-arah \code{r/m} $\leftarrow$ \code{reg}, \hex{01} untuk 16 bit, lalu
-\hex{02} dan \hex{03} untuk arah sebaliknya. Pola berkelompok semacam
-ini berlaku pada hampir seluruh instruksi aritmatika 8086
-\cite{intel1979}.
+\vspace{1.1em}
+\important{Direktif bukan instruksi.} \dir{DB}, \dir{DW}, \dir{EQU},
+dan \dir{.MODEL} tidak menjadi instruksi mesin. Direktif hanya
+mengatur bagaimana assembler menyusun program dan data.
 \end{infobox}
 
-\subsection{Membalik Kode Mesin dengan Disassembler}
+\subsection{Alur Translasi dan Berkas Hasil}
 
-\term{Disassembler} melakukan pekerjaan kebalikan dari assembler:
-membaca byte kode mesin dan menampilkannya kembali sebagai mnemonic.
-Alat bawaan DOS, yaitu \file{DEBUG}, menyediakan perintah \code{U}
-(\eng{unassemble}) untuk keperluan ini.
+Alur translasi program dapat diringkas sebagai berikut.
 
-Perintah \code{U} menerima rentang alamat dan mencetak tiga kolom:
-alamat, byte kode mesin, lalu mnemonic hasil terjemahan. Contoh
-keluaran perintah \code{U 100 108} pada program \file{.COM} ditampilkan
-pada Kode~\ref{lst:keluaran-u}.
+\begin{enumerate}
+    \item \file{program.asm} ditulis dalam editor teks.
+    \item TASM menghasilkan \file{program.obj}.
+    \item TLINK menghasilkan \file{program.exe} atau, dengan pilihan
+          \code{/t}, \file{program.com}.
+    \item DOS memuat berkas hasil dan menjalankannya.
+\end{enumerate}
 
-\begin{session}[caption={Keluaran perintah \code{U} pada \file{DEBUG}
-untuk delapan belas byte pertama program.}, label={lst:keluaran-u}]
--u 100 10C
-13F2:0100 B80500        MOV     AX,0005
-13F2:0103 BB0100        MOV     BX,0001
-13F2:0106 8908          MOV     [BX+SI],CX
-13F2:0108 03C3          ADD     AX,BX
-13F2:010A CD21          INT     21
-13F2:010C 90            NOP
-\end{session}
+Berkas \file{.OBJ} belum dapat dijalankan karena masih memuat
+rujukan simbol dan alamat yang belum final. TLINK menyelesaikan
+rujukan tersebut dan menetapkan alamat segmen. Berkas \file{.EXE}
+memuat informasi tambahan tentang segmen dan titik masuk, sedangkan
+berkas \file{.COM} dimuat langsung pada satu segmen.
 
-Setiap baris keluaran dimulai alamat instruksi, diikuti byte kode
-mesin, lalu mnemonic. Baris pertama menunjukkan \lstasm|MOV AX, 0005|
-menempati tiga byte, sedangkan \lstasm|ADD AX, BX| pada baris keempat
-hanya dua byte. Perbandingan seperti ini adalah cara paling langsung
-untuk melihat pengaruh bentuk operand terhadap panjang instruksi.
+\subsection{Membaca Pesan Kesalahan Assembler}
+
+TASM melaporkan kesalahan beserta nomor barisnya. Pesan yang sering
+muncul pada tahap awal dirangkum pada Tabel~\ref{tab:error-assembler}.
+
+\begin{table}[H]
+    \centering
+    \caption{Pesan kesalahan assembler yang sering muncul.}
+    \label{tab:error-assembler}
+    \small
+    \begin{tabular}{@{}p{4.2cm}p{4.4cm}p{5.0cm}@{}}
+        \toprule
+        \textbf{Pesan} & \textbf{Penyebab umum} &
+        \textbf{Cara memperbaiki} \\
+        \midrule
+        \file{Undefined symbol} & Label atau variabel belum
+        didefinisikan & Periksa ejaan nama dan pastikan deklarasinya
+        ada \\
+        \addlinespace
+        \file{Syntax error} & Salah tulis instruksi atau direktif &
+        Periksa penulisan mnemonic, koma, dan tanda kutip \\
+        \addlinespace
+        \file{Operand types do not match} & Ukuran operand tidak
+        sama & Samakan ukuran register dan data, atau gunakan
+        \lstasm|BYTE PTR| / \lstasm|WORD PTR| \\
+        \addlinespace
+        \file{Improper operand type} & Operasi memori ke memori yang
+        tidak diizinkan & Pindahkan salah satu operand ke register \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \begin{peringatanbox}
-Disassembler tidak dapat membedakan kode dari data. Byte yang
-sebenarnya merupakan data string, misalnya, tetap diterjemahkan
-sebagai instruksi dan menghasilkan mnemonic yang tampak masuk akal
-tetapi salah. Karena itu, hasil \eng{disassembly} harus selalu
-diperiksa terhadap titik masuk program dan alur kendali yang
-sesungguhnya \cite{wikibooksdisasm}. Pembahasan lebih lanjut
-mengenai keterbatasan ini terdapat pada Bab~\ref{chap:disassembly}.
+\vspace{1.1em}
+Kesalahan yang tidak dilaporkan assembler tetapi membuat program
+gagal berjalan biasanya berasal dari logika: salah memilih register,
+lupa menginisialisasi \reg{DS}, atau salah menghitung offset. Karena
+itu, pesan kesalahan assembler hanya menangani kesalahan penulisan;
+kesalahan logika harus dicari dengan \eng{debugger}.
 \end{peringatanbox}
-
-\subsection{Hubungan dengan Translasi Program}
-
-Pekerjaan manual di atas sesungguhnya merupakan inti proses
-translasi. Assembler menjalankan lima langkah yang sama untuk setiap
-baris kode sumber, tetapi jauh lebih cepat dan teliti. Direktif,
-tabel simbol, dan penanganan label dibahas pada
-Bab~\ref{chap:translasi}; dengan memahami format instruksi terlebih
-dahulu, setiap keputusan assembler dapat ditelusuri sampai byte demi
-byte.

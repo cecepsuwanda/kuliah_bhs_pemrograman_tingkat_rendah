@@ -4,139 +4,104 @@
 \subsection{Soal Pilihan Ganda}
 
 \begin{enumerate}
-    \item Perintah DEBUG yang menampilkan seluruh register dan
-          \eng{flag} adalah \dots
-          \begin{enumerate}
-              \item \code{U} \item \code{D}
-              \item \code{R} \item \code{T}
-          \end{enumerate}
-
-    \item Pada saat \lstasm|CALL HITUNG| ditelusuri, perintah yang
-          \emph{tidak} masuk ke dalam prosedur \asm{HITUNG} adalah
+    \item Elemen ketiga array word \code{deret} berada pada offset
           \dots
           \begin{enumerate}
-              \item \code{T} \item \code{P}
-              \item \code{U} \item \code{R}
+              \item \code{deret+1} \item \code{deret+2}
+              \item \code{deret+4} \item \code{deret+6}
           \end{enumerate}
 
-    \item Keluaran baris \eng{flag} DEBUG yang menunjukkan bahwa
-          \flag{ZF} bernilai satu dan \flag{CF} bernilai nol adalah
-          \dots
+    \item Offset elemen baris $r$ kolom $c$ pada matriks word dengan
+          $K$ kolom adalah \dots
           \begin{enumerate}
-              \item \code{NV UP EI PL NZ NA PO NC}
-              \item \code{NV UP EI PL ZR NA PE NC}
-              \item \code{OV DN DI NG NZ AC PO CY}
-              \item \code{NV UP EI NG NZ NA PO CY}
+              \item $(r + c) \times 2$
+              \item $(r \times K + c) \times 2$
+              \item $(r \times c + K) \times 2$
+              \item $(K \times c + r) \times 2$
           \end{enumerate}
 
-    \item Sebuah prosedur menekan \reg{AX}, \reg{BX}, dan \reg{CX},
-          tetapi hanya memulihkan \reg{CX} dan \reg{BX}. Akibat yang
-          paling mungkin terjadi adalah \dots
+    \item Penanda akhir string untuk layanan DOS fungsi \hex{09}
+          adalah \dots
           \begin{enumerate}
-              \item assembler menolak program karena jumlah
-                    \asm{PUSH} dan \asm{POP} tidak seimbang
-              \item \asm{RET} melompat ke alamat yang bukan alamat
-                    kembali
-              \item register \reg{AX} otomatis dipulihkan oleh DOS
-              \item program berjalan benar karena \reg{AX} tidak
-                    dipakai lagi
+              \item \hex{00} \item \code{'\$'}
+              \item \hex{0D} \item \hex{FF}
           \end{enumerate}
 
-    \item Program selesai tanpa pesan kesalahan dari assembler dan
-          sistem operasi, tetapi hasil perhitungannya salah. Jenis
-          kesalahan ini adalah \dots
+    \item Konversi bilangan desimal menjadi digit memakai pembagian
+          berulang oleh \dots
           \begin{enumerate}
-              \item kesalahan sintaks \item kesalahan logika
-              \item kesalahan segmentasi \item \eng{overflow}
-                    \eng{stack}
+              \item 2 \item 8
+              \item 10 \item 16
+          \end{enumerate}
+
+    \item Nilai heksadesimal 10 diubah menjadi karakter \code{'A'}
+          dengan menambahkan \dots{} pada nilai digit.
+          \begin{enumerate}
+              \item \hex{30} \item \hex{37}
+              \item \hex{41} \item \hex{07}
           \end{enumerate}
 \end{enumerate}
 
 \subsection{Soal Uraian}
 
 \begin{enumerate}
-    \item Jelaskan perbedaan perintah \code{T} dan \code{P} ketika
-          dihadapkan pada instruksi \asm{CALL} dan \code{INT 21h}.
-          Sertakan satu situasi ketika \code{T} lebih tepat dan satu
-          situasi ketika \code{P} lebih tepat.
+    \item Jelaskan cara mendeklarasikan array satu dimensi dan
+          menghitung offset elemennya. Jelaskan pula perhitungan
+          offset array multi dimensi.
 
-    \item Diberikan keluaran \code{D SS:00F4} berikut.
+    \item Tuliskan perulangan untuk menyalin string dari \reg{SI} ke
+          \reg{DI} sampai penanda \code{'\$'}. Jelaskan pula cara
+          membandingkan dua string.
 
-\begin{session}[caption={Keluaran \code{D} pada \eng{stack} untuk
-soal uraian 2.}]
-13A7:00F4  00 00 00 00 00 00 C3 1A-08 00 00 00 00 00 00 00  ................
-\end{session}
+    \item Jelaskan algoritme konversi bilangan desimal. Mengapa sisa
+          pembagian disimpan pada \eng{stack}, dan bagaimana urutan
+          pengambilannya?
 
-          \begin{enumerate}
-              \item Tentukan isi \reg{SS}:\hex{00FA} dan
-                    \reg{SS}:\hex{00FC}.
-              \item Bila \reg{SP} bernilai \hex{00FA} dan instruksi
-                    berikutnya adalah \asm{RET}, alamat berapa yang
-                    akan dimuat ke \reg{IP}? Jelaskan perhitungannya.
-              \item Sebutkan satu penyebab yang paling mungkin bila
-                    nilai tersebut bukan alamat kembali yang benar.
-          \end{enumerate}
-
-    \item Uraikan enam tahap metodologi \eng{debugging} sistematis.
-          Untuk setiap tahap, sebutkan bukti yang harus dikumpulkan
-          dan jelaskan mengapa tahap tersebut tidak boleh dilewati.
-
-    \item Sebuah program menjumlahkan delapan byte larik, tetapi
-          hasilnya selalu lebih besar dari yang seharusnya. Tuliskan
-          langkah \eng{debugging} yang Anda lakukan mulai dari
-          reproduksi sampai verifikasi. Sebutkan perintah DEBUG yang
-          dipakai pada setiap langkah dan bukti yang diharapkan dari
-          keluaran perintah tersebut.
+    \item Jelaskan algoritme konversi bilangan heksadesimal. Tuliskan
+          potongan program yang mencetak \reg{AX} sebagai empat digit
+          heksadesimal.
 \end{enumerate}
 
 \subsection{Kisi-kisi Penilaian}
 
 \begin{table}[H]
     \centering
-    \caption{Kisi-kisi evaluasi Bab~\ref{chap:debugging}.}
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:array-string}.}
     \label{tab:kisi-bab15}
     \small
-    \begin{tabular}{@{}p{1.6cm}p{4.8cm}p{3.0cm}c@{}}
+    \begin{tabular}{@{}p{1.5cm}p{5.0cm}p{3.0cm}c@{}}
         \toprule
         \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
         \textbf{Bentuk soal} & \textbf{Bobot} \\
         \midrule
-        4.1 & Mengenali perintah penelusuran dan pemantauan \eng{flag} &
-        Pilihan ganda 1, 3 & 15\% \\
+        3.6 & Mengolah array satu dan multi dimensi &
+        Pilihan ganda 1, 2; Uraian 1 & 30\% \\
         \addlinespace
-        4.1 & Membedakan \code{T} dan \code{P} pada \asm{CALL} dan
-        \code{INT} & Pilihan ganda 2; Uraian 1 & 25\% \\
+        3.6 & Mengolah string &
+        Pilihan ganda 3; Uraian 2 & 25\% \\
         \addlinespace
-        4.2 & Menganalisis \eng{dump} memori dan bingkai \eng{stack} &
-        Uraian 2 & 25\% \\
+        3.6 & Mengonversi bilangan desimal &
+        Pilihan ganda 4; Uraian 3 & 25\% \\
         \addlinespace
-        4.2 & Menjelaskan metodologi \eng{debugging} dan menerapkannya &
-        Pilihan ganda 4, 5; Uraian 3, 4 & 35\% \\
+        3.6 & Mengonversi bilangan heksadesimal &
+        Pilihan ganda 5; Uraian 4 & 20\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \begin{checklistbox}
-\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:debugging}}
+\vspace{1.1em}
+\textbf{Checklist Pencapaian Kompetensi
+Bab~\ref{chap:array-string}}
 
-Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 4.1 dan 4.2
-apabila:
+Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 3.6 apabila:
 \begin{itemize}
-    \item[\checked] dapat menyebutkan taksonomi kesalahan program
-          beserta gejala khas masing-masing;
-    \item[\checked] dapat memakai perintah \code{R}, \code{U},
-          \code{T}, \code{P}, \code{G}, dan \code{D} tanpa panduan;
-    \item[\checked] dapat menjelaskan kapan \code{T} dan kapan
-          \code{P} dipakai pada \asm{CALL} serta \code{INT};
-    \item[\checked] dapat mengisi tabel \eng{trace} register dan
-          \eng{flag} dengan benar sekurang-kurangnya sepuluh langkah;
-    \item[\checked] dapat membaca \eng{dump} memori dan menentukan
-          isi bingkai \eng{stack};
-    \item[\checked] dapat menemukan dan memperbaiki perulangan tak
-          berujung, kesalahan \eng{off-by-one}, dan \eng{stack} tidak
-          seimbang dalam batas waktu yang diberikan;
-    \item[\checked] dapat menerapkan enam tahap metodologi
-          \eng{debugging} dan menuliskan laporan \eng{trace} yang
-          dapat diulang oleh orang lain.
+    \item[\checked] dapat mendeklarasikan array satu dimensi;
+    \item[\checked] dapat menghitung offset array multi dimensi;
+    \item[\checked] dapat mengakses array dengan register indeks;
+    \item[\checked] dapat menyalin dan membandingkan string;
+    \item[\checked] dapat mengonversi bilangan desimal;
+    \item[\checked] dapat mengonversi bilangan heksadesimal;
+    \item[\checked] dapat mencetak hasil konversi.
 \end{itemize}
 \end{checklistbox}

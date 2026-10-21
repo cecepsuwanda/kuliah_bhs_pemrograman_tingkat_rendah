@@ -1,120 +1,90 @@
-\section{Contoh Program}
+\section{Contoh}
 \label{sec:contoh-bab3}
 
-Bagian ini menyajikan tiga contoh program yang dirakit dan dijalankan
-menggunakan Emu8086 atau TASM. Ketiganya sengaja dibuat sesingkat
-mungkin agar seluruh baris dapat dipahami satu per satu.
+Bagian ini menyajikan dua contoh. Contoh pertama menuntun konversi
+bilangan langkah demi langkah. Contoh kedua menunjukkan bagaimana
+nilai yang ditulis dalam basis berbeda disimpan di memori dan
+diperiksa dengan DEBUG.
 
-\subsection{Contoh 1: Mencetak Teks dengan Layanan DOS}
+\subsection{Contoh 1: Konversi Nilai 200}
 
-Program pada Kode~\ref{lst:hello} adalah program assembly pertama yang
-biasa dipakai: mencetak satu baris teks ke layar.
+Nilai 200 akan dinyatakan dalam biner, oktal, dan heksadesimal.
+Langkah pertama adalah membagi 200 dengan 2 secara berulang.
+
+\begin{center}
+\begin{tabular}{@{}ccc@{}}
+    \toprule
+    \textbf{Pembagian} & \textbf{Hasil} & \textbf{Sisa} \\
+    \midrule
+    $200 \div 2$ & 100 & 0 \\
+    $100 \div 2$ & 50 & 0 \\
+    $50 \div 2$ & 25 & 0 \\
+    $25 \div 2$ & 12 & 1 \\
+    $12 \div 2$ & 6 & 0 \\
+    $6 \div 2$ & 3 & 0 \\
+    $3 \div 2$ & 1 & 1 \\
+    $1 \div 2$ & 0 & 1 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+Sisa dibaca dari bawah ke atas sehingga 200 = \bin{11001000}.
+Pengelompokan tiga bit dari kanan menghasilkan
+\bin{011} \bin{001} \bin{000}, yaitu $310_8$. Pengelompokan empat bit
+menghasilkan \bin{1100} \bin{1000}, yaitu \hex{C8}.
+
+Sebagai bilangan bertanda 8 bit, \bin{11001000} bernilai
+$200 - 256 = -56$. Pola bit yang sama karena itu dapat berarti 200
+(tidak bertanda) atau $-56$ (bertanda).
+
+\subsection{Contoh 2: Menyimpan Bilangan dalam Basis Berbeda}
+
+Program pada Kode~\ref{lst:bilangan-data} mendefinisikan empat byte
+data. Tiga byte pertama berisi nilai yang sama, yaitu 243, tetapi
+ditulis dalam basis yang berbeda. Byte keempat berisi karakter
+\code{'A'}.
 
 \lstinputlisting[
     language=MASM,
-    caption={Program \file{hello.asm} mencetak teks ke layar.},
-    label={lst:hello}
-]{\CodeDir/hello.asm}
+    caption={Program \file{bilangan.asm}: nilai 243 dalam tiga basis
+    dan satu karakter.},
+    label={lst:bilangan-data}
+]{\CodeDir/bilangan.asm}
 
-Penjelasan setiap bagian program:
+Program ini tidak mencetak apa pun ke layar. Tujuannya adalah
+menyediakan data untuk diperiksa di memori. Setelah program dirakit
+dan dijalankan, isi segmen data dapat diperiksa dengan DEBUG seperti
+pada Kode~\ref{lst:dump-bilangan}.
+
+\begin{lstlisting}[
+    style=sessiongaya,
+    caption={Pemeriksaan isi segmen data dengan DEBUG.},
+    label={lst:dump-bilangan}
+]
+C:\>debug bilangan.exe
+-d ds:0
+0B2A:0000  F3 F3 F3 41 00 00 00 00-00 00 00 00 00 00 00 00
+\end{lstlisting}
+
+Hasil \code{F3 F3 F3 41} dapat dijelaskan sebagai berikut.
 
 \begin{itemize}
-    \item \lstasm|.MODEL SMALL| memberi tahu assembler bahwa program
-          memakai model memori kecil.
-    \item \lstasm|.DATA| membuka segmen data; di dalamnya terdapat
-          variabel \code{pesan} berupa deretan byte yang diakhiri
-          \code{0Dh}, \code{0Ah} (pindah baris), dan \code{'\$'}.
-    \item \lstasm|panjang EQU \$ - pesan| menghitung panjang string
-          secara otomatis dari selisih posisi sekarang dengan awal
-          label \code{pesan}.
-    \item \lstasm|MOV AH, 09h| dan \lstasm|LEA DX, pesan| menyiapkan
-          argumen layanan DOS: \reg{AH} berisi nomor fungsi, \reg{DX}
-          berisi alamat string.
-    \item \lstasm|INT 21h| menyerahkan kendali ke layanan DOS untuk
-          mencetak string.
-    \item \lstasm|MOV AH, 4Ch| dan \lstasm|INT 21h| mengakhiri program.
+    \item \code{desimal DB 243} menyimpan 243 desimal = \hex{F3}.
+    \item \code{biner DB 11110011b} menyimpan \bin{11110011} =
+          \hex{F3}.
+    \item \code{heksa DB 0F3h} menyimpan \hex{F3}.
+    \item \code{karakter DB 'A'} menyimpan kode ASCII \hex{41}.
 \end{itemize}
 
-\begin{session}[caption={Keluaran program \file{hello.asm}.}, label={lst:keluaran-hello}]
-Halo, dunia!
-\end{session}
-
-\subsection{Contoh 2: Program \file{.COM} dengan \dir{ORG 100h}}
-
-Bentuk lain yang lebih ringkas adalah program \file{.COM}. Karena
-seluruh kode, data, dan stack berada dalam satu segmen, inisialisasi
-\reg{DS} tidak diperlukan. Program ditunjukkan pada Kode~\ref{lst:com-org}.
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={Program \file{.COM} ringkas dengan \dir{ORG 100h}.},
-    label={lst:com-org}
-]
-.MODEL TINY
-.CODE
-ORG 100h            ; program .COM dimulai pada offset 100h
-
-START:
-    MOV AH, 09h     ; cetak string
-    MOV DX, OFFSET pesan
-    INT 21h
-
-    MOV AH, 4Ch     ; keluar
-    MOV AL, 0
-    INT 21h
-
-pesan DB 'Selamat datang di assembly!', 0Dh, 0Ah, '$'
-END START
-\end{lstlisting}
+Ketiga penulisan pertama menghasilkan byte yang sama karena
+assembler menerjemahkan setiap literal ke nilai biner yang sama.
+Perbedaan hanya terletak pada cara penulisan di berkas sumber.
+Sementara itu, \code{'A'} bukan bilangan 65 yang ditulis dalam basis
+tertentu, melainkan kode karakter yang kebetulan bernilai \hex{41}.
 
 \begin{infobox}
-Perhatikan bahwa pada program \file{.COM} tidak ada
-\lstasm|MOV AX, @DATA| maupun \lstasm|MOV DS, AX|. DOS sudah
-menetapkan \reg{DS} ke segmen program, sehingga variabel dapat
-langsung dialamatkan.
+Pada emu8086, isi memori dapat dilihat melalui jendela
+\file{Memory} dengan alamat \code{DS:0000}. Tampilan DEBUG dan
+emu8086 sama-sama menunjukkan byte dalam heksadesimal, sehingga
+pemahaman konversi basis sangat membantu saat membaca hasilnya.
 \end{infobox}
-
-\subsection{Contoh 3: Menampilkan Karakter Satu per Satu}
-
-Layanan DOS fungsi \hex{02} mencetak satu karakter yang berada pada
-register \reg{DL}. Contoh ini menunjukkan bagaimana sebuah huruf
-dapat dicetak, kemudian diubah, lalu dicetak kembali
-(Kode~\ref{lst:karakter}).
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={Mencetak karakter dengan \code{INT 21h} fungsi \hex{02}.},
-    label={lst:karakter}
-]
-.MODEL SMALL
-.STACK 100h
-
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
-
-    MOV AH, 02h     ; fungsi 02h : cetak karakter pada DL
-    MOV DL, 'A'
-    INT 21h
-
-    MOV DL, 'B'
-    INT 21h
-
-    MOV DL, 'C'
-    INT 21h
-
-    MOV AH, 4Ch
-    MOV AL, 0
-    INT 21h
-
-END START
-\end{lstlisting}
-
-\begin{session}[caption={Keluaran program pada Kode~\ref{lst:karakter}.}]
-ABC
-\end{session}
-
-Ketiga contoh di atas menunjukkan pola yang sama: siapkan argumen
-pada register, panggil layanan melalui \code{INT 21h}, lalu akhiri
-program. Pola inilah yang akan dipakai ulang pada bab-bab berikutnya.

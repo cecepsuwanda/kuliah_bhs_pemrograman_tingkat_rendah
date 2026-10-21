@@ -2,158 +2,50 @@
 \label{sec:latihan-bab15}
 
 \begin{enumerate}
-    \item \textbf{Konseptual.} Jelaskan perbedaan lima jenis kesalahan
-          program: kesalahan sintaks, kesalahan saat berjalan,
-          kesalahan logika, kesalahan segmentasi, dan
-          \eng{overflow}. Untuk setiap jenis, sebutkan satu contoh
-          dan jelaskan alat atau perintah apa yang paling tepat untuk
-          menemukannya.
+    \item \textbf{Array satu dimensi.} Jelaskan cara mendeklarasikan
+          array word lima elemen. Tentukan offset elemen pertama,
+          kedua, dan kelima.
 
-    \item \textbf{Konseptual.} Sebuah program memanggil
-          \lstasm|INT 21h| dengan fungsi \hex{09}. Jelaskan apa yang
-          terjadi bila instruksi tersebut ditelusuri dengan \code{T}
-          dan apa yang terjadi bila ditelusuri dengan \code{P}.
-          Mengapa pemakaian \code{P} lebih dianjurkan pada kasus ini?
+    \item \textbf{Array multi dimensi.} Diketahui matriks word
+          $3 \times 4$. Tentukan offset elemen baris 2 kolom 1 dan
+          baris 1 kolom 3.
 
-    \item \textbf{Analisis keluaran \code{R}.} Diberikan keluaran
-          DEBUG berikut.
+    \item \textbf{String.} Jelaskan representasi string di memori.
+          Mengapa string untuk layanan DOS fungsi \hex{09} harus
+          diakhiri \code{'\$'}?
 
-\begin{session}[caption={Keluaran perintah \code{R} untuk soal 3.}]
-AX=0000  BX=0000  CX=0005  DX=0000  SP=00F8  BP=0000  SI=0003  DI=0000
-DS=13A6  ES=1391  SS=13A7  CS=13A1  IP=000A   NV UP EI NG NZ AC PO CY
-13A1:000A 01C8           ADD     AX,CX
-\end{session}
+    \item \textbf{Menyalin string.} Tuliskan perulangan yang
+          menyalin string dari \reg{SI} ke \reg{DI} sampai menemukan
+          \code{'\$'}.
 
-          \begin{enumerate}
-              \item Nilai \flag{ZF}, \flag{CF}, \flag{SF}, dan
-                    \flag{OF} berturut-turut sedang bernilai berapa?
-                    Sebutkan penanda mana pada baris \eng{flag} yang
-                    menunjukkannya.
-              \item Instruksi apa yang akan dijalankan berikutnya,
-                    dan pada alamat berapa?
-              \item Berapa byte ruang \eng{stack} yang sedang terpakai
-                    bila \dir{.STACK 100h} menyediakan \hex{0100} byte?
-          \end{enumerate}
+    \item \textbf{Membandingkan string.} Tuliskan perulangan yang
+          membandingkan dua string karakter demi karakter. Kapan
+          perbandingan dapat dihentikan?
 
-    \item \textbf{Analisis tabel \eng{trace}.} Sebuah program bermaksud
-          menjumlahkan bilangan 1 sampai 4. Tabel \eng{trace}
-          memperlihatkan potongan berikut.
+    \item \textbf{Desimal.} Jelaskan algoritme mengubah bilangan
+          menjadi digit desimal. Mengapa sisa pembagian disimpan
+          pada \eng{stack}?
 
-          \begin{table}[H]
-              \centering
-              \caption{Potongan tabel \eng{trace} untuk soal 4.}
-              \label{tab:soal-trace}
-              \scriptsize
-              \setlength{\tabcolsep}{2.5pt}
-              \begin{tabular}{@{}rl l rrr r ccc@{}}
-                  \toprule
-                  \textbf{L} & \textbf{Alamat} & \textbf{Instruksi} &
-                  \textbf{AX} & \textbf{CX} & \textbf{DX} &
-                  \textbf{ZF} & \textbf{CF} & \textbf{OF} \\
-                  \midrule
-                  1 & 13A1:0007 & MOV CX,0004 & 0000 & 0004 & 0000
-                  & 0 & 0 & 0 \\
-                  \addlinespace
-                  2 & 13A1:000A & ADD AX,CX & 0004 & 0004 & 0000
-                  & 0 & 0 & 0 \\
-                  \addlinespace
-                  3 & 13A1:000C & DEC CX & 0004 & 0003 & 0000
-                  & 0 & 0 & 0 \\
-                  \addlinespace
-                  4 & 13A1:000D & CMP BX,CX & 0004 & 0003 & 0000
-                  & 0 & 0 & 0 \\
-                  \addlinespace
-                  5 & 13A1:000F & JNZ 000A & 0004 & 0003 & 0000
-                  & 0 & 0 & 0 \\
-                  \bottomrule
-              \end{tabular}
-          \end{table}
+    \item \textbf{Heksadesimal.} Jelaskan algoritme mengubah
+          bilangan menjadi empat digit heksadesimal. Mengapa nilai
+          10--15 perlu ditambah 7 sebelum diubah menjadi karakter?
 
-          Jawab pertanyaan berikut.
-          \begin{enumerate}
-              \item Instruksi mana yang salah, dan mengapa?
-              \item Berapa hasil akhir yang akan diperoleh \reg{AX},
-                    dan berapa hasil yang seharusnya?
-              \item Tuliskan perbaikan satu baris yang paling ringkas.
-          \end{enumerate}
-
-    \item \textbf{Analisis \eng{dump} memori.} Diberikan keluaran
-          \code{D DS:0000} sebagai berikut.
-
-\begin{session}[caption={Keluaran perintah \code{D} untuk soal 5.}]
-13A6:0000  48 41 4C 4F 24 0A 0B 0C-0D 0E 0F 10 11 12 13 14  HALO$...........
-\end{session}
-
-          \begin{enumerate}
-              \item String apa yang tersimpan pada \reg{DS}:\hex{0000},
-                    dan pada byte berapa penanda akhirnya berada?
-              \item Sebuah program membaca delapan byte mulai dari
-                    \hex{0000} dan mencetaknya sebagai string. Apa
-                    yang akan tampak di layar? Jelaskan mengapa.
-              \item Perintah apa yang dipakai untuk memperbaiki byte
-                    pada \hex{0005} menjadi \hex{24}?
-          \end{enumerate}
-
-    \item \textbf{Perbaikan program.} Program berikut bermaksud
-          mencetak karakter \code{A} sebanyak lima kali, tetapi tidak
-          pernah berhenti.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-    MOV CX, 5
-ULANG:
-    MOV DL, 'A'
-    MOV AH, 02h
-    INT 21h
-    INC CX
-    LOOP ULANG
-\end{lstlisting}
-
-          \begin{enumerate}
-              \item Tuliskan tabel \eng{trace} untuk empat langkah
-                    pertama perulangan ini (kolom: langkah, alamat
-                    perkiraan, instruksi, \reg{CX}, \flag{ZF}).
-              \item Jelaskan mengapa perulangan tidak pernah berakhir.
-              \item Tuliskan versi perbaikan yang mencetak tepat lima
-                    karakter \code{A}.
-          \end{enumerate}
-
-    \item \textbf{Penulisan program.} Tulislah prosedur bernama
-          \asm{HITUNG} yang menekan tiga register ke \eng{stack},
-          melakukan perhitungan sederhana, lalu memulihkan ketiga
-          register tersebut sebelum \asm{RET}. Jelaskan mengapa urutan
-          \asm{POP} harus merupakan kebalikan dari urutan
-          \asm{PUSH}.
-
-    \item \textbf{Studi kasus.} Sebuah program memanggil prosedur
-          dengan \lstasm|CALL HITUNG|, tetapi setelah prosedur selesai
-          program melompat ke alamat acak dan macet. Prosedur tersebut
-          menekan \reg{AX}, \reg{BX}, dan \reg{DI}, lalu memulihkan
-          \reg{DI} dan \reg{BX}, tetapi tidak memulihkan \reg{AX}.
-          \begin{enumerate}
-              \item Gambarkan susunan bingkai \eng{stack} sesaat
-                    sebelum \asm{RET} dijalankan.
-              \item Alamat apa yang sesungguhnya diambil oleh
-                    \asm{RET}? Jelaskan.
-              \item Tuliskan langkah-langkah \eng{debugging} menurut
-                    metodologi pada
-                    Gambar~\ref{fig:metodologi-debugging} untuk
-                    menemukan masalah ini, mulai dari reproduksi
-                    sampai verifikasi.
-          \end{enumerate}
+    \item \textbf{Penulisan program.} Tuliskan program yang
+          menjumlahkan array word lima elemen, lalu mencetak hasilnya
+          sebagai bilangan desimal. Gunakan \asm{LOOP} dan prosedur
+          konversi desimal.
 \end{enumerate}
 
 \begin{refleksibox}
+\vspace{1.1em}
 Jawab pertanyaan berikut pada jurnal praktikum Anda.
 \begin{enumerate}
-    \item Perintah DEBUG mana yang paling sering Anda pakai selama
-          praktikum, dan mengapa?
-    \item Ketika hipotesis pertama Anda terbukti salah, apa yang Anda
-          lakukan berikutnya? Apakah Anda langsung mengubah kode,
-          atau kembali mengumpulkan bukti?
-    \item Kesalahan mana yang paling sulit Anda temukan: perulangan
-          tak berujung, \eng{off-by-one}, atau \eng{stack} tidak
-          seimbang? Jelaskan alasannya.
+    \item Bagian mana yang paling sulit: perhitungan offset array,
+          penyalinan string, atau konversi bilangan? Mengapa?
+    \item Setelah menelusuri konversi desimal, apakah Anda memahami
+          mengapa \eng{stack} dipakai untuk membalik urutan digit?
+          Jelaskan.
     \item Konsep apa yang perlu Anda ulangi sebelum mempelajari
-          analisis kode mesin dan \eng{disassembly}?
+          debugging level instruksi pada bab berikutnya?
 \end{enumerate}
 \end{refleksibox}

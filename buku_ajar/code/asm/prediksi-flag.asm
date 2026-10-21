@@ -20,10 +20,10 @@ START:
     MOV AX, @DATA           ; alamat segmen .DATA
     MOV DS, AX              ; DS harus menunjuk ke .DATA
 
-    ; --- kasus 1: 007Fh + 0001h (overflow bertanda) ---
-    MOV AX, 007Fh           ; AX = 007Fh  (+127)
+    ; --- kasus 1: 7FFFh + 0001h (overflow bertanda 16-bit) ---
+    MOV AX, 7FFFh           ; AX = 7FFFh  (+32767)
     MOV BX, 0001h           ; BX = 0001h  (+1)
-    ADD AX, BX              ; AX = 0080h -> SF=1, OF=1, CF=0, ZF=0
+    ADD AX, BX              ; AX = 8000h -> SF=1, OF=1, CF=0, ZF=0
     MOV hasil1, AX          ; MOV tidak mengubah flag
 
     ; --- kasus 2: 8000h + 8000h (carry tak bertanda) ---

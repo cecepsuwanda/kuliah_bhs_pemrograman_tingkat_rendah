@@ -2,17 +2,20 @@
 
 \begin{document}
 
-\chapter{Struktur Kontrol dan Percabangan}
-\label{chap:kontrol}
+\chapter{Tujuh Mode Pengalamatan}
+\label{chap:mode-pengalamatan}
 
 % =========================================================
 % OUTCOME PEMBELAJARAN KHUSUS BAB
 % =========================================================
 
 \begin{subcpmkbox}
-\SubCPMK{3.3} --- Mengimplementasikan struktur kontrol (\asm{CMP},
-\asm{TEST}, lompatan bersyarat \asm{Jcc}, \asm{LOOP}, dan prosedur
-dengan \asm{CALL}/\asm{RET}) dalam program assembly.
+\vspace{1.1em}
+\SubCPMK{3.3} --- Menerapkan tujuh mode pengalamatan 8086
+(\textit{register}, \textit{immediate}, \textit{direct memory},
+\textit{indirect memory}, \textit{base relative}, \textit{direct
+index}, \textit{based indexed}) pada instruksi transfer dan
+aritmatika.
 
 \vspace{0.4em}
 \textbf{CPMK yang didukung:} \CPMK{03} \quad\textbullet\quad
@@ -20,44 +23,35 @@ dengan \asm{CALL}/\asm{RET}) dalam program assembly.
 \end{subcpmkbox}
 
 \begin{tujuanbox}
+\vspace{1.1em}
 Setelah mempelajari bab ini, mahasiswa mampu:
 \begin{enumerate}
-    \item menjelaskan peran \eng{flag} sebagai dasar pengambilan
-          keputusan;
-    \item membedakan cara kerja \asm{CMP} dan \asm{TEST};
-    \item memilih \asm{Jcc} yang tepat untuk bilangan bertanda dan
-          tak bertanda;
-    \item menjelaskan pengaruh jarak lompatan terhadap ukuran kode;
-    \item menyusun perulangan dengan \asm{LOOP}, \asm{LOOPE}, dan
-          \asm{LOOPNE} serta membandingkannya dengan pola
-          \asm{DEC} dan \asm{JNZ};
-    \item menerjemahkan pola \code{if}, \code{if--else}, \code{while},
-          \code{do--while}, \code{for}, dan \code{switch} dari bahasa
-          tingkat tinggi ke assembly;
-    \item menuliskan program pencarian nilai maksimum dan pengurutan
-          sederhana menggunakan struktur kontrol;
-    \item menghindari kekeliruan umum pada label dan lompatan.
+    \item menjelaskan peran mode pengalamatan dalam menentukan letak
+          operand;
+    \item mengenali mode pengalamatan dari penulisan operand;
+    \item menerapkan mode \textit{register}, \textit{immediate}, dan
+          \textit{direct memory};
+    \item menerapkan mode \textit{indirect memory}, \textit{base
+          relative}, \textit{direct index}, dan \textit{based
+          indexed};
+    \item menghitung alamat efektif dan alamat fisik operand;
+    \item menentukan segmen \eng{default} setiap mode;
+    \item memilih mode yang tepat untuk mengakses array dan
+          \eng{record}.
 \end{enumerate}
 \end{tujuanbox}
 
 \begin{materibox}
+\vspace{1.1em}
 \begin{enumerate}
-    \item Konsep \eng{flag} sebagai dasar pengambilan keputusan;
-          kaitan dengan \flag{ZF}, \flag{CF}, \flag{SF}, \flag{OF},
-          dan \flag{PF}.
-    \item \asm{CMP} dan \asm{TEST} sebagai penyiap \eng{flag} beserta
-          perbedaan keduanya.
-    \item Lompatan tak bersyarat \asm{JMP} dan jarak lompatan
-          \eng{short}, \eng{near}, dan \eng{far}.
-    \item Lompatan bersyarat \asm{Jcc} dan pemetaannya terhadap
-          bilangan bertanda serta tak bertanda.
-    \item Label, aturan penamaan, dan kesalahan umum pada lompatan.
-    \item Perulangan: \asm{LOOP}, \asm{LOOPE}/\asm{LOOPZ},
-          \asm{LOOPNE}/\asm{LOOPNZ}, dan register \reg{CX}.
-    \item Penerjemahan pola bahasa tingkat tinggi ke assembly,
-          termasuk tabel lompatan untuk \code{switch}.
-    \item Studi kasus: nilai maksimum, pengurutan gelembung, dan
-          pengantar pencarian biner.
+    \item Konsep operand dan mode pengalamatan.
+    \item Mode \textit{register}, \textit{immediate}, dan
+          \textit{direct memory}.
+    \item Mode \textit{indirect memory}.
+    \item Mode \textit{base relative} dan \textit{direct index}.
+    \item Mode \textit{based indexed}.
+    \item Alamat efektif dan kombinasi register yang legal.
+    \item Segmen \eng{default} dan penerapan pada array/\eng{record}.
 \end{enumerate}
 \end{materibox}
 

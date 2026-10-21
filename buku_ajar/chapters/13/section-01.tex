@@ -1,115 +1,125 @@
-\section{Prosedur, Pemanggilan, dan Pengembalian}
-\label{sec:prosedur-pemanggilan}
+\section{Label, JMP, dan CMP}
+\label{sec:label-jmp-cmp}
 
-Program yang ditulis sebagai satu deretan instruksi panjang sulit
-dibaca, diuji, dan diperbaiki. Ketika tugas yang sama harus
-dikerjakan pada bagian program yang berbeda, kodenya harus disalin
-berkali-kali, sehingga setiap kekeliruan juga harus diperbaiki
-berkali-kali. Solusinya adalah \term{prosedur}.
+Program yang hanya berjalan berurutan tidak dapat memilih atau
+mengulang pekerjaan. Untuk itu diperlukan instruksi yang mengubah
+alur eksekusi. Perubahan alur selalu melibatkan label sebagai tujuan
+dan instruksi lompatan sebagai pemindah kendali.
 
-\subsection{Mengapa Prosedur Diperlukan}
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 11,
+hlm.~101--114, dan \cite{sto2001}, BAB XIII, hlm.~68--72.
 
-Ada tiga alasan utama program dipecah menjadi prosedur.
+\subsection{Label}
 
-\begin{enumerate}
-    \item \term{Modularitas.} Setiap prosedur menangani satu tugas
-          yang batasnya jelas, sehingga program besar menjadi
-          kumpulan bagian kecil yang dapat diuji dan diperbaiki
-          secara terpisah.
+Label adalah nama simbolik untuk suatu lokasi di dalam segmen kode.
+Aturan penulisannya:
 
-    \item \term{Penggunaan ulang} (\eng{reuse}). Kode yang sering
-          dipakai cukup ditulis sekali. Prosedur pencetak bilangan
-          heksadesimal, misalnya, dapat dipanggil dari puluhan tempat
-          tanpa perlu disalin.
+\begin{itemize}
+    \item nama label boleh dimulai dengan huruf, \code{@}, \code{\_},
+          atau \code{?};
+    \item nama label tidak boleh mengandung spasi dan tidak boleh
+          diawali angka;
+    \item panjang nama maksimal 31 karakter;
+    \item label didefinisikan dengan titik dua, misalnya
+          \code{ULANG:}, tetapi ditulis tanpa titik dua saat menjadi
+          tujuan lompatan.
+\end{itemize}
 
-    \item \term{Abstraksi.} Pemanggil cukup mengetahui antarmuka
-          prosedur: nama, parameter, dan nilai baliknya. Rincian di
-          dalam prosedur dapat diganti tanpa mengubah pemanggilnya.
-\end{enumerate}
+Label harus unik. Mendefinisikan nama yang sama dua kali menghasilkan
+pesan \file{Symbol already defined}.
 
-Pembahasan Bab~\ref{chap:kontrol} menunjukkan bahwa \asm{JMP} hanya
-memindahkan kendali tanpa menyediakan cara kembali; prosedur
-melengkapinya dengan mekanisme pengembalian.
+\subsection{Lompatan Tanpa Syarat JMP}
 
-\begin{definisi}
-\term{Prosedur} (disebut juga \term{subrutin}) adalah sekelompok
-instruksi bernama yang dapat dipanggil dari bagian lain program,
-menerima parameter, dan dapat mengembalikan nilai kepada
-pemanggilnya.
-\end{definisi}
+\asm{JMP} memindahkan kendali ke label tujuan tanpa memeriksa
+keadaan apa pun.
 
-Pemakaian prosedur tidak gratis. Setiap pemanggilan menimbulkan
-\term{biaya pemanggilan prosedur}: mendorong parameter ke stack,
-menjalankan \asm{CALL}, membangun lalu membongkar bingkai, dan
-menjalankan \asm{RET}. Pada 8086, satu \asm{PUSH} memerlukan sekitar
-\dec{11} sampai \dec{15} siklus, \asm{CALL} sekitar \dec{19} siklus,
-dan \asm{RET} sekitar \dec{16} siklus. Untuk prosedur yang sangat
-sederhana, biaya ini dapat melebihi biaya pekerjaannya sendiri.
-Karena itu prosedur dipakai bukan terutama untuk mengejar kecepatan,
-melainkan untuk kejelasan dan kemudahan pemeliharaan.
-
-\subsection{Instruksi \asm{CALL} dan \asm{RET}}
-
-\asm{CALL} mengerjakan dua hal sekaligus: menyimpan \term{alamat
-kembali}, yaitu nilai \reg{CS} dan \reg{IP} pada saat instruksi
-\emph{sesudah} \asm{CALL}, lalu memuat alamat prosedur yang dipanggil
-ke \reg{CS} dan \reg{IP}.
+\begin{center}
+\lstasm|JMP tujuan|
+\end{center}
 
 \begin{lstlisting}[language=MASM, numbers=none]
-    CALL HitungLuas         ; simpan alamat kembali, lalu lompat
-    MOV  luas, AX           ; instruksi ini dieksekusi setelah RET
+    JMP SELESAI         ; langsung menuju label SELESAI
+    MOV AX, 1           ; dilewati
+SELESAI:
+    ; eksekusi berlanjut di sini
 \end{lstlisting}
 
-Alamat kembali yang disimpan pada contoh di atas adalah alamat
-instruksi \lstasm|MOV luas, AX|. Ketika prosedur selesai, \asm{RET}
-mengambil alamat itu dari stack dan memuatnya kembali ke \reg{IP}.
-Stack dengan demikian merupakan bagian dari mekanisme kendali
-program, bukan sekadar tempat menyimpan data.
+\asm{JMP} dipakai untuk melewati blok tertentu, mengakhiri
+percabangan, atau membentuk perulangan tanpa syarat. Bila tujuan
+berada pada segmen kode yang sama, assembler memilih bentuk yang
+sesuai secara otomatis.
 
-\subsection{Pemanggilan \eng{Near} dan \eng{Far}}
+\subsection{CMP dan Flag}
 
-Pada \term{pemanggilan dekat} (\eng{near call}), prosedur berada
-pada segmen kode yang sama, sehingga hanya \reg{IP} yang perlu
-disimpan. Pada \term{pemanggilan jauh} (\eng{far call}), prosedur
-berada pada segmen lain, sehingga \reg{CS} dan \reg{IP} sama-sama
-disimpan. Perbedaannya dirangkum pada Tabel~\ref{tab:call-near-far}.
+Lompatan bersyarat tidak membandingkan dua bilangan secara langsung.
+Instruksi tersebut hanya membaca \eng{flag}. Karena itu, \eng{flag}
+harus disiapkan terlebih dahulu, biasanya dengan \asm{CMP}.
+
+\asm{CMP} mengurangkan operand kedua dari operand pertama, tetapi
+tidak menyimpan hasilnya. Yang berubah hanya \eng{flag}.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, 5
+MOV BX, 3
+CMP AX, BX          ; hitung 5 - 3; hasil dibuang
+JG  LEBIH_BESAR     ; lompat bila AX > BX (bertanda)
+\end{lstlisting}
+
+Flag yang paling sering dipakai untuk keputusan dirangkum pada
+Tabel~\ref{tab:flag-keputusan}.
 
 \begin{table}[H]
     \centering
-    \caption{Perbandingan pemanggilan \eng{near} dan \eng{far} pada
-    prosesor 8086.}
-    \label{tab:call-near-far}
+    \caption{Flag utama pada pengambilan keputusan.}
+    \label{tab:flag-keputusan}
     \small
-    \begin{tabular}{@{}p{3.3cm}p{5.0cm}p{5.0cm}@{}}
+    \begin{tabular}{@{}p{1.4cm}p{5.4cm}p{6.4cm}@{}}
         \toprule
-        \textbf{Aspek} & \textbf{\asm{CALL} \eng{near}} &
-        \textbf{\asm{CALL} \eng{far}} \\
+        \textbf{Flag} & \textbf{Makna} & \textbf{Dipakai oleh} \\
         \midrule
-        Isi yang didorong ke stack & \reg{IP} saja (\dec{2} byte) &
-        \reg{CS} lalu \reg{IP} (\dec{4} byte) \\
+        \flag{ZF} & Bernilai 1 bila hasil operasi nol &
+        \asm{JE}, \asm{JNE}, \asm{JZ}, \asm{JNZ} \\
         \addlinespace
-        Instruksi kembali & \asm{RET} (\code{C3h}) &
-        \asm{RETF} (\code{CBh}) \\
+        \flag{CF} & Bernilai 1 bila terjadi pinjaman atau simpanan
+        pada operasi tak bertanda &
+        \asm{JB}, \asm{JAE}, \asm{JC}, \asm{JNC} \\
         \addlinespace
-        Bentuk penulisan & \lstasm|CALL HitungLuas| &
-        \lstasm|CALL LUAR:HitungLuas| \\
+        \flag{SF} & Menyalin bit tanda hasil operasi &
+        \asm{JS}, \asm{JNS} \\
         \addlinespace
-        Pemakaian lazim & Prosedur pada satu berkas program &
-        Prosedur pada pustaka atau \eng{overlay} lain \\
+        \flag{OF} & Bernilai 1 bila terjadi luapan bertanda &
+        \asm{JO}, \asm{JNO} \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Seluruh contoh dalam bab ini memakai pemanggilan \eng{near} karena
-prosedur dan pemanggilnya berada pada satu segmen kode.
+\subsection{Percabangan if}
+
+Pola \code{if} sederhana diterjemahkan menjadi \asm{CMP} diikuti
+lompatan bersyarat.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+; if (AX > BX) { AX = BX }
+CMP AX, BX
+JLE TIDAK_LEBIH     ; lewati blok bila AX <= BX
+MOV AX, BX          ; blok yang dijalankan bila AX > BX
+TIDAK_LEBIH:
+\end{lstlisting}
+
+Bila blok yang dijalankan hanya satu instruksi, pola di atas sudah
+cukup. Bila blok berisi banyak instruksi, letakkan blok tersebut di
+antara lompatan dan label akhir.
 
 \begin{infobox}
-\asm{CALL} tidak sama dengan \asm{JMP}. Keduanya memindahkan
-kendali, tetapi \asm{JMP} tidak menyimpan alamat kembali, sehingga
-\asm{RET} akan mengambil alamat yang salah dari stack.
-\end{infobox}
+\vspace{1.1em}
+Lompatan bersyarat 8086 hanya menjangkau jarak terbatas. Bila blok
+\code{if} sangat panjang sehingga label tujuan terlalu jauh,
+assembler dapat melaporkan kesalahan jangkauan. Balikkan syarat dan
+gunakan \asm{JMP} sebagai perantara:
 
-Setelah memahami bagaimana kendali berpindah, pertanyaan berikutnya
-adalah di mana alamat kembali itu disimpan dan bagaimana isinya
-berubah. Jawabannya adalah stack, yang dibahas pada
-Subbab~\ref{sec:operasi-stack}.
+\begin{lstlisting}[language=MASM, numbers=none]
+JLE LANJUT
+JMP BLOK_PANJANG
+LANJUT:
+\end{lstlisting}
+\end{infobox}

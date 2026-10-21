@@ -1,230 +1,107 @@
-\section{Interupsi DOS dan Penangan Buatan Sendiri}
-\label{sec:dos}
+\section{Macro}
+\label{sec:macro}
 
-\subsection{Dua Tingkat Layanan}
+Macro adalah cara lain untuk memecah program menjadi bagian kecil.
+Berbeda dari prosedur, macro tidak dipanggil dengan \asm{CALL}.
+Assembler menyalin isi macro ke tempat macro tersebut dipakai pada
+saat perakitan. Karena itu, macro dapat menerima parameter dengan
+lebih mudah, tetapi ukuran program menjadi lebih besar bila macro
+dipakai berkali-kali.
 
-BIOS menyediakan akses ke perangkat keras, tetapi belum mengenal
-berkas, direktori, atau konsep ``program yang sedang berjalan''.
-Semua itu adalah tugas \term{DOS} (\eng{Disk Operating System}) yang
-dibangun di atas BIOS melalui interupsi \hex{21}: BIOS menggerakkan
-perangkat, DOS mengatur pemakaian sistem secara keseluruhan.
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 13.2,
+hlm.~121--126, dan \cite{sto2001}, BAB XVII, hlm.~88--92.
 
-\subsection{Fungsi \code{INT 21h} yang Penting}
+\subsection{Mendefinisikan Macro}
 
-Konvensi pemanggilan \code{INT 21h} sama dengan konvensi BIOS:
-\reg{AH} berisi nomor fungsi dan register lain berisi argumen.
-Fungsi yang dipakai sepanjang bab ini dirangkum pada
-Tabel~\ref{tab:int21h}.
+Bentuk umum macro:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+NamaMacro MACRO parameter1, parameter2
+    ; isi macro
+ENDM
+\end{lstlisting}
+
+Setelah didefinisikan, macro dipakai dengan menuliskan namanya
+beserta argumen:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+NamaMacro nilai1, nilai2
+\end{lstlisting}
+
+Contoh macro untuk mencetak satu karakter sebanyak tiga kali:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+Cetak_Kar MACRO Kar
+    MOV CX, 3
+    MOV AH, 02h
+    MOV DL, Kar
+Ulang:
+    INT 21h
+    LOOP Ulang
+ENDM
+\end{lstlisting}
+
+Pemakaiannya:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+Cetak_Kar 'S'       ; assembler menyalin isi macro dengan Kar = 'S'
+\end{lstlisting}
+
+\subsection{Parameter Macro}
+
+Parameter macro diganti secara tekstual oleh assembler. Pada contoh
+di atas, setiap kemunculan \code{Kar} diganti dengan \code{'S'}
+sebelum program dirakit. Karena itu, macro dapat menerima karakter,
+angka, nama variabel, atau register sebagai argumen.
+
+Parameter macro berbeda dari parameter prosedur. Prosedur tidak
+memiliki daftar parameter pada \asm{PROC}; data disampaikan melalui
+register, stack, atau variabel. Macro memiliki daftar parameter
+langsung pada definisinya.
+
+\subsection{Perbedaan Prosedur dan Macro}
 
 \begin{table}[H]
     \centering
-    \caption{Fungsi \code{INT 21h} yang dipakai pada bab ini.}
-    \label{tab:int21h}
+    \caption{Perbedaan prosedur dan macro.}
+    \label{tab:prosedur-macro}
     \small
-    \begin{tabular}{@{}cp{4.1cm}p{2.5cm}p{4.7cm}@{}}
+    \begin{tabular}{@{}p{3.4cm}p{5.2cm}p{5.0cm}@{}}
         \toprule
-        \textbf{Fungsi} & \textbf{Register masukan} &
-        \textbf{Register keluaran} & \textbf{Keterangan} \\
+        \textbf{Aspek} & \textbf{Prosedur} & \textbf{Macro} \\
         \midrule
-        \hex{01} & \reg{AH} = \hex{01} & \reg{AL} = karakter &
-        Membaca satu karakter dan menampilkannya (\eng{echo});
-        menunggu sampai ada tombol \\
+        Pemanggilan & \asm{CALL} dan \asm{RET} &
+        Nama macro ditulis langsung \\
         \addlinespace
-        \hex{02} & \reg{AH} = \hex{02}; \reg{DL} = karakter & --- &
-        Mencetak satu karakter pada layar \\
+        Ukuran program & Kode ditulis sekali &
+        Kode disalin setiap kali dipakai \\
         \addlinespace
-        \hex{09} & \reg{AH} = \hex{09}; \reg{DS}:\reg{DX} = alamat
-        string & --- &
-        Mencetak string yang diakhiri tanda \code{'\$'}; tanda itu
-        sendiri tidak dicetak \\
+        Kecepatan & Ada biaya \asm{CALL} dan \asm{RET} &
+        Tidak ada biaya pemanggilan \\
         \addlinespace
-        \hex{0A} & \reg{AH} = \hex{0A}; \reg{DS}:\reg{DX} = alamat
-        penyangga & Penyangga terisi &
-        Membaca string yang diketik pengguna sampai tombol
-        \file{Enter}; karakter ditampilkan (\eng{echo}) \\
+        Parameter & Melalui register, stack, atau variabel &
+        Daftar parameter pada definisi \\
         \addlinespace
-        \hex{25} & \reg{AH} = \hex{25}; \reg{AL} = nomor vektor;
-        \reg{DS}:\reg{DX} = alamat penangan & --- &
-        Mengganti isi entri vektor dengan alamat penangan baru \\
+        Segmen & Terikat pada satu segmen untuk pemanggilan dekat &
+        Mengikuti tempat macro dipakai \\
         \addlinespace
-        \hex{35} & \reg{AH} = \hex{35}; \reg{AL} = nomor vektor &
-        \reg{ES}:\reg{BX} = alamat penangan &
-        Membaca isi entri vektor yang sedang berlaku \\
-        \addlinespace
-        \hex{4C} & \reg{AH} = \hex{4C}; \reg{AL} = kode keluar & --- &
-        Mengakhiri program, menutup berkas, dan mengembalikan kendali
-        ke DOS \\
+        Kegunaan & Program besar yang menekankan ukuran &
+        Bagian pendek yang sering dipakai \\
         \bottomrule
     \end{tabular}
 \end{table}
+
+\begin{peringatanbox}
+\vspace{1.1em}
+Bila macro berisi label dan dipakai lebih dari sekali, label yang
+sama akan muncul berulang setelah penyalinan. Assembler dapat
+melaporkan \file{Symbol already defined}. Hindari label di dalam
+macro, atau pastikan setiap pemakaian menghasilkan label yang unik.
+\end{peringatanbox}
 
 \begin{infobox}
-Pasangan \reg{DS}:\reg{DX} adalah bentuk baku alamat jauh pada 8086
-(Bab~\ref{chap:segmentasi}): \reg{DS} menyimpan nomor segmen dan
-\reg{DX} menyimpan offset di dalamnya. Karena itu, program \file{.EXE}
-yang memakai fungsi \hex{09} wajib menginisialisasi \reg{DS}.
+\vspace{1.1em}
+Pilih prosedur bila program menekankan ukuran dan modularitas.
+Pilih macro bila bagian tersebut pendek, sering dipakai, dan
+parameter tekstualnya membuat penulisan lebih ringkas.
 \end{infobox}
-
-\subsection{Penyangga Fungsi \hex{0A}}
-
-Fungsi \hex{0A} berbeda dari fungsi lain karena pengguna juga
-menyediakan penyangga (\eng{buffer}) yang tata letaknya ditentukan DOS
-(Kode~\ref{lst:buffer-0a}).
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={Tata letak penyangga untuk fungsi \hex{0A}.},
-    label={lst:buffer-0a}
-]
-.DATA
-    nama    DB 20           ; byte 0: kapasitas maksimum,
-                            ;   termasuk tombol Enter
-            DB 0            ; byte 1: jumlah karakter yang benar-benar
-                            ;   diketik, diisi oleh DOS
-            DB 20 DUP(0)    ; byte 2 dan seterusnya: isi yang diketik
-\end{lstlisting}
-
-Byte pertama harus diisi \emph{sebelum} pemanggilan dan menyatakan
-kapasitas maksimum, sedangkan byte kedua diisi DOS dengan jumlah
-karakter yang benar-benar diketik. DOS juga menambahkan karakter
-\code{0Dh}, tetapi \emph{tidak} menambahkan tanda \code{'\$'}.
-
-Poin terakhir sering menjebak pemula: karena fungsi \hex{09} berhenti
-mencetak hanya ketika menemukan tanda \code{'\$'}, program harus
-menuliskan tanda itu pada posisi \code{penyangga + 2 + jumlah
-karakter}, yaitu posisi \code{0Dh} yang baru saja ditulis DOS.
-
-\begin{peringatanbox}
-Bila tanda \code{'\$'} tidak dituliskan, fungsi \hex{09} akan terus
-mencetak isi memori sesudah penyangga sampai menemukan byte \hex{24}
-(kode ASCII \code{'\$'}). Layar pun dipenuhi karakter sampah.
-Gejala ini hampir selalu berasal dari kesalahan penulisan tanda akhir
-string, bukan dari kerusakan layanan DOS.
-\end{peringatanbox}
-
-\subsection{\code{INT 20h} dan \code{INT 21h} Fungsi \hex{4C}}
-
-Dua cara mengakhiri program telah diperkenalkan: \lstasm|INT 20h| pada
-Bab~\ref{chap:pengenalan} dan fungsi \hex{4C}. Perbandingannya tampak
-pada Tabel~\ref{tab:terminasi}.
-
-\begin{table}[H]
-    \centering
-    \caption{Perbandingan cara mengakhiri program pada DOS.}
-    \label{tab:terminasi}
-    \small
-    \begin{tabular}{@{}p{3.4cm}p{5.2cm}p{5.2cm}@{}}
-        \toprule
-        \textbf{Aspek} & \textbf{\code{INT 20h}} &
-        \textbf{\code{INT 21h} fungsi \hex{4C}} \\
-        \midrule
-        Bentuk program & Cocok untuk \file{.COM} &
-        Dapat dipakai \file{.COM} maupun \file{.EXE} \\
-        \addlinespace
-        Prasyarat & \reg{CS} harus menunjuk ke segmen awal program &
-        Tidak ada prasyarat khusus \\
-        \addlinespace
-        Kode keluar & Tidak dapat disertakan &
-        Diberikan pada \reg{AL}, dapat dibaca program pemanggil \\
-        \addlinespace
-        Pembersihan oleh DOS & Terbatas &
-        Menutup berkas terbuka dan memulihkan vektor
-        \file{Ctrl}+\file{C} \\
-        \addlinespace
-        Pemakaian pada praktikum & Jarang, hanya pada contoh
-        \file{.COM} & Bentuk baku program \file{.EXE} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-Kesimpulannya, fungsi \hex{4C} lebih umum dan lebih aman sehingga
-menjadi pilihan baku; \lstasm|INT 20h| tetap perlu dikenal karena
-muncul pada contoh program lama.
-
-\subsection{Memasang Penangan Interupsi Sendiri}
-
-Karena alamat penangan disimpan pada tabel vektor, mengganti isi
-sebuah entri berarti mengganti seluruh perilaku interupsi tersebut.
-Prosedurnya ada lima langkah: simpan penangan lama dengan fungsi
-\hex{35} (hasilnya pada \reg{ES}:\reg{BX}), siapkan alamat penangan
-baru pada \reg{DS}:\reg{DX}, pasang dengan fungsi \hex{25}, uji dengan
-\lstasm|INT n|, lalu pulihkan penangan lama. Contoh pada
-Kode~\ref{lst:pasang-vektor} memakai vektor \hex{60} yang tidak dipakai
-perangkat keras mana pun sehingga aman untuk percobaan.
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={Menyimpan vektor lama dan memasang penangan baru.},
-    label={lst:pasang-vektor}
-]
-    MOV AH, 35h                 ; fungsi 35h: baca vektor
-    MOV AL, 60h                 ; nomor vektor 60h
-    INT 21h                     ; keluaran: ES:BX = penangan lama
-    PUSH ES
-    PUSH BX                     ; simpan penangan lama di stack
-
-    PUSH DS                     ; simpan DS program
-    MOV DX, OFFSET handler60    ; DX = offset penangan baru
-    MOV AX, SEG handler60       ; AX = segmen penangan baru
-    MOV DS, AX                  ; DS:DX = alamat penangan baru
-    MOV AH, 25h                 ; fungsi 25h: pasang vektor
-    MOV AL, 60h
-    INT 21h
-    POP DS                      ; pulihkan DS program
-
-    INT 60h                     ; uji: jalankan penangan baru
-\end{lstlisting}
-
-Penangan itu sendiri adalah prosedur jauh yang diakhiri \asm{IRET}
-(Kode~\ref{lst:handler-60}). Karena dipanggil lewat interupsi dan bukan
-\lstasm|CALL|, register yang dipakainya harus disimpan dan dipulihkan
-sendiri.
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={Penangan interupsi \hex{60} yang diakhiri \asm{IRET}.},
-    label={lst:handler-60}
-]
-handler60 PROC FAR
-    PUSH AX                     ; simpan register yang akan dipakai
-    PUSH DX
-    MOV AH, 09h                 ; cetak pesan sapaan
-    LEA DX, pesan
-    INT 21h
-    POP DX                      ; pulihkan register
-    POP AX
-    IRET                        ; pop IP, CS, lalu FLAGS
-handler60 ENDP
-\end{lstlisting}
-
-Sesudah pengujian, vektor lama dipulihkan dengan mengirimkan kembali
-kedua nilai yang disimpan di awal program ke fungsi \hex{25}
-(Kode~\ref{lst:pulihkan-vektor}).
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={Memulihkan vektor interupsi yang semula.},
-    label={lst:pulihkan-vektor}
-]
-    POP DX                      ; DX = offset penangan lama
-    POP DS                      ; DS = segmen penangan lama
-    MOV AH, 25h                 ; pasang kembali penangan lama
-    MOV AL, 60h
-    INT 21h
-\end{lstlisting}
-
-\begin{peringatanbox}
-Mengganti isi vektor interupsi berisiko. Tiga kesalahan yang paling
-sering terjadi: penangan tidak diakhiri \asm{IRET} sehingga prosesor
-melompat ke alamat acak; vektor lama tidak dipulihkan sehingga program
-berikutnya menerima penangan yang sudah tidak ada; dan penangan tidak
-menyimpan register yang dipakainya. Vektor \hex{08} dan \hex{09}
-sebaiknya tidak dijadikan percobaan pertama.
-\end{peringatanbox}
-
-Penangan yang menggantikan interupsi perangkat keras umumnya tidak
-berdiri sendiri: sesudah pekerjaannya selesai, ia melanjutkan kendali
-ke penangan lama agar fungsi asli perangkat tetap berjalan. Teknik ini
-disebut \term{interupsi berantai} (\eng{interrupt chaining}) dan
-dilaksanakan dengan melompat ke alamat penangan lama, bukan dengan
-\asm{IRET}.

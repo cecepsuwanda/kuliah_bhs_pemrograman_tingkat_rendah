@@ -1,94 +1,126 @@
-\section{Contoh Program}
+\section{Contoh}
 \label{sec:contoh-bab8}
 
-Dua program berikut dirakit dan dijalankan dengan Emu8086 atau
-TASM/TLINK. Keduanya memperlihatkan bahwa mode pengalamatan langsung
-menentukan bentuk kode dan alamat yang dibaca prosesor.
+Dua contoh berikut memperlihatkan penerapan instruksi transfer data.
+Contoh pertama adalah program utuh yang dapat ditelusuri dengan
+\eng{single step}. Contoh kedua memperlihatkan pemuatan
+\eng{far pointer} dengan \asm{LDS} dan \asm{LES}.
 
-\subsection{Contoh 1: Membandingkan Tiga Mode pada Array}
+\subsection{Contoh 1: Menelusuri Transfer Data}
 
-Program \file{mode-array.asm} menjumlahkan lima elemen array yang
-sama dengan tiga mode pengalamatan berbeda, lalu membandingkan ketiga
-hasilnya. Kode lengkapnya tampak pada Kode~\ref{lst:mode-array}.
-
-\lstinputlisting[
-    language=MASM,
-    caption={Program \file{mode-array.asm}: tiga mode pengalamatan
-    untuk satu array.},
-    label={lst:mode-array}
-]{\CodeDir/mode-array.asm}
-
-Cara kerja program dijelaskan sebagai berikut.
-
-\begin{itemize}
-    \item \textbf{Cara 1 --- mode direct.} Elemen dibaca dengan offset
-          tetap, \lstasm|data1+0| sampai \lstasm|data1+8|. Mudah
-          dibaca, tetapi tidak praktis untuk array panjang.
-    \item \textbf{Cara 2 --- mode indexed.} \reg{SI} menjadi indeks
-          yang bertambah dua setiap putaran; \lstasm|data1[SI]|
-          setara dengan \lstasm|[data1+SI]| pada segmen \reg{DS}.
-    \item \textbf{Cara 3 --- mode base-relative.} \reg{BX} diisi
-          \lstasm|LEA BX, data1| sebagai basis, lalu elemen dibaca
-          dengan \lstasm|[BX+SI]|; basis dan indeks terpisah sehingga
-          mudah dipakai ulang.
-    \item \textbf{Pembandingan hasil.} \asm{CMP} dan \asm{JNE}
-          membandingkan \code{jumlah1} dengan \code{jumlah2}, lalu
-          \code{jumlah2} dengan \code{jumlah3}. Struktur kontrol ini
-          dibahas pada Bab~\ref{chap:kontrol} dan operasi
-          aritmatikanya pada Bab~\ref{chap:aritmatika}.
-\end{itemize}
-
-Ketiga cara menghasilkan jumlah yang identik, yaitu
-$10 + 20 + 30 + 40 + 50 = 150$ atau \hex{96}.
-
-\begin{session}[caption={Keluaran program \file{mode-array.asm}.}, label={lst:keluaran-mode-array}]
-Perbandingan tiga mode pengalamatan
-Ketiga hasil identik.
-\end{session}
-
-\begin{infobox}
-Bila hasil ketiga cara berbeda, kesalahan yang paling sering terjadi
-adalah keliru memakai \reg{BP} sebagai basis. Bentuk \lstasm|[BP+SI]|
-membaca segmen \reg{SS}, bukan \reg{DS}, sehingga data yang diambil
-adalah isi stack, bukan isi array.
-\end{infobox}
-
-\subsection{Contoh 2: Membaca Parameter dengan \code{[BP+disp]}}
-
-Program \file{param-bp.asm} memperlihatkan pemakaian mode
-base-relative dengan register \reg{BP} untuk membaca dua nilai yang
-diletakkan pada stack. Kode lengkapnya tampak pada
-Kode~\ref{lst:param-bp}.
+Program pada Kode~\ref{lst:transfer-data} memakai \asm{MOV},
+\asm{LEA}, \asm{XCHG}, \asm{CMP}, \asm{XLAT}, \asm{CBW}, dan
+\asm{CWD} dalam satu program pendek.
 
 \lstinputlisting[
     language=MASM,
-    caption={Program \file{param-bp.asm}: membaca parameter melalui
-    \code{[BP+disp]}.},
-    label={lst:param-bp}
-]{\CodeDir/param-bp.asm}
+    caption={Program \file{transfer-data.asm} untuk mengamati
+    instruksi transfer data.},
+    label={lst:transfer-data}
+]{\CodeDir/transfer-data.asm}
 
-Poin penting program ini adalah sebagai berikut.
+Keadaan register setelah setiap bagian program dirangkum pada
+Tabel~\ref{tab:trace-transfer}. Nilai offset \code{nilai1}
+bergantung pada susunan segmen data; yang penting adalah hubungan
+antara \reg{SI} dan alamat variabel tersebut.
+
+\begin{table}[H]
+    \centering
+    \caption{Perkiraan keadaan register setelah setiap instruksi
+    pada \file{transfer-data.asm}.}
+    \label{tab:trace-transfer}
+    \small
+    \begin{tabular}{@{}p{3.6cm}p{2.0cm}p{2.0cm}p{4.8cm}@{}}
+        \toprule
+        \textbf{Bagian} & \textbf{Register} & \textbf{Nilai} &
+        \textbf{Keterangan} \\
+        \midrule
+        \lstasm|MOV AX, nilai1| & \reg{AX} & \hex{1234} &
+        Menyalin isi memori \\
+        \addlinespace
+        \lstasm|MOV BX, nilai2| & \reg{BX} & \hex{5678} &
+        Menyalin isi memori \\
+        \addlinespace
+        \lstasm|XCHG AX, BX| & \reg{AX}, \reg{BX} &
+        \hex{5678}, \hex{1234} & Menukar isi kedua register \\
+        \addlinespace
+        \lstasm|LEA SI, nilai1| & \reg{SI} & offset \code{nilai1} &
+        Mengambil alamat, bukan isi \\
+        \addlinespace
+        \lstasm|MOV CX, [SI]| & \reg{CX} & \hex{1234} &
+        Membaca memori melalui \reg{SI} \\
+        \addlinespace
+        \lstasm|XLATB| & \reg{AL} & \hex{34} &
+        Elemen tabel ke-4, karakter \code{'4'} \\
+        \addlinespace
+        \lstasm|CBW| & \reg{AX} & \hex{FFFE} &
+        \hex{FE} sebagai $-2$ diperluas ke 16 bit \\
+        \addlinespace
+        \lstasm|CWD| & \reg{DX} & \hex{FFFF} &
+        \hex{FFFE} sebagai $-2$ diperluas ke 32 bit \\
+        \addlinespace
+        \lstasm|CMP AX, nilai2| & \eng{flag} &
+        \flag{CF} = 1 & \hex{1234} lebih kecil dari \hex{5678}
+        secara tidak bertanda \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Dua hal penting dari tabel tersebut:
 
 \begin{enumerate}
-    \item Nilai 2 dan 1 diletakkan pada stack melalui \asm{PUSH}.
-          Prosesor 8086 tidak memiliki \lstasm|PUSH 2| untuk nilai
-          segera, sehingga nilainya dimuat ke \reg{AX} terlebih
-          dahulu.
-    \item Setelah \lstasm|MOV BP, SP|, \reg{BP} menunjuk puncak
-          stack. \lstasm|MOV AX, [BP+0]| mengambil parameter pertama
-          dan \lstasm|MOV BX, [BP+2]| mengambil parameter kedua.
-    \item Keduanya memakai segmen \reg{SS} secara bawaan. Bila
-          penulisannya diubah menjadi \lstasm|[BX+2]| tanpa
-          menyiapkan \reg{BX}, program akan membaca lokasi yang
-          berbeda pada segmen \reg{DS}.
-    \item Hasil penjumlahan bernilai 3 dan dicetak sebagai karakter
-          melalui layanan DOS fungsi \hex{02}; konversi bilangan
-          dibahas pada Bab~\ref{chap:aritmatika}.
-    \item Dua instruksi \asm{POP} mengembalikan \reg{SP} ke posisi
-          semula, kebiasaan yang akan dipakai secara baku pada
-          Bab~\ref{chap:prosedur}.
+    \item \asm{LEA} menghasilkan alamat, sedangkan \asm{MOV}
+          menghasilkan isi. Pada tabel, \reg{SI} berisi offset
+          \code{nilai1}, sedangkan \reg{AX} berisi \hex{1234}.
+    \item \asm{CBW} dan \asm{CWD} melakukan perluasan tanda, bukan
+          sekadar menambahkan nol. Nilai negatif diisi dengan
+          \hex{FF} pada bit atas.
 \end{enumerate}
 
-\begin{session}[caption={Keluaran program \file{param-bp.asm}.}, label={lst:keluaran-param-bp}]
-1 + 2 = 3
-\end{session}
+\subsection{Contoh 2: Memuat Far Pointer}
+
+Misalkan pada segmen data terdapat far pointer berikut.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+ptr DD 12345678h    ; tersimpan sebagai 78h, 56h, 34h, 12h
+\end{lstlisting}
+
+Empat byte tersebut dibaca sebagai dua kata: kata pertama
+\hex{5678} adalah offset, kata kedua \hex{1234} adalah segmen.
+Instruksi \asm{LDS} dan \asm{LES} memuat keduanya sekaligus.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+LDS SI, ptr         ; SI = 5678h, DS = 1234h
+LES DI, ptr         ; DI = 5678h, ES = 1234h
+\end{lstlisting}
+
+Hasilnya dirangkum pada Tabel~\ref{tab:lds-les}.
+
+\begin{table}[H]
+    \centering
+    \caption{Hasil pemuatan far pointer oleh LDS dan LES.}
+    \label{tab:lds-les}
+    \small
+    \begin{tabular}{@{}p{2.0cm}p{2.2cm}p{2.2cm}p{4.8cm}@{}}
+        \toprule
+        \textbf{Instruksi} & \textbf{Register tujuan} &
+        \textbf{Register segmen} & \textbf{Hasil} \\
+        \midrule
+        \lstasm|LDS SI, ptr| & \reg{SI} = \hex{5678} &
+        \reg{DS} = \hex{1234} &
+        Offset ke \reg{SI}, segmen ke \reg{DS} \\
+        \addlinespace
+        \lstasm|LES DI, ptr| & \reg{DI} = \hex{5678} &
+        \reg{ES} = \hex{1234} &
+        Offset ke \reg{DI}, segmen ke \reg{ES} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{peringatanbox}
+\vspace{1.1em}
+\asm{LDS} mengubah \reg{DS}. Bila program masih membutuhkan segmen
+data lama, gunakan \asm{LES} atau simpan nilai \reg{DS} terlebih
+dahulu. Perubahan \reg{DS} yang tidak disengaja membuat variabel
+pada segmen data lama tidak dapat diakses.
+\end{peringatanbox}

@@ -1,269 +1,174 @@
-\section{Mode Memori Berpenunjuk dan Segmen Default}
-\label{sec:mode-memori-segmen}
+\section{LEA, LDS/LES, XCHG, dan CMP}
+\label{sec:lea-lds-xchg-cmp}
 
-Empat mode berikutnya menyatakan alamat melalui register penunjuk,
-bukan bilangan tetap. Karena isi register dapat diubah, alamatnya pun
-dapat berubah saat program berjalan; kemampuan inilah yang membuat
-akses berulang terhadap array dan \eng{record} menjadi mungkin
-\cite{kader2014}.
+Selain \asm{MOV}, 8086 menyediakan instruksi transfer data yang
+berfungsi khusus: mengambil alamat, memuat \eng{far pointer},
+menukar isi operand, dan membandingkan dua nilai. Bagian ini
+membahas keempatnya.
 
-\subsection{Mode Register Indirect}
+Pembahasan diringkas dari \cite{gunawan2019}, Bagian 5,
+hlm.~35--44.
 
-Pada mode \term{register indirect}, operand ditulis di antara tanda
-kurung siku berisi sebuah register. Register itu tidak menyimpan
-data, melainkan \emph{offset} tempat data berada.
+\subsection{LEA: Load Effective Address}
 
-\begin{lstlisting}[language=MASM, numbers=none]
-    MOV BX, OFFSET data1    ; BX <- offset awal array data1
-    MOV AX, [BX]            ; AX <- isi memori DS:BX
-    ADD BX, 2               ; maju dua byte (satu elemen word)
-    MOV AX, [BX]            ; AX <- elemen kedua array
-\end{lstlisting}
+\asm{LEA} menyalin \emph{alamat offset} sebuah operand ke register
+tujuan, bukan isi operand tersebut.
 
-Hanya \reg{BX}, \reg{BP}, \reg{SI}, dan \reg{DI} yang boleh menjadi
-penunjuk alamat. \reg{BX} dan \reg{BP} adalah \term{register basis}
-(\eng{base register}), sedangkan \reg{SI} dan \reg{DI} adalah
-\term{register indeks} (\eng{index register}).
+\begin{center}
+\lstasm|LEA tujuan, sumber|
+\end{center}
 
-\important{Segmen \code{[BX]} dan \code{[BP]} berbeda.} \code{[BX]}
-memakai \reg{DS}, sedangkan \code{[BP]} memakai \reg{SS}; instruksi
-\lstasm|MOV AX, [BP]| karena itu membaca stack, bukan segmen data.
-Inilah alasan \reg{BP} dipakai pada Bab~\ref{chap:prosedur}.
-
-\subsection{Mode Indexed dan Base-Relative}
-
-Bentuk \code{[SI+disp]} dan \code{[DI+disp]} disebut mode
-\term{indexed}; \code{[BX+disp]} dan \code{[BP+disp]} disebut mode
-\term{base-relative}.
+Contoh:
 
 \begin{lstlisting}[language=MASM, numbers=none]
-    ; --- indexed: register indeks + perpindahan ---
-    MOV SI, 4               ; SI = indeks elemen ke-2 (2 x 2 byte)
-    MOV AX, data1[SI]       ; AX <- memori DS:(data1 + SI)
-    MOV AX, [SI+8]          ; AX <- memori DS:(SI + 8)
-
-    ; --- base-relative: register basis + perpindahan ---
-    MOV BX, OFFSET data1    ; basis = awal array
-    MOV AX, [BX+4]          ; AX <- elemen ke-2
-    MOV BP, SP              ; basis = puncak stack
-    MOV AX, [BP+2]          ; AX <- parameter pada SS:(BP + 2)
+LEA SI, nilai       ; SI = offset variabel nilai
+MOV DI, OFFSET nilai ; DI = offset variabel nilai
 \end{lstlisting}
 
-Penulisan \code{data1[SI]} diterjemahkan assembler menjadi
-\code{[data1 + SI]}, menyerupai penulisan array pada bahasa tingkat
-tinggi. Perpindahan boleh berukuran 8 bit, 16 bit, atau nol.
+Kedua instruksi di atas menghasilkan nilai yang sama, yaitu offset
+variabel \code{nilai}. Perbedaannya, \asm{LEA} mengambil alamat
+secara langsung, sedangkan \lstasm|MOV ..., OFFSET ...| memakai
+operator \code{OFFSET} yang dihitung assembler.
 
-\subsection{Mode Based-Indexed}
+\asm{LEA} berguna ketika alamat baru diketahui saat program
+berjalan, misalnya alamat elemen array yang dihitung dari register
+indeks. Instruksi ini tidak mengubah \eng{flag}.
 
-Mode \term{based-indexed} menggabungkan satu basis, satu indeks, dan
-satu perpindahan sekaligus. Hanya empat kombinasi yang legal:
-\code{[BX+SI+disp]}, \code{[BX+DI+disp]}, \code{[BP+SI+disp]}, dan
-\code{[BP+DI+disp]}.
+\subsection{LDS dan LES: Memuat Far Pointer}
 
-\begin{lstlisting}[language=MASM, numbers=none]
-    MOV BX, OFFSET tabel    ; basis  : awal tabel record
-    MOV SI, 6               ; indeks : record ke-3 (3 x 2 byte)
-    MOV AX, [BX+SI+2]       ; AX <- medan ke-2 dari record ke-3
-\end{lstlisting}
+\eng{Far pointer} adalah alamat lengkap yang terdiri atas offset dan
+segmen. Di memori, far pointer menempati empat byte: dua byte offset
+diikuti dua byte segmen.
 
-Mode ini dipakai bila alamat akhir tersusun dari dua komponen yang
-bergerak sendiri-sendiri, misalnya baris dan kolom matriks, atau
-nomor \eng{record} dan nomor medannya.
+\begin{itemize}
+    \item \lstasm|LDS tujuan, sumber| memuat offset ke register
+          tujuan dan segmen ke \reg{DS}.
+    \item \lstasm|LES tujuan, sumber| memuat offset ke register
+          tujuan dan segmen ke \reg{ES}.
+\end{itemize}
 
-\subsection{Menghitung Alamat Efektif}
-
-Prosesor mula-mula membentuk \term{alamat efektif} (\eng{effective
-address}, EA), yaitu jumlah basis, indeks, dan perpindahan. Hasilnya
-berupa offset 16 bit yang kembali ke nol setelah melewati batas
-segmen. Alamat fisik dibentuk dengan menambahkan basis segmen
-(Bab~\ref{chap:segmentasi}).
+Susunan far pointer ditunjukkan pada Gambar~\ref{fig:far-pointer}.
 
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        komp/.style={
+        byte/.style={
             draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-            rounded corners=3pt, minimum width=3.9cm, minimum height=1.15cm,
-            align=center, inner sep=4pt, font=\small
-        },
-        jumlah/.style={
-            draw=obeGray, line width=0.9pt, fill=obeGrayLight,
-            circle, minimum size=1.0cm, font=\large\bfseries
-        },
-        hasil/.style={
-            draw=obeTeal, line width=1.0pt, fill=obeTealLight,
-            rounded corners=3pt, minimum width=4.4cm, minimum height=1.15cm,
-            align=center, inner sep=4pt, font=\small
-        },
-        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt, obeBlue},
-        kecil/.style={font=\scriptsize\itshape, text=obeGray}
-    ]
-        \node[komp] (base) at (0, 2.6)
-            {\textbf{Basis} (\eng{base})\\[1pt]
-             {\scriptsize \reg{BX} atau \reg{BP} atau tidak ada}};
-        \node[komp] (index) at (0, 1.3)
-            {\textbf{Indeks} (\eng{index})\\[1pt]
-             {\scriptsize \reg{SI} atau \reg{DI} atau tidak ada}};
-        \node[komp] (disp) at (0, 0)
-            {\textbf{Perpindahan} (\eng{displacement})\\[1pt]
-             {\scriptsize 8 bit, 16 bit, atau 0}};
-
-        \node[jumlah] (plus) at (4.9, 1.3) {$+$};
-
-        \node[hasil] (ea) at (9.0, 1.3)
-            {\textbf{Alamat efektif (EA)}\\[1pt]
-             {\scriptsize \code{EA = base + index + disp}}};
-
-        \draw[panah] (base) -- (plus);
-        \draw[panah] (index) -- (plus);
-        \draw[panah] (disp) -- (plus);
-        \draw[panah] (plus) -- (ea);
-
-        \node[hasil, below=1.5cm of ea] (fisik)
-            {\textbf{Alamat fisik}\\[1pt]
-             {\scriptsize \code{(segmen x 16) + EA}}};
-        \draw[panah] (ea) -- (fisik)
-            node[midway, right=3pt, kecil] {ditambah basis segmen};
-    \end{tikzpicture}
-    \caption{Perhitungan alamat efektif sebagai jumlah basis, indeks,
-    dan perpindahan, lalu pembentukan alamat fisiknya.}
-    \label{fig:alamat-efektif}
-\end{figure}
-
-Misalkan \reg{DS} = \hex{1000}, \reg{BX} = \hex{0200}, \reg{SI} =
-\hex{0006}, dan instruksi \lstasm|MOV AX, [BX+SI+2]|. Alamat
-efektifnya \hex{0200} + \hex{0006} + \hex{0002} = \hex{0208}, dan
-alamat fisiknya \hex{1000} $\times$ \hex{10} + \hex{0208} =
-\hex{10208}. Alamat fisik inilah yang muncul pada jendela memori
-\eng{debugger}.
-
-\subsection{Kombinasi Register yang Legal dan Ilegal}
-
-Tidak semua penulisan operand berpenunjuk dapat diterima assembler;
-Tabel~\ref{tab:kombinasi-register} merangkum keduanya.
-
-\begin{table}[H]
-    \centering
-    \caption{Kombinasi register penunjuk alamat pada 8086.}
-    \label{tab:kombinasi-register}
-    \small
-    \begin{tabular}{@{}p{3.0cm}p{1.6cm}p{1.9cm}p{7.4cm}@{}}
-        \toprule
-        \textbf{Bentuk operand} & \textbf{Legal} &
-        \textbf{Segmen} & \textbf{Alasan} \\
-        \midrule
-        \code{[BX]}, \code{[SI]}, \code{[DI]} & Ya & \reg{DS} &
-        Tersedia \eng{encoding} untuk satu penunjuk \\
-        \addlinespace
-        \code{[BP]} & Ya & \reg{SS} &
-        \reg{BP} adalah basis segmen stack \\
-        \addlinespace
-        \code{[BX+SI]}, \code{[BX+DI]} & Ya & \reg{DS} &
-        Satu basis ditambah satu indeks \\
-        \addlinespace
-        \code{[BP+SI]}, \code{[BP+DI]} & Ya & \reg{SS} &
-        Basis \reg{BP} ditambah satu indeks \\
-        \addlinespace
-        \code{[AX]}, \code{[CX]}, \code{[DX]} & Tidak & --- &
-        Bukan basis maupun indeks; tidak ada kodenya \\
-        \addlinespace
-        \code{[SP]} & Tidak & --- &
-        \reg{SP} bukan basis; gunakan \reg{BP} \\
-        \addlinespace
-        \code{[BX+BP]} & Tidak & --- &
-        Dua register basis tidak dapat digabung \\
-        \addlinespace
-        \code{[SI+DI]} & Tidak & --- &
-        Dua register indeks tidak dapat digabung \\
-        \addlinespace
-        \code{[BX+SI+DI]} & Tidak & --- &
-        Maksimal satu basis ditambah satu indeks \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{peringatanbox}
-Pesan \file{Invalid use of register} pada operand seperti \code{[AX]}
-bukan kesalahan penulisan semata: 8086 memang tidak memiliki
-\eng{encoding}-nya, sesuai struktur \eng{ModR/M} pada
-Bab~\ref{chap:format-instruksi}.
-\end{peringatanbox}
-
-\subsection{Segmen Default dan Segment Override}
-
-Setiap operand memori dibaca melalui salah satu register segmen. Bila
-tidak disebutkan, prosesor memakai segmen \eng{default} yang
-bergantung pada register penunjuknya \cite{evans2020}.
-
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        opd/.style={
-            draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-            rounded corners=3pt, minimum width=3.2cm, minimum height=0.9cm,
-            align=center, font=\small\ttfamily
+            minimum width=2.0cm, minimum height=0.9cm,
+            align=center, font=\small\ttfamily, inner sep=2pt
         },
         seg/.style={
-            draw=obeTeal, line width=0.9pt, fill=obeTealLight,
-            rounded corners=3pt, minimum width=1.8cm, minimum height=0.9cm,
-            align=center, font=\small\bfseries
+            draw=obeTeal, line width=0.8pt, fill=obeTealLight,
+            minimum width=2.0cm, minimum height=0.9cm,
+            align=center, font=\small\ttfamily, inner sep=2pt
         },
-        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt, obeTeal},
-        kecil/.style={font=\scriptsize\itshape, text=obeGray}
+        ket/.style={font=\scriptsize, text=obeGray, align=center},
+        panah/.style={-{Stealth[length=2.2mm]}, line width=0.8pt,
+            obeTeal}
     ]
-        \node[opd] (bx) at (0, 1.8) {[BX + disp]};
-        \node[opd] (bp) at (0, 0.4) {[BP + disp]};
-        \node[seg] (ds) at (6.2, 1.8) {DS};
-        \node[seg] (ss) at (6.2, 0.4) {SS};
+        \node[byte] (b0) at (0,0) {\hex{78}};
+        \node[byte, right=0.15cm of b0] (b1) {\hex{56}};
+        \node[seg, right=0.35cm of b1] (b2) {\hex{34}};
+        \node[seg, right=0.15cm of b2] (b3) {\hex{12}};
 
-        \draw[panah] (bx) -- (ds) node[midway, above, kecil] {default};
-        \draw[panah] (bp) -- (ss) node[midway, above, kecil] {default};
+        \node[ket, below=0.15cm of b0] {offset rendah};
+        \node[ket, below=0.15cm of b1] {offset tinggi};
+        \node[ket, below=0.15cm of b2] {segmen rendah};
+        \node[ket, below=0.15cm of b3] {segmen tinggi};
 
-        \node[kecil, below=0.55cm of bp, align=center]
-            {\eng{Segment override prefix} mengubah segmen yang
-             dipakai,\\ tetapi tidak mengubah nilai offsetnya.};
+        \draw[panah] (b1.north) -- ++(0,0.55)
+            node[above, ket, text width=4.2cm, align=center]
+            {dimuat ke register tujuan\\(offset)};
+        \draw[panah] (b3.north) -- ++(0,1.25)
+            node[above, ket, text width=4.2cm, align=center]
+            {dimuat ke DS atau ES\\(segmen)};
     \end{tikzpicture}
-    \caption{Segmen \eng{default} untuk \code{[BX+disp]} adalah
-    \reg{DS}, sedangkan untuk \code{[BP+disp]} adalah \reg{SS}.}
-    \label{fig:segmen-ds-ss}
+    \caption{Susunan empat byte \eng{far pointer} dan bagian yang
+    dimuat oleh LDS atau LES.}
+    \label{fig:far-pointer}
 \end{figure}
+
+Contoh pemakaian:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+ptr DD 12345678h    ; di memori: 78h, 56h, 34h, 12h
+
+LDS SI, ptr         ; SI = 5678h, DS = 1234h
+LES DI, ptr         ; DI = 5678h, ES = 1234h
+\end{lstlisting}
+
+\begin{peringatanbox}
+\vspace{1.1em}
+\asm{LDS} mengubah \reg{DS}. Setelah instruksi ini dijalankan,
+variabel pada segmen data lama tidak dapat diakses sampai \reg{DS}
+dikembalikan. Karena itu, \asm{LES} lebih aman untuk mengambil far
+pointer bila program masih membutuhkan \reg{DS}.
+\end{peringatanbox}
+
+\subsection{XCHG: Menukar Isi Operand}
+
+\asm{XCHG} menukar isi dua operand. Berbeda dengan \asm{MOV} yang
+menyalin, \asm{XCHG} membuat kedua operand bertukar nilai.
+
+\begin{center}
+\lstasm|XCHG operand1, operand2|
+\end{center}
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, 1234h
+MOV BX, 5678h
+XCHG AX, BX         ; AX = 5678h, BX = 1234h
+\end{lstlisting}
+
+Operand \asm{XCHG} dapat berupa register atau memori, tetapi tidak
+keduanya memori sekaligus. Nilai segera tidak dapat menjadi operand
+\asm{XCHG}.
+
+\subsection{CMP: Membandingkan Dua Operand}
+
+\asm{CMP} membandingkan dua operand dengan cara mengurangkan operand
+pertama dengan operand kedua. Hasil pengurangan tidak disimpan;
+yang berubah hanya \eng{flag}.
+
+\begin{center}
+\lstasm|CMP operand1, operand2|
+\end{center}
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, 1234h
+MOV BX, 5678h
+CMP AX, BX          ; AX - BX, hasil tidak disimpan
+\end{lstlisting}
+
+Setelah \asm{CMP}, program dapat memeriksa \eng{flag} untuk
+menentukan keputusan. Jika hasilnya nol, \flag{ZF} bernilai 1. Jika
+operand pertama lebih kecil secara tidak bertanda, \flag{CF}
+bernilai 1. Pembahasan lompatan bersyarat dilakukan pada bab tentang
+percabangan dan perulangan.
 
 \begin{table}[H]
     \centering
-    \caption{Segmen \eng{default} setiap bentuk operand memori 8086.}
-    \label{tab:segmen-default}
+    \caption{Ringkasan instruksi transfer khusus.}
+    \label{tab:instruksi-transfer-khusus}
     \small
-    \begin{tabular}{@{}p{5.6cm}p{2.6cm}p{6.2cm}@{}}
+    \begin{tabular}{@{}p{2.0cm}p{4.2cm}p{6.4cm}@{}}
         \toprule
-        \textbf{Bentuk operand} & \textbf{Segmen} &
-        \textbf{Keterangan dan override} \\
+        \textbf{Instruksi} & \textbf{Bentuk} & \textbf{Fungsi} \\
         \midrule
-        \code{[disp]}, nama variabel & \reg{DS} &
-        Override: \code{CS:}, \code{SS:}, atau \code{ES:} \\
+        \asm{LEA} & \lstasm|LEA reg, mem| &
+        Menyalin alamat offset ke register \\
         \addlinespace
-        \code{[BX]}, \code{[SI]}, \code{[DI]}, \code{[BX+SI]},
-        \code{[BX+disp]} & \reg{DS} &
-        Penunjuk data; override \code{SS:}, \code{ES:},
-        \code{CS:} \\
+        \asm{LDS} & \lstasm|LDS reg, mem| &
+        Memuat offset ke register dan segmen ke \reg{DS} \\
         \addlinespace
-        \code{[BP]}, \code{[BP+disp]}, \code{[BP+SI]},
-        \code{[BP+DI]} & \reg{SS} &
-        Penunjuk stack; override \code{DS:}, \code{ES:},
-        \code{CS:} \\
+        \asm{LES} & \lstasm|LES reg, mem| &
+        Memuat offset ke register dan segmen ke \reg{ES} \\
         \addlinespace
-        Operand string \reg{DI} sebagai tujuan & \reg{ES} &
-        Tidak dapat di-override \\
+        \asm{XCHG} & \lstasm|XCHG op1, op2| &
+        Menukar isi dua operand \\
         \addlinespace
-        Pengambilan instruksi (\reg{IP}) & \reg{CS} &
-        Tidak dapat di-override \\
-        \addlinespace
-        \lstasm|PUSH| dan \lstasm|POP| & \reg{SS} &
-        Selalu memakai stack; tidak dapat di-override \\
+        \asm{CMP} & \lstasm|CMP op1, op2| &
+        Membandingkan operand dan memperbarui \eng{flag} \\
         \bottomrule
     \end{tabular}
 \end{table}
-
-Override ditulis dengan menempatkan nama register segmen di depan
-tanda kurung, misalnya \lstasm|MOV AX, ES:[BX]|. Override hanya
-mengganti register segmen, bukan offset, dan menambah satu byte
-awalan (\eng{prefix}).

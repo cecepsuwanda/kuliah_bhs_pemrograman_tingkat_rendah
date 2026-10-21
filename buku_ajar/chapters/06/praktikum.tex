@@ -2,132 +2,113 @@
 \label{sec:praktikum-bab6}
 
 \begin{praktikumbox}
+\vspace{1.1em}
 \textbf{Judul:} Menghitung dan memverifikasi alamat fisik dengan
 \eng{debugger}.\\[0.3em]
-\textbf{Sub-CPMK:} 1.3 \quad\textbullet\quad
-\textbf{Pertemuan:} 4 \quad\textbullet\quad
-\textbf{Alokasi waktu:} 100 menit (70 menit praktikum + 30 menit
-Kuis 1) \quad\textbullet\quad
+\textbf{Sub-CPMK:} 1.4 \quad\textbullet\quad
+\textbf{Alokasi waktu:} 100 menit \quad\textbullet\quad
 \textbf{Bentuk:} individu
 \end{praktikumbox}
 
 \subsection{Tujuan Praktikum}
 
 Setelah menyelesaikan praktikum ini, mahasiswa mampu menghitung
-alamat fisik dari pasangan \eng{segment:offset} secara manual,
-lalu membuktikan hasilnya dengan \eng{debugger} DEBUG maupun
-Emu8086.
+alamat fisik dari pasangan \eng{segment:offset}, membuktikan hasilnya
+dengan DEBUG dan emu8086, serta menunjukkan \eng{overlapping} segmen.
 
 \subsection{Alat dan Bahan}
 
 \begin{itemize}
-    \item Komputer dengan sistem operasi Windows.
-    \item Emu8086 (emulator dan editor).
-    \item DOSBox beserta perintah \file{DEBUG}, TASM, dan TLINK.
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \file{alamat-fisik.asm} dan \file{hitung-alamat.asm}
           dari \file{code/asm/}.
-    \item Kalkulator heksadesimal atau lembar kerja perhitungan
-          manual.
+    \item Kalkulator heksadesimal atau lembar kerja perhitungan.
 \end{itemize}
 
 \subsection{Langkah Kerja}
 
 \begin{enumerate}
-    \item \textbf{Merakit program.}
+    \item \textbf{Merakit dan menjalankan program pertama.}
     \begin{enumerate}
-        \item Buka DOSBox, lalu lakukan \file{mount} ke direktori
-              kerja, misalnya \file{mount c: D:\textbackslash asm}.
-        \item Rakit program dengan perintah
-              \file{tasm alamat-fisik.asm}, lalu gabungkan dengan
+        \item Buka DOSBox, lalu masuk ke direktori kerja.
+        \item Rakit \file{alamat-fisik.asm} dengan
+              \file{tasm alamat-fisik.asm}, lalu link dengan
               \file{tlink alamat-fisik.obj}.
-        \item Jalankan program dengan perintah
-              \file{alamat-fisik} dan catat kedua nilai offset yang
+        \item Jalankan program dan catat kedua nilai offset yang
               tampil.
     \end{enumerate}
 
     \item \textbf{Menghitung alamat fisik secara manual.}
     \begin{enumerate}
-        \item Jalankan kembali program di bawah DEBUG dengan
-              perintah \file{DEBUG alamat-fisik.exe}.
-        \item Tampilkan isi register dengan perintah \file{R}, lalu
-              catat nilai \reg{DS} yang terbaca.
+        \item Jalankan \file{debug alamat-fisik.exe}.
+        \item Ketik \file{r}, lalu catat nilai \reg{DS}.
         \item Hitung alamat fisik setiap variabel dengan rumus
               $(\text{segmen} \times \hex{10}) + \text{offset}$.
-              Tuliskan langkah perhitungannya, bukan hanya hasil
-              akhirnya.
-        \item Susun hasil perhitungan pada tabel kerja seperti
+              Tuliskan langkahnya, bukan hanya hasil akhir.
+        \item Susun hasil pada tabel seperti
               Tabel~\ref{tab:analisis-offset}.
     \end{enumerate}
 
-    \item \textbf{Memverifikasi hasil dengan DEBUG.}
+    \item \textbf{Memverifikasi dengan DEBUG.}
     \begin{enumerate}
-        \item Tampilkan isi memori pada alamat hasil perhitungan
-              dengan perintah \lstasm|D DS:0000 L 08|.
-        \item Bandingkan isi memori yang tampil dengan nilai
-              variabel yang dideklarasikan pada program. Variabel
-              \code{var\_byte} bernilai \hex{10} dan \code{var\_word}
-              bernilai \hex{1234}; perhatikan bahwa byte disimpan
-              dengan urutan terbalik (\eng{little endian}), yaitu
-              \hex{34} lebih dahulu, lalu \hex{12}.
-        \item Buktikan \eng{overlapping segment} dengan menampilkan
-              alamat yang sama melalui pasangan yang berbeda.
-              Misalnya, bila \reg{DS} bernilai \hex{076A} dan offset
-              \code{var\_word} adalah \hex{0001}, maka alamat fisik
-              \hex{076A1} juga dapat ditulis sebagai
-              \code{0769h:0011h} karena
-              $\hex{07690} + \hex{0011} = \hex{076A1}$. Tampilkan
-              keduanya dan pastikan isinya identik.
+        \item Tampilkan isi memori dengan
+              \lstasm|D DS:0000 L 08|.
+        \item Bandingkan isi yang tampil dengan nilai variabel pada
+              program: \code{var\_byte} bernilai \hex{10} dan
+              \code{var\_word} bernilai \hex{1234}.
+        \item Perhatikan urutan byte pada \code{var\_word}. Jelaskan
+              mengapa byte rendah tampil lebih dahulu.
     \end{enumerate}
 
-    \item \textbf{Menguji kasus batas \eng{wrap-around}.}
+    \item \textbf{Membuktikan overlapping.}
     \begin{enumerate}
-        \item Pada Emu8086, buka jendela \file{Memory} dan
-              tampilkan alamat \code{FFFFh:0010h}.
-        \item Bandingkan isinya dengan isi alamat
-              \code{0000h:0000h}. Jelaskan mengapa keduanya sama.
-        \item Ulangi pengamatan untuk alamat \code{FFFFh:FFFFh},
-              lalu tentukan alamat fisik mana yang sesungguhnya
-              ditampilkan.
+        \item Bila \reg{DS} $= \hex{076A}$ dan offset
+              \code{var\_word} $= \hex{0001}$, alamat fisiknya adalah
+              \hex{076A1}.
+        \item Tuliskan pasangan lain yang menunjuk alamat tersebut,
+              misalnya \code{0769h:0011h}.
+        \item Tampilkan kedua pasangan dengan perintah
+              \lstasm|D| dan pastikan isinya sama.
+        \item Jelaskan mengapa dua pasangan berbeda dapat menunjuk
+              lokasi yang sama.
     \end{enumerate}
 
-    \item \textbf{Menjalankan dan memeriksa program kedua.}
+    \item \textbf{Menjalankan program kedua.}
     \begin{enumerate}
         \item Rakit dan jalankan \file{hitung-alamat.asm}.
         \item Bandingkan alamat fisik yang dihitung program dengan
-              hasil perhitungan manual Anda. Keduanya harus sama.
-        \item Ubah posisi \code{var\_nilai} di dalam segmen data
-              dengan menambahkan satu variabel baru di depannya,
-              rakit ulang, dan jelaskan perubahan offset yang
+              hasil perhitungan manual.
+        \item Tambahkan satu variabel baru di depan \code{var\_nilai},
+              rakit ulang, lalu jelaskan perubahan offset yang
               terjadi.
     \end{enumerate}
 
-    \item \textbf{Kuis 1 (30 menit).}
+    \item \textbf{Kuis 1.}
     \begin{enumerate}
-        \item Kuis dikerjakan secara individu pada akhir pertemuan
-              dan mencakup seluruh Sub-CPMK 1.3.
-        \item Materi kuis meliputi perhitungan alamat fisik,
-              penjelasan paragraf 16-byte, analisis \eng{overlapping
-              segment}, peta memori 1 MB, dan kasus batas alamat.
-        \item Kisi-kisi kuis terdapat pada
-              Bagian~\ref{sec:evaluasi-bab6}.
+        \item Kerjakan kuis secara individu pada akhir pertemuan.
+        \item Materi kuis mencakup perhitungan alamat fisik,
+              paragraf 16 byte, \eng{overlapping} segmen, dan
+              pembagian memori 1 MB.
     \end{enumerate}
 \end{enumerate}
 
 \subsection{Hasil yang Dikumpulkan}
 
 \begin{enumerate}
-    \item Lembar perhitungan manual alamat fisik untuk sekurang-kurangnya
-          enam pasangan \eng{segment:offset}.
-    \item Tangkapan layar keluaran program \file{alamat-fisik.asm}
-          dan \file{hitung-alamat.asm}.
-    \item Tangkapan layar sesi DEBUG yang memperlihatkan perintah
-          \lstasm|R| dan \lstasm|D| beserta hasilnya.
-    \item Bukti pengamatan \eng{overlapping segment} dan kasus
-          \eng{wrap-around}, disertai penjelasan singkat.
+    \item Lembar perhitungan manual alamat fisik untuk minimal enam
+          pasangan \eng{segment:offset}.
+    \item Tangkapan layar keluaran \file{alamat-fisik.asm} dan
+          \file{hitung-alamat.asm}.
+    \item Tangkapan layar sesi DEBUG dengan perintah \file{r} dan
+          \file{d}.
+    \item Bukti pengamatan \eng{overlapping} beserta penjelasan.
     \item Jawaban Kuis 1.
 \end{enumerate}
 
+\clearpage
 \begin{asesmenbox}
+\vspace{1.1em}
 \textbf{Asesmen praktikum 4 (bobot 5\% dari komponen praktikum)} dan
 \textbf{Kuis 1 (bobot 10\% dari komponen kuis)}.
 
@@ -135,28 +116,17 @@ Emu8086.
     \toprule
     \textbf{Indikator} & \textbf{Bobot} & \textbf{Kriteria} \\
     \midrule
-    Ketepatan perhitungan alamat fisik & 30\% &
+    Ketepatan perhitungan alamat fisik & 35\% &
     Seluruh langkah ditulis dan hasilnya benar \\
     \addlinespace
-    Ketepatan verifikasi dengan DEBUG & 25\% &
+    Ketepatan verifikasi dengan DEBUG & 30\% &
     Perintah yang dipakai tepat dan isinya ditafsirkan dengan benar \\
     \addlinespace
-    Analisis \eng{overlapping} dan \eng{wrap-around} & 20\% &
-    Penjelasan sesuai mekanisme perangkat keras \\
+    Analisis \eng{overlapping} & 20\% &
+    Penjelasan pasangan alamat dan alamat fisik tepat \\
     \addlinespace
-    Kerapian dokumentasi dan jurnal & 10\% &
+    Kerapian dokumentasi & 15\% &
     Langkah kerja terdokumentasi dan dapat diulang \\
-    \addlinespace
-    Kuis 1 (Sub-CPMK 1.3) & 15\% &
-    Jumlah jawaban benar sesuai kunci penilaian \\
     \bottomrule
 \end{tabular}
 \end{asesmenbox}
-
-\begin{infobox}
-DEBUG menampilkan isi memori per 16 byte dengan format
-\code{ssss:oooo bb bb \dots}. Nilai \code{ssss} dan \code{oooo} pada
-awal baris menyatakan segmen dan offset, bukan alamat fisik. Untuk
-memperoleh alamat fisik, keduanya harus dikombinasikan dengan rumus
-pada Persamaan~\ref{eq:rumus-alamat-fisik}.
-\end{infobox}

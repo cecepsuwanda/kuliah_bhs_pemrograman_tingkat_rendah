@@ -4,70 +4,57 @@
 Pada bab ini telah dibahas:
 
 \begin{itemize}
-    \item Prosedur dipakai untuk memperoleh modularitas, penggunaan
-          ulang, dan abstraksi. Biaya pemanggilannya berupa dorongan
-          parameter, \asm{CALL}, \eng{prologue}, \eng{epilogue}, dan
-          \asm{RET}.
+    \item Label adalah nama simbolik untuk lokasi di dalam segmen
+          kode. Label didefinisikan dengan titik dua dan ditulis
+          tanpa titik dua saat menjadi tujuan lompatan.
 
-    \item \asm{CALL} menyimpan alamat kembali \reg{CS}:\reg{IP} ke
-          stack lalu melompat ke prosedur; \asm{RET} mengambil
-          alamat itu dan mengembalikan kendali kepada pemanggil.
-          Pemanggilan \eng{near} menyimpan \reg{IP} (\dec{2} byte)
-          dan ditutup \asm{RET}, sedangkan pemanggilan \eng{far}
-          menyimpan \reg{CS} dan \reg{IP} (\dec{4} byte) dan ditutup
-          \asm{RETF}.
+    \item \asm{JMP} memindahkan kendali tanpa syarat, sedangkan
+          \asm{Jcc} memindahkan kendali hanya bila syarat
+          \eng{flag} terpenuhi.
 
-    \item Stack bekerja secara LIFO dan ditunjuk \reg{SS}:\reg{SP}.
-          Stack 8086 tumbuh ke arah alamat rendah: \asm{PUSH}
-          menurunkan \reg{SP} \dec{2} byte, \asm{POP} menaikkannya
-          kembali. \asm{PUSHF} dan \asm{POPF} menyimpan serta
-          memulihkan register \reg{FLAGS}.
+    \item \asm{CMP} mengurangkan operand kedua dari operand pertama
+          tanpa menyimpan hasil. Yang berubah hanya \eng{flag}.
 
-    \item \eng{Stack frame} standar dibangun dengan \eng{prologue}
-          \lstasm|PUSH BP| dan \lstasm|MOV BP, SP|, lalu dibongkar
-          dengan \eng{epilogue} \lstasm|POP BP| dan \asm{RET}.
-          Parameter diakses melalui \code{[BP+4]}, \code{[BP+6]},
-          dan seterusnya; variabel lokal melalui \code{[BP-2]}.
+    \item Lompatan bersyarat untuk bilangan bertanda memakai
+          \asm{JG}, \asm{JGE}, \asm{JL}, dan \asm{JLE}. Untuk
+          bilangan tidak bertanda dipakai \asm{JA}, \asm{JAE},
+          \asm{JB}, dan \asm{JBE}.
 
-    \item Konvensi pemanggilan mengatur letak parameter, letak nilai
-          balik, dan tanggung jawab pembersihan stack. Pembersihan
-          dilakukan prosedur melalui \asm{RET} \code{n}, atau
-          dilakukan pemanggil melalui \lstasm|ADD SP, n|.
+    \item Pola \code{if} diterjemahkan menjadi \asm{CMP} diikuti
+          satu lompatan bersyarat. Pola \code{if--else} memerlukan
+          tambahan \asm{JMP} untuk melewati blok \code{else}.
 
-    \item Nilai balik diletakkan pada \reg{AL}, \reg{AX}, atau
-          \reg{DX}:\reg{AX}. Register \reg{AX}, \reg{BX}, \reg{CX},
-          \reg{DX}, dan \reg{ES} boleh dirusak prosedur, sedangkan
-          \reg{BP}, \reg{SI}, \reg{DI}, \reg{DS}, dan \reg{SS} wajib
-          dipulihkan.
+    \item \asm{LOOP} mengurangi \reg{CX} dengan satu, lalu melompat
+          bila \reg{CX} belum nol. Badan perulangan selalu dijalankan
+          paling sedikit satu kali.
 
-    \item Rekursi pada assembly adalah penumpukan bingkai stack.
-          Rekursi memakai stack $O(n)$ dan berisiko \eng{stack
-          overflow}, sedangkan versi iteratif biasanya memakai stack
-          tetap $O(1)$.
+    \item Perulangan \code{while} memeriksa syarat sebelum badan,
+          sedangkan \code{for} dengan cacah tetap dapat memakai
+          \asm{LOOP}.
+
+    \item Perulangan bersarang memerlukan penyimpanan pencacah luar,
+          biasanya melalui \eng{stack} dengan \asm{PUSH} dan
+          \asm{POP}.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
-    \item[\checkbox] Saya dapat menjelaskan perbedaan \asm{CALL}
-          \eng{near} dan \asm{CALL} \eng{far} beserta isi stack
-          masing-masing.
-    \item[\checkbox] Saya dapat menggambar isi stack sel per sel
-          sebelum dan sesudah \asm{PUSH}, \asm{CALL}, dan \asm{POP}.
-    \item[\checkbox] Saya dapat menuliskan \eng{prologue} dan
-          \eng{epilogue} prosedur yang benar.
-    \item[\checkbox] Saya dapat mengakses parameter melalui
-          \code{[BP+4]} dan \code{[BP+6]} dengan urutan yang tepat.
-    \item[\checkbox] Saya dapat memilih cara pengiriman parameter
-          yang sesuai beserta alasannya.
-    \item[\checkbox] Saya dapat mengembalikan nilai prosedur melalui
-          \reg{AX} dan menjelaskan peran \asm{RET} \code{n}.
-    \item[\checkbox] Saya dapat menulis prosedur rekursif yang
-          memiliki kasus basis dan menjelaskan risiko
-          \eng{stack overflow}.
-    \item[\checkbox] Saya dapat memperbaiki program yang stack-nya
-          tidak seimbang.
+    \item[\checkbox] Saya dapat menulis label dan menggunakannya
+          sebagai tujuan lompatan.
+    \item[\checkbox] Saya dapat menggunakan \asm{JMP}.
+    \item[\checkbox] Saya dapat menggunakan \asm{CMP} untuk
+          menyiapkan \eng{flag}.
+    \item[\checkbox] Saya dapat memilih \asm{Jcc} untuk bilangan
+          bertanda dan tidak bertanda.
+    \item[\checkbox] Saya dapat menyusun pola \code{if} dan
+          \code{if--else}.
+    \item[\checkbox] Saya dapat menyusun perulangan dengan
+          \asm{LOOP}.
+    \item[\checkbox] Saya dapat menyusun perulangan bersarang untuk
+          array.
 \end{itemize}
 
 \vspace{0.4em}
@@ -76,9 +63,8 @@ bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
-\cite{bodur}, \cite{hyde2010}, \cite{bartlett2004}, dan
-\cite{uva2024}. Untuk penelusuran lebih dalam mengenai konvensi
-pemanggilan dan pengelolaan \eng{stack frame}, lihat
-\cite{hyde2010} dan \cite{uva2024}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 11, hlm.~101--114, dan
+\cite{sto2001}, BAB XIII, hlm.~68--72.
 \end{infobox}

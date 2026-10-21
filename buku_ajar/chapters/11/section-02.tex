@@ -1,257 +1,113 @@
-\section{Pergeseran dan Rotasi}
-\label{sec:geser-rotasi}
+\section{Mask dan Instruksi TEST}
+\label{sec:mask-test}
 
-Operasi logika bekerja pada posisi bit yang tetap: bit ke-3 tetap berada
-pada posisi ke-3. Kelompok instruksi berikutnya justru memindahkan isi
-bit ke posisi lain. Ada dua keluarga besarnya: \term{pergeseran}
-(\eng{shift}), yang menyisipkan bit baru pada sisi yang kosong, dan
-\term{rotasi} (\eng{rotate}), yang memutar bit secara melingkar sehingga
-tidak ada bit yang hilang.
+Kemampuan operasi logika yang paling sering dipakai adalah menyentuh
+satu bit tertentu tanpa mengganggu bit lain. Untuk itu diperlukan
+\term{mask}, yaitu pola bit yang dirancang agar operasi logika
+menghasilkan efek yang dikehendaki pada posisi yang dituju.
 
-\subsection{Pergeseran Logis: \asm{SHL} dan \asm{SHR}}
+\subsection{Menyalakan, Memadamkan, Membalik, dan Menguji Bit}
 
-Instruksi \asm{SHL} (\eng{Shift Logical Left}) menggeser seluruh bit ke
-kiri; bit paling kanan yang kosong diisi 0, sedangkan bit paling kiri
-yang terdesak keluar ditampung pada \flag{CF}. Instruksi \asm{SHR}
-(\eng{Shift Logical Right}) bekerja sebaliknya: bit bergeser ke kanan,
-bit paling kiri diisi 0, dan bit paling kanan ditampung pada
-\flag{CF}. Bentuk penulisannya adalah sebagai berikut.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-    SHL AL, 1            ; geser AL satu bit ke kiri
-    SHR AX, 1            ; geser AX satu bit ke kanan
-    MOV CL, 4            ; jumlah pergeseran disimpan pada CL
-    SHL BX, CL           ; geser BX empat bit ke kiri
-\end{lstlisting}
-
-Jumlah pergeseran ditulis sebagai angka 1 atau disimpan pada register
-\reg{CL}. Pada 8086 nilai \reg{CL} dipakai apa adanya (sampai 255),
-sedangkan pada 80286 ke atas hanya lima bit terendahnya (batas 31).
-
-Pergeseran satu bit setara dengan mengalikan nilai dengan dua, dan ke
-kanan dengan membaginya dua. Sifat inilah yang dimanfaatkan pada
-Subbagian~6 untuk menggantikan \asm{MUL} dan \asm{DIV}.
-
-\subsection{Pergeseran Aritmetika: \asm{SAL} dan \asm{SAR}}
-
-Pada bilangan bertanda, pergeseran kanan logis menimbulkan masalah:
-menggeser \bin{1111 1111} (\hex{FF}, yaitu $-1$ dalam komplemen dua)
-satu bit ke kanan menghasilkan \bin{0111 1111} ($+127$) karena bit
-tandanya terisi nol. Untuk mengatasinya, prosesor menyediakan pergeseran
-aritmetika.
-
-Instruksi \asm{SAL} (\eng{Shift Arithmetic Left}) secara operasi
-\emph{identik} dengan \asm{SHL} dan menghasilkan kode mesin yang sama;
-namanya hanya menegaskan bahwa nilai dianggap bilangan bertanda.
-Instruksi \asm{SAR} (\eng{Shift Arithmetic Right}) berbeda secara
-hakiki: bit yang masuk dari sisi kiri \emph{bukan nol}, melainkan
-\emph{salinan bit tanda}, sehingga tanda bilangan terpelihara dan
-hasilnya setara dengan pembagian bilangan bertanda.
-
-Perbedaan keempat instruksi tersebut terlihat jelas pada
-Gambar~\ref{fig:geser-tanda}, yang memakai byte \hex{96} =
-\bin{1001 0110}. Bila ditafsirkan bertanda, byte ini bernilai $-106$;
-bila tak bertanda, nilainya \dec{150}.
-
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        cell/.style={
-            draw=obeGray, line width=0.5pt,
-            minimum width=0.6cm, minimum height=0.6cm,
-            inner sep=0pt, font=\ttfamily\small
-        },
-        cellout/.style={cell, fill=obeMaroonLight, draw=obeMaroon},
-        cellin/.style={cell, fill=obeAmberLight, draw=obeAmber, dashed},
-        rowlabel/.style={font=\small\bfseries, anchor=east, text=obeBlue},
-        note/.style={
-            font=\scriptsize, text=obeGray, anchor=west,
-            align=left, text width=2.5cm
-        },
-        arah/.style={-{Stealth[length=2mm]}, line width=0.7pt, obeTeal},
-        arahlbl/.style={font=\scriptsize\itshape, text=obeTeal, anchor=east}
-    ]
-        % ---------- baris 0 : byte awal ----------
-        \foreach \i/\v in {0/1,1/0,2/0,3/1,4/0,5/1,6/1,7/0}
-            \node[cell] at (\i*0.6, 0) {\v};
-        \node[rowlabel] at (-1.25, 0) {Byte awal};
-        \node[note] at (5.4, 0)
-            {\hex{96} = \bin{1001 0110}: $-106$ bertanda, \dec{150}
-             tak bertanda};
-
-        % ---------- baris 1 : SHL / SAL ----------
-        \foreach \i/\v in {0/0,1/0,2/1,3/0,4/1,5/1,6/0,7/0}
-            \node[cell] at (\i*0.6, -1.35) {\v};
-        \node[cellout] at (-0.75, -1.35) {1};
-        \node[cellin] at (4.8, -1.35) {0};
-        \node[rowlabel] at (-1.25, -1.35) {SHL 1 / SAL 1};
-        \node[note] at (5.4, -1.35)
-            {bit 7 keluar, \flag{CF} = 1; hasil $44$ (tak bertanda)};
-        \draw[arah] (4.5, -1.97) -- (-0.45, -1.97);
-        \node[arahlbl] at (-0.55, -1.97) {geser ke kiri};
-
-        % ---------- baris 2 : SHR ----------
-        \foreach \i/\v in {0/0,1/1,2/0,3/0,4/1,5/0,6/1,7/1}
-            \node[cell] at (\i*0.6, -2.7) {\v};
-        \node[cellin] at (-0.75, -2.7) {0};
-        \node[cellout] at (4.8, -2.7) {0};
-        \node[rowlabel] at (-1.25, -2.7) {SHR 1};
-        \node[note] at (5.4, -2.7)
-            {0 masuk dari kiri; \flag{CF} = 0; hasil $75$};
-        \draw[arah] (-0.45, -3.32) -- (4.5, -3.32);
-        \node[arahlbl] at (-0.55, -3.32) {geser ke kanan};
-
-        % ---------- baris 3 : SAR ----------
-        \foreach \i/\v in {0/1,1/1,2/0,3/0,4/1,5/0,6/1,7/1}
-            \node[cell] at (\i*0.6, -4.05) {\v};
-        \node[cellin] at (-0.75, -4.05) {1};
-        \node[cellout] at (4.8, -4.05) {0};
-        \node[rowlabel] at (-1.25, -4.05) {SAR 1};
-        \node[note] at (5.4, -4.05)
-            {bit tanda disalin masuk; tanda tetap negatif; hasil $-53$};
-        \draw[arah] (-0.45, -4.67) -- (4.5, -4.67);
-        \node[arahlbl] at (-0.55, -4.67) {geser ke kanan};
-
-        % ---------- keterangan warna ----------
-        \node[cellout] at (-0.75, -5.5) {};
-        \node[font=\scriptsize, text=obeGray, anchor=west] at (-0.05, -5.5)
-            {keluar ke \flag{CF}};
-        \node[cellin] at (2.9, -5.5) {};
-        \node[font=\scriptsize, text=obeGray, anchor=west] at (3.6, -5.5)
-            {masuk dari sisi kosong};
-    \end{tikzpicture}
-    \caption{Perbedaan pergeseran logis dan aritmetika pada byte
-    \hex{96} ($-106$ bertanda). Sel berwarna menunjukkan bit yang keluar
-    ke \flag{CF} dan bit yang masuk dari sisi kosong.}
-    \label{fig:geser-tanda}
-\end{figure}
-
-Dari gambar tersebut tampak bahwa \asm{SHR} menghasilkan \bin{0100 1011}
-($+75$) karena bit tanda dipaksa menjadi nol, sedangkan \asm{SAR}
-menghasilkan \bin{1100 1011} ($-53$) karena bit tanda disalin ulang.
-Bagi bilangan bertanda negatif, hanya \asm{SAR} yang benar.
-
-\subsection{Ringkasan Kedelapan Instruksi Geser dan Rotasi}
-
-Tabel~\ref{tab:geser-rotasi} merangkum kedelapan instruksi beserta arah
-geser, bit yang masuk, dan \eng{flag} yang terpengaruh.
+Bila bit yang diincar berada pada posisi ke-$n$ (dihitung dari nol
+pada bit paling kanan), mask-nya adalah $2^n$, yaitu nilai dengan
+tepat satu bit bernilai 1 pada posisi tersebut. Misalkan \reg{AL}
+berisi \hex{A5} = \bin{1010 0101} dan bit yang disasar adalah bit
+ke-3 (\hex{08} = \bin{0000 1000}).
 
 \begin{table}[H]
     \centering
-    \caption{Ringkasan instruksi pergeseran dan rotasi 8086.}
-    \label{tab:geser-rotasi}
+    \caption{Pola manipulasi satu bit tertentu dengan mask.}
+    \label{tab:manipulasi-bit}
     \small
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabular}{@{}p{1.8cm}p{2.3cm}p{3.4cm}p{5.1cm}@{}}
+    \begin{tabular}{@{}p{2.4cm}p{3.4cm}p{3.6cm}p{3.6cm}@{}}
         \toprule
-        \textbf{Instruksi} & \textbf{Arah} & \textbf{Bit yang masuk} &
-        \textbf{Flag terpengaruh} \\
+        \textbf{Kehendak} & \textbf{Mask} & \textbf{Instruksi} &
+        \textbf{Hasil pada \hex{A5}, bit 3} \\
         \midrule
-        \asm{SHL} & kiri & 0 pada bit paling kanan &
-        \flag{CF} menerima bit paling kiri; \flag{OF}, \flag{SF},
-        \flag{ZF}, \flag{PF} mengikuti hasil \\
+        Menyalakan bit & mask & \lstasm|OR AL, mask| &
+        \bin{1010 1101} = \hex{AD} \\
         \addlinespace
-        \asm{SAL} & kiri & 0 pada bit paling kanan &
-        sama dengan \asm{SHL} (kode mesin identik) \\
+        Memadamkan bit & \lstasm|NOT mask| &
+        \lstasm|AND AL, mask| & \bin{1010 0101} = \hex{A5} \\
         \addlinespace
-        \asm{SHR} & kanan & 0 pada bit paling kiri &
-        \flag{CF} menerima bit paling kanan; \flag{OF}, \flag{SF},
-        \flag{ZF}, \flag{PF} mengikuti hasil \\
+        Membalik bit & mask & \lstasm|XOR AL, mask| &
+        \bin{1010 1101} = \hex{AD} \\
         \addlinespace
-        \asm{SAR} & kanan & salinan bit tanda &
-        \flag{CF} menerima bit paling kanan; \flag{SF} tetap sesuai
-        tanda \\
-        \addlinespace
-        \asm{ROL} & kiri & bit yang keluar dari kiri &
-        \flag{CF} menerima bit yang berputar; \flag{OF} hanya untuk
-        jumlah 1 \\
-        \addlinespace
-        \asm{ROR} & kanan & bit yang keluar dari kanan &
-        \flag{CF} menerima bit yang berputar; \flag{OF} hanya untuk
-        jumlah 1 \\
-        \addlinespace
-        \asm{RCL} & kiri & \flag{CF} lama &
-        \flag{CF} menerima bit paling kiri, lalu ikut berputar \\
-        \addlinespace
-        \asm{RCR} & kanan & \flag{CF} lama &
-        \flag{CF} menerima bit paling kanan, lalu ikut berputar \\
+        Menguji bit & mask & \lstasm|TEST AL, mask| &
+        \flag{ZF} = 0 berarti bit 3 menyala \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Pada 8086, \flag{OF} hanya terdefinisi dengan benar bila jumlah
-pergeseran sama dengan satu; untuk jumlah yang lebih besar nilainya
-tidak boleh diandalkan. \flag{CF} sebaliknya selalu berisi bit terakhir
-yang keluar dari operand, berapa pun jumlah pergeserannya.
-
-\subsection{Rotasi: \asm{ROL}, \asm{ROR}, \asm{RCL}, dan \asm{RCR}}
-
-Rotasi memindahkan bit secara melingkar. Pada \asm{ROL}, bit yang
-terdesak keluar dari sisi kiri masuk kembali ke sisi kanan sehingga
-tidak ada informasi yang hilang; pada \asm{ROR} berlaku kebalikannya.
-Bit yang berputar selalu melewati \flag{CF} yang merefleksikan bit
-terakhir yang melewatinya.
-
-Dua varian berikutnya melibatkan \flag{CF} sebagai bagian lingkaran
-putar. Pada \asm{RCL} (\eng{Rotate through Carry Left}), \flag{CF}
-menjadi bit tambahan di sebelah kiri operand: bit paling kiri masuk ke
-\flag{CF}, sedangkan nilai \flag{CF} yang lama masuk ke bit paling
-kanan. Pada \asm{RCR} berlaku kebalikannya. Keduanya berguna untuk
-memindahkan bit lintas word.
+Pola dasarnya:
 
 \begin{lstlisting}[language=MASM, numbers=none]
-    MOV AL, 10000001b   ; AL = 81h
-    ROL AL, 1           ; AL = 00000011b, CF = 1 (bit 7 pindah ke bawah)
-
-    MOV AL, 10000001b   ; AL = 81h
-    ROR AL, 1           ; AL = 11000000b, CF = 1 (bit 0 pindah ke atas)
-
-    CLC                 ; CF = 0
-    MOV AL, 10000001b   ; AL = 81h
-    RCL AL, 1           ; AL = 00000010b, CF = 1 (CF lama masuk ke bit 0)
-
-    ; --- menggeser bilangan 32 bit (DX:AX) satu bit ke kanan ---
-    SAR DX, 1           ; word tinggi digeser, bit tandanya disalin
-    RCR AX, 1           ; bit yang keluar dari DX masuk ke AX
+OR  AL, 08h         ; nyalakan bit 3
+AND AL, 0F7h        ; padamkan bit 3 (F7h = NOT 08h)
+XOR AL, 08h         ; balikkan bit 3
+TEST AL, 08h        ; uji bit 3 tanpa mengubah AL
+JNZ BIT_MENYALA     ; lompat bila bit 3 bernilai 1
 \end{lstlisting}
 
-Pola terakhir itu adalah pemakaian rotasi yang paling berharga:
-pasangan \asm{SAR} dan \asm{RCR} memindahkan bit dari word tinggi ke word
-rendah sehingga bilangan 32 bit dapat digeser sebagai satu kesatuan.
-Aritmatika bertingkat semacam ini telah diperkenalkan pada
-Bab~\ref{chap:aritmatika}.
+Mask penghapus \hex{F7} diperoleh dari \lstasm|NOT 08h|. Bila mask
+dihitung saat program berjalan, mask disimpan ke register, dibalik
+dengan \asm{NOT}, lalu dipakai pada \asm{AND}.
 
-\subsection{Perkalian dan Pembagian Cepat dengan Pergeseran}
+\subsection{TEST dan CMP}
 
-Karena pergeseran setara dengan perkalian atau pembagian, mengalikan dan
-membagi dengan pangkat dua tidak perlu memakai \asm{MUL} atau
-\asm{DIV}.
+\asm{TEST} dan \asm{CMP} sama-sama melakukan operasi tanpa menyimpan
+hasil; yang tertinggal hanya jejak pada register \eng{flag}.
+Perbedaannya terletak pada operasi yang dilakukan.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan TEST dan CMP.}
+    \label{tab:test-cmp}
+    \small
+    \begin{tabular}{@{}p{2.2cm}p{4.6cm}p{5.8cm}@{}}
+        \toprule
+        \textbf{Aspek} & \asm{TEST} & \asm{CMP} \\
+        \midrule
+        Operasi internal & \asm{AND} tanpa menyimpan hasil &
+        \asm{SUB} tanpa menyimpan hasil \\
+        \addlinespace
+        \flag{CF} dan \flag{OF} & Selalu 0 &
+        Sesuai hasil pengurangan \\
+        \addlinespace
+        Pemakaian utama & Memeriksa keadaan bit tertentu &
+        Membandingkan dua nilai secara utuh \\
+        \addlinespace
+        Lompatan lazim & \asm{JZ}/\asm{JNZ}, \asm{JP}/\asm{JNP} &
+        \asm{JE}/\asm{JNE}, \asm{JA}/\asm{JB} \\
+        \addlinespace
+        Contoh & \lstasm|TEST AL, 01h| lalu \asm{JNZ} &
+        \lstasm|CMP AL, BL| lalu \asm{JA} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Gunakan \asm{TEST} bila yang dipermasalahkan adalah bit tertentu, dan
+\asm{CMP} bila yang dibandingkan adalah nilai keseluruhan.
+Kebiasaan khusus \asm{TEST} adalah \lstasm|TEST AL, AL|, yang
+melakukan \asm{AND} antara \reg{AL} dengan dirinya sendiri sehingga
+isinya tidak berubah, tetapi \flag{ZF}, \flag{SF}, dan \flag{PF}
+diperbarui.
 
 \begin{lstlisting}[language=MASM, numbers=none]
-    ; AX = 5: hitung 5 x 16 dengan pergeseran
-    MOV AX, 5
-    MOV CL, 4           ; 16 = 2 pangkat 4
-    SHL AX, CL          ; AX = 80 (5 x 16)
+TEST AL, 80h        ; periksa bit tanda
+JNZ NEGATIF         ; ZF = 0 -> bit tanda menyala
 
-    ; AX = 5: hitung 5 x 10 dengan dua salinan dan satu penjumlahan
-    MOV AX, 5
-    MOV BX, AX          ; BX = 5 (salinan untuk 5 x 8)
-    SHL AX, 1           ; AX = 10 (5 x 2)
-    MOV CL, 3
-    SHL BX, CL          ; BX = 40 (5 x 8)
-    ADD AX, BX          ; AX = 50 (10 + 40)
+TEST BL, 04h        ; periksa bit ke-2
+JZ  BIT_NOL         ; ZF = 1 -> bit ke-2 padam
+
+TEST AL, AL         ; periksa apakah AL = 0
+JZ  SELESAI
 \end{lstlisting}
-
-Bentuk terakhir memanfaatkan penguraian $5 \times 10 =
-(5 \times 2) + (5 \times 8)$. Cara ini dipakai kompilator karena
-\asm{SHL} dan \asm{ADD} hanya memerlukan beberapa siklus mesin,
-sedangkan \asm{MUL} pada 8086 memerlukan lebih dari seratus siklus.
 
 \begin{peringatanbox}
-Jangan memakai \asm{SHR} untuk membagi bilangan bertanda. Instruksi
-\lstasm|SHR AX, 1| mengosongkan bit tanda, sehingga $-1$ (\hex{FFFF})
-menjadi \hex{7FFF} ($+32767$). Gunakan \asm{SAR}, tetapi ingat bahwa
-pembulatan ke arah nol tidak dihasilkan: \lstasm|SAR AX, 1| pada $-1$
-menghasilkan $-1$, bukan $0$. Instruksi \asm{IDIV} tetap diperlukan bila
-hasil pembagian harus dibulatkan ke arah nol.
+\vspace{1.1em}
+Kesalahan yang sering terjadi adalah menuliskan mask secara terbalik.
+Untuk memadamkan bit ke-3, instruksi yang benar adalah
+\lstasm|AND AL, 0F7h| (bit ke-3 pada mask bernilai 0), bukan
+\lstasm|AND AL, 08h| yang justru menghapus seluruh bit lain.
 \end{peringatanbox}

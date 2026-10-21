@@ -4,141 +4,110 @@
 \subsection{Soal Pilihan Ganda}
 
 \begin{enumerate}
-    \item Instruksi yang menyiapkan \eng{flag} melalui pengurangan
-          tanpa menyimpan hasilnya adalah \dots
+    \item \lstasm|MOV AX, [BX]| memakai mode pengalamatan \dots
           \begin{enumerate}
-              \item \asm{SUB} \item \asm{CMP}
-              \item \asm{TEST} \item \asm{AND}
+              \item \textit{register}
+              \item \textit{direct memory}
+              \item \textit{indirect memory}
+              \item \textit{immediate}
           \end{enumerate}
 
-    \item Setelah \lstasm|CMP AX, BX|, lompatan yang tepat untuk
-          menyatakan bahwa \reg{AX} lebih kecil dari \reg{BX} pada
-          perbandingan \emph{tak bertanda} adalah \dots
+    \item \lstasm|MOV AX, [BX+SI+4]| memakai mode \dots
           \begin{enumerate}
-              \item \asm{JL} \item \asm{JG}
-              \item \asm{JB} \item \asm{JA}
+              \item \textit{base relative}
+              \item \textit{direct index}
+              \item \textit{based indexed}
+              \item \textit{indirect}
           \end{enumerate}
 
-    \item Instruksi \asm{LOOP} bekerja dengan cara \dots
+    \item Segmen default untuk \lstasm|MOV AX, [BP]| adalah \dots
           \begin{enumerate}
-              \item mengurangi \reg{CX}, lalu melompat bila belum nol
-              \item menambah \reg{CX}, lalu melompat bila belum nol
-              \item menguji \reg{CX} lebih dahulu, lalu melompat
-              \item menguji \flag{ZF} tanpa mengubah \reg{CX}
+              \item \reg{CS} \item \reg{DS}
+              \item \reg{SS} \item \reg{ES}
           \end{enumerate}
 
-    \item Instruksi lompatan bersyarat pada 8086 selalu berbentuk
-          \dots
+    \item Diketahui \reg{DS} = \hex{1000}, \reg{BX} = \hex{0200},
+          \reg{SI} = \hex{0004}, dan \lstasm|MOV AX, [BX+SI+2]|.
+          Alamat efektifnya adalah \dots
           \begin{enumerate}
-              \item \eng{short}, dengan jangkauan $\pm$ 127 byte
-              \item \eng{near}, dengan jangkauan satu segmen
-              \item \eng{far}, antar segmen kode
-              \item bebas dipilih sesuai keinginan programmer
+              \item \hex{0204} \item \hex{0206}
+              \item \hex{10206} \item \hex{10204}
           \end{enumerate}
 
-    \item Pada tabel lompatan yang dideklarasikan dengan
-          \dir{DW OFFSET}, indeks nomor kasus harus dikalikan
-          \dots\ sebelum dipakai untuk mengindeks tabel.
+    \item Kombinasi register yang legal untuk mode \textit{based
+          indexed} adalah \dots
           \begin{enumerate}
-              \item satu \item dua
-              \item tiga \item empat
+              \item \code{[BX+BP]}
+              \item \code{[SI+DI]}
+              \item \code{[BX+DI]}
+              \item \code{[AX+SI]}
           \end{enumerate}
 \end{enumerate}
 
 \subsection{Soal Uraian}
 
 \begin{enumerate}
-    \item Jelaskan mengapa lompatan bersyarat pada 8086 tidak dapat
-          membandingkan dua bilangan secara langsung, serta uraikan
-          dua langkah pengambilan keputusan beserta instruksi yang
-          berperan.
+    \item Sebutkan tujuh mode pengalamatan 8086 dan berikan satu
+          contoh untuk masing-masing.
 
-    \item Diberikan potongan program berikut.
+    \item Jelaskan perbedaan mode \textit{direct memory},
+          \textit{indirect memory}, dan \textit{base relative}.
+          Berikan contoh penulisan untuk setiap mode.
 
-\begin{lstlisting}[language=MASM, numbers=none]
-MOV AL, 0FEh
-MOV BL, 03h
-CMP AL, BL
-JB  KECIL
-JA  BESAR
-KECIL:
-    ; blok KECIL
-BESAR:
-    ; blok BESAR
-\end{lstlisting}
+    \item Sebutkan empat kombinasi register yang legal pada mode
+          \textit{based indexed}. Hitung alamat efektif dan alamat
+          fisik untuk \lstasm|MOV AX, [BX+SI+4]| bila
+          \reg{DS} = \hex{2000}, \reg{BX} = \hex{0100}, dan
+          \reg{SI} = \hex{0006}.
 
-          \begin{enumerate}
-              \item Tentukan keadaan \flag{ZF}, \flag{CF}, dan
-                    \flag{SF} setelah \asm{CMP}.
-              \item Lompatan mana yang diambil? Jelaskan.
-              \item Perbaiki program tersebut agar hanya satu blok
-                    yang dijalankan, dan jelaskan perbaikannya.
-          \end{enumerate}
-
-    \item Terjemahkan pseudocode berikut ke assembly 8086 beserta
-          komentar, dengan \asm{CMP}, \asm{Jcc}, dan \asm{LOOP}.
-
-\begin{pseudocode}[caption={Pseudocode untuk soal uraian nomor 3.}]
-hitung = 0
-i = 1
-lakukan
-    hitung = hitung + i
-    i = i + 1
-selama i <= 5
-\end{pseudocode}
-
-    \item Seorang mahasiswa menerima pesan \file{Symbol already
-          defined} dan \file{Relative jump out of range}. Jelaskan
-          penyebab masing-masing dan cara memperbaikinya; untuk pesan
-          kedua, tuliskan potongan kode perbaikannya.
+    \item Jelaskan segmen default untuk \reg{BX}, \reg{BP},
+          \reg{SI}, dan \reg{DI}. Tentukan pula mode yang tepat untuk
+          mengakses variabel tunggal, elemen array, medan record, dan
+          elemen array of record.
 \end{enumerate}
 
 \subsection{Kisi-kisi Penilaian}
 
 \begin{table}[H]
     \centering
-    \caption{Kisi-kisi evaluasi Bab~\ref{chap:kontrol}.}
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:mode-pengalamatan}.}
     \label{tab:kisi-bab12}
     \small
-    \begin{tabular}{@{}p{1.5cm}p{5.6cm}p{3.4cm}c@{}}
+    \begin{tabular}{@{}p{1.5cm}p{5.0cm}p{3.0cm}c@{}}
         \toprule
         \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
         \textbf{Bentuk soal} & \textbf{Bobot} \\
         \midrule
-        3.3 & Menjelaskan peran \eng{flag} dan instruksi penyiapnya &
-        Pilihan ganda 1; Uraian 1 & 20\% \\
+        3.3 & Mengidentifikasi tujuh mode pengalamatan &
+        Pilihan ganda 1, 2; Uraian 1, 2 & 35\% \\
         \addlinespace
-        3.3 & Memilih \asm{Jcc} yang tepat untuk data bertanda dan
-        tak bertanda & Pilihan ganda 2; Uraian 2 & 25\% \\
+        3.3 & Menerapkan kombinasi register dan menghitung alamat &
+        Pilihan ganda 4; Uraian 3 & 30\% \\
         \addlinespace
-        3.3 & Menjelaskan jarak lompatan dan keluarga \asm{LOOP} &
-        Pilihan ganda 3, 4 & 20\% \\
+        3.3 & Menentukan segmen default &
+        Pilihan ganda 3; Uraian 4 & 20\% \\
         \addlinespace
-        3.3 & Menerjemahkan pseudocode dan memakai tabel lompatan &
-        Pilihan ganda 5; Uraian 3 & 20\% \\
-        \addlinespace
-        3.3 & Menelusuri dan memperbaiki kesalahan label serta
-        lompatan & Uraian 4 & 15\% \\
+        3.3 & Memilih mode untuk array dan record &
+        Pilihan ganda 5; Uraian 4 & 15\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \begin{checklistbox}
-\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:kontrol}}
+\vspace{1.1em}
+\textbf{Checklist Pencapaian Kompetensi
+Bab~\ref{chap:mode-pengalamatan}}
 
 Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 3.3 apabila:
 \begin{itemize}
-    \item[\checked] dapat menjelaskan hubungan \eng{flag} dengan
-          instruksi lompatan bersyarat;
-    \item[\checked] dapat memilih \asm{Jcc} yang benar untuk
-          perbandingan bertanda maupun tak bertanda;
-    \item[\checked] dapat menjelaskan pengaruh jarak lompatan
-          terhadap ukuran kode mesin;
-    \item[\checked] dapat menyusun perulangan dengan \asm{LOOP}
-          maupun dengan \asm{DEC} dan \asm{JNZ};
-    \item[\checked] dapat menerjemahkan \code{if}, \code{if--else},
-          dan \code{while} dari pseudocode ke assembly;
-    \item[\checked] berhasil menjalankan dan menelusuri program
-          pencarian maksimum serta pengurutan sederhana.
+    \item[\checked] dapat menyebutkan tujuh mode pengalamatan;
+    \item[\checked] dapat mengenali mode dari penulisan operand;
+    \item[\checked] dapat membedakan \textit{direct} dan
+          \textit{indirect};
+    \item[\checked] dapat menggunakan \textit{base relative} dan
+          \textit{direct index};
+    \item[\checked] dapat menggunakan \textit{based indexed};
+    \item[\checked] dapat menghitung alamat efektif dan alamat fisik;
+    \item[\checked] dapat menentukan segmen default.
 \end{itemize}
 \end{checklistbox}

@@ -1,141 +1,104 @@
-\section{Contoh Program}
+\section{Contoh}
 \label{sec:contoh-bab9}
 
-Bagian ini menyajikan dua program utuh. Program pertama memakai
-seluruh direktif data, sedangkan program kedua memakai \dir{EQU}
-sebagai konstanta sekaligus memperlihatkan apa yang terjadi bila
-direktif itu didefinisikan ulang.
+Dua contoh berikut memperlihatkan pemakaian interupsi DOS dan BIOS.
+Contoh pertama memakai \code{INT 21h} untuk mencetak pertanyaan dan
+membaca nama. Contoh kedua memakai \code{INT 10h} untuk mengatur
+layar dan menulis teks berwarna.
 
-\subsection{Contoh 1: Mendemonstrasikan Semua Direktif Data}
+\subsection{Contoh 1: Membaca Nama dengan INT 21h}
 
-Program pada Kode~\ref{lst:direktif-data} memakai \dir{DB},
-\dir{DW}, \dir{DD}, \dir{DUP}, dan penanda \code{?}, lalu mencetak
-sebagian isi memori tersebut ke layar.
+Program pada Kode~\ref{lst:input-nama} mencetak pertanyaan,
+membaca nama dengan fungsi \hex{0A}, lalu menyapa pengguna.
 
 \lstinputlisting[
     language=MASM,
-    caption={Program \file{direktif-data.asm}: direktif data dan
-    isi memorinya.},
-    label={lst:direktif-data}
-]{\CodeDir/direktif-data.asm}
+    caption={Program \file{input-nama.asm} membaca nama dengan
+    \code{INT 21h} fungsi \hex{0A}.},
+    label={lst:input-nama}
+]{\CodeDir/input-nama.asm}
 
-Bagian \dir{.DATA} pada program tersebut dapat dibaca sebagai
-berikut.
+Bagian penting program tersebut:
 
 \begin{itemize}
-    \item \lstasm|sapaan DB 'Halo, assembly!', 0Dh, 0Ah, '$'|
-          menyediakan \dec{18} byte: \dec{15} byte isi string,
-          satu byte \code{0Dh} dan satu byte \code{0Ah} untuk
-          pindah baris, serta \code{'\$'} sebagai penanda akhir
-          untuk layanan DOS fungsi \hex{09}.
-    \item \lstasm|panjang EQU $ - sapaan| meminta assembler
-          menghitung panjang itu sendiri. Nilainya terlihat pada
-          berkas \file{.lst} (Kode~\ref{lst:listing-lst}).
-    \item \lstasm|kata DW 4241h, 4443h| menyediakan empat byte.
-          Karena urutan \eng{little-endian}, byte yang tersimpan
-          berurutan \hex{41}, \hex{42}, \hex{43}, \hex{44}.
-    \item \lstasm|nilai DD 12345678h| menyediakan empat byte tanpa
-          dipakai program, tetapi tetap menggeser \eng{offset}
-          \code{bintang} dan \code{buffer}.
-    \item \lstasm|bintang DB 4 DUP('*')| menunjukkan \dir{DUP} yang
-          berisi nilai awal, sedangkan \lstasm|buffer DB 8 DUP(?)|
-          hanya menyediakan ruang kosong.
+    \item \lstasm|MOV AH, 09h| dan \lstasm|LEA DX, tanya| mencetak
+          pertanyaan. String diakhiri \code{'\$'}.
+    \item \lstasm|MOV AH, 0Ah| dan \lstasm|LEA DX, nama| membaca
+          masukan ke penyangga \code{nama}.
+    \item Byte 0 penyangga berisi kapasitas 20, byte 1 diisi DOS
+          dengan jumlah karakter, dan byte 2 dan seterusnya berisi
+          nama.
+    \item Setelah masukan, program menghitung akhir nama dengan
+          \lstasm|MOV BL, [SI+1]|, lalu menulis \code{'\$'} pada
+          posisi setelah karakter terakhir.
+    \item \lstasm|LEA DX, nama+2| menunjuk karakter pertama nama
+          sehingga nama dapat dicetak dengan fungsi \hex{09}.
+    \item \lstasm|MOV AH, 4Ch| dan \lstasm|INT 21h| mengakhiri
+          program.
 \end{itemize}
 
-Bagian \dir{.CODE} mencetak sapaan, lalu membaca \code{kata}
-\emph{byte per byte} dengan \lstasm|BYTE PTR [kata+1]|. Cara
-pengalamatan bertanda kurung siku dibahas pada
-Bab~\ref{chap:mode-pengalamatan}.
+Keluaran program tampak pada Kode~\ref{lst:keluaran-input}.
 
-\begin{session}[caption={Keluaran program \file{direktif-data.asm}.}, label={lst:keluaran-direktif-data}]
-Halo, assembly!
-ABCD****
-\end{session}
+\begin{lstlisting}[
+    style=sessiongaya,
+    caption={Keluaran program \file{input-nama.asm}.},
+    label={lst:keluaran-input}
+]
+Siapa nama Anda? Budi
+Halo, Budi! Selamat belajar assembly.
+\end{lstlisting}
 
-Baris kedua keluaran tersebut membuktikan urutan
-\eng{little-endian}: data \hex{4241} dan \hex{4443} terbaca di
-memori sebagai \code{ABCD}.
+\subsection{Contoh 2: Menulis Teks Berwarna dengan INT 10h}
 
-\subsection{Contoh 2: Konstanta \dir{EQU}}
-
-Program pada Kode~\ref{lst:equ-konstanta} mengganti setiap nomor
-fungsi DOS dengan nama yang bermakna. Nilainya tidak berubah
-dibandingkan penulisan langsung; yang berubah hanyalah keterbacaan
-program.
+Program pada Kode~\ref{lst:warna-layar} memakai layanan video BIOS
+untuk menetapkan mode teks, menulis judul berwarna, memindahkan
+kursor, dan menulis garis.
 
 \lstinputlisting[
     language=MASM,
-    caption={Program \file{equ-konstanta.asm}: konstanta simbolik
-    dengan \dir{EQU}.},
-    label={lst:equ-konstanta}
-]{\CodeDir/equ-konstanta.asm}
+    caption={Program \file{warna-layar.asm} memakai \code{INT 10h}
+    untuk menulis teks berwarna.},
+    label={lst:warna-layar}
+]{\CodeDir/warna-layar.asm}
 
-\begin{session}[caption={Keluaran program \file{equ-konstanta.asm}.}, label={lst:keluaran-equ-konstanta}]
-Konstanta EQU
-X = 7
-\end{session}
+Register yang dipakai pada setiap pemanggilan \code{INT 10h}
+dirangkum pada Tabel~\ref{tab:register-warna}.
 
-\subsection{Definisi Ulang \dir{EQU} Dibandingkan dengan \code{=}}
+\begin{table}[H]
+    \centering
+    \caption{Register pada pemanggilan \code{INT 10h} di
+    \file{warna-layar.asm}.}
+    \label{tab:register-warna}
+    \small
+    \begin{tabular}{@{}p{1.4cm}p{2.8cm}p{7.6cm}@{}}
+        \toprule
+        \textbf{AH} & \textbf{Fungsi} & \textbf{Register yang diisi} \\
+        \midrule
+        \hex{00} & Set mode & \reg{AL} = \hex{03} (teks 80$\times$25
+        berwarna) \\
+        \addlinespace
+        \hex{13} & Tulis string & \reg{AL} = \hex{01},
+        \reg{BH} = 0, \reg{BL} = \hex{0E}, \reg{CX} = panjang,
+        \reg{DH} = 5, \reg{DL} = 10, \reg{ES}:\reg{BP} = string \\
+        \addlinespace
+        \hex{02} & Set kursor & \reg{BH} = 0, \reg{DH} = 7,
+        \reg{DL} = 10 \\
+        \addlinespace
+        \hex{09} & Tulis karakter & \reg{AL} = \code{'='},
+        \reg{BL} = \hex{0C}, \reg{CX} = panjang, \reg{BH} = 0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
-Kode~\ref{lst:equ-ulang-gagal} menimbulkan kesalahan perakitan yang
-sama seperti pada Kode~\ref{lst:equ-salah}.
+Tampilan yang dihasilkan berupa judul kuning pada baris 5 kolom 10
+dan garis merah pada baris 7 kolom 10. Warna tidak terlihat pada
+keluaran teks biasa karena atribut warna disimpan pada byte atribut
+layar, bukan pada karakter.
 
-\begin{lstlisting}[
-    language=MASM,
-    caption={Baris yang menimbulkan kesalahan perakitan.},
-    label={lst:equ-ulang-gagal}
-]
-NILAI   EQU 5           ; definisi pertama
-NILAI   EQU 9           ; gagal: Symbol already defined
-\end{lstlisting}
-
-Bila kata kunci \dir{EQU} diganti dengan \code{=}, kedua baris itu
-menjadi sah. Program berikut mencetak dua angka berbeda dari satu
-nama simbol.
-
-\begin{lstlisting}[
-    language=MASM,
-    caption={\code{=} boleh didefinisikan ulang; program mencetak
-    \code{59}.},
-    label={lst:sama-dengan-ulang}
-]
-.MODEL SMALL
-.STACK 100h
-
-.DATA
-    awalan  DB 'Nilai = ', '$'
-
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
-
-    MOV AH, 09h             ; cetak awalan
-    LEA DX, awalan
-    INT 21h
-
-NILAI   = 5                 ; definisi pertama
-    MOV AH, 02h             ; cetak hasil '0' + 5 = '5'
-    MOV DL, '0' + NILAI
-    INT 21h
-
-NILAI   = 9                 ; definisi ulang: sah
-    MOV AH, 02h             ; cetak hasil '0' + 9 = '9'
-    MOV DL, '0' + NILAI
-    INT 21h
-
-    MOV AH, 4Ch
-    MOV AL, 00h
-    INT 21h
-
-END START
-\end{lstlisting}
-
-\begin{session}[caption={Keluaran program pada Kode~\ref{lst:sama-dengan-ulang}.}]
-Nilai = 59
-\end{session}
-
-Kesimpulannya sederhana: pakai \dir{EQU} untuk nilai yang
-\emph{tidak akan pernah berubah}, seperti nomor fungsi DOS dan
-ukuran tetap, dan pakai \code{=} untuk nilai yang memang harus
-diganti di tengah berkas.
+\begin{infobox}
+\vspace{1.1em}
+Fungsi \hex{13} memakai \reg{ES}:\reg{BP} sebagai alamat string,
+bukan \reg{DS}:\reg{DX} seperti fungsi \hex{09} DOS. Karena itu,
+program terlebih dahulu menyamakan \reg{ES} dengan \reg{DS} agar
+string pada segmen data dapat ditemukan.
+\end{infobox}

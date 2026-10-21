@@ -1,259 +1,140 @@
-\section{Peran Assembler dan Linker dalam Alur Translasi}
-\label{sec:peran-assembler-linker}
+\section{Interupsi DOS}
+\label{sec:interupsi-dos}
 
-Bab~\ref{chap:pengenalan} telah memperkenalkan rantai proses secara
-garis besar. Bagian ini menelusuri dua tahap yang paling menentukan,
-yaitu perakitan dan pengaitan, beserta keluaran yang dihasilkan
-masing-masing.
+DOS menyediakan layanan melalui \code{INT 21h}. Nomor fungsi
+diletakkan pada \reg{AH}, sedangkan argumen lain diletakkan pada
+register sesuai fungsi. Layanan DOS dipakai untuk mencetak karakter,
+mencetak string, membaca masukan, dan mengakhiri program.
 
-\begin{figure}[H]
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 18,
+hlm.~179--190, dan \cite{sto2001}, BAB VII, hlm.~27--31, BAB XII,
+hlm.~63--67, serta BAB XV, hlm.~78--84.
+
+\subsection{Fungsi INT 21h yang Sering Dipakai}
+
+Fungsi utama \code{INT 21h} dirangkum pada
+Tabel~\ref{tab:int21h}.
+
+\begin{table}[H]
     \centering
-    \begin{tikzpicture}[
-        font=\small,
-        berkas/.style={
-            draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-            rounded corners=3pt, minimum width=2.1cm,
-            minimum height=0.95cm, align=center,
-            font=\scriptsize\bfseries, inner sep=3pt
-        },
-        alat/.style={
-            draw=obeTeal, line width=0.8pt, fill=obeTealLight,
-            rounded corners=3pt, minimum width=2.1cm,
-            minimum height=0.95cm, align=center,
-            font=\scriptsize\bfseries, inner sep=3pt
-        },
-        hasil/.style={
-            draw=obeAmber, line width=0.8pt, fill=obeAmberLight,
-            rounded corners=3pt, minimum width=2.1cm,
-            minimum height=0.95cm, align=center,
-            font=\scriptsize\bfseries, inner sep=3pt
-        },
-        panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeTeal},
-        panel/.style={
-            draw=obeGray, line width=0.7pt, dashed, rounded corners=2pt,
-            fill=obeGrayLight, align=left, font=\ttfamily\scriptsize,
-            inner sep=4pt, text=black
-        },
-        judulpanel/.style={font=\scriptsize\bfseries, text=obeGray}
-    ]
-        \node[berkas] (src) {\file{program.asm}\\{\normalfont\scriptsize kode sumber}};
-        \node[alat, right=0.7cm of src] (asm)
-            {ASSEMBLER\\{\normalfont\scriptsize TASM}};
-        \node[hasil, right=0.7cm of asm] (obj)
-            {\file{program.obj}\\{\normalfont\scriptsize kode mesin}};
-        \node[alat, right=0.7cm of obj] (lnk)
-            {LINKER\\{\normalfont\scriptsize TLINK}};
-        \node[hasil, right=0.7cm of lnk] (exe)
-            {\file{program.exe}\\{\normalfont\scriptsize siap dijalankan}};
+    \caption{Fungsi \code{INT 21h} yang sering dipakai.}
+    \label{tab:int21h}
+    \small
+    \begin{tabular}{@{}p{1.6cm}p{5.2cm}p{6.6cm}@{}}
+        \toprule
+        \textbf{AH} & \textbf{Fungsi} & \textbf{Register dan hasil} \\
+        \midrule
+        \hex{01} & Membaca satu karakter dengan \eng{echo} &
+        Hasil di \reg{AL} \\
+        \addlinespace
+        \hex{02} & Mencetak satu karakter &
+        \reg{DL} = karakter yang dicetak \\
+        \addlinespace
+        \hex{09} & Mencetak string berakhir \code{'\$'} &
+        \reg{DS}:\reg{DX} = alamat string \\
+        \addlinespace
+        \hex{0A} & Membaca string berpenyangga &
+        \reg{DS}:\reg{DX} = alamat penyangga \\
+        \addlinespace
+        \hex{4C} & Mengakhiri program &
+        \reg{AL} = kode keluar \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
-        \draw[panah] (src) -- (asm);
-        \draw[panah] (asm) -- (obj);
-        \draw[panah] (obj) -- (lnk);
-        \draw[panah] (lnk) -- (exe);
+\subsection{Mencetak Karakter dan String}
 
-        \node[panel, below=0.55cm of asm, anchor=north] (simbol) {
-            \textbf{TABEL SIMBOL}\\
-            \_TEXT\ \ 00000H\\
-            START\ \ 00000H\\
-            \_DATA\ \ 00036H\\
-            sapaan\ 00000H\\
-            panjang\ 00012H
-        };
-        \draw[dashed, obeGray] (asm.south) -- (simbol.north);
+Fungsi \hex{02} mencetak satu karakter yang berada di \reg{DL}.
 
-        \node[panel, below=0.55cm of lnk, anchor=north] (relokasi) {
-            \textbf{CATATAN RELOKASI}\\
-            +0001\ SEG\ \_DATA\\
-            +0009\ OFF\ sapaan\\
-            +0036\ SEG\ \_STACK
-        };
-        \draw[dashed, obeGray] (lnk.south) -- (relokasi.north);
-    \end{tikzpicture}
-    \caption{Alur translasi \file{.asm} $\rightarrow$ \file{.obj}
-    $\rightarrow$ \file{.exe}. Assembler membangun tabel simbol;
-    linker menyelesaikan \eng{relocation} dan menentukan alamat
-    akhir.}
-    \label{fig:alur-translasi}
-\end{figure}
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AH, 02h         ; fungsi cetak karakter
+MOV DL, 'A'         ; karakter yang dicetak
+INT 21h
+\end{lstlisting}
 
-\subsection{Tugas Assembler: Tabel Simbol dan Penghitungan \eng{Offset}}
+Fungsi \hex{09} mencetak string yang ditunjuk \reg{DS}:\reg{DX}.
+String harus diakhiri karakter \code{'\$'}. Karakter \code{'\$'}
+tidak ikut tercetak.
 
-Assembler bekerja dalam dua lintasan (\eng{two-pass}) seperti
-diperlihatkan Gambar~\ref{fig:alur-translasi}.
+\begin{lstlisting}[language=MASM, numbers=none]
+.DATA
+    pesan DB 'Halo, dunia!', 0Dh, 0Ah, '$'
 
-\begin{enumerate}
-    \item \textbf{Lintasan pertama.} Assembler membaca seluruh baris,
-          memeriksa sintaks, menghitung besar setiap direktif data,
-          dan mencatat setiap label beserta \eng{offset}-nya ke
-          dalam \term{tabel simbol}. Pada lintasan ini belum ada
-          kode mesin yang ditulis ke berkas.
+.CODE
+    MOV AH, 09h
+    LEA DX, pesan
+    INT 21h
+\end{lstlisting}
 
-    \item \textbf{Lintasan kedua.} Assembler menerjemahkan setiap
-          instruksi menjadi opcode, menggabungkannya dengan
-          \eng{offset} dari tabel simbol, lalu menuliskan hasilnya
-          ke berkas objek. Karena itu, label yang terletak
-          \emph{setelah} instruksi pemakainya tetap dapat dipakai.
-\end{enumerate}
+\subsection{Membaca Masukan}
 
-Berkas \file{.lst} memperlihatkan hasil kedua lintasan tersebut
-sekaligus. Contoh berikut memperlihatkan tabel simbol yang sudah
-terisi dan \eng{offset} yang sudah dihitung untuk program pada
-Kode~\ref{lst:direktif-data}.
+Fungsi \hex{01} membaca satu karakter dan menampilkannya kembali
+(\eng{echo}). Hasilnya berada di \reg{AL}.
 
-\begin{session}[caption={Cuplikan berkas \file{direktif-data.lst} hasil TASM.}, label={lst:listing-lst}]
-Turbo Assembler  Version 4.1                        Halaman 1
-direktif-data.asm
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AH, 01h         ; baca satu karakter
+INT 21h             ; hasil di AL
+\end{lstlisting}
 
-  1                             .MODEL SMALL
-  2                             .STACK 100h
-  3
-  4                             .DATA
-  5  0000  48 61 6C 6F 2C 20 61 73 73 65  sapaan  DB 'Halo, assembly!',
-  6          6D 62 6C 79 21 0D 0A 24                  0Dh,0Ah,'$'
-  7  0012                        panjang EQU $ - sapaan
-  8  0012  41 42 43 44           kata    DW 4241h, 4443h
-  9  0016  78 56 34 12           nilai   DD 12345678h
- 10  001A  2A 2A 2A 2A           bintang DB 4 DUP('*')
- 11  001E  ??                    buffer  DB 8 DUP(?)
- 12
- 13                             .CODE
- 14  0000  B8 ----            START:  MOV AX, @DATA
- 15  0003  8E D8                      MOV DS, AX
- 16  0005  B4 09                      MOV AH, 09h
- 17  0007  8D 16 0000 R               LEA DX, sapaan
- 18  000B  CD 21                      INT 21h
- 19  000D  B4 02                      MOV AH, 02h
- 20  000F  8A 16 0012 R               MOV DL, BYTE PTR [kata]
- 21  0013  CD 21                      INT 21h
- 22  0015  B4 4C                      MOV AH, 4Ch
- 23  0017  CD 21                      INT 21h
- 24  0019                       END START
-
-sapaan  . . . . . . . . . . . . . . . . . DATA   0000
-panjang . . . . . . . . . . . . . . . . . NUMBER 0012
-kata    . . . . . . . . . . . . . . . . . DATA   0012
-nilai   . . . . . . . . . . . . . . . . . DATA   0016
-bintang . . . . . . . . . . . . . . . . . DATA   001A
-buffer  . . . . . . . . . . . . . . . . . DATA   001E
-START   . . . . . . . . . . . . . . . . . PROX   0000
-\end{session}
-
-Beberapa hal penting dari Kode~\ref{lst:listing-lst}:
+Fungsi \hex{0A} membaca satu baris masukan ke dalam penyangga.
+Penyangga memiliki susunan khusus:
 
 \begin{itemize}
-    \item Direktif data terlihat memakan ruang memori, sedangkan
-          baris \dir{.MODEL}, \dir{.STACK}, dan \dir{.CODE} tidak.
-    \item Nilai \code{panjang} tercatat \hex{12}, yaitu \dec{18},
-          hasil perhitungan \code{\$ - sapaan} yang dikerjakan
-          assembler.
-    \item Tanda \code{R} berarti baris tersebut memuat
-          \term{relokasi}: alamatnya masih menunggu linker.
+    \item byte 0: kapasitas maksimum, diisi programmer;
+    \item byte 1: jumlah karakter yang benar-benar diketik, diisi
+          DOS;
+    \item byte 2 dan seterusnya: karakter masukan.
 \end{itemize}
 
-\subsection{Tugas Linker: Resolusi Simbol dan \eng{Relocation}}
+\begin{lstlisting}[language=MASM, numbers=none]
+.DATA
+    nama DB 20          ; kapasitas maksimum
+         DB 0           ; jumlah terisi (diisi DOS)
+         DB 20 DUP(0)   ; isi masukan
 
-Berkas \file{.obj} belum dapat dijalankan karena masih memuat
-\term{simbol eksternal}, yaitu nama yang belum punya alamat pasti.
-Linker melakukan tiga pekerjaan pokok.
+.CODE
+    MOV AH, 0Ah
+    LEA DX, nama
+    INT 21h
+\end{lstlisting}
 
-\begin{enumerate}
-    \item \textbf{Resolusi simbol eksternal.} Setiap rujukan diberi
-          alamat sesungguhnya. Contoh yang paling akrab adalah
-          \code{@DATA}, yang baru memperoleh nomor segmen setelah
-          linker menempatkan segmen data.
-    \item \textbf{\eng{Relocation}.} Linker mencatat bagian kode
-          mana saja yang harus disesuaikan bila program dimuat pada
-          alamat dasar yang berbeda.
-    \item \textbf{Penentuan alamat akhir.} Linker menyusun seluruh
-          segmen berurutan, menetapkan alamatnya, dan
-          menggabungkan berkas objek dengan pustaka
-          (\eng{library}) bila diperlukan.
-\end{enumerate}
+Setelah fungsi \hex{0A} selesai, byte 1 berisi jumlah karakter.
+Program dapat menambahkan \code{'\$'} setelah karakter terakhir agar
+isi penyangga dapat dicetak dengan fungsi \hex{09}.
 
-Ringkasan hasil pekerjaan tersebut terekam pada berkas \file{.map}
-yang dibuat dengan opsi \file{/m}.
+\subsection{Mengakhiri Program}
 
-\begin{session}[caption={Cuplikan berkas \file{direktif-data.map} hasil TLINK.}, label={lst:map-exe}]
-Turbo Link  Version 5.0.  Copyright (c) 1992 Borland International
+Ada dua cara umum mengakhiri program DOS.
 
- Start  Stop   Length Name                   Class
- 00000H 00035H 00036H _TEXT                  CODE
- 00036H 0005BH 00026H _DATA                  DATA
- 0005CH 0005BH 00000H _BSS                   BSS
- 0005CH 00015BH 00100H _STACK                 STACK
+\begin{itemize}
+    \item \code{INT 20h} mengakhiri program \file{.COM} dan
+          mengembalikan kendali ke DOS.
+    \item \code{INT 21h} fungsi \hex{4C} mengakhiri program
+          \file{.EXE} atau \file{.COM} dengan kode keluar pada
+          \reg{AL}.
+\end{itemize}
 
-Program entry point at 0000:0000
-\end{session}
-
-Kolom \file{Length} pada Kode~\ref{lst:map-exe} menunjukkan bahwa
-segmen \file{\_DATA} berukuran \hex{26} byte, tepat sama dengan total
-direktif data pada Kode~\ref{lst:listing-lst}. Titik masuk tercatat
-pada \file{0000:0000}, yaitu label \file{START}.
-
-\subsection{Alur Lengkap dari DOS}
-
-Semua tahap di atas dijalankan dari baris perintah DOS atau DOSBox
-seperti pada Kode~\ref{lst:perintah-alur}.
-
-\begin{session}[caption={Alur perakitan dan pengaitan lengkap di DOSBox.}, label={lst:perintah-alur}]
-C:\ASM>tasm /l direktif-data.asm
-Turbo Assembler  Version 4.1  Copyright (c) 1988, 1996 Borland
-Assembling file:   direktif-data.asm
-Error messages:    None
-Warning messages:  None
-Passes:            2
-Remaining memory:  440k
-
-C:\ASM>tlink /m direktif-data.obj
-Turbo Link  Version 5.0.  Copyright (c) 1992 Borland
-
-C:\ASM>dir direktif-data.*
- DIREKTIF DAT  <DIR>          ...
- DIREKTIF ASM      1.284  13-10-25   9:20a
- DIREKTIF OBJ        612  13-10-25   9:20a
- DIREKTIF LST      6.148  13-10-25   9:20a
- DIREKTIF MAP        512  13-10-25   9:20a
- DIREKTIF EXE        750  13-10-25   9:20a
-
-C:\ASM>direktif-data
-Halo, assembly!
-ABCD****
-C:\ASM>
-\end{session}
-
-Assembler menghasilkan \file{.obj} dan (karena opsi \file{/l})
-\file{.lst}; linker menghasilkan \file{.exe} dan (karena opsi
-\file{/m}) \file{.map}. Berkas \file{.exe} itulah yang dijalankan
-dan mencetak keluaran pada baris terakhir.
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AH, 4Ch         ; fungsi terminate
+MOV AL, 00h         ; kode keluar 0
+INT 21h
+\end{lstlisting}
 
 \begin{infobox}
-Keluaran \lstasm|ABCD****| pada Kode~\ref{lst:perintah-alur} berasal
-dari pembacaan data \emph{byte per byte}. Karena \dir{DW} memakai
-urutan \eng{little-endian}, kata \hex{4241} terbaca sebagai
-\code{'A'} lalu \code{'B'}. Cara memeriksa byte di memori dengan
-\eng{debugger} dibahas pada Bab~\ref{chap:debugging}.
+\vspace{1.1em}
+Fungsi \hex{4C} lebih umum dipakai karena dapat mengembalikan kode
+keluar. Kode \hex{00} berarti program selesai tanpa kesalahan,
+sedangkan kode bukan nol dapat dipakai untuk menandai kesalahan.
 \end{infobox}
 
 \begin{peringatanbox}
-Empat kesalahan berikut paling sering muncul saat merakit program.
-
+\vspace{1.1em}
+Tiga kesalahan yang sering terjadi pada layanan DOS:
 \begin{enumerate}
-    \item \textbf{Simbol ganda.} Satu nama dipakai untuk dua label
-          atau dua \dir{EQU}. Pesan \file{Symbol already defined}
-          hanya menyebutkan nama yang bentrok, sehingga letaknya
-          harus dicari pada berkas \file{.lst}.
-    \item \textbf{\dir{EQU} didefinisikan ulang.} Pesan
-          \file{Symbol already defined} pada baris \dir{EQU} kedua.
-          Gunakan \code{=} bila memang membutuhkan nilai yang
-          berubah.
-    \item \textbf{\dir{END} tanpa label.} Perakitan selesai tanpa
-          kesalahan, tetapi linker melaporkan tidak menemukan titik
-          masuk program. Tuliskan \lstasm|END START| sesuai nama
-          label awal.
-    \item \textbf{Segmen tidak ditutup \dir{ENDS}.} Pesan
-          \file{Block nesting error} atau \file{Missing ENDS}
-          muncul, dan semua baris sesudahnya ikut salah tafsir.
-          Pastikan setiap \dir{SEGMENT} memiliki \dir{ENDS} dengan
-          nama segmen yang sama.
+    \item string untuk fungsi \hex{09} tidak diakhiri \code{'\$'};
+    \item penyangga fungsi \hex{0A} tidak menyediakan byte kapasitas
+          dan byte jumlah;
+    \item lupa mengakhiri program sehingga kendali tidak kembali ke
+          DOS.
 \end{enumerate}
 \end{peringatanbox}

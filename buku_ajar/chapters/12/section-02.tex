@@ -1,316 +1,180 @@
-\section{Lompatan Bersyarat dan Perulangan}
-\label{sec:jcc-loop}
+\section{Mode Memori Berpenunjuk}
+\label{sec:mode-berpenunjuk}
 
-Lompatan bersyarat (\eng{conditional jump}) memeriksa keadaan
-\eng{flag} hasil operasi sebelumnya: bila syaratnya terpenuhi,
-eksekusi berpindah ke label tujuan; bila tidak, eksekusi berlanjut ke
-instruksi berikutnya. Berbeda dengan \asm{JMP}, lompatan bersyarat
-pada 8086 selalu berbentuk \eng{short}.
+Empat mode berikutnya menyatakan alamat melalui register penunjuk,
+bukan bilangan tetap. Karena isi register dapat diubah, alamatnya
+dapat berubah saat program berjalan. Kemampuan inilah yang membuat
+akses berulang terhadap array dan \eng{record} menjadi mungkin.
 
-\subsection{Anatomi Instruksi Jcc}
+\subsection{Indirect Memory}
 
-Nama \asm{Jcc} adalah singkatan dari \eng{jump if condition code},
-yaitu seluruh anggota keluarga lompatan bersyarat. Pola penulisannya
-seragam: mnemonic diikuti satu operand berupa label tujuan.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-CMP AX, BX          ; siapkan flag terlebih dahulu
-JE  SAMA            ; bila ZF = 1, lompat ke label SAMA
-JNE TIDAK_SAMA      ; bila ZF = 0, lompat ke label TIDAK_SAMA
-\end{lstlisting}
-
-Pola ini menjelaskan mengapa \asm{CMP} hampir selalu muncul
-berpasangan dengan \asm{Jcc}: \asm{CMP} menyiapkan \eng{flag},
-\asm{Jcc} membacanya.
-
-\subsection{Tabel Lengkap Lompatan Bersyarat}
-
-Tabel~\ref{tab:jcc-lengkap} memuat seluruh lompatan bersyarat pada
-8086 beserta syarat \eng{flag} dan jenis bilangan yang bersesuaian.
-
-\begin{table}[H]
-    \centering
-    \caption{Tabel lengkap instruksi lompatan bersyarat 8086.}
-    \label{tab:jcc-lengkap}
-    \small
-    \begin{tabular}{@{}p{2.5cm}p{4.2cm}p{4.3cm}p{2.6cm}@{}}
-        \toprule
-        \textbf{Instruksi} & \textbf{Arti} &
-        \textbf{Syarat flag} & \textbf{Jenis bilangan} \\
-        \midrule
-        \asm{JE} / \asm{JZ} & Sama dengan & \flag{ZF} $=1$ &
-        Bertanda maupun tak bertanda \\
-        \addlinespace
-        \asm{JNE} / \asm{JNZ} & Tidak sama dengan & \flag{ZF} $=0$ &
-        Bertanda maupun tak bertanda \\
-        \addlinespace
-        \asm{JG} / \asm{JNLE} & Lebih besar dari & \flag{ZF} $=0$ dan
-        \flag{SF} $=$ \flag{OF} & Bertanda \\
-        \addlinespace
-        \asm{JGE} / \asm{JNL} & Lebih besar atau sama dengan &
-        \flag{SF} $=$ \flag{OF} & Bertanda \\
-        \addlinespace
-        \asm{JL} / \asm{JNGE} & Lebih kecil dari &
-        \flag{SF} $\neq$ \flag{OF} & Bertanda \\
-        \addlinespace
-        \asm{JLE} / \asm{JNG} & Lebih kecil atau sama dengan &
-        \flag{ZF} $=1$ atau \flag{SF} $\neq$ \flag{OF} & Bertanda \\
-        \addlinespace
-        \asm{JA} / \asm{JNBE} & Di atas (\eng{above}) &
-        \flag{CF} $=0$ dan \flag{ZF} $=0$ & Tak bertanda \\
-        \addlinespace
-        \asm{JAE} / \asm{JNB} & Di atas atau sama &
-        \flag{CF} $=0$ & Tak bertanda \\
-        \addlinespace
-        \asm{JB} / \asm{JNAE} & Di bawah (\eng{below}) &
-        \flag{CF} $=1$ & Tak bertanda \\
-        \addlinespace
-        \asm{JBE} / \asm{JNA} & Di bawah atau sama &
-        \flag{CF} $=1$ atau \flag{ZF} $=1$ & Tak bertanda \\
-        \addlinespace
-        \asm{JC} & Ada \eng{carry} & \flag{CF} $=1$ & Umum \\
-        \addlinespace
-        \asm{JNC} & Tidak ada \eng{carry} & \flag{CF} $=0$ & Umum \\
-        \addlinespace
-        \asm{JS} & Bertanda negatif & \flag{SF} $=1$ & Bertanda \\
-        \addlinespace
-        \asm{JNS} & Bertanda positif & \flag{SF} $=0$ & Bertanda \\
-        \addlinespace
-        \asm{JO} & Ada limpahan & \flag{OF} $=1$ & Bertanda \\
-        \addlinespace
-        \asm{JNO} & Tidak ada limpahan & \flag{OF} $=0$ & Bertanda \\
-        \addlinespace
-        \asm{JP} / \asm{JPE} & Kegenapan genap & \flag{PF} $=1$ & Umum \\
-        \addlinespace
-        \asm{JNP} / \asm{JPO} & Kegenapan ganjil & \flag{PF} $=0$ & Umum \\
-        \addlinespace
-        \asm{JCXZ} & \reg{CX} bernilai nol &
-        \reg{CX} $=0$ (bukan flag) & Umum \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{infobox}
-Beberapa mnemonic menunjuk opcode yang sama: \asm{JAE}, \asm{JNB},
-dan \asm{JNC} dirakit menjadi opcode identik, demikian pula \asm{JB},
-\asm{JNAE}, dan \asm{JC}. Perbedaan nama semata-mata untuk
-memperjelas maksud: pilih \asm{JB} ketika membandingkan nilai dan
-\asm{JC} ketika memeriksa hasil aritmatika.
-\end{infobox}
-
-\subsection{Memilih Jcc yang Tepat: Bertanda versus Tak Bertanda}
-
-Kesalahan paling sering dalam memilih \asm{Jcc} berasal dari sifat
-\eng{two's complement} pada bilangan bertanda. Nilai bit \hex{FF}
-dapat dibaca sebagai \dec{255} (tak bertanda) atau $-1$ (bertanda).
+Pada mode \term{indirect memory}, operand ditulis di antara tanda
+kurung siku yang berisi satu register. Register itu tidak menyimpan
+data, melainkan \eng{offset} tempat data berada.
 
 \begin{lstlisting}[language=MASM, numbers=none]
-MOV AL, 0FFh        ; AL = 255 (tak bertanda) atau -1 (bertanda)
-MOV BL, 01h         ; BL = 1
-CMP AL, BL          ; AL - BL = 0FEh
-JA  AL_DI_ATAS      ; benar untuk tak bertanda: 255 > 1
-JG  AL_LEBIH_BESAR  ; benar untuk bertanda: -1 < 1
+MOV BX, OFFSET data1    ; BX <- offset awal array
+MOV AX, [BX]            ; AX <- isi memori DS:BX
+ADD BX, 2               ; maju dua byte (satu elemen word)
+MOV AX, [BX]            ; AX <- elemen kedua
 \end{lstlisting}
 
-Kedua lompatan di atas tidak mungkin keduanya diambil. Pada kasus ini
-\flag{CF} bernilai 1 sehingga \asm{JA} tidak diambil, sedangkan
-\flag{SF} $\neq$ \flag{OF} sehingga \asm{JG} diambil. Dua instruksi
-berbeda dapat menghasilkan kesimpulan berlawanan dari data yang sama;
-karena itu tentukan lebih dahulu jenis bilangannya, lalu pilih kolom
-yang sesuai pada Tabel~\ref{tab:jcc-signed-unsigned}.
+Hanya \reg{BX}, \reg{BP}, \reg{SI}, dan \reg{DI} yang boleh menjadi
+penunjuk alamat. \reg{BX} dan \reg{BP} disebut \term{register basis},
+sedangkan \reg{SI} dan \reg{DI} disebut \term{register indeks}.
 
-\begin{table}[H]
-    \centering
-    \caption{Pemetaan perbandingan ke instruksi lompatan yang benar
-    untuk bilangan bertanda dan tak bertanda. Setelah
-    \code{CMP dst, src}.}
-    \label{tab:jcc-signed-unsigned}
-    \small
-    \begin{tabular}{@{}p{3.4cm}p{5.4cm}p{5.4cm}@{}}
-        \toprule
-        \textbf{Perbandingan yang diinginkan} &
-        \textbf{Bilangan bertanda} &
-        \textbf{Bilangan tak bertanda} \\
-        \midrule
-        \eng{dst} $>$ \eng{src} & \asm{JG}
-        (\eng{jump if greater}) & \asm{JA} (\eng{jump if above}) \\
-        \addlinespace
-        \eng{dst} $\geq$ \eng{src} & \asm{JGE} & \asm{JAE} \\
-        \addlinespace
-        \eng{dst} $<$ \eng{src} & \asm{JL} (\eng{less}) &
-        \asm{JB} (\eng{below}) \\
-        \addlinespace
-        \eng{dst} $\leq$ \eng{src} & \asm{JLE} & \asm{JBE} \\
-        \addlinespace
-        \eng{dst} $=$ \eng{src} & \asm{JE} / \asm{JZ} &
-        \asm{JE} / \asm{JZ} \\
-        \addlinespace
-        \eng{dst} $\neq$ \eng{src} & \asm{JNE} / \asm{JNZ} &
-        \asm{JNE} / \asm{JNZ} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\subsection{Base Relative dan Direct Index}
 
-\begin{peringatanbox}
-Tiga kekeliruan berikut paling sering muncul saat menulis
-percabangan.
-\begin{enumerate}
-    \item \textbf{Memakai \asm{JG} untuk data tak bertanda.} Nilai
-          seperti \hex{FF} dibaca sebagai negatif sehingga keputusan
-          salah; gunakan kelompok \asm{JA}/\asm{JB} untuk alamat,
-          indeks, dan pencacah.
-    \item \textbf{Lupa menyiapkan \eng{flag}.} \asm{JZ} tanpa
-          \asm{CMP} atau \asm{TEST} sebelumnya akan mengikuti
-          \eng{flag} sisa operasi lain.
-    \item \textbf{Menyisipkan instruksi di antara \asm{CMP} dan
-          \asm{Jcc}.} Instruksi \asm{INC}, \asm{DEC}, \asm{ADD}, dan
-          \asm{LOOP} mengubah \eng{flag} dan dapat merusak syarat
-          lompatan.
-\end{enumerate}
-\end{peringatanbox}
-
-\subsection{Label: Aturan Penamaan dan Kesalahan Umum}
-
-Label adalah nama simbolik untuk suatu alamat di dalam segmen kode.
-Label diawali huruf, garis bawah, tanda tanya, atau tanda at, tidak
-peka huruf besar-kecil, panjang maksimum 31 karakter pada MASM, dan
-tidak boleh sama dengan \eng{mnemonic}, register, atau direktif.
-Label didefinisikan dengan titik dua (\code{SELESAI:}) tetapi ditulis
-tanpa titik dua sebagai operand (\lstasm|JMP SELESAI|).
-
-\begin{peringatanbox}
-\textbf{Label ganda.} Mendefinisikan nama yang sama dua kali
-menghasilkan pesan \file{Symbol already defined}. \textbf{Alamat
-dilompati tanpa sengaja.} Label setelah blok keluar program membuat
-CPU mengeksekusi byte data sebagai instruksi; karena itu letakkan
-blok keluar (\asm{MOV AH, 4Ch} dan \asm{INT 21h}) di akhir alur.
-\textbf{Lompatan keluar jangkauan.} Karena \asm{Jcc} hanya berbentuk
-\eng{short}, lompatan sejauh lebih dari \dec{127} byte ditolak
-assembler; baliklah syaratnya dan pakai \asm{JMP} \eng{near} sebagai
-perantara:
+Bentuk \code{[BX+disp]} dan \code{[BP+disp]} disebut mode
+\term{base relative}. Bentuk \code{[SI+disp]} dan \code{[DI+disp]}
+disebut mode \term{direct index}.
 
 \begin{lstlisting}[language=MASM, numbers=none]
-JNE LANJUT          ; syarat dibalik
-JMP TUJUAN_JAUH     ; JMP near menjangkau seluruh segmen
-LANJUT:
+; base relative
+MOV BX, OFFSET data1
+MOV AX, [BX+4]          ; elemen ke-2 dari array word
+
+; direct index
+MOV SI, 4
+MOV AX, data1[SI]       ; DS:data1 + SI
+MOV AX, [SI+8]          ; DS:SI + 8
 \end{lstlisting}
-\end{peringatanbox}
 
-\subsection{Perulangan dengan Register CX}
+Penulisan \code{data1[SI]} diterjemahkan assembler menjadi
+\code{[data1 + SI]}, menyerupai penulisan array pada bahasa tingkat
+tinggi. Perpindahan boleh berukuran 8 bit, 16 bit, atau nol.
 
-Perulangan (\eng{loop}) adalah percabangan yang kembali ke titik awal
-selama syarat tertentu terpenuhi. Prosesor 8086 menyediakan instruksi
-khusus yang memakai \reg{CX} sebagai pencacah (\eng{counter}).
+\subsection{Based Indexed}
 
-Instruksi \asm{LOOP} mengurangi \reg{CX} dengan satu, lalu melompat
-ke label bila \reg{CX} belum nol. Karena pengujian dilakukan
-\emph{setelah} pengurangan, \asm{LOOP} dengan \reg{CX} bernilai nol
-akan mengulang sebanyak \dec{65\,536} kali.
+Mode \term{based indexed} menggabungkan satu basis, satu indeks, dan
+satu perpindahan sekaligus. Hanya empat kombinasi yang legal:
+\code{[BX+SI+disp]}, \code{[BX+DI+disp]}, \code{[BP+SI+disp]}, dan
+\code{[BP+DI+disp]}.
 
 \begin{lstlisting}[language=MASM, numbers=none]
-MOV CX, 5           ; ulangi lima kali
-ULANG:
-    MOV DL, '*'
-    MOV AH, 02h
-    INT 21h
-    LOOP ULANG      ; CX := CX - 1; lompat bila CX <> 0
+MOV BX, OFFSET tabel    ; basis: awal tabel record
+MOV SI, 6               ; indeks: record ke-3 (3 x 2 byte)
+MOV AX, [BX+SI+2]       ; medan ke-2 dari record ke-3
 \end{lstlisting}
 
-Varian lain menambahkan syarat pada \flag{ZF}, seperti tampak pada
-Tabel~\ref{tab:instruksi-loop}.
+Mode ini dipakai bila alamat akhir tersusun dari dua komponen yang
+bergerak sendiri-sendiri, misalnya baris dan kolom matriks, atau
+nomor \eng{record} dan nomor medannya.
 
-\begin{table}[H]
-    \centering
-    \caption{Keluarga instruksi perulangan pada 8086.}
-    \label{tab:instruksi-loop}
-    \small
-    \begin{tabular}{@{}p{3.0cm}p{5.4cm}p{5.6cm}@{}}
-        \toprule
-        \textbf{Instruksi} & \textbf{Aksi} & \textbf{Kegunaan khas} \\
-        \midrule
-        \asm{LOOP} & \reg{CX} $\leftarrow$ \reg{CX} $-1$; lompat
-        bila \reg{CX} $\neq$ 0 & Perulangan dengan cacah yang
-        diketahui \\
-        \addlinespace
-        \asm{LOOPE} / \asm{LOOPZ} & Seperti \asm{LOOP}, tetapi
-        hanya lompat bila \flag{ZF} $=1$ & Mencari ketidakcocokan
-        selama nilai masih sama \\
-        \addlinespace
-        \asm{LOOPNE} / \asm{LOOPNZ} & Seperti \asm{LOOP}, tetapi
-        hanya lompat bila \flag{ZF} $=0$ & Pencarian berhenti
-        begitu nilai yang dicari ditemukan \\
-        \addlinespace
-        \asm{JCXZ} & Lompat bila \reg{CX} $=0$; tidak mengubah
-        \reg{CX} & Menangani cacah nol sebelum perulangan dimulai \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\subsection{Alamat Efektif}
 
-\subsection{LOOP Dibandingkan dengan DEC dan JNZ}
-
-Perulangan dapat juga dibentuk dengan menggabungkan \asm{DEC} dan
-\asm{JNZ}:
-
-\begin{lstlisting}[language=MASM, numbers=none]
-MOV CX, 5
-ULANG2:
-    ; badan perulangan
-    DEC CX              ; kurangi pencacah
-    JNZ ULANG2          ; ulangi bila belum nol
-\end{lstlisting}
-
-Secara fungsional kedua bentuk itu setara. Pada 8086 asli, \asm{LOOP}
-lebih cepat karena hanya memerlukan satu kali pengambilan instruksi.
-Pada prosesor generasi berikutnya, \asm{LOOP} diterjemahkan ke
-mikrokode sehingga memerlukan lebih banyak siklus, sedangkan pasangan
-\asm{DEC} dan \asm{JNZ} dapat diprediksi dan dijalankan secara
-paralel; karena itu kompilator modern hampir selalu memakai pola
-tersebut \cite{hyde2010}. Pola ini juga lebih luwes karena pencacah
-tidak terpaku pada \reg{CX} dan \asm{JNZ} dapat dibuat \eng{near}.
+Prosesor membentuk \term{alamat efektif} (\eng{effective address},
+EA), yaitu jumlah basis, indeks, dan perpindahan. Hasilnya berupa
+offset 16 bit. Alamat fisik dibentuk dengan menambahkan basis segmen.
 
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        font=\small,
-        node distance=0.75cm,
-        blok/.style={
-            draw=obeBlue, line width=0.7pt, fill=obeBlueLight,
-            rounded corners=2pt, minimum width=4.6cm,
-            minimum height=0.72cm, align=center, inner sep=3pt
+        komp/.style={
+            draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+            rounded corners=3pt, minimum width=3.9cm,
+            minimum height=1.1cm, align=center, inner sep=4pt,
+            font=\small
         },
-        uji/.style={
-            draw=obeTeal, line width=0.7pt, fill=obeTealLight,
-            diamond, aspect=2.6, minimum width=4.4cm,
-            align=center, inner sep=1pt, font=\scriptsize
+        jumlah/.style={
+            draw=obeGray, line width=0.9pt, fill=obeGrayLight,
+            circle, minimum size=1.0cm, font=\large\bfseries
         },
-        panah/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, obeGray}
+        hasil/.style={
+            draw=obeTeal, line width=1.0pt, fill=obeTealLight,
+            rounded corners=3pt, minimum width=4.2cm,
+            minimum height=1.1cm, align=center, inner sep=4pt,
+            font=\small
+        },
+        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt,
+            obeBlue},
+        kecil/.style={font=\scriptsize\itshape, text=obeGray}
     ]
-        \node[blok] (init) {\asm{MOV CX, n}};
-        \node[blok, below=of init] (badan) {badan perulangan};
-        \node[uji, below=0.95cm of badan] (uji)
-            {\reg{CX} $\leftarrow$ \reg{CX} $-1$;\quad \reg{CX} $=0$?};
-        \node[blok, below=0.95cm of uji, fill=obeGrayLight,
-              draw=obeGray] (selesai) {lanjut ke instruksi berikutnya};
+        \node[komp] (base) at (0, 2.5)
+            {\textbf{Basis}\\{\scriptsize \reg{BX}, \reg{BP}, atau
+             tidak ada}};
+        \node[komp] (index) at (0, 1.2)
+            {\textbf{Indeks}\\{\scriptsize \reg{SI}, \reg{DI}, atau
+             tidak ada}};
+        \node[komp] (disp) at (0, -0.1)
+            {\textbf{Perpindahan}\\{\scriptsize 8 bit, 16 bit, atau
+             0}};
 
-        \draw[panah] (init) -- (badan);
-        \draw[panah] (badan) -- (uji);
-        \draw[panah] (uji) -- node[right, font=\scriptsize] {ya}
-            (selesai);
-        \draw[panah] (uji.west) to[out=180, in=180]
-            node[left, font=\scriptsize, align=right]
-            {tidak\\(ulangi)} (badan.west);
+        \node[jumlah] (plus) at (4.7, 1.2) {$+$};
+
+        \node[hasil] (ea) at (8.6, 1.2)
+            {\textbf{Alamat efektif}\\[1pt]
+             {\scriptsize \code{EA = basis + indeks + disp}}};
+
+        \draw[panah] (base) -- (plus);
+        \draw[panah] (index) -- (plus);
+        \draw[panah] (disp) -- (plus);
+        \draw[panah] (plus) -- (ea);
+
+        \node[hasil, below=1.3cm of ea] (fisik)
+            {\textbf{Alamat fisik}\\[1pt]
+             {\scriptsize \code{(segmen x 16) + EA}}};
+        \draw[panah] (ea) -- (fisik)
+            node[midway, right=3pt, kecil] {ditambah basis segmen};
     \end{tikzpicture}
-    \caption{Alur perulangan \asm{LOOP}: badan perulangan dijalankan
-    lebih dahulu, kemudian pencacah dikurangi dan diuji.}
-    \label{fig:alur-loop}
+    \caption{Perhitungan alamat efektif dan alamat fisik.}
+    \label{fig:alamat-efektif}
 \end{figure}
 
-Urutan langkah pada \asm{LOOP} dilukiskan pada
-Gambar~\ref{fig:alur-loop}.
+Misalkan \reg{DS} = \hex{1000}, \reg{BX} = \hex{0200},
+\reg{SI} = \hex{0006}, dan instruksi
+\lstasm|MOV AX, [BX+SI+2]|. Alamat efektifnya
+$\hex{0200} + \hex{0006} + \hex{0002} = \hex{0208}$, dan alamat
+fisiknya $\hex{1000} \times \hex{10} + \hex{0208} = \hex{10208}$.
 
-\begin{infobox}
-Karena pengujian dilakukan di akhir, badan perulangan selalu
-dijalankan paling sedikit satu kali. Bila cacah perulangan mungkin
-bernilai nol, periksa terlebih dahulu dengan \asm{JCXZ} atau
-\lstasm|CMP CX, 0| sebelum memasuki perulangan.
-\end{infobox}
+\subsection{Kombinasi Register yang Legal}
+
+Tidak semua penulisan operand berpenunjuk dapat diterima assembler.
+Tabel~\ref{tab:kombinasi-register} merangkum kombinasinya.
+
+\begin{table}[H]
+    \centering
+    \caption{Kombinasi register penunjuk alamat pada 8086.}
+    \label{tab:kombinasi-register}
+    \small
+    \begin{tabular}{@{}p{3.4cm}p{1.6cm}p{1.6cm}p{6.8cm}@{}}
+        \toprule
+        \textbf{Bentuk operand} & \textbf{Legal} &
+        \textbf{Segmen} & \textbf{Alasan} \\
+        \midrule
+        \code{[BX]}, \code{[SI]}, \code{[DI]} & Ya & \reg{DS} &
+        Tersedia untuk satu penunjuk \\
+        \addlinespace
+        \code{[BP]} & Ya & \reg{SS} &
+        \reg{BP} adalah basis segmen \eng{stack} \\
+        \addlinespace
+        \code{[BX+SI]}, \code{[BX+DI]} & Ya & \reg{DS} &
+        Satu basis ditambah satu indeks \\
+        \addlinespace
+        \code{[BP+SI]}, \code{[BP+DI]} & Ya & \reg{SS} &
+        Basis \reg{BP} ditambah satu indeks \\
+        \addlinespace
+        \code{[AX]}, \code{[CX]}, \code{[DX]} & Tidak & --- &
+        Bukan basis maupun indeks \\
+        \addlinespace
+        \code{[SP]} & Tidak & --- &
+        \reg{SP} bukan basis; gunakan \reg{BP} \\
+        \addlinespace
+        \code{[BX+BP]} & Tidak & --- &
+        Dua register basis tidak dapat digabung \\
+        \addlinespace
+        \code{[SI+DI]} & Tidak & --- &
+        Dua register indeks tidak dapat digabung \\
+        \addlinespace
+        \code{[BX+SI+DI]} & Tidak & --- &
+        Maksimal satu basis ditambah satu indeks \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{peringatanbox}
+\vspace{1.1em}
+Penulisan seperti \code{[AX]} ditolak assembler karena 8086 tidak
+menyediakan cara pengalamatan dengan \reg{AX} sebagai penunjuk.
+Gunakan \reg{BX}, \reg{BP}, \reg{SI}, atau \reg{DI}.
+\end{peringatanbox}

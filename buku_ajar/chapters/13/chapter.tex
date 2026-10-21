@@ -2,18 +2,17 @@
 
 \begin{document}
 
-\chapter{Prosedur dan Manajemen Stack}
-\label{chap:prosedur}
+\chapter{Percabangan dan Perulangan}
+\label{chap:kontrol}
 
 % =========================================================
 % OUTCOME PEMBELAJARAN KHUSUS BAB
 % =========================================================
 
 \begin{subcpmkbox}
-\SubCPMK{3.4} --- Mengembangkan prosedur/subrutin dengan mekanisme
-pengiriman parameter (\eng{parameter passing}) dan mengelola
-\eng{stack frame} melalui instruksi \asm{PUSH} dan \asm{POP},
-register \reg{BP}, serta konvensi pemanggilan yang benar.
+\vspace{1.1em}
+\SubCPMK{3.4} --- Menyusun percabangan dan perulangan dengan label,
+JMP, CMP, lompatan bersyarat, dan LOOP.
 
 \vspace{0.4em}
 \textbf{CPMK yang didukung:} \CPMK{03} \quad\textbullet\quad
@@ -21,47 +20,32 @@ register \reg{BP}, serta konvensi pemanggilan yang benar.
 \end{subcpmkbox}
 
 \begin{tujuanbox}
+\vspace{1.1em}
 Setelah mempelajari bab ini, mahasiswa mampu:
 \begin{enumerate}
-    \item menjelaskan alasan pemakaian prosedur: modularitas,
-          penggunaan ulang, dan abstraksi, beserta biaya
-          pemanggilannya;
-    \item menjelaskan kerja instruksi \asm{CALL} dan \asm{RET} serta
-          membedakan pemanggilan \eng{near} dan \eng{far};
-    \item menelusuri isi stack sel per sel pada setiap operasi
-          \asm{PUSH}, \asm{POP}, dan \asm{CALL};
-    \item membangun \eng{stack frame} standar melalui \eng{prologue}
-          dan \eng{epilogue} yang benar;
-    \item mengirim parameter melalui register, melalui stack, dan
-          melalui variabel global beserta kelebihan serta kekurangan
-          masing-masing cara;
-    \item mengembalikan nilai prosedur melalui register \reg{AX} dan
-          register \reg{DX}:\reg{AX} serta menjelaskan peran
-          \asm{RET} \code{n};
-    \item menulis prosedur rekursif untuk faktorial dan Fibonacci
-          serta menjelaskan risiko \eng{stack overflow};
-    \item mengenali dan memperbaiki kesalahan pengelolaan stack yang
-          umum terjadi.
+    \item menulis label dan menggunakannya sebagai tujuan lompatan;
+    \item menggunakan \asm{JMP} untuk lompatan tanpa syarat;
+    \item menggunakan \asm{CMP} untuk menyiapkan \eng{flag};
+    \item memilih lompatan bersyarat yang tepat untuk bilangan
+          bertanda dan tidak bertanda;
+    \item menyusun percabangan \code{if} dan \code{if--else};
+    \item menyusun perulangan dengan \asm{LOOP};
+    \item menerjemahkan pola \code{while} dan \code{for} ke assembly;
+    \item menyusun perulangan bersarang untuk pengolahan array.
 \end{enumerate}
 \end{tujuanbox}
 
 \begin{materibox}
+\vspace{1.1em}
 \begin{enumerate}
-    \item Alasan prosedur: modularitas, penggunaan ulang, abstraksi,
-          dan biaya pemanggilan prosedur.
-    \item Instruksi \asm{CALL} dan \asm{RET}; alamat kembali
-          \reg{CS}:\reg{IP}; pemanggilan \eng{near} dan \eng{far}.
-    \item Operasi stack: \asm{PUSH}, \asm{POP}, \asm{PUSHF},
-          \asm{POPF}; register \reg{SP} dan \reg{BP}; arah tumbuh
-          stack ke alamat rendah.
-    \item \eng{Stack frame} standar: \eng{prologue}, akses parameter
-          dengan \code{[BP+4]} dan \code{[BP+6]}, serta
-          \eng{epilogue}.
-    \item Konvensi pemanggilan dan tanggung jawab pembersihan stack.
-    \item Nilai balik prosedur dan peran \asm{RET} \code{n}.
-    \item Rekursi pada assembly: faktorial dan Fibonacci; kedalaman
-          stack dan risiko \eng{stack overflow}.
-    \item Kesalahan umum pengelolaan stack.
+    \item Label dan aturan penulisannya.
+    \item Lompatan tanpa syarat \asm{JMP}.
+    \item \asm{CMP} dan \eng{flag} sebagai dasar keputusan.
+    \item Lompatan bersyarat \asm{Jcc}.
+    \item Perulangan \asm{LOOP}.
+    \item Pola \code{if}, \code{if--else}, \code{while}, dan
+          \code{for}.
+    \item Perulangan bersarang dan pengolahan array.
 \end{enumerate}
 \end{materibox}
 

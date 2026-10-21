@@ -4,23 +4,70 @@
 Bab ini menutup perjalanan seluruh buku. Tujuannya bukan menambah
 materi baru, melainkan membantu mahasiswa melihat keseluruhan
 kompetensi yang telah dibangun dan mengukur seberapa jauh
-kompetensi itu telah dikuasai.
+kompetensi itu dikuasai.
 
 \subsection{Perjalanan Kompetensi}
 
-Perjalanan belajar mata kuliah ini dapat dibaca sebagai satu alur
-tunggal. Pada Bab~\ref{chap:pengenalan} sampai
-Bab~\ref{chap:segmentasi}, mahasiswa membangun pemahaman tentang
-mesin: bagaimana prosesor bekerja, register apa yang tersedia, dan
-bagaimana memori diorganisasi. Pada Bab~\ref{chap:format-instruksi}
-sampai Bab~\ref{chap:translasi}, mahasiswa mempelajari bagaimana
-kehendak programmer diterjemahkan menjadi instruksi mesin. Pada
-Bab~\ref{chap:aritmatika} sampai Bab~\ref{chap:prosedur}, mahasiswa
-berlatih menulis program yang benar dan terstruktur. Pada
-Bab~\ref{chap:interupsi}, mahasiswa menghubungkan programnya dengan
-dunia luar. Akhirnya pada Bab~\ref{chap:debugging} dan
-Bab~\ref{chap:disassembly}, mahasiswa belajar memperbaiki dan
-mempertajam program yang telah ditulis.
+Perjalanan belajar mata kuliah ini mengikuti urutan RPS. Bab III--VI
+membangun pemahaman tentang mesin: bilangan, arsitektur BIU/EU,
+register dan \eng{flag}, serta segmentasi memori. Bab VII--IX
+menghubungkan program dengan mesin melalui struktur program,
+instruksi transfer data, dan interupsi BIOS/DOS. Bab X--XV melatih
+penulisan program: aritmatika, logika dan \eng{shift}, mode
+pengalamatan, percabangan, stack/prosedur/macro, serta array dan
+string. Bab XVI melatih penelusuran dan perbaikan program.
+
+Peta kompetensi ditunjukkan pada Gambar~\ref{fig:peta-kompetensi}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        cpl/.style={
+            draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+            rounded corners=3pt, minimum width=2.5cm,
+            minimum height=0.85cm, align=center, font=\small\bfseries,
+            inner sep=3pt
+        },
+        cpmk/.style={
+            draw=obeTeal, line width=0.8pt, fill=obeTealLight,
+            rounded corners=3pt, minimum width=3.1cm,
+            minimum height=0.85cm, align=center, font=\small,
+            inner sep=3pt
+        },
+        sub/.style={
+            draw=obeAmber, line width=0.8pt, fill=obeAmberLight,
+            rounded corners=3pt, minimum width=3.6cm,
+            minimum height=0.85cm, align=center, font=\scriptsize,
+            inner sep=3pt
+        },
+        panah/.style={-{Stealth[length=2.2mm]}, line width=0.8pt,
+            obeGray}
+    ]
+        \node[cpl] (cpl2) at (0,3.0) {CPL02};
+        \node[cpl] (cpl3) at (0,-1.5) {CPL03};
+
+        \node[cpmk] (c1) at (4.3,4.1) {CPMK01};
+        \node[cpmk] (c2) at (4.3,1.9) {CPMK02};
+        \node[cpmk] (c3) at (4.3,-0.5) {CPMK03};
+        \node[cpmk] (c4) at (4.3,-2.7) {CPMK04};
+
+        \node[sub] (s1) at (9.0,5.2) {Sub-CPMK 1.1--1.4};
+        \node[sub] (s2) at (9.0,2.5) {Sub-CPMK 2.1--2.3};
+        \node[sub] (s3) at (9.0,-0.5) {Sub-CPMK 3.1--3.6};
+        \node[sub] (s4) at (9.0,-2.7) {Sub-CPMK 4.1--4.3};
+
+        \draw[panah] (cpl2) -- (c1);
+        \draw[panah] (cpl2) -- (c2);
+        \draw[panah] (cpl3) -- (c3);
+        \draw[panah] (cpl3) -- (c4);
+        \draw[panah] (c1) -- (s1);
+        \draw[panah] (c2) -- (s2);
+        \draw[panah] (c3) -- (s3);
+        \draw[panah] (c4) -- (s4);
+    \end{tikzpicture}
+    \caption{Peta CPL, CPMK, dan kelompok Sub-CPMK pada buku ini.}
+    \label{fig:peta-kompetensi}
+\end{figure}
 
 Peta ketercapaian lengkap disajikan pada
 Tabel~\ref{tab:peta-ketercapaian}.
@@ -31,54 +78,59 @@ Tabel~\ref{tab:peta-ketercapaian}.
     asesmennya.}
     \label{tab:peta-ketercapaian}
     \footnotesize
-    \begin{tabular}{@{}p{1.1cm}p{4.4cm}p{4.2cm}p{3.5cm}@{}}
+    \begin{tabular}{@{}p{1.5cm}p{4.1cm}p{4.3cm}p{3.3cm}@{}}
         \toprule
         \textbf{Sub-CPMK} & \textbf{Kompetensi} &
         \textbf{Bukti belajar} & \textbf{Asesmen} \\
         \midrule
-        1.1 & Arsitektur 8086 dan siklus instruksi &
-        Diagram alur, tabel pengamatan register & UTS, Tugas 1 \\
+        1.1 & Peran assembly dan sistem bilangan &
+        Latihan konversi & Kuis, UTS \\
         \addlinespace
-        1.2 & Register dan \eng{flag} &
-        Tabel pengamatan \eng{flag} & Kuis 1, UTS \\
+        1.2 & Arsitektur BIU dan EU &
+        Diagram dan tabel \eng{trace} & UTS \\
         \addlinespace
-        1.3 & Segmentasi dan alamat fisik &
-        Lembar perhitungan alamat & Kuis 1, UTS \\
+        1.3 & Register dan \eng{flag} &
+        Tabel pengamatan \eng{flag} & Kuis, UTS \\
         \addlinespace
-        2.1 & Format instruksi mesin &
-        Lembar kerja \eng{opcode} & Tugas 2, UTS \\
+        1.4 & Segmentasi dan alamat fisik &
+        Lembar perhitungan alamat & Tugas, UTS \\
         \addlinespace
-        2.2 & Mode pengalamatan &
-        Tabel alamat efektif & Kuis 2, UTS \\
-        \addlinespace
-        2.3 & Direktif dan translasi &
+        2.1 & Struktur program dan translasi &
         Portofolio \file{.asm} $\rightarrow$ \file{.exe} &
-        Tugas 3, UTS \\
+        Tugas 1, UTS \\
         \addlinespace
-        2.4 & Interupsi BIOS/DOS &
-        Program masukan/keluaran & Tugas 7, UAS \\
+        2.2 & Instruksi transfer data &
+        Program transfer data & Tugas 1, UTS \\
         \addlinespace
-        3.1 & Transfer data dan aritmatika &
-        Program kalkulator & Tugas 4, UAS \\
+        2.3 & Interupsi BIOS/DOS &
+        Program masukan/keluaran & Kuis, UTS \\
         \addlinespace
-        3.2 & Logika, geser, rotasi &
-        Program manipulasi bit & Kuis 3, UAS \\
+        3.1 & Operasi aritmatika &
+        Program aritmatika & Tugas 2, UAS \\
         \addlinespace
-        3.3 & Struktur kontrol &
-        Program pencarian dan pengurutan & Tugas 5, UAS \\
+        3.2 & Operasi logika dan \eng{shift} &
+        Program manipulasi bit & Kuis, UAS \\
         \addlinespace
-        3.4 & Prosedur dan stack &
-        Prosedur berparameter & Tugas 6, UAS \\
+        3.3 & Tujuh mode pengalamatan &
+        Tabel alamat efektif & Tugas 3, UAS \\
         \addlinespace
-        4.1 & Penelusuran level instruksi &
-        Tabel \eng{trace} & Laporan debugging \\
+        3.4 & Percabangan dan perulangan &
+        Program maksimum/pengurutan & Tugas 4, UAS \\
         \addlinespace
-        4.2 & Analisis memori dan stack &
-        Laporan \eng{dump} dan temuan bug & Laporan debugging \\
+        3.5 & Stack, prosedur, dan macro &
+        Prosedur berparameter dan macro & Tugas 5, UAS \\
         \addlinespace
-        4.3 & Disassembly dan optimasi &
-        Perbandingan versi naif dan teroptimasi &
-        Proyek akhir \\
+        3.6 & Array, string, dan pencetakan bilangan &
+        Program array/string dan konversi & Tugas 6, UAS \\
+        \addlinespace
+        4.1 & Penelusuran per instruksi &
+        Tabel \eng{trace} & Praktikum, UAS \\
+        \addlinespace
+        4.2 & Pemeriksaan memori dan stack &
+        Laporan \eng{dump} & Praktikum, UAS \\
+        \addlinespace
+        4.3 & Analisis dan perbaikan \eng{hang} &
+        Laporan bug dan perbaikan & Proyek, UAS \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -86,30 +138,25 @@ Tabel~\ref{tab:peta-ketercapaian}.
 \subsection{Bukti Belajar yang Harus Dimiliki}
 
 Pada akhir semester, setiap mahasiswa harus dapat menunjukkan bukti
-belajar berikut. Bila salah satu belum ada, kompetensi yang
-bersangkutan belum dapat dinyatakan tercapai.
+belajar berikut.
 
 \begin{checklistbox}
+\vspace{1.1em}
 \begin{itemize}
-    \item[\checkbox] Portofolio berisi minimal \dec{14} berkas
-          \file{.asm} yang dapat dirakit, tersusun menurut bab.
-    \item[\checkbox] Jurnal praktikum terisi untuk setiap sesi
-          praktikum sepanjang semester.
-    \item[\checkbox] Tujuh tugas (Tugas 1--7) terselesaikan dan
-          terdokumentasi.
+    \item[\checkbox] Portofolio berisi minimal satu berkas
+          \file{.asm} yang dapat dirakit untuk setiap unit materi.
+    \item[\checkbox] Jurnal praktikum terisi untuk setiap sesi.
+    \item[\checkbox] Enam tugas terselesaikan dan terdokumentasi.
     \item[\checkbox] Laporan \eng{debugging} memuat tabel
           \eng{trace}, temuan bug, dan bukti perbaikan.
-    \item[\checkbox] Laporan optimasi memuat perbandingan terukur
-          antara versi naif dan versi teroptimasi.
     \item[\checkbox] Proyek akhir selesai, berjalan, dan
           dipresentasikan.
 \end{itemize}
 \end{checklistbox}
 
 \begin{infobox}
-Bukti belajar pada daftar di atas bersifat kumulatif. Artinya, nilai
-akhir mata kuliah tidak ditentukan semata-mata oleh UTS dan UAS,
-tetapi oleh terpeliharanya bukti belajar sepanjang semester.
-Mahasiswa yang kehilangan portofolio atau jurnal akan kehilangan
-bukti utama untuk \CPMK{03} dan \CPMK{04}.
+\vspace{1.1em}
+Bukti belajar bersifat kumulatif. Nilai akhir tidak hanya ditentukan
+UTS dan UAS, tetapi juga oleh portofolio, tugas, praktikum, dan
+proyek yang dipelihara sepanjang semester.
 \end{infobox}

@@ -2,119 +2,64 @@
 \label{sec:latihan-bab12}
 
 \begin{enumerate}
-    \item \textbf{Konseptual.} Jelaskan mengapa lompatan bersyarat
-          pada 8086 tidak dapat membandingkan dua bilangan secara
-          langsung, serta sebutkan dua instruksi penyiap \eng{flag}
-          dan perbedaannya.
+    \item \textbf{Konsep.} Jelaskan pengertian mode pengalamatan.
+          Sebutkan tujuh mode yang dibahas pada bab ini.
 
-    \item \textbf{Konseptual.} Sebutkan perbedaan jangkauan dan
-          ukuran lompatan \eng{short}, \eng{near}, dan \eng{far}.
-          Mengapa assembler tidak selalu memakai bentuk
-          \eng{short}?
-
-    \item \textbf{Analisis \eng{flag}.} Diberikan potongan program
-          berikut.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-MOV AL, 0FEh
-MOV BL, 03h
-CMP AL, BL
-\end{lstlisting}
-
+    \item \textbf{Identifikasi.} Tentukan mode pengalamatan pada
+          setiap operand memori berikut.
           \begin{enumerate}
-              \item Tentukan keadaan \flag{ZF}, \flag{CF},
-                    \flag{SF}, dan \flag{OF} setelah \asm{CMP}.
-              \item Manakah yang diambil, \asm{JA} atau \asm{JB}?
-                    Jelaskan.
-              \item Manakah yang diambil, \asm{JG} atau \asm{JL}?
-                    Jelaskan mengapa jawabannya berbeda dari (b).
+              \item \lstasm|MOV AX, BX|
+              \item \lstasm|MOV AX, 1234h|
+              \item \lstasm|MOV AX, nilai|
+              \item \lstasm|MOV AX, [SI]|
+              \item \lstasm|MOV AX, [BX+4]|
+              \item \lstasm|MOV AX, [DI+8]|
+              \item \lstasm|MOV AX, [BX+SI+2]|
           \end{enumerate}
 
-    \item \textbf{Pemilihan \asm{Jcc}.} Tuliskan instruksi lompatan
-          yang tepat untuk setiap perbandingan berikut, dengan
-          menyebutkan jenis bilangannya.
+    \item \textbf{Direct dan indirect.} Jelaskan perbedaan mode
+          \textit{direct memory} dan \textit{indirect memory}.
+          Berikan satu contoh untuk masing-masing.
+
+    \item \textbf{Base relative dan direct index.} Jelaskan
+          perbedaan \lstasm|[BX+4]| dan \lstasm|[SI+4]|. Mode apa
+          yang dipakai oleh masing-masing bentuk?
+
+    \item \textbf{Based indexed.} Sebutkan empat kombinasi register
+          yang legal untuk mode \textit{based indexed}. Mengapa
+          \lstasm|[BX+BP]| dan \lstasm|[SI+DI]| tidak legal?
+
+    \item \textbf{Alamat efektif.} Diketahui \reg{DS} = \hex{2000},
+          \reg{BX} = \hex{0100}, dan \reg{SI} = \hex{0006}.
+          Hitung alamat efektif dan alamat fisik untuk
+          \lstasm|MOV AX, [BX+SI+4]|.
+
+    \item \textbf{Segmen default.} Tentukan segmen default untuk
+          \lstasm|[BX]|, \lstasm|[BP]|, \lstasm|[SI]|, dan
+          \lstasm|[DI]|. Mengapa \lstasm|MOV AX, [BP]| tidak membaca
+          variabel pada segmen data?
+
+    \item \textbf{Pemilihan mode.} Tentukan mode yang paling tepat
+          untuk:
           \begin{enumerate}
-              \item \reg{AX} lebih besar dari \reg{BX} (tak
-                    bertanda);
-              \item \reg{DL} lebih kecil atau sama dengan \hex{7F}
-                    (tak bertanda);
-              \item \reg{SI} sama dengan \reg{DI};
-              \item hasil operasi nol dan tidak terjadi limpahan;
-              \item \reg{AL} berisi bilangan genap.
-          \end{enumerate}
-
-    \item \textbf{Prediksi alur.} Perhatikan perulangan bersarang
-          berikut.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-MOV CX, 3
-MOV BX, 0
-LUAR:
-    PUSH CX             ; simpan pencacah lintasan luar
-    MOV CX, 2           ; pencacah dalam
-DALAM:
-    INC BX              ; badan perulangan
-    LOOP DALAM
-    POP CX              ; ambil kembali pencacah luar
-    LOOP LUAR
-\end{lstlisting}
-
-          \begin{enumerate}
-              \item Berapa kali \lstasm|INC BX| dijalankan?
-              \item Berapa nilai akhir \reg{BX} dan \reg{CX}?
-              \item Apa yang terjadi bila \lstasm|PUSH CX| dan
-                    \lstasm|POP CX| dihapus? Jelaskan.
-          \end{enumerate}
-
-    \item \textbf{Penerjemahan pseudocode.} Terjemahkan pseudocode
-          berikut ke assembly. Sertakan komentar pada setiap baris.
-
-\begin{pseudocode}[caption={Pseudocode untuk soal nomor 6.}]
-jumlah = 0
-i = 1
-selama i <= 10 lakukan
-    jumlah = jumlah + i
-    i = i + 1
-akhir selama
-\end{pseudocode}
-
-    \item \textbf{Penulisan program.} Tulislah program lengkap yang
-          memeriksa setiap elemen larik 8-bit sebagai bilangan
-          bertanda, lalu mencetak huruf \code{'P'} bila elemen lebih
-          besar dari nol, \code{'Z'} bila elemen sama dengan nol, dan
-          \code{'N'} bila elemen bernilai negatif. Gunakan \asm{CMP},
-          \asm{JS}, \asm{JZ}, \asm{JMP}, dan \asm{LOOP}.
-
-    \item \textbf{Analisis kesalahan.} Seorang mahasiswa menulis
-          lompatan berikut dan menerima pesan
-          \file{Relative jump out of range}.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-    CMP AL, 0
-    JNE SELESAI
-    ; ... 200 byte instruksi lain ...
-SELESAI:
-\end{lstlisting}
-
-          \begin{enumerate}
-              \item Jelaskan penyebab kesalahan tersebut.
-              \item Tuliskan perbaikan yang memakai syarat terbalik
-                    dan \asm{JMP} \eng{near}.
-              \item Sebutkan satu cara lain agar badan perulangan
-                    tidak perlu dilompati sama sekali.
+              \item variabel tunggal;
+              \item elemen array satu dimensi dengan indeks berubah;
+              \item medan record;
+              \item elemen array of record.
           \end{enumerate}
 \end{enumerate}
 
 \begin{refleksibox}
+\vspace{1.1em}
 Jawab pertanyaan berikut pada jurnal praktikum Anda.
 \begin{enumerate}
-    \item Bagian mana yang paling menantang: memilih \asm{Jcc},
-          menyusun perulangan bersarang, atau menerjemahkan pola
-          bahasa tingkat tinggi? Jelaskan alasannya.
-    \item Ketika menelusuri program dengan \eng{Single Step},
-          adakah lompatan yang hasilnya berbeda dari dugaan Anda?
-          Apa yang menyebabkan dugaan itu keliru?
-    \item Konsep apa yang perlu Anda latih lagi sebelum mempelajari
-          prosedur dan manajemen \eng{stack} pada bab berikutnya?
+    \item Mode mana yang paling sulit Anda bedakan: \textit{indirect},
+          \textit{base relative}, atau \textit{direct index}?
+          Mengapa?
+    \item Setelah menghitung alamat efektif, apakah Anda memahami
+          mengapa beberapa penulisan menghasilkan alamat yang sama?
+          Jelaskan.
+    \item Konsep apa yang perlu Anda ulangi sebelum mempelajari
+          percabangan dan perulangan pada bab berikutnya?
 \end{enumerate}
 \end{refleksibox}

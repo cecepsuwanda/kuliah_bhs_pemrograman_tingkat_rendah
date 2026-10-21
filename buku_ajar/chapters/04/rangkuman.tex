@@ -4,65 +4,62 @@
 Pada bab ini telah dibahas:
 
 \begin{itemize}
-    \item Mikroprosesor berkembang dari Intel 4004 (4 bit) hingga
-          8086 (16 bit) yang menjadi dasar keluarga x86. Varian 8088
-          dengan bus luar 8 bit dipakai pada IBM PC.
+    \item Mikroprosesor 8086 memakai bus data 16 bit dan bus alamat
+          20 bit sehingga mampu menjangkau memori 1 MB. Prosesor
+          sesudahnya memperluas kemampuan ini, tetapi konsep dasarnya
+          tetap sama.
 
-    \item Arsitektur dipandang dari dua sisi: \term{internal}
-          (register, ALU, dan unit di dalam chip) dan
-          \term{eksternal} (pin, bus, dan sinyal kendali).
+    \item Arsitektur internal 8086 dibagi menjadi \eng{Bus Interface
+          Unit} (BIU) dan \eng{Execution Unit} (EU). Pembagian ini
+          memungkinkan pengambilan instruksi berjalan sementara EU
+          mengeksekusi instruksi sebelumnya.
 
-    \item 8086 terbagi menjadi \eng{Bus Interface Unit} (BIU) dan
-          \eng{Execution Unit} (EU). BIU memegang seluruh lalu lintas
-          bus luar; EU hanya menjalankan instruksi dan tidak
-          terhubung langsung ke pin luar.
+    \item BIU bertugas mengambil instruksi, membaca dan menulis data
+          dari atau ke memori serta port, menangani pengalamatan, dan
+          mengisi \eng{queue} instruksi.
 
-    \item BIU memuat register segmen (\reg{CS}, \reg{DS}, \reg{SS},
-          \reg{ES}), \reg{IP}, penghitung alamat 20-bit, dan
-          \eng{instruction queue} enam byte.
+    \item Komponen utama BIU adalah bus, \eng{queue} enam byte,
+          register segmen (CS, DS, SS, ES), dan \eng{Instruction
+          Pointer} (IP).
 
-    \item EU memuat \eng{ALU}, register umum, register penunjuk dan
-          indeks, serta register \eng{flag}.
+    \item BIU berhubungan dengan dunia luar melalui bus alamat
+          20 bit, bus data 16 bit, dan bus kontrol.
 
-    \item Rumus alamat fisik adalah (segmen $\times$ 16) $+$ offset,
-          sehingga 8086 dapat menjangkau 1 MB memori meskipun
-          register-nya hanya 16 bit.
+    \item Alamat fisik dihitung dari pasangan \eng{segment:offset}
+          dengan rumus $(\text{segmen} \times 16) + \text{offset}$.
 
-    \item \eng{Instruction queue} memungkinkan \eng{pipelining}:
-          pengambilan instruksi berikutnya berimpit dengan eksekusi
-          instruksi sekarang. Instruksi lompatan mengosongkan
-          antrean (\eng{queue flush}) dan menghapus keuntungan ini.
+    \item EU bertugas menerjemahkan dan menjalankan instruksi serta
+          memberi tahu BIU alamat operand yang diperlukan. Komponen
+          utamanya adalah ALU, register \eng{flag}, \eng{operand},
+          \eng{instruction decoder and control}, register umum, serta
+          register penunjuk dan indeks.
 
-    \item Tiga kelompok bus eksternal adalah bus alamat 20-bit
-          (satu arah), bus data 16-bit (dua arah), dan bus kontrol.
-          Pin \reg{AD0}--\reg{AD15} dimultipleks sehingga alamat
-          harus ditangkap dengan bantuan sinyal \reg{ALE}.
-
-    \item Siklus instruksi terdiri atas \eng{fetch}, \eng{decode},
-          \eng{execute}, dan \eng{store}. Tahap \eng{store} hanya
-          memerlukan siklus bus bila tujuannya berada di memori.
+    \item Urutan pemrosesan instruksi adalah \eng{fetch} oleh BIU,
+          \eng{decode} oleh EU, lalu \eng{execute} oleh EU. Hasil yang
+          ditulis ke register tidak memerlukan bus luar, sedangkan
+          hasil yang ditulis ke memori memerlukan siklus bus melalui
+          BIU.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
-    \item[\checkbox] Saya dapat menjelaskan perbedaan arsitektur
-          internal dan eksternal sebuah mikroprosesor.
-    \item[\checkbox] Saya dapat menggambar diagram blok BIU/EU
-          beserta isi register masing-masing unit.
-    \item[\checkbox] Saya dapat menjelaskan peran
-          \eng{instruction queue} enam byte dan \eng{pipelining}.
-    \item[\checkbox] Saya dapat menghitung alamat fisik dari pasangan
-          segmen dan offset.
-    \item[\checkbox] Saya dapat menyebutkan fungsi bus alamat, bus
-          data, bus kontrol, dan sinyal \reg{ALE}, \code{M/IO},
-          \reg{RD}, \reg{WR}, \reg{READY}, \reg{RESET}.
-    \item[\checkbox] Saya dapat menelusuri satu instruksi melalui
-          tahapan \eng{fetch}--\eng{decode}--\eng{execute}--\eng{store}.
-    \item[\checkbox] Saya dapat menjelaskan mengapa instruksi yang
-          mengakses memori lebih lambat daripada instruksi yang
-          hanya memakai register.
+    \item[\checkbox] Saya dapat menjelaskan alasan pembagian BIU dan
+          EU.
+    \item[\checkbox] Saya dapat menyebutkan tugas dan komponen BIU.
+    \item[\checkbox] Saya dapat menjelaskan peran \eng{queue} enam
+          byte dan pengisiannya.
+    \item[\checkbox] Saya dapat menyebutkan tiga kelompok bus dan
+          fungsinya.
+    \item[\checkbox] Saya dapat menghitung alamat fisik dari
+          \eng{segment:offset}.
+    \item[\checkbox] Saya dapat menyebutkan tugas dan komponen EU.
+    \item[\checkbox] Saya dapat menelusuri urutan
+          \eng{fetch}--\eng{decode}--\eng{execute}.
+    \item[\checkbox] Saya dapat membedakan instruksi register dan
+          instruksi memori dari sisi siklus bus.
 \end{itemize}
 
 \vspace{0.4em}
@@ -71,11 +68,8 @@ bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
-\cite{intel1979} sebagai rujukan utama datasheet dan pembagian
-BIU/EU, \cite{stallings2016} untuk gambaran organisasi dan
-arsitektur komputer, \cite{courses2103} untuk penjelasan segmentasi
-dan alamat fisik, serta \cite{carleton2011} untuk konteks
-keluarga x86. Untuk penelusuran lebih dalam mengenai bus dan sinyal
-kendali 8086, lihat \cite{intel1979}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 1, hlm.~10--11, dan Bagian 2,
+hlm.~12--18, serta \cite{sto2001}, BAB II, hlm.~9--10.
 \end{infobox}

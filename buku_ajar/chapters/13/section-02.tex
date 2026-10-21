@@ -1,193 +1,155 @@
-\section{Stack dan Operasi Stack}
-\label{sec:operasi-stack}
+\section{Lompatan Bersyarat dan Percabangan}
+\label{sec:jcc}
 
-Alamat kembali yang disimpan oleh \asm{CALL} tidak diletakkan pada
-register, melainkan pada daerah memori khusus yang disebut stack.
-Memahami stack adalah syarat mutlak untuk menulis prosedur yang
-benar, karena hampir semua kesalahan prosedur berasal dari stack
-yang tidak seimbang.
+Lompatan bersyarat (\asm{Jcc}) memeriksa keadaan \eng{flag}: bila
+syarat terpenuhi, eksekusi berpindah ke label tujuan; bila tidak,
+eksekusi berlanjut ke instruksi berikutnya.
 
-\subsection{Pengertian dan Arah Tumbuh Stack}
+\subsection{Tabel Lompatan Bersyarat}
 
-\term{Stack} adalah daerah memori yang dipakai dengan aturan
-\eng{last in, first out} (LIFO): data yang terakhir dimasukkan
-adalah data yang pertama dikeluarkan. Stack 8086 ditunjuk oleh
-pasangan register \reg{SS} dan \reg{SP}, dengan alamat fisik sel
-teratas \reg{SS} $\times$ \hex{10} $+$ \reg{SP}, seperti pada
-perhitungan alamat di Bab~\ref{chap:mode-pengalamatan}.
-
-Ciri khas stack 8086 adalah arah tumbuhnya: \important{setiap
-penambahan isi stack menurunkan nilai \reg{SP}, sehingga stack
-tumbuh menuju alamat yang semakin rendah}. Pada awal program,
-\reg{SP} menunjuk alamat tertinggi dari ruang yang disediakan
-direktif \dir{.STACK}. Bila \reg{SS} bernilai \hex{1000} dan ruang
-stack \hex{100}, maka \reg{SP} mula-mula bernilai \hex{FFFE} dan
-alamat fisik sel teratasnya adalah \hex{1FFFE}.
-
-\subsection{Instruksi \asm{PUSH} dan \asm{POP}}
-
-\begin{instruksibox}
-\begin{itemize}
-    \item \asm{PUSH} \code{sumber} --- \reg{SP} dikurangi \dec{2},
-          lalu isi \code{sumber} disalin ke memori \reg{SS}:\reg{SP}.
-    \item \asm{POP} \code{tujuan} --- isi memori \reg{SS}:\reg{SP}
-          disalin ke \code{tujuan}, lalu \reg{SP} ditambah \dec{2}.
-\end{itemize}
-\end{instruksibox}
-
-Pada \asm{PUSH}, \reg{SP} dikurangi lebih dahulu, baru data
-disimpan; pada \asm{POP}, data diambil lebih dahulu, baru \reg{SP}
-ditambah. Keduanya selalu bekerja pada satu \term{kata}
-(\eng{word}) berukuran \dec{2} byte. Pada 8086, \asm{PUSH} hanya
-menerima register atau isi memori 16-bit, sehingga
-\lstasm|PUSH 5| tidak sah. Instruksi \asm{PUSHA} dan \asm{POPA}
-juga belum tersedia karena baru diperkenalkan pada prosesor 80186.
-Dengan demikian, bila \reg{SP} bernilai \hex{FFFE} dan \reg{AX}
-bernilai \hex{1234}, maka \lstasm|PUSH AX| menurunkan \reg{SP} ke
-\hex{FFFC} dan menuliskan \hex{34} pada \hex{FFFC} serta \hex{12}
-pada \hex{FFFD}; byte rendah selalu berada pada alamat yang lebih
-rendah.
-
-\subsection{Instruksi \asm{PUSHF} dan \asm{POPF}}
-
-Instruksi \asm{PUSHF} mendorong seluruh isi register \reg{FLAGS}
-sebagai satu kata 16-bit, sedangkan \asm{POPF} memulihkannya.
-Pasangan ini dipakai ketika prosedur mengubah \eng{flag} untuk
-keperluan internal, tetapi pemanggil masih memerlukan \eng{flag}
-yang lama. Perlu diingat bahwa \asm{POPF} ikut memulihkan
-\flag{IF}, sehingga pemulihan yang salah dapat mematikan interupsi
-(Bab~\ref{chap:interupsi}).
-
-\subsection{Menelusuri Isi Stack pada Pemanggilan Prosedur}
-
-Bagian ini menelusuri perubahan isi stack selama satu pemanggilan
-prosedur lengkap. Keadaan awalnya: \reg{SS} $=$ \hex{1000},
-\reg{SP} $=$ \hex{FFFE}, dan stack masih kosong. Jejak lengkapnya
-disajikan pada Tabel~\ref{tab:trace-stack}, sedangkan
-Gambar~\ref{fig:isi-stack-call} memperlihatkan keadaan stack sesaat
-setelah \eng{prologue} selesai.
+Lompatan bersyarat yang sering dipakai dirangkum pada
+Tabel~\ref{tab:jcc}.
 
 \begin{table}[H]
     \centering
-    \caption{Perubahan \reg{SP} dan isi stack pada setiap langkah
-    pemanggilan prosedur \code{HitungLuas}.}
-    \label{tab:trace-stack}
+    \caption{Lompatan bersyarat 8086 dan syaratnya.}
+    \label{tab:jcc}
     \small
-    \begin{tabular}{@{}rp{2.9cm}p{1.5cm}p{2.7cm}p{4.2cm}@{}}
+    \begin{tabular}{@{}p{3.2cm}p{4.2cm}p{5.8cm}@{}}
         \toprule
-        \textbf{\#} & \textbf{Instruksi} & \textbf{\reg{SP} sesudah} &
-        \textbf{Isi sel teratas} & \textbf{Keterangan} \\
+        \textbf{Instruksi} & \textbf{Syarat flag} &
+        \textbf{Jenis bilangan} \\
         \midrule
-        1 & (keadaan awal) & \hex{FFFE} & kosong &
-        Stack kosong; \reg{SP} menunjuk sel teratas \\
+        \asm{JE} / \asm{JZ} & \flag{ZF} $=1$ &
+        Bertanda maupun tidak bertanda \\
         \addlinespace
-        2 & \asm{PUSH} \code{tinggi} & \hex{FFFC} & \hex{000A} &
-        Parameter kedua masuk lebih dahulu \\
+        \asm{JNE} / \asm{JNZ} & \flag{ZF} $=0$ &
+        Bertanda maupun tidak bertanda \\
         \addlinespace
-        3 & \asm{PUSH} \code{lebar} & \hex{FFFA} & \hex{0005} &
-        Parameter pertama masuk paling akhir \\
+        \asm{JG} / \asm{JNLE} & \flag{ZF} $=0$ dan
+        \flag{SF} $=$ \flag{OF} & Bertanda \\
         \addlinespace
-        4 & \asm{CALL} \code{HitungLuas} & \hex{FFF8} & \hex{0102} &
-        Alamat kembali (\reg{IP}) didorong \\
+        \asm{JGE} / \asm{JNL} & \flag{SF} $=$ \flag{OF} &
+        Bertanda \\
         \addlinespace
-        5 & \asm{PUSH} \reg{BP} & \hex{FFF6} & \hex{0000} &
-        \reg{BP} milik pemanggil disimpan \\
+        \asm{JL} / \asm{JNGE} & \flag{SF} $\neq$ \flag{OF} &
+        Bertanda \\
         \addlinespace
-        6 & \asm{MOV} \reg{BP}, \reg{SP} & \hex{FFF6} & \hex{0000} &
-        \reg{BP} $=$ \hex{FFF6}; bingkai stack siap \\
+        \asm{JLE} / \asm{JNG} & \flag{ZF} $=1$ atau
+        \flag{SF} $\neq$ \flag{OF} & Bertanda \\
         \addlinespace
-        7 & \asm{POP} \reg{BP} & \hex{FFF8} & \hex{0102} &
-        \reg{BP} milik pemanggil dipulihkan \\
+        \asm{JA} / \asm{JNBE} & \flag{CF} $=0$ dan
+        \flag{ZF} $=0$ & Tidak bertanda \\
         \addlinespace
-        8 & \asm{RET} \code{4} & \hex{FFFE} & kosong &
-        \reg{IP} diambil, lalu \reg{SP} naik \dec{4} byte \\
+        \asm{JAE} / \asm{JNB} & \flag{CF} $=0$ &
+        Tidak bertanda \\
+        \addlinespace
+        \asm{JB} / \asm{JNAE} & \flag{CF} $=1$ &
+        Tidak bertanda \\
+        \addlinespace
+        \asm{JBE} / \asm{JNA} & \flag{CF} $=1$ atau
+        \flag{ZF} $=1$ & Tidak bertanda \\
         \bottomrule
     \end{tabular}
 \end{table}
 
+\subsection{Bertanda versus Tidak Bertanda}
+
+Pemilihan \asm{Jcc} bergantung pada jenis bilangan. Setelah
+\lstasm|CMP AX, BX|, perbandingan dapat ditafsirkan sebagai bilangan
+bertanda atau tidak bertanda.
+
+\begin{table}[H]
+    \centering
+    \caption{Pemetaan perbandingan ke lompatan yang benar.}
+    \label{tab:jcc-signed}
+    \small
+    \begin{tabular}{@{}p{4.0cm}p{4.4cm}p{4.8cm}@{}}
+        \toprule
+        \textbf{Perbandingan} & \textbf{Bertanda} &
+        \textbf{Tidak bertanda} \\
+        \midrule
+        \eng{dst} $>$ \eng{src} & \asm{JG} & \asm{JA} \\
+        \addlinespace
+        \eng{dst} $\geq$ \eng{src} & \asm{JGE} & \asm{JAE} \\
+        \addlinespace
+        \eng{dst} $<$ \eng{src} & \asm{JL} & \asm{JB} \\
+        \addlinespace
+        \eng{dst} $\leq$ \eng{src} & \asm{JLE} & \asm{JBE} \\
+        \addlinespace
+        \eng{dst} $=$ \eng{src} & \asm{JE}/\asm{JZ} &
+        \asm{JE}/\asm{JZ} \\
+        \addlinespace
+        \eng{dst} $\neq$ \eng{src} & \asm{JNE}/\asm{JNZ} &
+        \asm{JNE}/\asm{JNZ} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Contoh, \hex{FF} dapat dibaca sebagai 255 (tidak bertanda) atau $-1$
+(bertanda). Bila dibandingkan dengan 1, hasilnya berlawanan:
+sebagai bilangan tidak bertanda \hex{FF} lebih besar, sedangkan
+sebagai bilangan bertanda \hex{FF} lebih kecil.
+
+\subsection{Percabangan if--else}
+
+Pola \code{if--else} memerlukan satu lompatan untuk melewati blok
+\code{else} setelah blok \code{if} selesai.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+; if (AX == BX) { hasil = 1 } else { hasil = 0 }
+CMP AX, BX
+JNE BLOK_ELSE
+MOV hasil, 1
+JMP SELESAI
+BLOK_ELSE:
+MOV hasil, 0
+SELESAI:
+\end{lstlisting}
+
+Alur tersebut ditunjukkan pada Gambar~\ref{fig:alur-if-else}.
+
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        sel/.style={
-            draw=obeBlue,
-            line width=0.6pt,
-            minimum width=3.3cm,
-            minimum height=0.58cm,
-            font=\ttfamily\small,
-            inner sep=1pt
+        blok/.style={
+            draw=obeBlue, line width=0.7pt, fill=obeBlueLight,
+            rounded corners=2pt, minimum width=3.2cm,
+            minimum height=0.8cm, align=center, font=\small,
+            inner sep=3pt
         },
-        alamat/.style={
-            font=\ttfamily\scriptsize,
-            text=obeGray,
-            anchor=west
+        uji/.style={
+            draw=obeTeal, line width=0.7pt, fill=obeTealLight,
+            diamond, aspect=2.4, minimum width=3.6cm,
+            align=center, font=\scriptsize, inner sep=1pt
         },
-        catatan/.style={
-            font=\scriptsize,
-            text=obeMaroon,
-            anchor=west
-        },
-        penunjuk/.style={
-            -{Stealth[length=2.4mm]},
-            line width=1pt,
-            obeBlue
-        }
+        panah/.style={-{Stealth[length=2.2mm]}, line width=0.8pt,
+            obeGray},
+        ket/.style={font=\scriptsize, text=obeGray}
     ]
-        \node[sel, fill=obeGrayLight] (c0) {\textit{(belum terpakai)}};
-        \node[sel, fill=obeAmberLight, below=0pt of c0] (c1) {000Ah};
-        \node[sel, fill=obeAmberLight, below=0pt of c1] (c2) {0005h};
-        \node[sel, fill=obeBlueLight,  below=0pt of c2] (c3) {0102h};
-        \node[sel, fill=obeGreenLight, below=0pt of c3] (c4) {0000h};
-        \node[sel, fill=obeGrayLight,  below=0pt of c4] (c5)
-            {\textit{(belum terpakai)}};
+        \node[uji] (cmp) {AX $=$ BX?};
+        \node[blok, below left=0.9cm and 1.6cm of cmp] (ya)
+            {blok \code{if}\\hasil $=1$};
+        \node[blok, below right=0.9cm and 1.6cm of cmp] (tidak)
+            {blok \code{else}\\hasil $=0$};
+        \node[blok, below=2.2cm of cmp] (selesai) {lanjut};
 
-        \node[alamat] at ([xshift=0.16cm]c0.east) {\hex{FFFE}};
-        \node[alamat] at ([xshift=0.16cm]c1.east) {\hex{FFFC}};
-        \node[alamat] at ([xshift=0.16cm]c2.east) {\hex{FFFA}};
-        \node[alamat] at ([xshift=0.16cm]c3.east) {\hex{FFF8}};
-        \node[alamat] at ([xshift=0.16cm]c4.east) {\hex{FFF6}};
-        \node[alamat] at ([xshift=0.16cm]c5.east) {\hex{FFF4}};
-
-        \node[catatan] at ([xshift=1.70cm]c1.east)
-            {parameter 2: tinggi \ \code{[BP+6]}};
-        \node[catatan] at ([xshift=1.70cm]c2.east)
-            {parameter 1: lebar \ \code{[BP+4]}};
-        \node[catatan] at ([xshift=1.70cm]c3.east)
-            {alamat kembali (\reg{IP}) \ \code{[BP+2]}};
-        \node[catatan] at ([xshift=1.70cm]c4.east)
-            {\reg{BP} lama \ \code{[BP+0]}};
-        \node[catatan] at ([xshift=1.70cm]c5.east)
-            {di bawah \reg{SP}: ruang bebas};
-
-        \node[font=\scriptsize, text=obeTeal, above=0.10cm of c0]
-            {alamat tinggi};
-        \node[font=\scriptsize, text=obeTeal, below=0.10cm of c5]
-            {alamat rendah};
-
-        \node[font=\ttfamily\small, text=obeBlue, left=1.40cm of c4] (sp)
-            {SP = BP};
-        \draw[penunjuk] (sp.east) -- (c4.west);
+        \draw[panah] (cmp.west) -| node[ket, above left] {ya}
+            (ya.north);
+        \draw[panah] (cmp.east) -| node[ket, above right] {tidak}
+            (tidak.north);
+        \draw[panah] (ya.south) |- (selesai.west);
+        \draw[panah] (tidak.south) |- (selesai.east);
     \end{tikzpicture}
-    \caption{Isi stack sel per sel sesaat setelah \eng{prologue}
-    prosedur \code{HitungLuas} selesai. Setiap sel berukuran
-    \dec{2} byte.}
-    \label{fig:isi-stack-call}
+    \caption{Alur percabangan \code{if--else} dengan \asm{CMP} dan
+    \asm{JNE}.}
+    \label{fig:alur-if-else}
 \end{figure}
 
-Gambar~\ref{fig:isi-stack-call} memperlihatkan keadaan pada langkah
-keenam. Urutan sel itu bukan kebetulan, melainkan akibat langsung
-dari urutan \asm{PUSH} dan \asm{CALL}: parameter yang didorong paling
-akhir berada paling dekat dengan \reg{BP}.
-
-\subsection{Register \reg{BP} sebagai Penunjuk Bingkai}
-
-Akses parameter tidak dilakukan langsung melalui \reg{SP} karena
-\reg{SP} terus berubah setiap kali prosedur mendorong atau mengambil
-data. Register \reg{BP} (\eng{base pointer}) menyimpan salinan
-\reg{SP} melalui \lstasm|MOV BP, SP| dan tidak diubah oleh operasi
-\asm{PUSH} maupun \asm{POP} berikutnya, sehingga jaraknya ke setiap
-parameter tetap konstan. Pola inilah yang disebut \term{bingkai
-stack} (\eng{stack frame}). Karena segmen \eng{default} bagi
-\reg{BP} adalah \reg{SS}, \code{[BP+4]} selalu mengacu ke stack tanpa
-perlu awalan segmen. Cara mengaksesnya merupakan penerapan mode
-pengalamatan \eng{base-relative} yang dibahas pada
-Bab~\ref{chap:mode-pengalamatan}.
+\begin{peringatanbox}
+\vspace{1.1em}
+Jangan menyisipkan instruksi yang mengubah \eng{flag} di antara
+\asm{CMP} dan \asm{Jcc}. Instruksi seperti \asm{INC}, \asm{DEC},
+\asm{ADD}, atau \asm{LOOP} dapat merusak syarat lompatan. Bila perlu
+menyimpan nilai, gunakan \asm{MOV} yang tidak mengubah \eng{flag}.
+\end{peringatanbox}

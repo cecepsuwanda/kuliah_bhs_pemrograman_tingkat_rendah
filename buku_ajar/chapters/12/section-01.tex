@@ -1,251 +1,145 @@
-\section{Flag sebagai Dasar Pengambilan Keputusan}
-\label{sec:flag-keputusan}
+\section{Operand dan Tiga Mode Dasar}
+\label{sec:mode-dasar}
 
-Sampai bab ini, seluruh program yang dibahas dieksekusi secara
-berurutan (\eng{sequential execution}): unit kendali menjalankan
-instruksi pada alamat \reg{CS}:\reg{IP}, lalu memajukan \reg{IP} ke
-instruksi berikutnya. Program yang berguna hampir selalu membutuhkan
-lebih dari itu: memilih di antara beberapa tindakan, mengulang
-pekerjaan, dan berhenti ketika suatu syarat terpenuhi.
+Sebelum mengeksekusi instruksi, prosesor harus mengetahui di mana
+operand berada. Data dapat berada di dalam instruksi, di dalam
+register, atau di dalam memori pada alamat tertentu. Cara prosesor
+menyatakan letak operand disebut \term{mode pengalamatan}
+(\eng{addressing mode}).
 
-\subsection{Mengapa Prosesor Membutuhkan Flag}
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 9,
+hlm.~78--92, dan \cite{sto2001}, BAB XI, hlm.~52--62.
 
-Prosesor 8086 tidak memiliki instruksi ``jika'' seperti pada bahasa
-tingkat tinggi, melainkan sekumpulan \term{flag}---bit penanda
-keadaan pada \reg{FLAGS}---dan instruksi lompatan yang memeriksanya.
-Pengambilan keputusan pun selalu berlangsung dalam dua langkah: satu
-instruksi mengubah keadaan \eng{flag} sesuai hasil operasi, lalu satu
-instruksi lompatan bersyarat memutuskan apakah alamat eksekusi
-dipindahkan.
+\subsection{Operand Sumber dan Tujuan}
 
-Langkah kedua tidak menghitung apa pun: bila tidak ada instruksi yang
-menyiapkan \eng{flag} sebelumnya, lompatan bersyarat akan memakai
-\eng{flag} sisa dari operasi yang jauh di belakang. Register
-\reg{FLAGS} beserta makna setiap bitnya telah dibahas pada
-Bab~\ref{chap:register}; lima \eng{flag} yang paling sering dipakai
-untuk percabangan dirangkum pada Tabel~\ref{tab:flag-keputusan}.
+Sebagian besar instruksi 8086 memakai dua operand: operand sumber
+dan operand tujuan. Instruksi \lstasm|MOV AX, BX| memindahkan isi
+\reg{BX} ke \reg{AX}. Operand tujuan harus berupa tempat yang dapat
+menampung hasil, yaitu register atau lokasi memori. Nilai segera
+tidak dapat menjadi tujuan.
+
+Mode pengalamatan menentukan bagaimana operand ditulis dan bagaimana
+prosesor memperoleh nilainya. Tujuh mode yang dipakai pada bab ini
+dirangkum pada Tabel~\ref{tab:tujuh-mode}.
 
 \begin{table}[H]
     \centering
-    \caption{Lima flag utama pada pengambilan keputusan.}
-    \label{tab:flag-keputusan}
+    \caption{Tujuh mode pengalamatan 8086.}
+    \label{tab:tujuh-mode}
     \small
-    \begin{tabular}{@{}p{1.4cm}p{5.0cm}p{7.0cm}@{}}
+    \begin{tabular}{@{}p{2.8cm}p{4.2cm}p{3.0cm}p{3.6cm}@{}}
         \toprule
-        \textbf{Flag} & \textbf{Makna} & \textbf{Dipakai oleh} \\
+        \textbf{Mode} & \textbf{Bentuk penulisan} &
+        \textbf{Contoh} & \textbf{Operand berada di} \\
         \midrule
-        \flag{ZF} & Bernilai 1 bila hasil operasi sama dengan nol &
-        \asm{JE}, \asm{JNE}, \asm{JG}, \asm{JL}, \asm{LOOPE} \\
+        \textit{Register} & register & \lstasm|MOV AX, BX| &
+        Dalam register \\
         \addlinespace
-        \flag{CF} & Bernilai 1 bila terjadi pinjaman atau limpahan
-        pada operasi tak bertanda &
-        \asm{JB}, \asm{JAE}, \asm{JC}, \asm{JNC} \\
+        \textit{Immediate} & nilai segera & \lstasm|MOV AX, 1234h| &
+        Di dalam instruksi \\
         \addlinespace
-        \flag{SF} & Menyalin bit paling kiri (bit tanda) hasil operasi &
-        \asm{JS}, \asm{JNS}, serta lompatan bertanda \\
+        \textit{Direct memory} & \code{[alamat]} atau nama variabel &
+        \lstasm|MOV AX, [1234h]| & Di memori, alamat tetap \\
         \addlinespace
-        \flag{OF} & Bernilai 1 bila hasil melampaui jangkauan bilangan
-        bertanda &
-        \asm{JO}, \asm{JNO}, \asm{JG}, \asm{JL} \\
+        \textit{Indirect memory} & \code{[register]} &
+        \lstasm|MOV AX, [BX]| & Di memori, alamat dari register \\
         \addlinespace
-        \flag{PF} & Menyatakan kegenapan banyak bit 1 pada byte hasil &
-        \asm{JP}, \asm{JNP} \\
+        \textit{Base relative} & \code{[basis+disp]} &
+        \lstasm|MOV AX, [BX+4]| & Di memori, basis + perpindahan \\
+        \addlinespace
+        \textit{Direct index} & \code{[indeks+disp]} &
+        \lstasm|MOV AX, [SI+4]| & Di memori, indeks + perpindahan \\
+        \addlinespace
+        \textit{Based indexed} & \code{[basis+indeks+disp]} &
+        \lstasm|MOV AX, [BX+SI+4]| & Di memori, basis + indeks +
+        perpindahan \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\important{Lompatan bersyarat tidak membandingkan dua bilangan. Ia
-hanya membaca \eng{flag}. Karena itu, instruksi penyiap \eng{flag}
-harus ditulis tepat sebelum lompatan.}
+\subsection{Mode Register}
 
-\subsection{Instruksi CMP: Menyiapkan Flag melalui Pengurangan}
-
-Instruksi \asm{CMP} (\eng{compare}) melakukan pengurangan antara
-operand pertama dan operand kedua, tetapi \emph{tidak menyimpan}
-hasilnya; yang tersimpan hanyalah perubahan pada \eng{flag}. Bentuk
-dan aturan operandnya sama persis dengan \asm{SUB} yang dibahas pada
-Bab~\ref{chap:aritmatika}.
+Pada mode \term{register}, operand berada di dalam register. Baik
+sumber maupun tujuan berupa register, tanpa pengaksesan memori.
 
 \begin{lstlisting}[language=MASM, numbers=none]
-MOV AX, 0005h       ; AX = 5
-MOV BX, 0003h       ; BX = 3
-CMP AX, BX          ; hitung 5 - 3 = 2, hasil dibuang
-; keadaan flag: ZF = 0, SF = 0, CF = 0, OF = 0
-JG  LEBIH_BESAR     ; lompat karena 5 > 3 (bertanda)
+MOV AX, BX          ; AX <- BX
+ADD DX, CX          ; DX <- DX + CX
+MOV DL, AL          ; DL <- AL (ukuran harus sama)
 \end{lstlisting}
 
-Setelah \lstasm|CMP AX, BX| dijalankan, isi \reg{AX} dan \reg{BX} tidak
-berubah; yang berubah hanya \reg{FLAGS}. Inilah sebabnya \asm{CMP}
-disebut instruksi \term{penyiap flag}. Bila kedua operand sama,
-\flag{ZF} bernilai 1; bila operand pertama lebih kecil secara tak
-bertanda, terjadi pinjaman sehingga \flag{CF} bernilai 1. Perilaku
-inilah yang menjadi dasar seluruh tabel lompatan pada
-Subbab~\ref{sec:jcc-loop}.
+Mode ini paling cepat dan paling ringkas karena seluruh operasi
+berlangsung di dalam prosesor. Keterbatasannya adalah jumlah register
+8086 yang sedikit.
 
-\subsection{Instruksi TEST: Menyiapkan Flag melalui AND}
+\subsection{Mode Immediate}
 
-Instruksi \asm{TEST} melakukan operasi \asm{AND} bit demi bit, lalu
-membuang hasilnya dan hanya menyimpan \eng{flag}. Berbeda dari
-\asm{CMP}, \asm{TEST} tidak melakukan pengurangan; ia
-\emph{menyaring} bit.
+Pada mode \term{immediate}, operand sumber adalah nilai konstan yang
+sudah tertulis di dalam instruksi. Nilai itu tidak disimpan di
+memori, sehingga prosesor tidak perlu mengakses memori untuk
+mengambilnya.
 
 \begin{lstlisting}[language=MASM, numbers=none]
-TEST AL, 01h        ; uji bit ke-0 dari AL
-JZ   GENAP          ; ZF = 1 berarti bit ke-0 nol, bilangan genap
-
-TEST AL, AL         ; uji apakah AL sama dengan nol
-JZ   NOL
+MOV AX, 1234h       ; AX <- 1234h (immediate 16 bit)
+MOV BL, 0Ah         ; BL <- 0Ah (immediate 8 bit)
+ADD CX, 100         ; CX <- CX + 100
+MOV AL, 'A'         ; AL <- 41h, kode ASCII 'A'
 \end{lstlisting}
 
-Pemakaian \lstasm|TEST AL, AL| adalah idiom yang sering muncul:
-operand dibandingkan dengan dirinya sendiri sehingga \flag{ZF} dan
-\flag{SF} mengikuti nilai operand, tanpa mengubah isi \reg{AL}.
-Perbedaan kedua instruksi penyiap \eng{flag} ini dirangkum pada
-Tabel~\ref{tab:cmp-test}.
+Ukuran nilai segera mengikuti ukuran register tujuan: 8 bit untuk
+\reg{AL} dan 16 bit untuk \reg{AX}. Nilai segera dipakai untuk
+mengisi nilai awal atau menaikkan nilai dengan langkah tetap.
+
+\subsection{Mode Direct Memory}
+
+Pada mode \term{direct memory}, operand berada di memori dan
+alamatnya (offset) ditulis di dalam instruksi. Assembler menggantikan
+nama variabel dengan offset yang sebenarnya.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+.DATA
+    nilai   DW 1234h
+    total   DW ?
+
+.CODE
+    MOV AX, nilai       ; AX <- isi memori DS:nilai
+    MOV AX, [1234h]     ; AX <- isi memori pada offset 1234h
+    MOV total, AX       ; simpan AX ke variabel total
+\end{lstlisting}
+
+Alamat pada mode ini tetap karena tertulis di dalam instruksi.
+Mode ini cocok untuk variabel tunggal seperti pencacah atau bendera.
 
 \begin{table}[H]
     \centering
-    \caption{Perbedaan \asm{CMP} dan \asm{TEST}.}
-    \label{tab:cmp-test}
+    \caption{Tiga mode pengalamatan dasar.}
+    \label{tab:mode-dasar}
     \small
-    \begin{tabular}{@{}p{3.0cm}p{5.6cm}p{5.8cm}@{}}
+    \begin{tabular}{@{}p{1.8cm}p{3.2cm}p{3.4cm}p{1.6cm}p{3.2cm}@{}}
         \toprule
-        \textbf{Aspek} & \textbf{\asm{CMP}} & \textbf{\asm{TEST}} \\
+        \textbf{Mode} & \textbf{Bentuk penulisan} &
+        \textbf{Contoh} & \textbf{Akses memori} &
+        \textbf{Kegunaan utama} \\
         \midrule
-        Operasi dasar & Pengurangan
-        (\eng{dst} $-$ \eng{src}) & \asm{AND} bit demi bit
-        (\eng{dst} \& \eng{src}) \\
+        \textit{Register} & register & \lstasm|MOV AX, BX| &
+        Tidak & Memindahkan data antarvariabel kerja \\
         \addlinespace
-        Hasil disimpan & Tidak; hanya \eng{flag} &
-        Tidak; hanya \eng{flag} \\
+        \textit{Immediate} & nilai konstan & \lstasm|MOV AX, 5| &
+        Tidak & Mengisi nilai awal dan tetapan \\
         \addlinespace
-        Flag utama yang disiapkan & \flag{ZF}, \flag{CF},
-        \flag{SF}, \flag{OF}, \flag{AF}, \flag{PF} &
-        \flag{ZF}, \flag{SF}, \flag{PF}; \flag{CF} dan \flag{OF}
-        selalu 0 \\
-        \addlinespace
-        Kegunaan khas & Membandingkan dua nilai, menentukan urutan &
-        Menguji bit, memeriksa nol atau tanda \\
-        \addlinespace
-        Contoh & \code{CMP AX, BX} & \code{TEST AL, 80h} \\
+        \textit{Direct} & \code{[disp]} atau nama variabel &
+        \lstasm|MOV AX, [1234h]| & Ya, sekali &
+        Variabel tunggal ber-alamat tetap \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \begin{peringatanbox}
-Memakai \asm{TEST} untuk membandingkan dua bilangan adalah kekeliruan
-yang sering terjadi. \lstasm|TEST AX, BX| tidak memberi tahu apakah
-\reg{AX} lebih besar dari \reg{BX}; ia hanya memberi tahu apakah
-\emph{ada} bit yang bernilai 1 pada kedua operand secara bersamaan.
-Untuk membandingkan nilai, gunakan \asm{CMP}.
+\vspace{1.1em}
+Dua penulisan berikut tampak mirip, tetapi artinya berbeda.
+\lstasm|MOV AX, nilai| menyalin \emph{isi} variabel \code{nilai}
+(mode direct), sedangkan \lstasm|MOV AX, OFFSET nilai| menyalin
+\emph{offset}-nya sebagai nilai segera. Hal serupa berlaku pada
+\lstasm|MOV AX, 1234h| (nilai) dan \lstasm|MOV AX, [1234h]| (isi
+memori).
 \end{peringatanbox}
-
-\subsection{Lompatan Tak Bersyarat JMP dan Jarak Lompatan}
-
-Instruksi \asm{JMP} memindahkan kendali tanpa syarat, misalnya
-\lstasm|JMP HITUNG|. Prosesor 8086 tidak menyimpan alamat mutlak
-tujuan, melainkan \term{perpindahan} (\eng{displacement}) relatif
-terhadap instruksi berikutnya; besar perpindahan inilah yang
-menentukan \term{jarak lompatan}.
-
-\begin{enumerate}
-    \item \term{Short jump} menyimpan perpindahan dalam satu byte
-          bertanda, sehingga jangkauannya hanya \dec{127} byte ke
-          depan dan \dec{128} byte ke belakang.
-
-    \item \term{Near jump} menyimpan perpindahan dalam 16 bit,
-          sehingga tujuan dapat berada di mana saja dalam segmen kode
-          yang sama. Instruksi ini berukuran tiga byte.
-
-    \item \term{Far jump} menyatakan alamat tujuan secara lengkap
-          sebagai pasangan \reg{CS}:\reg{IP}, sehingga tujuan dapat
-          berada pada segmen kode yang berbeda. Instruksi ini
-          berukuran lima byte.
-\end{enumerate}
-
-Ketiga jangkauan tersebut dilukiskan pada Gambar~\ref{fig:jarak-lompatan}.
-
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[font=\small]
-        % bingkai segmen kode
-        \draw[draw=obeGray, line width=0.7pt, fill=obeGrayLight]
-            (0,0) rectangle (2.6,-7.0);
-        \node[font=\scriptsize\bfseries, text=obeGray] at (1.3,-0.35)
-            {segmen kode};
-
-        % pita jangkauan short
-        \fill[obeTealLight] (0,-3.0) rectangle (2.6,-4.0);
-        \draw[draw=obeTeal, line width=0.6pt] (0,-3.0) rectangle (2.6,-4.0);
-
-        % titik asal
-        \fill[obeMaroon] (2.6,-3.5) circle (2.4pt);
-
-        % keterangan jangkauan short
-        \node[anchor=east, font=\scriptsize, text=obeTeal, align=right]
-            at (-0.2,-3.5) {jangkauan\\\textbf{short}\\$\pm$ 127 byte};
-
-        % kotak tujuan
-        \node[draw=obeTeal, fill=obeTealLight, rounded corners=2pt,
-              font=\scriptsize, align=center, inner sep=4pt]
-            (ts) at (5.6,-3.5) {tujuan \textbf{short}\\(1 byte perpindahan)};
-        \node[draw=obeBlue, fill=obeBlueLight, rounded corners=2pt,
-              font=\scriptsize, align=center, inner sep=4pt]
-            (tn) at (5.6,-6.1) {tujuan \textbf{near}\\(16 bit, segmen sama)};
-        \node[draw=obeAmber, fill=obeAmberLight, rounded corners=2pt,
-              font=\scriptsize, align=center, inner sep=4pt]
-            (tf) at (5.6,-0.9) {tujuan \textbf{far}\\(segmen kode lain)};
-
-        \draw[-{Stealth[length=2.2mm]}, obeTeal, line width=0.9pt]
-            (2.6,-3.5) -- (ts.west);
-        \draw[-{Stealth[length=2.2mm]}, obeBlue, line width=0.9pt]
-            (2.6,-3.5) -- (tn.west);
-        \draw[-{Stealth[length=2.2mm]}, obeAmber, line width=0.9pt]
-            (2.6,-3.5) to[out=60, in=180] (tf.west);
-
-        \node[anchor=west, font=\scriptsize, text=obeMaroon]
-            at (2.75,-3.5) {\asm{JMP} di sini};
-    \end{tikzpicture}
-    \caption{Tiga jenis jarak lompatan pada instruksi \asm{JMP} dan
-    jangkauan masing-masing.}
-    \label{fig:jarak-lompatan}
-\end{figure}
-
-Perbedaan ketiganya memengaruhi jumlah byte yang dipakai, seperti
-ditunjukkan pada Tabel~\ref{tab:jarak-lompatan}; ukuran ini penting
-ketika program harus muat dalam memori terbatas.
-
-\begin{table}[H]
-    \centering
-    \caption{Jenis jarak lompatan dan pengaruhnya pada ukuran kode.}
-    \label{tab:jarak-lompatan}
-    \small
-    \begin{tabular}{@{}p{1.7cm}p{3.6cm}p{3.0cm}p{2.4cm}p{2.6cm}@{}}
-        \toprule
-        \textbf{Jenis} & \textbf{Jangkauan} &
-        \textbf{Perpindahan} & \textbf{Ukuran} & \textbf{Penulisan} \\
-        \midrule
-        \eng{short} & $\pm$ 127 byte dari instruksi berikutnya &
-        1 byte bertanda & 2 byte & \code{JMP SHORT L1} \\
-        \addlinespace
-        \eng{near} & Seluruh segmen kode (64 KB) &
-        16 bit & 3 byte & \code{JMP L1} \\
-        \addlinespace
-        \eng{far} & Segmen kode mana pun &
-        \reg{CS}:\reg{IP} lengkap & 5 byte &
-        \code{JMP FAR PTR L1} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-Assembler memilih jarak lompatan secara otomatis; operator
-\code{SHORT} atau \code{FAR PTR} memaksa bentuk tertentu. Bila
-programmer memaksa \code{SHORT} padahal jaraknya terlalu jauh,
-assembler melaporkan kesalahan \file{Relative jump out of range}.
-
-\begin{infobox}
-Pada program besar---misalnya rutin BIOS yang harus muat dalam
-64 KB---pemilihan jarak lompatan dapat menghemat ribuan byte. Inilah
-contoh nyata bahwa pemrograman tingkat rendah memberi kendali yang
-tidak tersedia pada bahasa tingkat tinggi \cite{bartlett2004}.
-\end{infobox}

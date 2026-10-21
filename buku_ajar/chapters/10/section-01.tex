@@ -1,278 +1,191 @@
-\section{Instruksi Transfer Data}
-\label{sec:transfer-data}
+\section{Penjumlahan dan Pengurangan}
+\label{sec:penjumlahan-pengurangan}
 
-Bab sebelumnya telah membahas register (Bab~\ref{chap:register}) dan
-cara prosesor menetapkan alamat operand
-(Bab~\ref{chap:mode-pengalamatan}). Bab ini melanjutkan pembahasan
-tersebut dengan dua kelompok instruksi yang paling sering dipakai:
-instruksi transfer data dan instruksi aritmatika.
+Operasi aritmatika bekerja pada operand yang sudah berada di register
+atau memori. Instruksi penjumlahan dan pengurangan menyimpan hasil
+pada operand tujuan, sehingga operand tujuan berubah sedangkan
+operand sumber tetap.
 
-Sebagian besar pekerjaan sebuah program sebenarnya hanyalah
-memindahkan data, sehingga instruksi transfer data menjadi fondasi
-seluruh program assembly.
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 14.2--14.3,
+hlm.~132--137, dan \cite{sto2001}, BAB VIII, hlm.~32--40.
 
-\subsection{Instruksi \asm{MOV} dan Aturan Legalitasnya}
+\subsection{ADD, ADC, dan INC}
 
-Instruksi \asm{MOV} menyalin data dari operand sumber ke operand
-tujuan dengan bentuk \lstasm|MOV tujuan, sumber|.
+\begin{description}
+    \item[\asm{ADD}] Menjumlahkan operand sumber dengan operand
+          tujuan. Hasil disimpan pada operand tujuan.
+          \begin{center}
+          \lstasm|ADD tujuan, sumber|
+          \end{center}
 
-\important{Instruksi \asm{MOV} tidak menghapus isi sumber.} Setelah
-\lstasm|MOV AX, BX| dijalankan, \reg{AX} dan \reg{BX} sama-sama
-berisi nilai yang sama. Kata ``pindah'' pada pembahasan sehari-hari
-sebenarnya berarti \eng{salin}.
+    \item[\asm{ADC}] Menjumlahkan operand sumber, operand tujuan,
+          dan nilai \flag{CF} dari operasi sebelumnya.
+          \begin{center}
+          \lstasm|ADC tujuan, sumber|
+          \end{center}
 
-Prosesor 8086 menolak kombinasi operand yang tidak memenuhi tiga
-syarat berikut.
+    \item[\asm{INC}] Menambah operand tujuan dengan satu.
+          \begin{center}
+          \lstasm|INC tujuan|
+          \end{center}
+\end{description}
 
-\begin{enumerate}
-    \item \textbf{Ukuran kedua operand harus sama.} Instruksi
-          \lstasm|MOV AX, BL| tidak sah karena \reg{AX} berukuran
-          16 bit sedangkan \reg{BL} hanya 8 bit. Bila salah satu
-          operand berada di memori, ukurannya dinyatakan dengan
-          \lstasm|BYTE PTR| atau \lstasm|WORD PTR|.
+Contoh:
 
-    \item \textbf{Tidak boleh memori ke memori.} Instruksi
-          \lstasm|MOV nilai2, nilai1| tidak sah karena 8086 tidak
-          memiliki jalur untuk menyalin langsung antarlokasi memori.
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, 25
+ADD AX, 17          ; AX = 42
+ADC AX, BX          ; AX = AX + BX + CF
+INC AX              ; AX = AX + 1
+\end{lstlisting}
 
-    \item \textbf{Tidak boleh nilai segera ke register segmen.}
-          Instruksi \lstasm|MOV DS, 1000h| tidak sah. Pemindahan ke
-          register segmen hanya boleh berasal dari register umum,
-          sehingga inisialisasi segmen selalu ditulis
-          \lstasm|MOV AX, @DATA| lalu \lstasm|MOV DS, AX|.
-\end{enumerate}
+\asm{ADC} dipakai ketika hasil penjumlahan sebelumnya menghasilkan
+\eng{carry} yang harus dibawa ke word berikutnya. Pada penjumlahan
+satu word, \asm{ADC} sering tampak sama dengan \asm{ADD} karena
+\flag{CF} biasanya nol.
 
-Tabel~\ref{tab:legalitas-mov} merangkum kombinasi operand yang
-diizinkan dan yang ditolak.
+\subsection{SUB, SBB, dan DEC}
+
+\begin{description}
+    \item[\asm{SUB}] Mengurangi operand tujuan dengan operand sumber.
+          \begin{center}
+          \lstasm|SUB tujuan, sumber|
+          \end{center}
+
+    \item[\asm{SBB}] Mengurangi operand tujuan dengan operand sumber
+          dan nilai \flag{CF} (pinjaman) dari operasi sebelumnya.
+          \begin{center}
+          \lstasm|SBB tujuan, sumber|
+          \end{center}
+
+    \item[\asm{DEC}] Mengurangi operand tujuan dengan satu.
+          \begin{center}
+          \lstasm|DEC tujuan|
+          \end{center}
+\end{description}
+
+Contoh:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, 100
+SUB AX, 45          ; AX = 55
+SBB AX, BX          ; AX = AX - BX - CF
+DEC AX              ; AX = AX - 1
+\end{lstlisting}
+
+\subsection{Pengaruh terhadap Flag}
+
+Setiap operasi aritmatika memperbarui \eng{flag}. Arti \eng{flag}
+yang relevan dirangkum pada Tabel~\ref{tab:flag-aritmatika}.
 
 \begin{table}[H]
     \centering
-    \caption{Legalitas kombinasi operand pada instruksi \asm{MOV}.}
-    \label{tab:legalitas-mov}
+    \caption{Makna flag pada operasi aritmatika.}
+    \label{tab:flag-aritmatika}
     \small
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabular}{@{}p{4.4cm}p{3.5cm}p{1.5cm}p{4.4cm}@{}}
+    \begin{tabular}{@{}p{1.4cm}p{7.2cm}p{5.2cm}@{}}
         \toprule
-        \textbf{Bentuk pemindahan} & \textbf{Contoh} &
-        \textbf{Sah?} & \textbf{Keterangan} \\
+        \textbf{Flag} & \textbf{Arti} & \textbf{Tanda pada hasil} \\
         \midrule
-        Register ke register & \lstasm|MOV AX, BX| & Ya &
-        Bentuk paling cepat, tanpa akses memori \\
+        \flag{CF} & Ada simpanan keluar dari bit tertinggi atau
+        pinjaman pada pengurangan &
+        Hasil tak bertanda melampaui kapasitas \\
         \addlinespace
-        Nilai segera ke register & \lstasm|MOV AX, 5| & Ya &
-        Nilai segera muat 16 bit \\
+        \flag{OF} & Hasil bertanda di luar jangkauan &
+        Luapan bilangan bertanda \\
         \addlinespace
-        Memori ke register & \lstasm|MOV AX, nilai1| & Ya &
-        Satu operand di memori \\
+        \flag{ZF} & Hasil operasi bernilai nol &
+        Kedua operand sama besar \\
         \addlinespace
-        Register ke memori & \lstasm|MOV nilai1, AX| & Ya &
-        Hasil perhitungan disimpan kembali \\
+        \flag{SF} & Bit tanda hasil bernilai 1 &
+        Hasil bertanda negatif \\
         \addlinespace
-        Nilai segera ke memori & \lstasm|MOV nilai1, 5| & Ya &
-        Ukuran diambil dari deklarasi \dir{DW} \\
+        \flag{AF} & Simpanan dari empat bit rendah &
+        Dipakai pada operasi BCD \\
         \addlinespace
-        Register ke segmen & \lstasm|MOV DS, AX| & Ya &
-        Cara baku inisialisasi segmen \\
-        \addlinespace
-        Nilai segera ke segmen & \lstasm|MOV DS, 1000h| & Tidak &
-        Harus melalui register umum \\
-        \addlinespace
-        Memori ke memori & \lstasm|MOV nilai2, nilai1| & Tidak &
-        Pakai register perantara \\
-        \addlinespace
-        Segmen ke segmen & \lstasm|MOV DS, ES| & Tidak &
-        Pakai register umum \\
+        \flag{PF} & Jumlah bit 1 pada byte rendah genap &
+        Pemeriksaan paritas \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\subsection{Mengatasi Pemindahan yang Tidak Diizinkan}
+\flag{CF} dan \flag{OF} menjawab pertanyaan yang berbeda. \flag{CF}
+dipakai untuk bilangan tidak bertanda, sedangkan \flag{OF} dipakai
+untuk bilangan bertanda. Contoh \hex{FF} + \hex{01} menghasilkan
+\hex{00}: \flag{CF} bernilai 1 karena ada simpanan keluar, tetapi
+\flag{OF} bernilai 0 karena hasil bertanda $-1 + 1 = 0$ masih berada
+di dalam jangkauan.
 
-Ketika kombinasi operand ditolak, solusinya adalah menyisipkan
-register perantara. Pemindahan memori ke memori dilakukan dalam dua
-langkah, dan pemindahan nilai segera ke register segmen dilakukan
-melalui sebuah register umum.
+\subsection{Aritmatika Lebih dari 16 Bit}
 
-\begin{lstlisting}[language=MASM, numbers=none]
-    ; memori ke memori : dua langkah melalui AX
-    MOV AX, nilai1          ; muat isi memori ke AX
-    MOV nilai2, AX          ; simpan dari AX ke memori tujuan
-
-    ; nilai segera ke DS : dua langkah melalui AX
-    MOV AX, 1000h           ; muat nilai segera ke AX
-    MOV DS, AX              ; salin dari AX ke DS
-\end{lstlisting}
-
-\subsection{Instruksi \asm{XCHG}}
-
-Instruksi \asm{XCHG} menukar isi dua operand, sehingga keduanya
-berubah sekaligus. Aturannya lebih ketat daripada \asm{MOV}: salah
-satu operand wajib berada di register, keduanya harus berukuran sama,
-dan tidak ada operand yang boleh berupa nilai segera.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-    MOV AX, 1234h           ; AX = 1234h
-    MOV BX, 5678h           ; BX = 5678h
-    XCHG AX, BX             ; AX = 5678h, BX = 1234h
-\end{lstlisting}
-
-Pemakaian lazimnya adalah menukar dua nilai sementara tanpa
-memerlukan register ketiga.
-
-\subsection{Perbedaan \asm{MOV} dan \asm{LEA}}
-
-Instruksi \asm{LEA} (\eng{Load Effective Address}) memuat
-\emph{alamat} sebuah operand ke register, bukan isi operand tersebut.
-Perbedaan ini adalah sumber kebingungan yang paling sering terjadi.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-pesan DB 'Halo$'
-
-    LEA BX, pesan           ; BX = alamat variabel pesan
-    MOV BX, OFFSET pesan    ; BX = alamat variabel pesan (sama)
-    MOV BX, pesan           ; BX = dua byte isi pesan, yaitu 'Ha'
-\end{lstlisting}
-
-Dua instruksi pertama menghasilkan nilai yang sama pada \reg{BX},
-sedangkan instruksi ketiga menghasilkan sesuatu yang sama sekali
-berbeda. Kesalahan seperti ini tidak dilaporkan assembler karena
-secara sintaksis ketiganya sah, tetapi program akan berperilaku
-salah.
-
-\asm{LEA} juga lebih tepat ketika alamat efektif harus dihitung saat
-program berjalan. Instruksi \lstasm|LEA SI, [BX+DI+4]| menghasilkan
-$BX + DI + 4$ pada \reg{SI} tanpa membaca memori sama sekali,
-sedangkan perhitungan yang sama dengan \asm{MOV} dan \asm{ADD}
-memerlukan tiga instruksi. Aturan pengalamatan yang dipakai \asm{LEA}
-sama dengan aturan pada Bab~\ref{chap:mode-pengalamatan}.
-
-\subsection{Instruksi \asm{PUSH} dan \asm{POP}}
-
-\eng{Stack} adalah daerah memori yang dikelola dengan pola
-\eng{last in first out} (LIFO). Instruksi \asm{PUSH} menaruh satu word
-ke puncak \eng{stack}, sedangkan \asm{POP} mengambilnya kembali.
-Keduanya memakai register \reg{SP} sebagai penunjuk puncak.
-Gambar~\ref{fig:stack-pushpop} memperlihatkan perubahan susunan
-\eng{stack} pada instruksi \asm{PUSH AX}.
+Bilangan 32 bit dipecah menjadi dua word: word rendah (bit 0--15)
+dan word tinggi (bit 16--31). Penjumlahan dimulai dari word rendah
+dengan \asm{ADD}. \eng{Carry} yang dihasilkan dibawa ke word tinggi
+melalui \asm{ADC}. Pola yang sama berlaku untuk pengurangan dengan
+\asm{SUB} dan \asm{SBB}.
 
 \begin{figure}[H]
     \centering
     \begin{tikzpicture}[
-        font=\small,
-        sel/.style={draw=obeBlue, line width=0.7pt, minimum width=2.4cm,
-                    minimum height=0.6cm, align=center, inner sep=1pt},
-        isi/.style={sel, fill=obeBlueLight},
-        kosong/.style={sel, fill=obeGrayLight},
-        sp/.style={-{Stealth[length=2.2mm]}, line width=1pt, obeMaroon},
-        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt, obeTeal},
-        ket/.style={font=\bfseries\small, text=obeBlue}
+        kotak/.style={
+            draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+            rounded corners=3pt, minimum width=3.0cm,
+            minimum height=0.9cm, align=center, font=\small,
+            inner sep=3pt
+        },
+        hasil/.style={
+            draw=obeAmber, line width=0.8pt, fill=obeAmberLight,
+            rounded corners=3pt, minimum width=3.0cm,
+            minimum height=0.9cm, align=center, font=\small,
+            inner sep=3pt
+        },
+        panah/.style={-{Stealth[length=2.2mm]}, line width=0.8pt,
+            obeTeal},
+        ket/.style={font=\scriptsize\itshape, text=obeGray,
+            align=center}
     ]
-        \node[ket] at (0, 2.35) {Sebelum PUSH};
-        \node[kosong] at (0, 0) {kosong};
-        \node[isi]    at (0, 0.62) {5678h};
-        \draw[sp] (1.35, 0.62) -- (1.05, 0.62);
-        \node[font=\scriptsize, text=obeMaroon, anchor=west]
-            at (1.4, 0.62) {SP};
+        \node[kotak] (alo) at (0, 2.4) {word rendah A};
+        \node[kotak] (blo) at (0, 1.3) {word rendah B};
+        \node[hasil] (rlo) at (5.2, 1.85) {hasil rendah};
+        \draw[panah] (alo.east) -- (rlo.west);
+        \draw[panah] (blo.east) -- (rlo.west);
+        \node[ket] at (7.5, 1.85) {\asm{ADD}};
 
-        \node[ket] at (5.4, 2.35) {Sesudah PUSH};
-        \node[sel, fill=obeAmberLight, draw=obeAmber] (ax) at (5.4, 1.55)
-            {AX = 1234h};
-        \node[isi] (kanan2) at (5.4, 0.62) {1234h};
-        \node[isi] at (5.4, 0) {5678h};
-        \draw[panah] (ax.south) -- (kanan2.north);
-        \draw[sp] (6.75, 0.62) -- (6.45, 0.62);
-        \node[font=\scriptsize, text=obeMaroon, anchor=west]
-            at (6.8, 0.62) {SP berkurang 2};
+        \node[kotak] (ahi) at (0, -0.2) {word tinggi A};
+        \node[kotak] (bhi) at (0, -1.3) {word tinggi B};
+        \node[hasil] (rhi) at (5.2, -0.75) {hasil tinggi};
+        \draw[panah] (ahi.east) -- (rhi.west);
+        \draw[panah] (bhi.east) -- (rhi.west);
+        \node[ket] at (7.5, -0.75) {\asm{ADC}};
 
-        \draw[panah, obeGray] (2.9, 1.85) -- (2.9, 0.1);
-        \node[font=\scriptsize, text=obeGray, align=left, anchor=west]
-            at (3.02, 1.0) {stack tumbuh ke\\alamat rendah};
+        \draw[panah, obeMaroon, line width=1pt]
+            (rlo.south) -- (rhi.north)
+            node[midway, left, font=\scriptsize, text=obeMaroon]
+            {\flag{CF}};
     \end{tikzpicture}
-    \caption{Perubahan susunan \eng{stack} pada instruksi
-    \code{PUSH AX}.}
-    \label{fig:stack-pushpop}
+    \caption{Propagasi \eng{carry} dari word rendah ke word tinggi
+    pada penjumlahan 32 bit.}
+    \label{fig:carry-32bit}
 \end{figure}
 
-Beberapa aturan pemakaian \asm{PUSH} dan \asm{POP} adalah sebagai
-berikut.
+Contoh penjumlahan 32 bit:
 
-\begin{itemize}
-    \item Keduanya bekerja pada satuan word; pada 8086 tidak tersedia
-          bentuk \lstasm|PUSH AL|.
-    \item Operand berupa nilai segera tidak diizinkan.
-    \item \reg{CS} boleh di-\asm{PUSH}, tetapi tidak boleh menjadi
-          tujuan \asm{POP}.
-    \item Setiap \asm{PUSH} harus berpasangan dengan \asm{POP} yang
-          seimbang. Bila jumlahnya tidak seimbang, \reg{SP} tidak
-          kembali ke posisi semula dan program dapat berhenti secara
-          tidak terduga saat \asm{RET} dijalankan.
-\end{itemize}
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, rendahA
+ADD AX, rendahB     ; hasil rendah, CF mungkin 1
+MOV hasilRendah, AX
+MOV AX, tinggiA
+ADC AX, tinggiB     ; carry dari langkah pertama ikut dijumlahkan
+MOV hasilTinggi, AX
+\end{lstlisting}
 
-\begin{infobox}
-Pola \asm{PUSH} di awal dan \asm{POP} di akhir prosedur dibahas pada
-Bab~\ref{chap:prosedur}, sedangkan \asm{PUSHF} dan \asm{POPF} untuk
-menyelamatkan seluruh \eng{flag} dibahas pada Bab~\ref{chap:kontrol}.
-\end{infobox}
-
-\subsection{Instruksi \asm{LDS} dan \asm{LES}}
-
-Untuk mengakses data di luar segmen data, prosesor memerlukan
-\eng{pointer} jauh yang terdiri atas offset dan nomor segmen,
-masing-masing 16 bit. Instruksi \asm{LDS} dan \asm{LES} memuat
-keduanya sekaligus dari memori berukuran 32 bit, sehingga satu
-instruksi sudah cukup untuk menyiapkan penunjuk dan register
-segmennya. Pemakaian lanjutan instruksi ini termasuk materi pada
-Bab~\ref{chap:segmentasi}.
-
-Tabel~\ref{tab:transfer-data} merangkum seluruh instruksi transfer
-data yang dibahas pada bagian ini.
-
-\begin{table}[H]
-    \centering
-    \caption{Ringkasan instruksi transfer data 8086.}
-    \label{tab:transfer-data}
-    \small
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabular}{@{}p{1.7cm}p{3.8cm}p{4.4cm}p{3.6cm}@{}}
-        \toprule
-        \textbf{Instruksi} & \textbf{Bentuk umum} &
-        \textbf{Kegunaan} & \textbf{Contoh} \\
-        \midrule
-        \asm{MOV} & \lstasm|MOV tujuan, sumber| &
-        Menyalin data; sumber tidak berubah &
-        \lstasm|MOV AX, BX| \\
-        \addlinespace
-        \asm{XCHG} & \lstasm|XCHG op1, op2| &
-        Menukar isi dua operand &
-        \lstasm|XCHG AX, BX| \\
-        \addlinespace
-        \asm{LEA} & \lstasm|LEA reg16, mem| &
-        Memuat alamat efektif, bukan isi memori &
-        \lstasm|LEA SI, pesan| \\
-        \addlinespace
-        \asm{LDS} & \lstasm|LDS reg16, mem32| &
-        Memuat offset ke register dan segmen ke \reg{DS} &
-        \lstasm|LDS SI, ptrJauh| \\
-        \addlinespace
-        \asm{LES} & \lstasm|LES reg16, mem32| &
-        Memuat offset ke register dan segmen ke \reg{ES} &
-        \lstasm|LES DI, ptrJauh| \\
-        \addlinespace
-        \asm{PUSH} & \lstasm|PUSH sumber| &
-        Menaruh satu word ke puncak \eng{stack} &
-        \lstasm|PUSH AX| \\
-        \addlinespace
-        \asm{POP} & \lstasm|POP tujuan| &
-        Mengambil satu word dari puncak \eng{stack} &
-        \lstasm|POP BX| \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+Bila tahap kedua memakai \asm{ADD}, nilai \flag{CF} dari tahap
+pertama hilang dan hasilnya berkurang satu.
 
 \begin{peringatanbox}
-Kesalahan yang sering terjadi adalah mencoba menambal penolakan
-\lstasm|MOV nilai2, nilai1| dengan \lstasm|WORD PTR|. Penambalan itu
-tidak menyelesaikan masalah, karena penyebabnya bukan ukuran operand
-melainkan jenis operandnya. Perbaikan yang benar adalah menyisipkan
-register perantara.
+\vspace{1.1em}
+\asm{INC} dan \asm{DEC} tidak mengubah \flag{CF}. Karena itu,
+keduanya tidak boleh dipakai untuk meneruskan \eng{carry} pada
+aritmatika bertingkat. Gunakan \asm{ADD} atau \asm{ADC} bila
+\flag{CF} perlu diperbarui.
 \end{peringatanbox}

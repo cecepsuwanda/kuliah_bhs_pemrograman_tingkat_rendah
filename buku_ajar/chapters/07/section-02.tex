@@ -1,267 +1,184 @@
-\section{Byte ModR/M, Displacement, dan Immediate}
-\label{sec:modrm}
+\section{Struktur Program Assembly}
+\label{sec:struktur-program}
 
-Kehadiran byte ModR/M membuat satu opcode dapat melayani banyak
-kombinasi operand tanpa opcode baru untuk setiap kombinasi. Bagian ini
-membedah byte tersebut, lalu membahas dua field pelengkapnya serta
-pengaruhnya terhadap ukuran dan kecepatan program.
+Program assembly 8086 untuk DOS memiliki kerangka baku. Kerangka ini
+memisahkan kode, data, dan \eng{stack} agar assembler dan linker
+dapat menetapkan segmen dengan benar. Bagian ini diringkas dari
+\cite{sto2001}, BAB V--VI, hlm.~21--26, dan \cite{gunawan2019},
+Bagian 4.4, hlm.~32--34.
 
-\subsection{Struktur Byte ModR/M}
+\subsection{Kerangka Program}
 
-Byte ModR/M berukuran 8 bit dan terbagi menjadi tiga field seperti
-tampak pada Gambar~\ref{fig:modrm-byte}.
+Kerangka program \file{.EXE} yang dipakai pada buku ini ditunjukkan
+pada Kode~\ref{lst:kerangka-program}.
 
-\begin{itemize}
-    \item \textbf{\code{mod}} (2 bit) menentukan cara operand diambil:
-          dari register atau memori, dan bila dari memori, berapa
-          panjang \eng{displacement} yang menyertainya.
+\begin{lstlisting}[
+    language=MASM,
+    caption={Kerangka baku program assembly 8086 untuk DOS.},
+    label={lst:kerangka-program}
+]
+.MODEL SMALL        ; tentukan model memori
+.STACK 100h         ; sediakan ruang stack
 
-    \item \textbf{\code{reg/opcode}} (3 bit) umumnya menyatakan nomor
-          register operand kedua. Pada instruksi tertentu field ini
-          memperluas \eng{opcode} menjadi sub-opcode.
+.DATA               ; ------- segmen data -------
+    ; deklarasi variabel dan konstanta
 
-    \item \textbf{\code{r/m}} (3 bit) menyatakan register atau mode
-          pengalamatan memori operand pertama, bergantung pada
-          \code{mod}.
-\end{itemize}
+.CODE               ; ------- segmen kode -------
+START:              ; label titik masuk
+    MOV AX, @DATA   ; inisialisasi DS
+    MOV DS, AX
 
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        font=\small,
-        bit/.style={
-            draw=obeBlue,
-            line width=0.8pt,
-            minimum height=0.9cm,
-            align=center,
-            inner sep=2pt
-        },
-        nomor/.style={font=\scriptsize, text=obeGray}
-    ]
-        \node[bit, fill=obeAmberLight, minimum width=1.5cm] (b76)
-            at (0,0) {\textbf{7}\quad\textbf{6}};
-        \node[bit, fill=obeBlueLight, minimum width=2.6cm] (b53)
-            at (2.2,0) {\textbf{5}\quad\textbf{4}\quad\textbf{3}};
-        \node[bit, fill=obeTealLight, minimum width=2.6cm] (b20)
-            at (5.0,0) {\textbf{2}\quad\textbf{1}\quad\textbf{0}};
+    ; instruksi program
 
-        \node[below=0.05cm of b76, font=\bfseries] {\code{mod}};
-        \node[below=0.05cm of b53, font=\bfseries] {\code{reg/opcode}};
-        \node[below=0.05cm of b20, font=\bfseries] {\code{r/m}};
+    MOV AH, 4Ch     ; keluar dari program
+    MOV AL, 00h
+    INT 21h
 
-        \node[below=0.75cm of b76, font=\scriptsize, align=center]
-            {2 bit\\{\itshape cara pengambilan}};
-        \node[below=0.75cm of b53, font=\scriptsize, align=center]
-            {3 bit\\{\itshape register kedua}};
-        \node[below=0.75cm of b20, font=\scriptsize, align=center]
-            {3 bit\\{\itshape register / cara alamat}};
+END START           ; akhiri dan tunjuk titik masuk
+\end{lstlisting}
 
-        \node[nomor] at (3.6,1.05)
-            {byte ModR/M (8 bit)};
-        \node[font=\scriptsize, text=obeGray] at (-1.4,0)
-            {bit 7};
-        \node[font=\scriptsize, text=obeGray] at (6.9,0)
-            {bit 0};
-    \end{tikzpicture}
-    \caption{Pembagian 8 bit pada byte ModR/M menjadi field
-    \code{mod}, \code{reg/opcode}, dan \code{r/m}.}
-    \label{fig:modrm-byte}
-\end{figure}
-
-Contohnya byte ModR/M \hex{D8} pada \lstasm|MOV AX, BX| ditulis dalam
-biner sebagai \bin{11 011 000}. Jadi \code{mod} = \bin{11},
-\code{reg} = \bin{011}, dan \code{r/m} = \bin{000}. Nilai
-\code{mod} = \bin{11} berarti kedua operand berada di register.
-
-\subsection{Arti Nilai Mod}
-
-Field \code{mod} yang hanya berukuran 2 bit memiliki empat
-kemungkinan nilai. Artinya dirangkum pada Tabel~\ref{tab:modrm-mod}.
-
-\begin{table}[H]
-    \centering
-    \caption{Arti nilai field \code{mod} pada byte ModR/M.}
-    \label{tab:modrm-mod}
-    \small
-    \begin{tabular}{@{}cccp{6.4cm}@{}}
-        \toprule
-        \textbf{mod} & \textbf{Biner} & \textbf{Displacement} &
-        \textbf{Arti} \\
-        \midrule
-        \dec{0} & \bin{00} & Tidak ada &
-        Operand memori dengan alamat langsung dari \code{r/m} \\
-        \addlinespace
-        \dec{1} & \bin{01} & 1 byte (disp8) &
-        Operand memori; alamat ditambah \eng{displacement} 8 bit \\
-        \addlinespace
-        \dec{2} & \bin{10} & 2 byte (disp16) &
-        Operand memori; alamat ditambah \eng{displacement} 16 bit \\
-        \addlinespace
-        \dec{3} & \bin{11} & Tidak ada &
-        Operand berupa register; \code{r/m} menyatakan nomor
-        register \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-Nilai \code{mod} menentukan panjang tambahan instruksi. Memakai
-\code{mod} = \bin{01} lebih hemat satu byte daripada \bin{10} untuk
-alamat yang sama, asalkan pergeserannya muat dalam 8 bit.
-
-\subsection{Arti Nilai r/m}
-
-Field \code{r/m} berperan ganda. Bila \code{mod} = \bin{11}, field
-ini menyatakan nomor register. Bila \code{mod} bukan \bin{11}, field
-ini menyatakan cara menghitung alamat efektif di memori. Kedua arti
-tersebut ditampilkan pada Tabel~\ref{tab:modrm-rm}.
-
-\begin{table}[H]
-    \centering
-    \caption{Arti nilai field \code{r/m} pada mode memori dan mode
-    register.}
-    \label{tab:modrm-rm}
-    \footnotesize
-    \begin{tabular}{@{}ccp{3.2cm}p{3.3cm}cc@{}}
-        \toprule
-        \textbf{r/m} & \textbf{Biner} &
-        \textbf{Alamat} (\code{mod}$=$\bin{00}) &
-        \textbf{Alamat} (\code{mod}$=$\bin{01}/\bin{10}) &
-        \textbf{Reg 16} & \textbf{Reg 8} \\
-        \midrule
-        \dec{0} & \bin{000} & \lstasm|[BX+SI]| & \lstasm|[BX+SI]| $+$
-        disp & \reg{AX} & \reg{AL} \\
-        \addlinespace
-        \dec{1} & \bin{001} & \lstasm|[BX+DI]| & \lstasm|[BX+DI]| $+$
-        disp & \reg{CX} & \reg{CL} \\
-        \addlinespace
-        \dec{2} & \bin{010} & \lstasm|[BP+SI]| & \lstasm|[BP+SI]| $+$
-        disp & \reg{DX} & \reg{DL} \\
-        \addlinespace
-        \dec{3} & \bin{011} & \lstasm|[BP+DI]| & \lstasm|[BP+DI]| $+$
-        disp & \reg{BX} & \reg{BL} \\
-        \addlinespace
-        \dec{4} & \bin{100} & \lstasm|[SI]| & \lstasm|[SI]| $+$ disp &
-        \reg{SP} & \reg{AH} \\
-        \addlinespace
-        \dec{5} & \bin{101} & alamat langsung 16 bit &
-        \lstasm|[DI]| $+$ disp & \reg{BP} & \reg{CH} \\
-        \addlinespace
-        \dec{6} & \bin{110} & \lstasm|[BP]| & \lstasm|[BP]| $+$ disp &
-        \reg{SI} & \reg{DH} \\
-        \addlinespace
-        \dec{7} & \bin{111} & \lstasm|[BX]| & \lstasm|[BX]| $+$ disp &
-        \reg{DI} & \reg{BH} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{peringatanbox}
-Dua pengecualian penting sering menjebak pembaca pemula.
-Pertama, bila \code{mod} = \bin{00} dan \code{r/m} = \bin{101},
-alamat efektifnya bukan \lstasm|[DI]| melainkan alamat langsung
-16 bit. Kedua, bila \code{mod} $\neq$ \bin{11} dan
-\code{r/m} = \bin{110}, alamat efektifnya adalah \lstasm|[BP]|.
-Kedua aturan ini di luar pola umum dan harus dihafal
-\cite{evans2020}.
-\end{peringatanbox}
-
-Nilai \code{mod} = \bin{01} atau \bin{10} memakai tabel alamat yang
-sama, hanya panjang \eng{displacement}-nya berbeda. Contohnya
-\lstasm|[SI+4]| pada \lstasm|ADD AX, [SI+4]| memakai
-\code{mod} = \bin{01} dan \code{r/m} = \bin{100}, sehingga
-ModR/M-nya \hex{44}.
-
-Perhatikan pula urutan nomor register 8086: \reg{AX}, \reg{CX},
-\reg{DX}, \reg{BX}, \reg{SP}, \reg{BP}, \reg{SI}, \reg{DI}. Urutan
-ini mengikuti \eng{encoding} asli Intel dan berlaku juga pada
-\asm{PUSH} serta \asm{POP} \cite{intel1979}.
-
-\subsection{Peran Displacement dan Immediate}
-
-Dua field terakhir pada format instruksi berbeda peran meskipun
-keduanya berupa bilangan. \term{Displacement} adalah penambah pada
-alamat, sedangkan \term{immediate} adalah data yang dioperasikan.
+Setiap bagian kerangka tersebut memiliki peran sebagai berikut.
 
 \begin{description}
-    \item[Displacement] Muncul hanya bila operand berupa memori dan
-          \code{mod} bernilai \bin{01} atau \bin{10}. Fungsinya
-          menggeser alamat efektif dari nilai dasar pada \code{r/m}.
-          Pada \lstasm|ADD AX, [SI+4]|, nilai \hex{4} adalah
-          \eng{displacement}, panjangnya 8 atau 16 bit sesuai
-          \code{mod}.
+    \item[\dir{.MODEL}] Menetapkan model memori program. Model
+          \code{SMALL} memakai satu segmen kode dan satu segmen data,
+          masing-masing maksimum 64 KB.
 
-    \item[Immediate] Muncul bila operand berupa konstanta, misalnya
-          \lstasm|MOV AX, 1234h| atau \lstasm|ADD BX, 10|. Panjangnya
-          8 atau 16 bit sesuai ukuran operand, dan nilainya selalu
-          \eng{little-endian}.
+    \item[\dir{.STACK}] Menyediakan ruang \eng{stack}. Nilai
+          \hex{100} berarti 256 byte.
+
+    \item[\dir{.DATA}] Awal segmen data. Variabel dan konstanta
+          dideklarasikan di bagian ini.
+
+    \item[\dir{.CODE}] Awal segmen kode. Seluruh instruksi yang
+          dieksekusi berada di bagian ini.
+
+    \item[Label] Nama yang menandai suatu lokasi di dalam program.
+          Label titik masuk harus sama dengan nama pada direktif
+          \dir{END}.
+
+    \item[\dir{END}] Menutup berkas sumber dan menentukan titik awal
+          eksekusi.
 \end{description}
 
-Kedua field dapat hadir bersamaan. Instruksi
-\lstasm|MOV WORD PTR [BX+SI+1234h], 5678h| pada
-Gambar~\ref{fig:format-instruksi} memuat keduanya sekaligus, sehingga
-panjang totalnya mencapai enam byte.
+\subsection{Model Memori}
 
-\begin{infobox}
-Urutan field bersifat tetap: \eng{displacement} selalu mendahului
-\eng{immediate}. Batas keduanya harus dihitung dari panjang yang
-ditentukan field \code{mod} dan ukuran operand pada \eng{opcode}.
-Itulah sebabnya \eng{disassembly} otomatis lebih andal daripada
-pembacaan manual.
-\end{infobox}
-
-\subsection{Pengaruh Format terhadap Ukuran dan Kecepatan}
-
-\textbf{Ukuran kode.} Semakin banyak field yang hadir, semakin
-panjang instruksi. Memakai register sebagai operand menghilangkan
-\eng{displacement} sama sekali, sehingga instruksi dapat menjadi dua
-byte lebih pendek daripada bentuk memori dengan \eng{disp16}.
-
-\textbf{Jumlah byte yang diambil.} Prosesor 8086 mengambil instruksi
-melalui antrean \eng{prefetch} berukuran 6 byte \cite{stallings2016}.
-Instruksi yang panjang membutuhkan lebih banyak pengambilan, dan pada
-komputer 8088 yang jalur datanya 8 bit, setiap byte menempati satu
-siklus bus tersendiri. Karena itu instruksi tiga byte umumnya selesai
-lebih cepat daripada instruksi enam byte, terutama bila byte yang
-dibutuhkan belum berada di dalam antrean. Rangkumannya diberikan pada
-Tabel~\ref{tab:ukuran-kecepatan}.
+Direktif \dir{.MODEL} menentukan susunan segmen program. Pilihan model
+yang umum ditunjukkan pada Tabel~\ref{tab:model-memori}.
 
 \begin{table}[H]
     \centering
-    \caption{Pengaruh bentuk operand terhadap panjang instruksi dan
-    jumlah pengambilan byte.}
-    \label{tab:ukuran-kecepatan}
+    \caption{Model memori pada direktif \dir{.MODEL}.}
+    \label{tab:model-memori}
     \small
-    \begin{tabular}{@{}p{4.0cm}cp{6.6cm}@{}}
+    \begin{tabular}{@{}lp{6.4cm}p{4.4cm}@{}}
         \toprule
-        \textbf{Bentuk operand} & \textbf{Panjang} &
-        \textbf{Keterangan} \\
+        \textbf{Model} & \textbf{Keterangan} &
+        \textbf{Penggunaan} \\
         \midrule
-        Register ke register & 2 byte &
-        Paling ringkas; tanpa \eng{displacement} dan tanpa
-        \eng{immediate} \\
+        \code{TINY} & Kode, data, dan \eng{stack} dalam satu segmen &
+        Program \file{.COM} \\
         \addlinespace
-        Immediate 8 bit & 2--3 byte &
-        Nilai kecil; satu byte \eng{immediate} \\
+        \code{SMALL} & Satu segmen kode dan satu segmen data &
+        Program pembelajaran dan program \file{.EXE} kecil \\
         \addlinespace
-        Immediate 16 bit & 3--4 byte &
-        Nilai besar; dua byte \eng{immediate} \\
+        \code{MEDIUM} & Kode lebih dari 64 KB, data kurang dari 64 KB &
+        Program dengan kode besar \\
         \addlinespace
-        Memori \lstasm|[SI]| & 2--3 byte &
-        \code{mod} = \bin{00}; tanpa \eng{displacement} \\
+        \code{COMPACT} & Data lebih dari 64 KB, kode kurang dari 64 KB &
+        Program dengan data besar \\
         \addlinespace
-        Memori \lstasm|[SI+4]| & 3 byte &
-        \code{mod} = \bin{01}; \eng{displacement} 8 bit \\
+        \code{LARGE} & Kode dan data lebih dari 64 KB &
+        Program besar \\
         \addlinespace
-        Memori \lstasm|[BX+SI+1234h]| & 4 byte &
-        \code{mod} = \bin{10}; \eng{displacement} 16 bit \\
+        \code{HUGE} & Kode, data, dan \eng{array} lebih dari 64 KB &
+        Program sangat besar \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\begin{infobox}
-Optimasi tingkat instruksi bukan berarti selalu memilih bentuk
-terpendek. Yang lebih penting adalah memahami hubungan antara cara
-penulisan di kode sumber dan bentuk mesin yang dihasilkan. Hubungan
-inilah yang dibaca kembali dengan \eng{disassembler}
-pada Bab~\ref{chap:disassembly}.
-\end{infobox}
+Model \code{SMALL} dipakai pada sebagian besar contoh karena cukup
+untuk program pembelajaran dan memudahkan inisialisasi segmen data.
+Model \code{TINY} dipakai untuk program \file{.COM}.
+
+\subsection{Label dan Komentar}
+
+Label adalah nama yang menandai lokasi instruksi atau data. Aturan
+penulisannya adalah sebagai berikut.
+
+\begin{itemize}
+    \item Nama label boleh dimulai dengan huruf, \code{@}, \code{\_},
+          atau \code{?}.
+    \item Nama label tidak boleh mengandung spasi dan tidak boleh
+          diawali angka.
+    \item Panjang nama label maksimal 31 karakter.
+    \item Label instruksi diakhiri tanda titik dua, misalnya
+          \code{START:}.
+\end{itemize}
+
+Komentar ditulis setelah tanda titik koma (\code{;}). Semua teks
+setelah tanda itu diabaikan assembler. Komentar dipakai untuk
+menjelaskan maksud instruksi, bukan mengulang bunyi instruksi.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AH, 09h     ; siapkan fungsi cetak string
+LEA DX, pesan   ; DX = alamat string
+INT 21h         ; panggil layanan DOS
+\end{lstlisting}
+
+\subsection{Program COM dan ORG 100h}
+
+Program \file{.COM} memakai model \code{TINY} dan direktif
+\dir{ORG 100h}. Direktif ini memberi tahu assembler bahwa program
+akan dimuat mulai offset \hex{100}. Ruang 256 byte sebelum program
+dipakai DOS untuk \eng{Program Segment Prefix}.
+
+\begin{lstlisting}[
+    language=MASM,
+    caption={Kerangka program \file{.COM} dengan \dir{ORG 100h}.},
+    label={lst:kerangka-com}
+]
+.MODEL TINY
+.CODE
+ORG 100h
+
+START:
+    ; instruksi program
+
+    INT 20h         ; akhiri program COM
+
+END START
+\end{lstlisting}
+
+Pada program \file{.COM}, DOS sudah menetapkan register segmen ke
+segmen program. Karena itu, inisialisasi \reg{DS} seperti pada
+program \file{.EXE} tidak diperlukan.
+
+\subsection{Inisialisasi Register Segmen Data}
+
+Program \file{.EXE} tidak otomatis memiliki \reg{DS} yang menunjuk
+segmen data. Dua instruksi berikut perlu ditulis di awal program.
+
+\begin{lstlisting}[language=MASM, numbers=none]
+MOV AX, @DATA       ; alamat segmen data
+MOV DS, AX          ; pasang ke DS
+\end{lstlisting}
+
+Simbol \code{@DATA} dihasilkan oleh direktif \dir{.MODEL}. Nilainya
+adalah nomor segmen tempat \dir{.DATA} berada. Tanpa inisialisasi
+ini, instruksi yang mengakses variabel akan membaca alamat yang
+salah.
+
+\begin{peringatanbox}
+\vspace{1.1em}
+Kesalahan yang sering terjadi pada tahap awal:
+\begin{enumerate}
+    \item lupa menulis \dir{END} atau menulis nama label yang tidak
+          sama dengan label titik masuk;
+    \item menaruh instruksi di dalam \dir{.DATA} atau data di dalam
+          \dir{.CODE};
+    \item lupa menginisialisasi \reg{DS} pada program \file{.EXE};
+    \item memakai \dir{ORG 100h} pada program \file{.EXE} sehingga
+          alamat awal program kacau.
+\end{enumerate}
+\end{peringatanbox}

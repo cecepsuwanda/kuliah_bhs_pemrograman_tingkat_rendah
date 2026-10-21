@@ -1,278 +1,113 @@
-\section{Penerjemahan Pola Bahasa Tingkat Tinggi ke Assembly}
-\label{sec:pola-hll}
+\section{Segmen Default dan Penerapan}
+\label{sec:segmen-default}
 
-Bahasa tingkat tinggi menyediakan \code{if}, \code{while}, dan
-\code{for}; prosesor 8086 tidak mengenal satupun kata kunci tersebut.
-Semua struktur kontrol dibentuk dari tiga bahan dasar: pembanding
-yang menyiapkan \eng{flag} (\asm{CMP}/\asm{TEST}), lompatan bersyarat
-yang memeriksanya (\asm{Jcc}), dan lompatan tak bersyarat untuk
-melompati blok yang tidak dipilih (\asm{JMP}).
+Setiap operand memori dibaca melalui salah satu register segmen.
+Bila program tidak menyebutkan segmen, prosesor memakai segmen
+\eng{default} yang bergantung pada register penunjuknya.
 
-\subsection{Pola if}
+\subsection{Segmen Default}
 
-Bentuk paling sederhana adalah \code{if} tanpa cabang alternatif.
-
-\begin{pseudocode}[caption={Pseudocode pola \code{if}.}, label={lst:pseudo-if}]
-jika nilai > 0 maka
-    cetak "positif"
-akhir jika
-\end{pseudocode}
-
-\begin{program}[caption={Penerjemahan pola \code{if} ke assembly.}, label={lst:asm-if}]
-    CMP nilai, 0        ; siapkan flag: nilai - 0
-    JLE LEWATI          ; bila nilai <= 0, lompati blok
-    MOV AH, 09h         ; cetak string "positif"
-    LEA DX, pesan_pos
-    INT 21h
-LEWATI:                 ; lanjutkan program
-\end{program}
-
-Kuncinya terletak pada pembalikan syarat: bahasa tingkat tinggi
-menuliskan ``kerjakan blok bila syarat benar'', sedangkan assembly
-menuliskan ``lompati blok bila syarat tidak benar''.
-
-\subsection{Pola if--else}
-
-Bila terdapat cabang alternatif, diperlukan dua lompatan: satu untuk
-memilih cabang, satu untuk melompati cabang lainnya. Alur tersebut
-digambarkan pada Gambar~\ref{fig:alur-if-else}.
-
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        font=\small,
-        node distance=0.72cm,
-        blok/.style={
-            draw=obeBlue, line width=0.7pt, fill=obeBlueLight,
-            rounded corners=2pt, minimum width=3.6cm,
-            minimum height=0.7cm, align=center, inner sep=3pt
-        },
-        uji/.style={
-            draw=obeTeal, line width=0.7pt, fill=obeTealLight,
-            diamond, aspect=2.4, minimum width=4.0cm,
-            align=center, inner sep=1pt, font=\scriptsize
-        },
-        panah/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, obeGray}
-    ]
-        \node[uji] (kondisi) {syarat benar?};
-        \node[blok, below left=1.0cm and 1.2cm of kondisi]
-            (ya) {blok ``ya''};
-        \node[blok, below right=1.0cm and 1.2cm of kondisi]
-            (tidak) {blok ``tidak''};
-        \node[blok, fill=obeGrayLight, draw=obeGray, below=1.2cm of kondisi]
-            (gabung) {lanjutkan program};
-
-        \draw[panah] (kondisi) -- node[left, font=\scriptsize] {ya} (ya);
-        \draw[panah] (kondisi) -- node[right, font=\scriptsize] {tidak}
-            (tidak);
-        \draw[panah] (ya) |- (gabung);
-        \draw[panah] (tidak) |- (gabung);
-    \end{tikzpicture}
-    \caption{Diagram alur percabangan \code{if--else}. Setiap cabang
-    diakhiri lompatan ke titik penggabungan.}
-    \label{fig:alur-if-else}
-\end{figure}
-
-\begin{pseudocode}[caption={Pseudocode pola \code{if--else}.}, label={lst:pseudo-ifelse}]
-jika a = b maka
-    cetak "sama"
-selain itu
-    cetak "beda"
-akhir jika
-\end{pseudocode}
-
-\begin{program}[caption={Penerjemahan pola \code{if--else} ke assembly.}, label={lst:asm-ifelse}]
-    MOV AX, a
-    CMP AX, b           ; bandingkan a dengan b
-    JNE CABANG_BEDA     ; syarat tidak benar -> ke cabang lain
-    MOV AH, 09h         ; cabang "sama"
-    LEA DX, pesan_sama
-    INT 21h
-    JMP GABUNG          ; lompati cabang "beda"
-CABANG_BEDA:
-    MOV AH, 09h         ; cabang "beda"
-    LEA DX, pesan_beda
-    INT 21h
-GABUNG:
-\end{program}
-
-\asm{JMP GABUNG} wajib ada; tanpa instruksi itu, setelah mencetak
-``sama'' prosesor akan menjatuhi (\eng{fall through}) blok ``beda''
-dan mencetak keduanya.
-
-\subsection{Pola while, do--while, dan for}
-
-Ketiga bentuk perulangan hanya berbeda pada letak pengujian dan
-penambahan pencacah. Tabel~\ref{tab:pola-hll} merangkum padanannya.
+Pasangan segmen \eng{default} untuk setiap bentuk operand dirangkum
+pada Tabel~\ref{tab:segmen-default}.
 
 \begin{table}[H]
     \centering
-    \caption{Penerjemahan pola struktur kontrol bahasa tingkat tinggi
-    ke assembly. Notasi \emph{kond} berarti syarat yang menghasilkan
-    \eng{flag} melalui \asm{CMP} atau \asm{TEST}.}
-    \label{tab:pola-hll}
+    \caption{Segmen default pada mode pengalamatan 8086.}
+    \label{tab:segmen-default}
     \small
-    \begin{tabular}{@{}p{2.6cm}p{5.0cm}p{6.6cm}@{}}
+    \begin{tabular}{@{}p{5.8cm}p{2.2cm}p{6.0cm}@{}}
         \toprule
-        \textbf{Pola} & \textbf{Bentuk bahasa tingkat tinggi} &
-        \textbf{Padanan assembly} \\
+        \textbf{Bentuk operand} & \textbf{Segmen} &
+        \textbf{Keterangan} \\
         \midrule
-        \code{if} &
-        \code{if (kond) \{ A \}} &
-        \asm{CMP}/\asm{TEST}; lompati \code{A} bila syarat
-        \emph{tidak} benar \\
+        \code{[disp]}, nama variabel & \reg{DS} &
+        Data umum \\
         \addlinespace
-        \code{if--else} &
-        \code{if (kond) \{ A \} else \{ B \}} &
-        uji; lompat ke \code{B} bila salah; \code{A}; \asm{JMP} ke
-        gabungan; \code{B} \\
+        \code{[BX]}, \code{[SI]}, \code{[DI]}, \code{[BX+SI]},
+        \code{[BX+disp]} & \reg{DS} & Penunjuk data \\
         \addlinespace
-        \code{while} &
-        \code{while (kond) \{ A \}} &
-        \code{uji}: uji di awal; lompat keluar bila salah; \code{A};
-        \asm{JMP} kembali ke uji \\
+        \code{[BP]}, \code{[BP+disp]}, \code{[BP+SI]},
+        \code{[BP+DI]} & \reg{SS} & Penunjuk \eng{stack} \\
         \addlinespace
-        \code{do--while} &
-        \code{do \{ A \} while (kond);} &
-        \code{badan}: \code{A}; uji di akhir; lompat kembali bila benar
-        (dijalankan minimal sekali) \\
-        \addlinespace
-        \code{for} &
-        \code{for (i=0; i<n; i++) \{ A \}} &
-        inisialisasi \reg{CX}; \code{ulang}: \code{A}; \asm{INC}/\asm{ADD}
-        pencacah; \asm{LOOP} atau \asm{DEC}+\asm{JNZ} \\
-        \addlinespace
-        \code{switch} &
-        \code{switch (x) \{ case 0: \dots \}} &
-        indeks dikalikan ukuran entri; \asm{JMP} tak langsung melalui
-        tabel alamat \\
+        Pengambilan instruksi (\reg{IP}) & \reg{CS} &
+        Selalu segmen kode \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\code{while} menguji syarat di awal sehingga badan dapat dijalankan
-nol kali, sedangkan \code{do--while} menguji di akhir sehingga badan
-selalu dijalankan paling sedikit satu kali. Karena itu, \code{while}
-memerlukan \asm{JMP} tambahan untuk kembali ke titik pengujian,
-sedangkan \code{do--while} cukup memakai \asm{LOOP} atau \asm{JNZ}.
+Segmen \eng{default} dapat diganti dengan menuliskan nama register
+segmen di depan operand, misalnya \lstasm|MOV AX, ES:[BX]|. Penulisan
+ini mengganti register segmen, tetapi tidak mengubah nilai offset.
 
-Perulangan \code{for} dengan pencacah turun paling mudah diterjemahkan
-memakai \reg{CX} dan \asm{LOOP}, seperti pada Kode~\ref{lst:for-cx}.
+\begin{peringatanbox}
+\vspace{1.1em}
+Operand \code{[BP]} memakai \reg{SS}, bukan \reg{DS}. Instruksi
+\lstasm|MOV AX, [BP]| membaca \eng{stack}, bukan variabel pada segmen
+data. Bila yang dimaksud adalah data biasa, gunakan \reg{BX}, atau
+tuliskan \lstasm|MOV AX, DS:[BP]|.
+\end{peringatanbox}
 
-\begin{program}[caption={Penerjemahan pola \code{for} dengan pencacah
-\reg{CX}.}, label={lst:for-cx}]
-    MOV CX, 8           ; for (i = 8; i > 0; i--)
-ULANG_FOR:
-    ; badan perulangan A
-    LOOP ULANG_FOR      ; i--; ulangi selama i <> 0
-\end{program}
+\subsection{Memilih Mode untuk Array dan Record}
 
-\begin{infobox}
-Bila pencacah harus naik dari nol ke atas, \asm{LOOP} tidak dapat
-dipakai langsung karena \asm{LOOP} selalu mengurangi. Gunakan
-\asm{INC} pada pencacah terpisah lalu bandingkan dengan batas atas:
+Mode pengalamatan dipilih sesuai bentuk data.
+
+\begin{itemize}
+    \item \textbf{Variabel tunggal} cukup diakses dengan mode
+          \textit{direct memory}.
+    \item \textbf{Array satu dimensi} diakses dengan
+          \textit{indirect memory} atau \textit{direct index}. Indeks
+          dinaikkan sebesar ukuran elemen.
+    \item \textbf{Medan record} diakses dengan \textit{base
+          relative}. Basis menunjuk awal record, perpindahan menunjuk
+          medan.
+    \item \textbf{Array of record} atau matriks diakses dengan
+          \textit{based indexed}. Basis menunjuk awal tabel, indeks
+          menunjuk nomor record/baris, dan perpindahan menunjuk medan.
+\end{itemize}
+
+Sebagai contoh, array word \code{data1} berisi lima elemen. Elemen
+ke-2 dapat diakses dengan tiga cara yang setara:
 
 \begin{lstlisting}[language=MASM, numbers=none]
-    MOV SI, 0           ; i = 0
-ULANG_NAIK:
-    ; badan perulangan
-    INC SI              ; i++
-    CMP SI, 8           ; i < 8 ?
-    JB  ULANG_NAIK      ; lanjut bila masih di bawah batas
+MOV AX, data1+4         ; direct, offset berupa konstanta
+MOV SI, 4
+MOV AX, data1[SI]       ; direct index
+MOV BX, OFFSET data1
+MOV AX, [BX+SI]         ; based indexed
 \end{lstlisting}
+
+Ketiga bentuk menghasilkan nilai yang sama karena alamat efektifnya
+sama, yaitu awal \code{data1} ditambah empat byte.
+
+\begin{table}[H]
+    \centering
+    \caption{Pemilihan mode pengalamatan menurut bentuk data.}
+    \label{tab:pemilihan-mode}
+    \small
+    \begin{tabular}{@{}p{3.6cm}p{4.4cm}p{5.0cm}@{}}
+        \toprule
+        \textbf{Bentuk data} & \textbf{Mode yang tepat} &
+        \textbf{Contoh} \\
+        \midrule
+        Variabel tunggal & \textit{Direct memory} &
+        \lstasm|MOV AX, nilai| \\
+        \addlinespace
+        Array satu dimensi & \textit{Indirect} atau
+        \textit{direct index} & \lstasm|MOV AX, data1[SI]| \\
+        \addlinespace
+        Medan record & \textit{Base relative} &
+        \lstasm|MOV AX, [BX+4]| \\
+        \addlinespace
+        Array of record / matriks & \textit{Based indexed} &
+        \lstasm|MOV AX, [BX+SI+4]| \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+\vspace{1.1em}
+Bentuk penulisan \code{data1[SI]} dan \code{[BX+SI]} tidak berbeda
+bagi prosesor setelah diterjemahkan assembler. Keduanya membentuk
+alamat efektif yang sama. Yang berbeda hanya cara programmer
+menuliskannya.
 \end{infobox}
-
-\subsection{Pola switch dengan Tabel Lompatan}
-
-Struktur \code{switch} dengan banyak cabang tidak efisien bila
-diterjemahkan sebagai rangkaian \asm{CMP} dan \asm{Jcc} berantai.
-Alternatifnya adalah \term{tabel lompatan} (\eng{jump table}): tabel
-berisi alamat setiap cabang yang diindeks dengan nomor kasus.
-
-\begin{pseudocode}[caption={Pseudocode pola \code{switch}.}, label={lst:pseudo-switch}]
-pilih nomor:
-    kasus 0: cetak "nol"
-    kasus 1: cetak "satu"
-    kasus 2: cetak "dua"
-\end{pseudocode}
-
-\begin{program}[caption={Tabel lompatan untuk pola \code{switch}.}, label={lst:asm-switch}]
-.DATA
-    TABEL DW OFFSET KASUS0, OFFSET KASUS1, OFFSET KASUS2
-
-.CODE
-    MOV SI, nomor       ; SI = nomor kasus (0, 1, atau 2)
-    CMP SI, 2           ; periksa batas atas
-    JA  DI_LUAR_BATAS   ; nomor di luar jangkauan ditolak
-    SHL SI, 1           ; setiap entri berukuran 2 byte
-    JMP TABEL[SI]       ; lompat ke alamat yang tersimpan pada tabel
-
-KASUS0:
-    MOV AH, 09h
-    LEA DX, pesan_nol
-    INT 21h
-    JMP SELESAI
-
-KASUS1:
-    MOV AH, 09h
-    LEA DX, pesan_satu
-    INT 21h
-    JMP SELESAI
-
-KASUS2:
-    MOV AH, 09h
-    LEA DX, pesan_dua
-    INT 21h
-
-SELESAI:
-\end{program}
-
-Dua hal penting pada Kode~\ref{lst:asm-switch}. Pertama, indeks harus
-dikalikan dengan ukuran entri: karena tabel dideklarasikan dengan
-\dir{DW}, indeks digeser satu bit ke kiri dengan \asm{SHL} (lihat
-Bab~\ref{chap:logika}). Kedua, batas atas \emph{wajib} diperiksa
-sebelum pengindeksan; tanpa \lstasm|CMP SI, 2| dan \asm{JA}, nomor
-kasus yang salah melompat ke alamat acak. Beberapa assembler menuntut
-penulisan \code{JMP WORD PTR TABEL[SI]}.
-
-\subsection{Studi Kasus}
-
-\begin{studikasusbox}
-\textbf{Kasus 1: mencari nilai maksimum.} Diberikan larik berisi
-delapan bilangan 16-bit. Elemen pertama dianggap kandidat maksimum,
-lalu dibandingkan dengan setiap elemen berikutnya dan diperbarui bila
-ada yang lebih besar. Perbandingan memakai \asm{CMP} diikuti
-\asm{JAE} (tak bertanda). Program lengkapnya disajikan pada
-Subbab~\ref{sec:contoh-bab12}; kompleksitasnya $O(n)$.
-\end{studikasusbox}
-
-\begin{studikasusbox}
-\textbf{Kasus 2: pengurutan gelembung (\eng{bubble sort}).} Larik
-diproses berulang kali; pada setiap lintasan, dua elemen bersebelahan
-dibandingkan dan ditukar bila urutannya salah, sehingga elemen
-terbesar bergerak ke posisi paling kanan. Perulangan bersarang
-diterjemahkan menjadi dua pencacah, sehingga nilai \reg{CX} lintasan
-luar disimpan sementara di \eng{stack} dengan \asm{PUSH} dan
-\asm{POP} (Bab~\ref{chap:prosedur}). Untuk $n$ elemen, algoritme ini
-melakukan sekitar $n^2/2$ pembandingan.
-\end{studikasusbox}
-
-\begin{studikasusbox}
-\textbf{Kasus 3 (pengantar): pencarian biner.} Pada larik yang
-\emph{sudah terurut}, batas bawah dan batas atas disimpan pada dua
-register penunjuk, dan titik tengah dihitung dengan
-\lstasm|MOV AX, bawah|, \lstasm|ADD AX, atas|, lalu
-\asm{SHR AX, 1} (Bab~\ref{chap:logika}). Nilai tengah
-dibandingkan dengan nilai yang dicari: bila lebih kecil, batas bawah
-dipindahkan; bila lebih besar, batas atas dipindahkan. Perulangan
-berhenti ketika nilai ditemukan atau kedua batas bertemu. Algoritme
-ini memerlukan paling banyak $\log_2 n$ pembandingan, tetapi hanya
-sah bila larik terurut \cite{irvine2011}.
-\end{studikasusbox}
-
-Seluruh pola pada subbab ini menegaskan bahwa tidak ada struktur
-kontrol baru pada tingkat mesin: yang ada hanyalah pembanding,
-lompatan bersyarat, dan lompatan tak bersyarat. Kemampuan membaca
-rangkaian tersebut merupakan keterampilan inti pada analisis
-\eng{disassembly} dan penelusuran program dengan \eng{debugger}
-\cite{evans2020}.

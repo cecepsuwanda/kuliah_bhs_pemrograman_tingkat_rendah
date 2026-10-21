@@ -2,109 +2,81 @@
 \label{sec:latihan-bab8}
 
 \begin{enumerate}
-    \item \textbf{Konseptual.} Jelaskan mengapa mode pengalamatan
-          diperlukan, padahal satu instruksi \asm{MOV} sudah cukup
-          untuk memindahkan data. Kaitkan dengan keterbatasan byte
-          \eng{ModR/M} pada Bab~\ref{chap:format-instruksi}.
+    \item \textbf{MOV.} Jelaskan aturan operand pada instruksi
+          \asm{MOV}. Sebutkan tiga bentuk pemindahan yang
+          diperbolehkan dan dua bentuk yang tidak diperbolehkan.
 
-    \item \textbf{Klasifikasi mode.} Tentukan mode pengalamatan
-          operand sumber pada setiap penulisan berikut, lalu sebutkan
-          segmen \eng{default} yang dipakai.
+    \item \textbf{Perbaikan program.} Instruksi
+          \lstasm|MOV [BX], [SI]| tidak dapat dirakit. Tuliskan
+          penggantinya dengan register perantara, lalu jelaskan
+          mengapa cara itu diperlukan.
+
+    \item \textbf{LEA.} Jelaskan perbedaan
+          \lstasm|LEA SI, nilai| dan \lstasm|MOV SI, nilai|.
+          Kapan \asm{LEA} lebih tepat dipakai?
+
+    \item \textbf{Far pointer.} Diketahui data
+          \code{ptr DD 12345678h}.
           \begin{enumerate}
-              \item \lstasm|MOV AX, 1234h|
-              \item \lstasm|MOV AX, CX|
-              \item \lstasm|MOV AX, nilai| dengan \code{nilai}
-                    adalah variabel \dir{DW}
-              \item \lstasm|MOV AX, [BX]|
-              \item \lstasm|MOV AX, [BP+2]|
-              \item \lstasm|MOV AX, data1[SI]|
-              \item \lstasm|MOV AX, [BX+DI+6]|
-              \item \lstasm|MOV AX, ES:[BX]|
+              \item Tuliskan empat byte yang tersimpan di memori.
+              \item Tentukan isi \reg{SI} dan \reg{DS} setelah
+                    \lstasm|LDS SI, ptr|.
+              \item Tentukan isi \reg{DI} dan \reg{ES} setelah
+                    \lstasm|LES DI, ptr|.
+              \item Jelaskan mengapa \asm{LDS} harus dipakai dengan
+                    hati-hati.
           \end{enumerate}
 
-    \item \textbf{Perhitungan alamat.} Diketahui \reg{DS} =
-          \hex{1234}, \reg{SS} = \hex{2000}, \reg{BX} = \hex{0050},
-          \reg{BP} = \hex{0010}, \reg{SI} = \hex{0008}, dan
-          \reg{DI} = \hex{0002}. Hitung alamat efektif dan alamat
-          fisik untuk setiap instruksi berikut.
+    \item \textbf{XCHG dan CMP.} Diketahui \reg{AX} = \hex{1234}
+          dan \reg{BX} = \hex{5678}.
           \begin{enumerate}
-              \item \lstasm|MOV AX, [SI+4]|
-              \item \lstasm|MOV AX, [BP+DI]|
-              \item \lstasm|MOV AX, [BX+SI+2]|
-              \item \lstasm|MOV AX, [200h]|
+              \item Tentukan isi \reg{AX} dan \reg{BX} setelah
+                    \lstasm|XCHG AX, BX|.
+              \item Tentukan \eng{flag} yang berubah setelah
+                    \lstasm|CMP AX, BX|.
+              \item Jelaskan apakah \asm{CMP} mengubah isi kedua
+                    operand.
           \end{enumerate}
 
-    \item \textbf{Segmen default.} Jelaskan apa yang terjadi pada
-          setiap pasangan instruksi berikut. Apakah keduanya membaca
-          lokasi yang sama? Tuliskan bentuk \eng{override} yang
-          membuat keduanya menunjuk lokasi yang sama.
+    \item \textbf{XLAT.} Diketahui tabel
+          \code{DB '0','1','2','3','4','5','6','7','8','9'},
+          \reg{BX} menunjuk awal tabel, dan \reg{AL} = 7.
           \begin{enumerate}
-              \item \lstasm|MOV AX, [BX]| dan \lstasm|MOV AX, [BP]|
-                    dengan \reg{BX} = \reg{BP} = \hex{0100}
-              \item \lstasm|MOV AX, [SI+4]| dan
-                    \lstasm|MOV AX, DS:[BP+4]|
+              \item Tentukan isi \reg{AL} setelah \asm{XLATB}.
+              \item Jelaskan peran \reg{BX} dan \reg{AL} pada
+                    instruksi tersebut.
+              \item Sebutkan satu kegunaan \asm{XLAT} dalam program.
           \end{enumerate}
 
-    \item \textbf{Legalitas operand.} Manakah penulisan berikut yang
-          ditolak assembler? Jelaskan alasan setiap penolakan dengan
-          merujuk pada daftar \eng{encoding} 8086.
+    \item \textbf{CBW dan CWD.} Tentukan hasil setiap instruksi.
           \begin{enumerate}
-              \item \lstasm|MOV AX, [AX]|
-              \item \lstasm|MOV AX, [BX+BP]|
-              \item \lstasm|MOV AX, [SI+DI]|
-              \item \lstasm|MOV AX, [BX+SI+DI]|
-              \item \lstasm|MOV AX, [BP+DI]|
-              \item \lstasm|MOV AX, [SP+2]|
+              \item \reg{AL} = \hex{7F}, lalu \asm{CBW}
+              \item \reg{AL} = \hex{80}, lalu \asm{CBW}
+              \item \reg{AX} = \hex{7FFF}, lalu \asm{CWD}
+              \item \reg{AX} = \hex{8000}, lalu \asm{CWD}
           \end{enumerate}
+          Jelaskan mengapa hasilnya berbeda untuk bilangan positif
+          dan negatif.
 
-    \item \textbf{Efisiensi.} Urutkan empat instruksi berikut dari
-          yang paling ringkas ke yang paling panjang. Sertakan
-          perkiraan jumlah byte dan perkiraan jumlah siklusnya, lalu
-          jelaskan mengapa urutannya demikian.
+    \item \textbf{Penulisan program.} Tulislah program yang:
           \begin{enumerate}
-              \item \lstasm|MOV AX, BX|
-              \item \lstasm|MOV AX, [BX]|
-              \item \lstasm|MOV AX, [BX+SI+2]|
-              \item \lstasm|MOV AX, [1234h]|
-          \end{enumerate}
-
-    \item \textbf{Penulisan program.} Tulislah program lengkap yang
-          menjumlahkan delapan elemen array \dir{DB} bernama
-          \code{data1} dengan mode indexed, lalu menyimpan hasilnya
-          pada variabel \code{total}. Jelaskan mengapa langkah
-          penambahan pada register indeks berbeda dengan array
-          \dir{DW}.
-
-    \item \textbf{Analisis program.} Seorang mahasiswa menulis
-          prosedur berikut untuk membaca parameter kedua. Program
-          dapat dirakit, tetapi nilai yang dibaca salah.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-    PUSH nilai1
-    PUSH nilai2
-    MOV BP, SP
-    MOV AX, [BX+2]      ; membaca parameter kedua?
-\end{lstlisting}
-
-          \begin{enumerate}
-              \item Jelaskan penyebab kesalahan tersebut.
-              \item Tuliskan perbaikan yang tepat dengan mengubah
-                    hanya satu instruksi.
-              \item Sebutkan alamat efektif yang seharusnya dipakai
-                    bila \reg{SS} = \hex{3000} dan \reg{SP} =
-                    \hex{0100}.
+              \item mendefinisikan dua variabel word;
+              \item menyalin keduanya ke register;
+              \item menukar isi kedua register dengan \asm{XCHG};
+              \item membandingkan keduanya dengan \asm{CMP};
+              \item menyimpan hasil pertukaran ke variabel.
           \end{enumerate}
 \end{enumerate}
 
 \begin{refleksibox}
+\vspace{1.1em}
 Jawab pertanyaan berikut pada jurnal praktikum Anda.
 \begin{enumerate}
-    \item Mode pengalamatan mana yang paling sulit Anda pahami?
-          Bagian mana yang masih membingungkan?
-    \item Setelah menelusuri program dengan \eng{debugger}, apakah
-          dugaan Anda tentang alamat efektif terbukti benar? Bagian
-          mana yang paling mengejutkan?
+    \item Instruksi mana yang paling sulit dipahami: \asm{LEA},
+          \asm{LDS/LES}, \asm{XLAT}, atau \asm{CBW/CWD}? Mengapa?
+    \item Setelah menelusuri program, apakah Anda dapat membedakan
+          dengan jelas antara alamat dan isi memori? Jelaskan.
     \item Konsep apa yang perlu Anda ulangi sebelum mempelajari
-          direktif assembler pada bab berikutnya?
+          interupsi BIOS/DOS pada bab berikutnya?
 \end{enumerate}
 \end{refleksibox}

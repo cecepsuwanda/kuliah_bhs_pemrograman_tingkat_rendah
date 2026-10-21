@@ -21,17 +21,18 @@ kemampuan utama berikut.
           memori, dan siklus instruksi.
 
     \item \textbf{Membaca dan menjelaskan hubungan instruksi mesin
-          dengan perangkat keras.} Mencakup format instruksi, mode
-          pengalamatan, direktif assembler, dan mekanisme interupsi.
+          dengan perangkat keras.} Mencakup struktur program,
+          instruksi transfer data, dan mekanisme interupsi.
 
     \item \textbf{Menulis program assembly.} Mencakup operasi
-          transfer data, aritmatika, logika, struktur kontrol,
-          prosedur, dan operasi masukan/keluaran.
+          aritmatika, logika dan \eng{shift}, mode pengalamatan,
+          percabangan, perulangan, prosedur, serta pengolahan array
+          dan string.
 
     \item \textbf{Melakukan penelusuran dan perbaikan program pada
           level instruksi.} Mencakup penggunaan \eng{debugger},
-          analisis memori dan stack, pembacaan hasil
-          \eng{disassembly}, serta optimasi.
+          analisis memori dan stack, serta perbaikan program yang
+          berhenti.
 \end{enumerate}
 
 Keempat kemampuan tersebut bukan daftar topik yang berdiri sendiri.
@@ -57,30 +58,26 @@ kepada capaian pembelajaran yang ditetapkan pada mata kuliah.
         \textbf{CPL} & \textbf{Bab utama} \\
         \midrule
         Menjelaskan arsitektur register dan manajemen memori &
-        \CPMK{01} & \CPL{02} & Bab~IV--VI \\
+        \CPMK{01} & \CPL{02} & Bab~III--VI \\
         \addlinespace
         Memahami hubungan instruksi mesin dengan perangkat keras &
-        \CPMK{02} & \CPL{02} & Bab~VII--IX, XIV \\
+        \CPMK{02} & \CPL{02} & Bab~VII--IX \\
         \addlinespace
         Menulis kode assembly untuk operasi aritmatika dan logika &
-        \CPMK{03} & \CPL{03} & Bab~X--XIII \\
+        \CPMK{03} & \CPL{03} & Bab~X--XV \\
         \addlinespace
         Melakukan \eng{debugging} pada level instruksi memori &
-        \CPMK{04} & \CPL{03} & Bab~XV--XVI \\
+        \CPMK{04} & \CPL{03} & Bab~XVI \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\subsection{Apa yang Tidak Dicakup Buku Ini}
+\subsection{Batasan Pembahasan}
 
-Agar batas pembahasan jelas, buku ini \emph{tidak} membahas:
-pemrograman 32-bit maupun 64-bit secara rinci, sintaks NASM, arsitektur
-prosesor selain keluarga 8086, dan pemrograman sistem operasi modern.
-Pembahasan sengaja dibatasi pada 8086 karena prosesor inilah yang
-paling bersih untuk mempelajari konsep dasar: jumlah register
-terbatas, tanpa mode terproteksi, dan seluruh perilakunya dapat
-diamati dengan emulator sederhana. Konsep yang dipelajari di sini
-berlaku langsung pada keluarga x86 modern.
+Buku ini dibatasi pada prosesor Intel 8086 dalam mode real 16-bit.
+Seluruh materi, contoh, dan latihan bersumber pada dua buku yang
+dicantumkan pada Daftar Referensi. Topik di luar cakupan RPS tidak
+dimasukkan agar urutan pembelajaran tetap terfokus.
 
 \begin{infobox}
 Bila Anda menemukan istilah yang belum dikenal, Lampiran~C memuat

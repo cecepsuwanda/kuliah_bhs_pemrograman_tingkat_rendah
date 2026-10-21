@@ -2,93 +2,60 @@
 \label{sec:latihan-bab10}
 
 \begin{enumerate}
-    \item \textbf{Konseptual.} Jelaskan tiga aturan legalitas
-          instruksi \asm{MOV}. Untuk setiap aturan, berikan satu
-          contoh instruksi yang sah dan satu contoh yang ditolak
-          assembler.
+    \item \textbf{ADD dan ADC.} Jelaskan perbedaan \asm{ADD} dan
+          \asm{ADC}. Berikan satu contoh ketika keduanya menghasilkan
+          nilai berbeda.
 
-    \item \textbf{Konseptual.} Apakah perbedaan hasil antara
-          \lstasm|LEA BX, pesan| dan \lstasm|MOV BX, pesan|?
-          Kapan instruksi \asm{LEA} lebih tepat dipakai daripada
-          \asm{MOV} dengan \lstasm|OFFSET|?
+    \item \textbf{SUB dan SBB.} Jelaskan perbedaan \asm{SUB} dan
+          \asm{SBB}. Mengapa \asm{SBB} diperlukan pada pengurangan
+          bilangan lebih dari 16 bit?
 
-    \item \textbf{Analisis \eng{flag}.} Diberikan potongan program
-          berikut.
+    \item \textbf{INC dan DEC.} Mengapa \asm{INC} dan \asm{DEC}
+          tidak boleh dipakai untuk meneruskan \eng{carry} pada
+          aritmatika bertingkat?
 
-\begin{lstlisting}[language=MASM, numbers=none]
-    MOV AL, 250
-    ADD AL, 15
-\end{lstlisting}
-
+    \item \textbf{Flag.} Tentukan \flag{CF}, \flag{OF}, \flag{ZF},
+          dan \flag{SF} untuk setiap operasi 8 bit berikut.
           \begin{enumerate}
-              \item Berapa nilai akhir \reg{AL} dalam heksadesimal?
-              \item Berapa nilai \flag{CF}, \flag{ZF}, \flag{SF}, dan
-                    \flag{OF}?
-              \item Bila kedua nilai ditafsirkan sebagai bilangan
-                    bertanda, apakah hasilnya benar? Jelaskan.
+              \item \hex{7F} + \hex{01}
+              \item \hex{80} + \hex{80}
+              \item \hex{FF} + \hex{01}
+          \end{enumerate}
+          Jelaskan mengapa \flag{CF} dan \flag{OF} dapat berbeda.
+
+    \item \textbf{Aritmatika 32 bit.} Diketahui dua bilangan 32 bit
+          \hex{0001FFFF} dan \hex{00020001}. Tuliskan langkah
+          penjumlahannya dengan \asm{ADD} dan \asm{ADC}, lalu
+          tentukan hasil akhirnya.
+
+    \item \textbf{MUL.} Jelaskan aturan operand \asm{MUL} untuk
+          operand 8 bit dan 16 bit. Tentukan hasil dan letak hasil
+          untuk:
+          \begin{enumerate}
+              \item \reg{AL} = 12, \reg{BL} = 5, \lstasm|MUL BL|
+              \item \reg{AX} = 1000, \reg{BX} = 20, \lstasm|MUL BX|
           \end{enumerate}
 
-    \item \textbf{Analisis kode.} Perhatikan potongan berikut.
-
-\begin{lstlisting}[language=MASM, numbers=none]
-    MOV AX, 1000
-    MOV BL, 4
-    DIV BL
-    MOV hasil, AX
-\end{lstlisting}
-
-          \begin{enumerate}
-              \item Kesalahan konsep apa yang terdapat pada program
-                    ini?
-              \item Nilai apa yang sebenarnya tersimpan pada variabel
-                    \code{hasil}?
-              \item Tuliskan perbaikan agar hasil bagi dan sisa
-                    tersimpan pada dua variabel yang terpisah.
-          \end{enumerate}
-
-    \item \textbf{Analisis kesalahan.} Sebuah program menjalankan
-          \lstasm|DIV BL| dengan \reg{AX} = \hex{0BB8} dan
-          \reg{BL} = \hex{03}. Program berhenti mendadak saat
-          dijalankan. Jelaskan penyebabnya, sebutkan syarat aman
-          sebelum \asm{DIV} dijalankan, dan tuliskan pemeriksaan yang
-          perlu ditambahkan.
-
-    \item \textbf{Penulisan program.} Tulislah program lengkap yang
-          menghitung $37 \times 42$ dengan \asm{MUL}, lalu mencetak
-          hasilnya sebagai bilangan desimal. Gunakan prosedur
-          konversi seperti pada Contoh~1.
+    \item \textbf{DIV.} Jelaskan aturan operand \asm{DIV} untuk
+          operand 8 bit dan 16 bit. Tentukan syarat aman agar tidak
+          terjadi \eng{divide overflow}, lalu hitung hasil dan sisa
+          dari $1000 \div 7$ dengan \lstasm|DIV BL|.
 
     \item \textbf{Penulisan program.} Tulislah program yang
-          menjumlahkan dua bilangan 32 bit berikut dengan \asm{ADD}
-          dan \asm{ADC}.
-
-          \begin{center}
-          A = \hex{0001FFFF} \quad\textbullet\quad
-          B = \hex{00020001}
-          \end{center}
-
-          Tunjukkan nilai word rendah, word tinggi, dan nilai
-          \flag{CF} pada setiap tahap.
-
-    \item \textbf{Penulisan program.} Tulislah program yang
-          menerima satu digit dari pengguna, menghitung nilai
-          faktorialnya (maksimum $7! = 5040$), lalu mencetak hasilnya
-          dalam desimal. Jelaskan mengapa hasil faktorial harus
-          ditampung pada register 16 bit, bukan 8 bit.
+          menghitung $(25 + 17) \times 4$, lalu menyimpan hasilnya
+          pada variabel word. Gunakan \asm{ADD} dan \asm{MUL}, dan
+          jelaskan letak hasil akhirnya.
 \end{enumerate}
 
 \begin{refleksibox}
+\vspace{1.1em}
 Jawab pertanyaan berikut pada jurnal praktikum Anda.
 \begin{enumerate}
-    \item Bagian mana yang paling sulit dipahami: aturan legalitas
-          \asm{MOV}, pengaruh instruksi terhadap \eng{flag}, atau
-          aturan operand implisit? Apa yang Anda lakukan untuk
-          mengatasinya?
-    \item Ketika program kalkulator Anda gagal, kesalahan apa yang
-          paling sering muncul: kesalahan sintaks, kesalahan alur,
-          atau kesalahan tafsiran bertanda? Jelaskan.
-    \item Mengapa prosesor 8086 dirancang memakai operand implisit
-          pada \asm{MUL} dan \asm{DIV}? Menurut Anda, apa kelebihan
-          dan kekurangan rancangan tersebut?
+    \item Instruksi mana yang paling sulit Anda telusuri:
+          \asm{ADC}/\asm{SBB}, \asm{MUL}, atau \asm{DIV}? Mengapa?
+    \item Setelah memeriksa \eng{flag}, apakah Anda dapat membedakan
+          luapan bertanda dan tidak bertanda? Jelaskan.
+    \item Konsep apa yang perlu Anda ulangi sebelum mempelajari
+          operasi logika dan \eng{shift} pada bab berikutnya?
 \end{enumerate}
 \end{refleksibox}

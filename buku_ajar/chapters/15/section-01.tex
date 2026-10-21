@@ -1,184 +1,118 @@
-\section{Taksonomi Kesalahan Program dan Alat Debugging}
-\label{sec:taksonomi-kesalahan}
+\section{Array Satu dan Multi Dimensi}
+\label{sec:array}
 
-Menulis program assembly berarti berhadapan langsung dengan register,
-\eng{flag}, dan alamat memori tanpa lapisan pelindung apa pun. Satu
-digit salah pada operand, satu instruksi yang tertukar, atau satu
-\asm{PUSH} yang lupa dipasangkan dengan \asm{POP} dapat membuat
-program berhenti bekerja. Karena itu kemampuan menemukan kesalahan
-menjadi keterampilan yang setara pentingnya dengan kemampuan menulis
-program itu sendiri.
-\begin{definisi}
-\term{Debugging} adalah proses sistematis untuk menemukan penyebab
-suatu kesalahan (\eng{bug}) pada program, membuktikan penyebab itu
-melalui bukti pengamatan, lalu memperbaiki dan memverifikasi hasil
-perbaikan. \eng{Debugging} bukan kegiatan menebak-nebak, melainkan
-kegiatan mengumpulkan bukti pada level instruksi.
-\end{definisi}
+Array adalah kumpulan data bertipe sama yang disimpan berurutan di
+memori. Bahasa assembly tidak menyediakan sintaks array seperti bahasa
+tingkat tinggi; array dibentuk dari deklarasi data dan diakses melalui
+alamat serta register indeks.
 
-Pada bab-bab sebelumnya telah dibahas bagaimana register bekerja
-(Bab~\ref{chap:register}), bagaimana keputusan diambil berdasarkan
-\eng{flag} (Bab~\ref{chap:kontrol}), dan bagaimana prosedur
-menggunakan \eng{stack} (Bab~\ref{chap:prosedur}). Ketiga pengetahuan
-itu menjadi bekal utama pada bab ini.
+Bagian ini diringkas dari \cite{gunawan2019}, Bagian 10,
+hlm.~93--100, dan \cite{sto2001}, BAB IX, hlm.~41--46.
 
-\subsection{Lima Jenis Kesalahan Program}
+\subsection{Array Satu Dimensi}
 
-Tidak semua kesalahan sama. Mengenali jenis kesalahan lebih dahulu
-mempercepat pemilihan alat dan strategi. Secara umum terdapat lima
-jenis kesalahan yang perlu dibedakan.
+Array satu dimensi dideklarasikan dengan \dir{DB}, \dir{DW}, atau
+\dir{DD}, lalu diisi nilai yang dipisahkan koma.
 
-\begin{description}
-    \item[Kesalahan sintaks] Kesalahan penulisan yang membuat
-          assembler menolak berkas sumber sehingga program
-          \emph{tidak} dihasilkan sama sekali. Contohnya mnemonic yang
-          salah tulis (\code{MOVV} alih-alih \asm{MOV}), operand yang
-          ukurannya tidak cocok, atau label yang tidak pernah
-          didefinisikan. Jenis ini paling mudah diperbaiki karena
-          assembler menunjukkan nomor barisnya.
+\begin{lstlisting}[language=MASM, numbers=none]
+deret   DW 10, 20, 30, 40, 50
+BANYAK  EQU ($ - deret) / 2      ; banyak elemen word
+\end{lstlisting}
 
-    \item[Kesalahan saat berjalan] Kesalahan yang baru muncul ketika
-          program dijalankan, misalnya pembagian dengan nol
-          (\asm{DIV} dengan pembagi nol) atau pembacaan berkas yang
-          tidak ada. Program berjalan sampai titik tertentu lalu
-          berhenti dengan pesan dari sistem operasi.
+Setiap elemen word menempati dua byte. Elemen pertama berada pada
+offset \code{deret}, elemen kedua pada \code{deret+2}, dan seterusnya.
+Susunan ini ditunjukkan pada Gambar~\ref{fig:array-memori}.
 
-    \item[Kesalahan logika] Kesalahan yang paling sulit: program
-          \emph{berjalan sampai selesai} tetapi hasilnya salah.
-          Assembler diam, sistem operasi pun diam. Contohnya
-          penghitung perulangan yang salah nilai awal, operasi
-          \asm{ADD} yang seharusnya \asm{SUB}, atau akumulasi yang
-          memakai register yang keliru.
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        sel/.style={
+            draw=obeBlue, line width=0.6pt, minimum width=1.7cm,
+            minimum height=0.8cm, align=center, font=\small,
+            inner sep=2pt
+        },
+        ket/.style={font=\scriptsize, text=obeGray, anchor=north}
+    ]
+        \foreach \i/\v in {0/10,1/20,2/30,3/40,4/50} {
+            \node[sel, fill=obeBlueLight] at (\i*1.7,0) {\v};
+            \node[ket] at (\i*1.7,-0.45)
+                {+\the\numexpr2*\i\relax};
+        }
+        \node[font=\scriptsize, text=obeGray, anchor=west]
+            at (8.6,0) {setiap sel 2 byte};
+    \end{tikzpicture}
+    \caption{Array word lima elemen. Angka di bawah sel adalah offset
+    relatif terhadap alamat awal \code{deret}.}
+    \label{fig:array-memori}
+\end{figure}
 
-    \item[Kesalahan segmentasi] Kesalahan karena program mengakses
-          alamat di luar segmen yang seharusnya, misalnya karena
-          register segmen belum diinisialisasi, indeks larik melewati
-          batas, atau \reg{DS} tidak pernah diarahkan ke segmen data.
+Elemen array diakses dengan register penunjuk. Pola penjumlahan array:
 
-    \item[\eng{Overflow}] Kesalahan karena hasil perhitungan atau
-          pemakaian \eng{stack} melebihi daya tampungnya.
-          \eng{Overflow} aritmatika terjadi ketika hasil melewati
-          batas register 16-bit, misalnya lebih dari \hex{FFFF}.
-          \eng{Overflow} \eng{stack} terjadi ketika \asm{PUSH} atau
-          \asm{CALL} melebihi ruang \dir{.STACK} yang disediakan,
-          atau ketika jumlah \asm{PUSH} dan \asm{POP} tidak seimbang
-          sehingga \asm{RET} mengambil alamat yang salah.
-\end{description}
+\begin{lstlisting}[language=MASM, numbers=none]
+LEA SI, deret
+MOV CX, BANYAK
+XOR AX, AX
+JUMLAH:
+    ADD AX, [SI]
+    ADD SI, 2
+    LOOP JUMLAH
+\end{lstlisting}
+
+\reg{SI} menunjuk elemen saat ini. Setiap iterasi menambahkan dua
+karena satu elemen word berukuran dua byte.
+
+\subsection{Array Multi Dimensi}
+
+Array multi dimensi disimpan sebagai array satu dimensi dengan urutan
+baris demi baris. Untuk matriks dengan \code{BARIS} baris dan
+\code{KOLOM} kolom, elemen pada baris $r$ dan kolom $c$ berada pada
+offset:
+
+\[
+    \text{offset} = (r \times \text{KOLOM} + c) \times
+    \text{ukuran elemen}.
+\]
+
+Contoh matriks word $3 \times 4$:
+
+\begin{lstlisting}[language=MASM, numbers=none]
+matriks DW 1, 2, 3, 4
+        DW 5, 6, 7, 8
+        DW 9,10,11,12
+
+; akses matriks[1][2] (baris 1, kolom 2)
+MOV AX, 1
+MOV BX, 4           ; KOLOM = 4
+MUL BX              ; AX = baris x KOLOM
+ADD AX, 2           ; tambah kolom
+SHL AX, 1           ; kali 2 karena word
+LEA SI, matriks
+ADD SI, AX
+MOV AX, [SI]        ; AX = 7
+\end{lstlisting}
 
 \begin{table}[H]
     \centering
-    \caption{Taksonomi kesalahan program beserta gejala dan cara
-    penemuannya.}
-    \label{tab:taksonomi-kesalahan}
+    \caption{Perhitungan offset elemen matriks word $3 \times 4$.}
+    \label{tab:offset-matriks}
     \small
-    \begin{tabular}{@{}p{2.1cm}p{3.6cm}p{3.3cm}p{4.0cm}@{}}
+    \begin{tabular}{@{}cccc@{}}
         \toprule
-        \textbf{Jenis} & \textbf{Gejala} & \textbf{Kapan
-        terdeteksi} & \textbf{Cara menemukan} \\
+        \textbf{Baris} & \textbf{Kolom} & \textbf{Perhitungan} &
+        \textbf{Offset} \\
         \midrule
-        Sintaks & Assembler menolak berkas; tidak ada
-        \file{.obj} & Sebelum program dijalankan &
-        Baca pesan assembler beserta nomor barisnya \\
-        \addlinespace
-        Saat berjalan & Program berhenti di tengah jalan; pesan
-        sistem operasi & Ketika dijalankan &
-        Jalankan bertahap sampai titik berhenti \\
-        \addlinespace
-        Logika & Program selesai normal, hasil salah & Tidak
-        terdeteksi otomatis & Tabel \eng{trace} register dan
-        \eng{flag} per langkah \\
-        \addlinespace
-        Segmentasi & Karakter sampah, nilai berubah sendiri,
-        program macet & Ketika dijalankan &
-        Periksa \reg{DS}, \reg{ES}, \reg{SS}, dan batas indeks
-        melalui \code{D} \\
-        \addlinespace
-        \eng{Overflow} & Hasil aritmatika terpotong; \asm{RET}
-        melompat ke alamat aneh & Ketika dijalankan &
-        Periksa \flag{CF}, \flag{OF}, dan pasangan \eng{dump}
-        \eng{stack} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\begin{peringatanbox}
-Kesalahan sintaks dan kesalahan logika sering tertukar oleh pemula.
-Perbedaannya sederhana: kesalahan sintaks membuat program
-\emph{gagal dirakit}, sedangkan kesalahan logika membuat program
-\emph{berhasil dirakit dan berjalan} tetapi menghasilkan nilai yang
-salah. Bila assembler tidak melaporkan apa pun, jangan mencari
-kesalahan pada penulisan; carilah pada nilai.
-\end{peringatanbox}
-
-Tabel~\ref{tab:taksonomi-kesalahan} menunjukkan bahwa hanya kesalahan
-sintaks yang dapat dipercayakan kepada assembler. Empat jenis
-kesalahan lainnya menuntut pengamatan langsung terhadap keadaan
-prosesor saat program berjalan. Di sinilah \eng{debugger} menjadi
-alat yang tidak tergantikan.
-
-\subsection{Alat Debugging yang Tersedia}
-
-Terdapat tiga alat \eng{debugging} yang dipakai pada mata kuliah ini.
-Ketiganya mampu melakukan hal yang sama, yaitu menghentikan program,
-memeriksa register, dan memeriksa memori; perbedaannya terletak pada
-kemudahan pemakaian dan kedekatan dengan mesin sesungguhnya.
-
-\begin{description}
-    \item[MS-DEBUG di DOSBox] Program bawaan DOS yang seluruh
-          interaksinya berupa baris perintah. Yang terlihat
-          benar-benar isi memori, bukan tampilan yang disederhanakan
-          \cite{irvine1999}.
-
-    \item[\eng{Debugger} terpadu GUI Turbo Assembler] Satu jendela
-          terpadu memuat kode sumber, register, dan memori sekaligus;
-          program dijalankan baris per baris dengan menekan tombol
-          \cite{guitasm}.
-
-    \item[Jendela \eng{debug} Emu8086] Register, \eng{flag}, memori,
-          dan \eng{stack} tampil sebagai panel terpisah yang selalu
-          terlihat sehingga cocok untuk pemula. Karena Emu8086 adalah
-          emulator, program yang dijalankan adalah hasil emulasi
-          \cite{emu8086help}.
-\end{description}
-
-\begin{table}[H]
-    \centering
-    \caption{Perbandingan kemampuan tiga alat \eng{debugging}.}
-    \label{tab:alat-debugging}
-    \small
-    \begin{tabular}{@{}p{2.9cm}p{3.5cm}p{3.7cm}p{3.2cm}@{}}
-        \toprule
-        \textbf{Kemampuan} & \textbf{MS-DEBUG (DOSBox)} &
-        \textbf{GUI Turbo Assembler} & \textbf{Emu8086} \\
-        \midrule
-        Tampilan & Teks, baris perintah & Grafis, jendela terpadu &
-        Grafis, panel terpisah \\
-        \addlinespace
-        Langkah per instruksi & \code{T} dan \code{P} &
-        Tombol \file{Step} & Tombol \file{Single Step} \\
-        \addlinespace
-        \eng{Breakpoint} & \code{G} pada alamat; jumlah terbatas &
-        Titik henti pada baris sumber & Titik henti pada baris sumber \\
-        \addlinespace
-        Memeriksa memori & \code{D} dan \code{E} &
-        Jendela \eng{dump} memori & Jendela memori \\
-        \addlinespace
-        Memeriksa \eng{stack} & \code{D SS:SP} &
-        Jendela \eng{stack} & Jendela \eng{stack} \\
-        \addlinespace
-        Memodifikasi kode mesin & \code{A} dan \code{E} &
-        Tidak langsung & Tidak langsung \\
-        \addlinespace
-        Menjalankan \file{.exe} lama & Ya & Ya & Perlu emulasi \\
+        0 & 0 & $(0 \times 4 + 0) \times 2$ & 0 \\
+        0 & 3 & $(0 \times 4 + 3) \times 2$ & 6 \\
+        1 & 0 & $(1 \times 4 + 0) \times 2$ & 8 \\
+        1 & 2 & $(1 \times 4 + 2) \times 2$ & 12 \\
+        2 & 3 & $(2 \times 4 + 3) \times 2$ & 22 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \begin{infobox}
-Pada bab ini penekanan diberikan kepada MS-DEBUG karena dua alasan.
-Pertama, DEBUG memperlihatkan keadaan mesin apa adanya sehingga
-mahasiswa belajar membaca alamat, opcode, dan \eng{dump} memori secara
-mentah. Kedua, kemampuan membaca keluaran DEBUG berlaku umum: jendela
-grafis Emu8086 maupun GUI Turbo Assembler menampilkan informasi yang
-sama dengan tata letak yang lebih nyaman.
+\vspace{1.1em}
+Array multi dimensi tidak memiliki struktur khusus di memori.
+Prosesor hanya melihat deretan byte. Perhitungan baris dan kolom
+dilakukan oleh program sebelum alamat diakses.
 \end{infobox}

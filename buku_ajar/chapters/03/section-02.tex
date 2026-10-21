@@ -1,175 +1,221 @@
-\section{Rantai Proses Pembuatan Program Assembly}
-\label{sec:toolchain}
+\section{Sistem Bilangan dan Konversi}
+\label{sec:sistem-bilangan}
 
-Program assembly tidak dapat langsung dijalankan. Ia harus melewati
-beberapa tahap pengolahan sampai menjadi berkas yang dapat dimuat
-oleh sistem operasi. Keseluruhan tahap ini disebut \term{rantai
-proses} (\eng{toolchain}).
+Komputer menyimpan seluruh data sebagai deretan bit. Angka yang
+ditulis manusia dalam basis sepuluh harus diubah terlebih dahulu
+menjadi bentuk yang dapat disimpan dan diolah prosesor. Karena itu,
+pemahaman sistem bilangan bukan pelengkap, melainkan syarat untuk
+membaca isi register, memeriksa memori, dan menulis data pada
+program assembly.
 
-\subsection{Tahapan Rantai Proses}
+Bagian ini diringkas dari \cite{sto2001}, BAB I, hlm.~6--8, dan
+BAB V, hlm.~23--24, serta \cite{gunawan2019}, Bagian 14.1,
+hlm.~127--128.
 
-\begin{enumerate}
-    \item \textbf{Penyuntingan (\eng{editing}).} Programmer menulis
-          kode assembly dalam berkas teks berekstensi \file{.asm}
-          menggunakan penyunting teks biasa atau editor bawaan
-          Emu8086.
+\subsection{Notasi Posisional}
 
-    \item \textbf{Perakitan (\eng{assembling}).} Program
-          \term{assembler} (TASM atau MASM) menerjemahkan setiap
-          \eng{mnemonic} menjadi kode mesin, menyusun tabel simbol,
-          dan menghasilkan berkas objek \file{.obj}. Pada tahap ini
-          alamat akhir instruksi dan data \emph{belum} diketahui,
-          sehingga sebagian besar alamat masih berupa penanda yang
-          harus diselesaikan kemudian.
+Pada notasi posisional, nilai suatu angka ditentukan oleh angka itu
+sendiri dan posisinya. Untuk bilangan dengan basis $b$, angka pada
+posisi ke-$i$ (dihitung dari kanan, mulai nol) memiliki bobot $b^i$.
+Secara umum, bilangan $d_n d_{n-1} \ldots d_1 d_0$ dalam basis $b$
+bernilai
 
-    \item \textbf{Pengaitan (\eng{linking}).} Program \term{linker}
-          (TLINK) menggabungkan berkas objek dengan pustaka
-          (\eng{library}) yang diperlukan, menentukan alamat akhir
-          setiap segmen, dan menghasilkan berkas yang dapat
-          dijalankan \file{.exe} (atau \file{.com}).
+\[
+    d_n b^n + d_{n-1} b^{n-1} + \cdots + d_1 b^1 + d_0 b^0.
+\]
 
-    \item \textbf{Pemuatan dan eksekusi.} Sistem operasi memuat
-          berkas tersebut ke memori melalui \eng{loader}, menetapkan
-          register segmen (CS, DS, SS), lalu menyerahkan kendali ke
-          instruksi pertama program.
-\end{enumerate}
+Contohnya, bilangan desimal $123_{10}$ bernilai
+$1 \times 10^2 + 2 \times 10^1 + 3 \times 10^0 = 123$. Aturan yang
+sama berlaku untuk basis lain; yang berubah hanya nilai basisnya.
 
-\begin{figure}[H]
-    \centering
-    \begin{tikzpicture}[
-        node distance=0.9cm,
-        tahap/.style={
-            draw=obeBlue,
-            line width=0.8pt,
-            fill=obeBlueLight,
-            rounded corners=3pt,
-            minimum width=2.9cm,
-            minimum height=1.15cm,
-            align=center,
-            font=\small\bfseries,
-            inner sep=4pt
-        },
-        alat/.style={
-            font=\scriptsize\itshape,
-            text=obeGray,
-            align=center
-        },
-        panah/.style={-{Stealth[length=2.5mm]}, line width=0.9pt, obeTeal}
-    ]
-        \node[tahap] (a) {\file{.asm}\\{\normalfont\scriptsize kode sumber}};
-        \node[tahap, right=of a, fill=obeTealLight, draw=obeTeal] (b)
-            {\file{.obj}\\{\normalfont\scriptsize berkas objek}};
-        \node[tahap, right=of b, fill=obeTealLight, draw=obeTeal] (c)
-            {\file{.exe}\\{\normalfont\scriptsize dapat dijalankan}};
-        \node[tahap, right=of c, fill=obeAmberLight, draw=obeAmber] (d)
-            {Memori\\{\normalfont\scriptsize proses berjalan}};
+\subsection{Empat Basis yang Dipakai}
 
-        \draw[panah] (a) -- (b);
-        \draw[panah] (b) -- (c);
-        \draw[panah] (c) -- (d);
+Bahasa assembly 8086 mengenal empat jenis bilangan: biner, oktal,
+desimal, dan heksadesimal. Setiap basis memiliki jumlah digit yang
+berbeda.
 
-        \node[alat, below=0.12cm of a] {editor};
-        \node[alat, below=0.12cm of b] {assembler\\TASM / MASM};
-        \node[alat, below=0.12cm of c] {linker\\TLINK};
-        \node[alat, below=0.12cm of d] {loader\\DOS};
-    \end{tikzpicture}
-    \caption{Rantai proses pembuatan program assembly dari kode sumber
-    sampai berjalan di memori.}
-    \label{fig:toolchain}
-\end{figure}
+\begin{itemize}
+    \item \term{Biner} (basis 2) memakai digit 0 dan 1.
+    \item \term{Oktal} (basis 8) memakai digit 0 sampai 7.
+    \item \term{Desimal} (basis 10) memakai digit 0 sampai 9.
+    \item \term{Heksadesimal} (basis 16) memakai digit 0 sampai 9
+          ditambah A, B, C, D, E, dan F untuk nilai 10 sampai 15.
+\end{itemize}
 
-\subsection{Pengertian Assembler, Linker, dan Loader}
-
-\begin{description}
-    \item[Assembler] Menerjemahkan kode sumber assembly menjadi kode
-          mesin. Karena setiap instruksi assembly bersesuaian dengan
-          satu instruksi mesin, penerjemahan ini bukan kompilasi
-          penuh, melainkan penerjemahan satu-ke-satu ditambah
-          penanganan direktif dan simbol.
-
-    \item[Linker] Menyelesaikan rujukan antarberkas. Misalnya, bila
-          program memanggil prosedur yang berada di berkas lain atau
-          di pustaka, linker-lah yang menyambungkannya dan menetapkan
-          alamat akhir.
-
-    \item[Loader] Bagian sistem operasi yang memuat berkas
-          \file{.exe} ke memori, membuat \eng{Program Segment Prefix}
-          (PSP), menetapkan register segmen, dan melompat ke titik
-          masuk program.
-\end{description}
-
-\subsection{Perbedaan Berkas \file{.COM} dan \file{.EXE}}
-
-Pada lingkungan DOS dikenal dua bentuk berkas program, dan perbedaan
-keduanya penting dipahami sejak awal.
+Kesetaraan digit pada keempat basis ditunjukkan pada
+Tabel~\ref{tab:digit-bilangan}.
 
 \begin{table}[H]
     \centering
-    \caption{Perbandingan bentuk program \file{.COM} dan \file{.EXE}.}
-    \label{tab:com-vs-exe}
+    \caption{Kesetaraan digit pada bilangan biner, oktal, desimal,
+    dan heksadesimal.}
+    \label{tab:digit-bilangan}
     \small
-    \begin{tabular}{@{}p{3.2cm}p{5.3cm}p{5.3cm}@{}}
+    \begin{tabular}{@{}cccc@{}}
         \toprule
-        \textbf{Aspek} & \textbf{Program \file{.COM}} &
-        \textbf{Program \file{.EXE}} \\
+        \textbf{Desimal} & \textbf{Biner (4 bit)} &
+        \textbf{Oktal} & \textbf{Heksadesimal} \\
         \midrule
-        Ukuran maksimum & 64 KB dikurangi 256 byte & Tidak dibatasi
-        satu segmen \\
-        \addlinespace
-        Struktur segmen & Seluruhnya satu segmen (kode, data, stack
-        menyatu) & Terpisah: segmen kode, data, dan stack sendiri \\
-        \addlinespace
-        Titik awal & Wajib dimulai dengan \dir{ORG 100h} &
-        Alamat masuk dinyatakan oleh \dir{END} pada label awal \\
-        \addlinespace
-        Inisialisasi DS & Otomatis sudah benar & Harus dilakukan
-        sendiri: \lstasm|MOV AX, @DATA| dan \lstasm|MOV DS, AX| \\
-        \addlinespace
-        Cara keluar & \lstasm|INT 20h| &
-        \lstasm|MOV AH, 4Ch| lalu \lstasm|INT 21h| \\
+        0 & \bin{0000} & 0 & 0 \\
+        1 & \bin{0001} & 1 & 1 \\
+        2 & \bin{0010} & 2 & 2 \\
+        3 & \bin{0011} & 3 & 3 \\
+        4 & \bin{0100} & 4 & 4 \\
+        5 & \bin{0101} & 5 & 5 \\
+        6 & \bin{0110} & 6 & 6 \\
+        7 & \bin{0111} & 7 & 7 \\
+        8 & \bin{1000} & 10 & 8 \\
+        9 & \bin{1001} & 11 & 9 \\
+        10 & \bin{1010} & 12 & A \\
+        11 & \bin{1011} & 13 & B \\
+        12 & \bin{1100} & 14 & C \\
+        13 & \bin{1101} & 15 & D \\
+        14 & \bin{1110} & 16 & E \\
+        15 & \bin{1111} & 17 & F \\
         \bottomrule
     \end{tabular}
 \end{table}
+
+\subsection{Konversi Antarjenis Bilangan}
+
+Konversi dapat dikerjakan dengan menghitung bobot posisi atau dengan
+mengelompokkan bit. Pilihan cara bergantung pada arah konversi.
+
+\subsubsection{Biner ke Desimal}
+
+Kalikan setiap bit dengan bobotnya, lalu jumlahkan. Contoh untuk
+\bin{11110011}:
+
+\[
+    1 \times 2^7 + 1 \times 2^6 + 1 \times 2^5 + 1 \times 2^4
+    + 0 \times 2^3 + 0 \times 2^2 + 1 \times 2^1 + 1 \times 2^0
+    = 128 + 64 + 32 + 16 + 2 + 1 = 243.
+\]
+
+\subsubsection{Desimal ke Biner}
+
+Bagilah bilangan dengan 2 secara berulang, catat sisanya, lalu baca
+sisa dari bawah ke atas. Contoh untuk 243:
+
+\begin{center}
+\begin{tabular}{@{}ccc@{}}
+    \toprule
+    \textbf{Pembagian} & \textbf{Hasil} & \textbf{Sisa} \\
+    \midrule
+    $243 \div 2$ & 121 & 1 \\
+    $121 \div 2$ & 60 & 1 \\
+    $60 \div 2$ & 30 & 0 \\
+    $30 \div 2$ & 15 & 0 \\
+    $15 \div 2$ & 7 & 1 \\
+    $7 \div 2$ & 3 & 1 \\
+    $3 \div 2$ & 1 & 1 \\
+    $1 \div 2$ & 0 & 1 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+Sisa dibaca dari bawah ke atas sehingga hasilnya \bin{11110011}.
+
+\subsubsection{Biner ke Oktal dan Heksadesimal}
+
+Kelompokkan bit dari kanan. Untuk oktal, setiap kelompok berisi tiga
+bit; untuk heksadesimal, setiap kelompok berisi empat bit. Contoh
+\bin{11110011}:
+
+\begin{itemize}
+    \item Oktal: \bin{011} \bin{110} \bin{011} $\rightarrow$
+          3, 6, 3, sehingga hasilnya $363_8$.
+    \item Heksadesimal: \bin{1111} \bin{0011} $\rightarrow$
+          F, 3, sehingga hasilnya \hex{F3}.
+\end{itemize}
+
+\subsubsection{Oktal atau Heksadesimal ke Desimal}
+
+Gunakan bobot posisi dengan basis 8 atau 16. Contoh untuk $363_8$:
+
+\[
+    3 \times 8^2 + 6 \times 8^1 + 3 \times 8^0
+    = 192 + 48 + 3 = 243.
+\]
+
+Contoh untuk \hex{F3}:
+
+\[
+    15 \times 16^1 + 3 \times 16^0 = 240 + 3 = 243.
+\]
+
+\subsubsection{Desimal ke Heksadesimal}
+
+Bagilah bilangan dengan 16 secara berulang, catat sisanya, lalu
+terjemahkan sisa 10--15 menjadi A--F. Untuk 243:
+
+\begin{center}
+\begin{tabular}{@{}ccc@{}}
+    \toprule
+    \textbf{Pembagian} & \textbf{Hasil} & \textbf{Sisa} \\
+    \midrule
+    $243 \div 16$ & 15 & 3 \\
+    $15 \div 16$ & 0 & 15 (F) \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+Sisa dibaca dari bawah ke atas sehingga hasilnya \hex{F3}. Ringkasan
+keempat representasi untuk nilai 243 ditunjukkan pada
+Tabel~\ref{tab:contoh-basis}.
+
+\begin{table}[H]
+    \centering
+    \caption{Representasi nilai 243 pada empat basis.}
+    \label{tab:contoh-basis}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Basis} & \textbf{Penulisan} & \textbf{Keterangan} \\
+        \midrule
+        Biner & \bin{11110011} & delapan bit \\
+        Oktal & $363_8$ & tiga digit oktal \\
+        Desimal & 243 & tanpa akhiran \\
+        Heksadesimal & \hex{F3} & dua digit heksadesimal \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Penulisan Literal Bilangan pada Assembler}
+
+Assembler perlu mengetahui basis sebuah bilangan. Menurut
+\cite{sto2001}, BAB V, hlm.~23--24, penulisan yang dipakai adalah
+sebagai berikut.
+
+\begin{itemize}
+    \item \textbf{Desimal:} boleh tanpa akhiran atau diberi akhiran
+          \code{D}, misalnya \code{243} atau \code{243D}.
+    \item \textbf{Biner:} diberi akhiran \code{B}, misalnya
+          \code{11110011B}.
+    \item \textbf{Heksadesimal:} diberi akhiran \code{H}. Bila digit
+          pertama berupa huruf A--F, tambahkan angka 0 di depan agar
+          assembler tidak membacanya sebagai label, misalnya
+          \code{0F3H}.
+    \item \textbf{Karakter:} ditulis di antara tanda petik, misalnya
+          \code{'A'} atau \code{"A"}.
+\end{itemize}
+
+Penulisan oktal tidak dipakai pada contoh program bab ini karena
+assembler yang dipakai dalam buku lebih sering memakai bentuk biner,
+desimal, dan heksadesimal. Nilai oktal tetap dilatih melalui konversi
+dan dapat dituliskan kembali dalam bentuk desimal atau heksadesimal
+sebelum dimasukkan ke program.
 
 \begin{peringatanbox}
-Kesalahan paling sering pada program \file{.EXE} adalah lupa
-menginisialisasi register \reg{DS}. Akibatnya instruksi yang mengakses
-variabel membaca alamat yang salah dan program mencetak karakter
-sampah. Pada program \file{.COM}, inisialisasi ini tidak diperlukan
-karena DOS menetapkan seluruh register segmen ke segmen program.
+\vspace{1.1em}
+Tiga kesalahan yang sering terjadi pada penulisan bilangan:
+\begin{enumerate}
+    \item Menulis \code{F3H} tanpa nol di depan. Assembler dapat
+          menganggapnya sebagai nama label, bukan bilangan.
+    \item Menulis angka 2--9 pada bilangan biner, misalnya
+          \code{1012B}. Bilangan biner hanya boleh memuat 0 dan 1.
+    \item Menganggap \code{10} dan \code{10H} bernilai sama. Yang
+          pertama adalah sepuluh desimal, yang kedua adalah enam belas
+          desimal.
+\end{enumerate}
 \end{peringatanbox}
-
-\subsection{Membaca Pesan Kesalahan Assembler}
-
-Assembler melaporkan kesalahan beserta nomor barisnya. Tiga jenis
-pesan yang paling sering muncul dijelaskan pada
-Tabel~\ref{tab:error-assembler}.
-
-\begin{table}[H]
-    \centering
-    \caption{Pesan kesalahan assembler yang sering muncul.}
-    \label{tab:error-assembler}
-    \small
-    \begin{tabular}{@{}p{4.4cm}p{4.2cm}p{5.2cm}@{}}
-        \toprule
-        \textbf{Pesan} & \textbf{Penyebab umum} &
-        \textbf{Cara memperbaiki} \\
-        \midrule
-        \file{Undefined symbol} & Label atau variabel belum
-        didefinisikan & Periksa penulisan nama; pastikan label
-        didefinisikan sebelum atau sesudah pemakaian \\
-        \addlinespace
-        \file{Syntax error} & Salah tulis mnemonic atau operand &
-        Periksa ukuran operand dan tanda koma pemisah \\
-        \addlinespace
-        \file{Operand types do not match} & Ukuran operand tidak
-        sama, misalnya register 16-bit dengan memori 8-bit &
-        Samakan ukuran, atau gunakan \lstasm|BYTE PTR| /
-        \lstasm|WORD PTR| \\
-        \addlinespace
-        \file{Improper operand type} & Operasi memori-ke-memori
-        yang tidak diizinkan & Pindahkan salah satu operand ke
-        register terlebih dahulu \\
-        \bottomrule
-    \end{tabular}
-\end{table}

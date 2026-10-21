@@ -1,130 +1,141 @@
-\chapter{Referensi Tambahan dan Sumber Belajar Eksternal}
+\chapter{Referensi dan Sumber Belajar}
 \label{app:referensi-tambahan}
 
-Lampiran ini memuat sumber belajar tambahan yang dapat diakses
-secara bebas. Seluruh tautan telah diperiksa pada saat penyusunan
-buku ini. Sumber utama yang disitasi pada bab-bab dicantumkan pada
-Daftar Pustaka; lampiran ini melengkapinya dengan sumber yang
-bersifat praktis dan rujukan lanjutan.
+Seluruh bahan kajian, contoh, praktikum, dan latihan pada buku ini
+diturunkan dari dua buku sumber lokal. Kedua buku tersebut menjadi
+acuan tunggal agar isi buku tetap sejalan dengan RPS dan tidak
+memasukkan topik di luar cakupan mata kuliah.
 
-\section{Manual dan Spesifikasi Resmi}
+\section{Buku Sumber Utama}
+
+\begin{enumerate}
+    \item \textbf{Indra Gunawan. (2019).}
+          \textit{Pemrograman Bahasa Assembly Mikroprosesor 8086}.
+          Guepedia. \cite{gunawan2019}
+
+          Buku ini membahas perkembangan mikroprosesor, komponen dasar
+          8086, interupsi, persiapan lingkungan assembly, transfer data,
+          pencetakan karakter dan kalimat, operasi logika, tipe data,
+          mode pengalamatan, array, percabangan dan perulangan, stack,
+          prosedur dan macro, operasi aritmatika, operasi file, string,
+          grafik, serta layanan interupsi yang sering digunakan.
+
+    \item \textbf{S'to. (2001).}
+          \textit{Pemrograman dengan Bahasa Assembly, Edisi Online
+          Versi 1.0}. IlmuKomputer.Com. \cite{sto2001}
+
+          Buku ini membahas sistem bilangan, organisasi memori,
+          interupsi, register, memulai assembly, program COM, pencetakan
+          huruf dan kalimat, operasi aritmatika, pointer, manipulasi bit
+          dan logika, mode pengalamatan, perbandingan dan lompatan,
+          stack, masukan keyboard, prosedur, macro, operasi layar,
+          operasi string, pencetakan angka, pengaksesan port, program
+          berparameter, operasi file, program residen, grafik, program
+          EXE, dan Turbo Debugger.
+\end{enumerate}
+
+\section{Peta Bahan Kajian ke Sumber}
+
+Tabel~\ref{tab:peta-sumber} menunjukkan bab buku ini, topik utamanya,
+serta bagian dan halaman yang menjadi rujukan pada kedua buku sumber.
+Nomor halaman mengikuti penanda halaman berkas \texttt{.tex} sumber.
+
+\begin{table}[htbp]
+\centering
+\caption{Peta bahan kajian ke dua buku sumber}
+\label{tab:peta-sumber}
+\small
+\begin{tabular}{@{}p{1.5cm}p{4.3cm}p{4.2cm}p{4.3cm}@{}}
+\toprule
+\textbf{Bab} & \textbf{Topik} & \textbf{Sumber [1]} &
+\textbf{Sumber [2]} \\
+\midrule
+III & Sistem bilangan & Bagian 1, hlm. 10--11 &
+BAB I, hlm. 6--8 \\
+\addlinespace
+IV & BIU dan EU & Bagian 2, hlm. 12--18 &
+BAB II, hlm. 9--10 \\
+\addlinespace
+V & Register dan flag & Bagian 2, hlm. 13--18 &
+BAB IV, hlm. 17--20 \\
+\addlinespace
+VI & Segmentasi memori & Bagian 2.1.1, hlm. 13--15 &
+BAB II, hlm. 9--13 \\
+\addlinespace
+VII & Memulai assembly & Bagian 4, hlm. 26--34 &
+BAB V--VI, hlm. 21--26 \\
+\addlinespace
+VIII & Transfer data & Bagian 5, hlm. 35--44 &
+BAB V, hlm. 21--24 \\
+\addlinespace
+IX & Interupsi BIOS/DOS & Bagian 3, hlm. 19--25; Bagian 18,
+hlm. 179--204 & BAB III, hlm. 14--16; BAB VII, hlm. 27--31; BAB XII,
+hlm. 63--67; BAB XV, hlm. 78--84 \\
+\addlinespace
+X & Aritmatika & Bagian 14, hlm. 127--142 &
+BAB VIII, hlm. 32--40 \\
+\addlinespace
+XI & Logika dan shift & Bagian 7, hlm. 68--73 &
+BAB X, hlm. 47--51 \\
+\addlinespace
+XII & Mode pengalamatan & Bagian 9, hlm. 78--92 &
+BAB XI, hlm. 52--62 \\
+\addlinespace
+XIII & Percabangan dan perulangan & Bagian 11, hlm. 101--114 &
+BAB XIII, hlm. 68--72 \\
+\addlinespace
+XIV & Stack, prosedur, macro & Bagian 12--13, hlm. 115--126 &
+BAB XIV, hlm. 73--77; BAB XVI--XVII, hlm. 85--92 \\
+\addlinespace
+XV & Array, string, bilangan & Bagian 10, hlm. 93--100; Bagian 14.1,
+hlm. 127--131; Bagian 16, hlm. 154--158 & BAB IX, hlm. 41--46;
+BAB XIX--XX, hlm. 110--121 \\
+\addlinespace
+XVI & Debugging & Bagian 4.2--4.3, hlm. 29--32 &
+BAB XXVII, hlm. 194--202 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Perangkat Lunak Pendukung}
+
+Praktik pada buku ini memakai perangkat yang dibahas pada kedua buku
+sumber, yaitu:
 
 \begin{itemize}
-    \item \textbf{The 8086 Family User's Manual} \cite{intel1979} ---
-          rujukan utama perilaku 8086: register, instruksi, sinyal,
-          dan pengalamatan. Tersedia dalam bentuk PDF.
-    \item \textbf{Intel 64 and IA-32 Architectures Software
-          Developer's Manual} \cite{intel2024} --- rujukan resmi
-          keluarga x86 modern; berguna sebagai rujukan lanjutan
-          setelah menguasai 8086.
-    \item \textbf{Ralf Brown's Interrupt List} \cite{brown2000} ---
-          daftar lengkap layanan interupsi BIOS dan DOS; rujukan
-          wajib ketika memakai \code{INT 10h} dan \code{INT 21h}.
+    \item \textbf{TASM} untuk meng-assemble berkas \texttt{.ASM} menjadi
+          \texttt{.OBJ};
+    \item \textbf{TLINK} untuk men-link berkas \texttt{.OBJ} menjadi
+          \texttt{.EXE} atau \texttt{.COM};
+    \item \textbf{DEBUG} untuk memeriksa register, memori, dan
+          menjalankan program per instruksi;
+    \item \textbf{emu8086} untuk menulis, menjalankan, dan men-debug
+          program;
+    \item \textbf{DOSBox} untuk menyediakan lingkungan DOS bagi TASM,
+          TLINK, dan DEBUG;
+    \item \textbf{Turbo Debugger} untuk menelusuri program per instruksi
+          dan memeriksa register, flag, memori, serta stack.
 \end{itemize}
-
-\section{Buku Teks dan Modul Pembelajaran}
-
-\begin{itemize}
-    \item \textbf{The Art of Assembly Language} \cite{hyde2010} ---
-          pembahasan mendalam sintaks dan teknik assembly.
-    \item \textbf{Programming from the Ground Up}
-          \cite{bartlett2004} --- pengantar assembly dengan
-          pendekatan praktik.
-    \item \textbf{x86 Assembly from the Ground Up using NASM}
-          \cite{bartlett2023} --- pengantar sintaks NASM untuk
-          pembaca yang ingin berpindah dari MASM.
-    \item \textbf{Assembly Language for x86 Processors}
-          \cite{irvine2011} --- buku teks lengkap dengan banyak
-          contoh terstruktur.
-    \item \textbf{Microprocessors Lab Manual (CMPE323)}
-          \cite{bodur} --- kumpulan latihan laboratorium
-          mikroprosesor.
-\end{itemize}
-
-\section{Panduan Praktis dan Tutorial}
-
-\begin{itemize}
-    \item \textbf{Help for Emu8086: Tutorial and Reference}
-          \cite{emu8086help} --- panduan memakai emulator Emu8086.
-    \item \textbf{Using the DEBUG Program} \cite{irvine1999} ---
-          panduan ringkas perintah \file{DEBUG}.
-    \item \textbf{Hands-on Introduction to Computers and Programming
-          using DEBUG} \cite{ebrahim2018} --- penelusuran kode mesin
-          dengan DEBUG.
-    \item \textbf{x86 Assembly Guide} \cite{evans2020} --- ringkasan
-          mode pengalamatan dan sintaks.
-    \item \textbf{Laboratory 8: x86 Assembly Language}
-          \cite{uva2024} --- contoh lembar kerja laboratorium
-          assembly.
-\end{itemize}
-
-\section{Dokumentasi Perangkat Lunak}
-
-\begin{itemize}
-    \item \textbf{GUI Turbo Assembler (TASM)}
-          \cite{guitasm} --- antarmuka grafis untuk TASM dan TLINK
-          beserta \eng{debugger} terpadu.
-    \item \textbf{emu8086} \cite{emu8086site} --- emulator dan
-          assembler dengan tampilan register serta memori.
-    \item \textbf{DOSBox} \cite{dosbox} --- emulator lingkungan DOS
-          untuk menjalankan DEBUG, TASM, dan TLINK.
-    \item \textbf{NASM Documentation} \cite{nasm2024} ---
-          dokumentasi resmi assembler NASM.
-\end{itemize}
-
-\section{Rujukan Lanjutan Organisasi Komputer}
-
-\begin{itemize}
-    \item \textbf{Computer Organization and Architecture}
-          \cite{stallings2016} --- dasar organisasi komputer dan
-          kinerja.
-    \item \textbf{Structured Computer Organization}
-          \cite{tanenbaum2013} --- pendekatan berlapis dalam
-          memahami mesin.
-    \item \textbf{The Intel Microprocessors} \cite{brey2009} ---
-          arsitektur, pemrograman, dan antarmuka mikroprosesor Intel.
-\end{itemize}
-
-\section{Sumber Belajar Daring}
-
-\begin{itemize}
-    \item \textbf{Wikibooks: x86 Assembly} \cite{wikibooksx86} ---
-          rujukan daring yang terus diperbarui mengenai sintaks dan
-          instruksi x86.
-    \item \textbf{Wikibooks: X86 Disassembly}
-          \cite{wikibooksdisasm} --- pengantar membaca hasil
-          \eng{disassembly}, termasuk pembahasan teknik pencarian
-          batas fungsi.
-    \item \textbf{Slide kuliah Intel 8086} \cite{courses2103},
-          \cite{carleton2011} dan \textbf{8086 Addressing Modes}
-          \cite{kader2014} --- bahan ajar yang ringkas dan mudah
-          diikuti untuk arsitektur serta mode pengalamatan.
-\end{itemize}
-
-\begin{infobox}
-\textbf{Catatan hak cipta.} Sebagian dokumen pada lampiran ini
-(misalnya manual Intel dan buku teks komersial) tersedia bebas untuk
-keperluan pendidikan, tetapi tetap tunduk pada hak cipta
-penerbitnya. Sumber berlisensi terbuka (GNU FDL, CC BY-SA) ditandai
-secara eksplisit pada Daftar Pustaka.
-\end{infobox}
 
 \section{Cara Menggunakan Lampiran Ini}
-
-Untuk belajar mandiri, urutan pemanfaatan sumber di atas adalah
-sebagai berikut.
 
 \begin{enumerate}
     \item Gunakan buku ini sebagai kerangka utama dan penentu urutan
           belajar.
     \item Ketika menemukan istilah yang belum jelas, buka
           Lampiran~\ref{app:glosarium}.
-    \item Ketika memerlukan detail teknis sebuah instruksi atau
-          layanan interupsi, buka \cite{intel1979} atau
-          \cite{brown2000}.
-    \item Ketika memerlukan latihan tambahan, gunakan
-          \cite{bodur} dan \cite{uva2024}.
-    \item Setelah menyelesaikan seluruh bab, pilih satu jalur
-          lanjutan pada Tabel~\ref{tab:tindak-lanjut} dan gunakan
-          sumber yang bersesuaian pada lampiran ini.
+    \item Ketika memerlukan penjelasan tambahan suatu topik, buka bagian
+          dan halaman yang tercantum pada Tabel~\ref{tab:peta-sumber}.
+    \item Bandingkan penjelasan pada kedua sumber: buku [1] menekankan
+          contoh program dan langkah praktik, sedangkan buku [2]
+          menekankan penjelasan bertahap dan latihan.
+    \item Setelah menyelesaikan seluruh bab, gunakan
+          Lampiran~\ref{app:rubrik} untuk memeriksa ketercapaian
+          kompetensi.
 \end{enumerate}
+
+\begin{infobox}
+\textbf{Catatan rujukan.} Buku ini hanya memakai dua buku sumber di
+atas. Sitasi \cite{gunawan2019} dan \cite{sto2001} merujuk pada kedua
+buku tersebut. Tidak ada tautan atau sumber daring yang digunakan.
+\end{infobox}

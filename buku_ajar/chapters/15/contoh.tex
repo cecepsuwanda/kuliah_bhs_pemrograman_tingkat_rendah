@@ -1,85 +1,92 @@
-\section{Contoh Program}
+\section{Contoh}
 \label{sec:contoh-bab15}
 
-Bagian ini menyajikan dua program yang \emph{sengaja dibuat salah}
-beserta versi perbaikannya. Keduanya dirakit tanpa kesalahan sintaks,
-sehingga assembler tidak memberi petunjuk apa pun: kesalahan baru
-tampak ketika program dijalankan dan ditelusuri.
+Dua contoh berikut memperlihatkan pengolahan array/string dan
+pencetakan bilangan. Contoh pertama menyimpan hasil ke segmen data
+untuk diperiksa dengan DEBUG. Contoh kedua mencetak hasil konversi ke
+layar.
 
-\subsection{Contoh 1: Perulangan Tak Berujung}
+\subsection{Contoh 1: Menjumlahkan Array dan Menyalin String}
 
-Program pada Kode~\ref{lst:bug-loop} bermaksud menjumlahkan bilangan
-1 sampai 5, yang seharusnya menghasilkan \hex{000F} atau \dec{15}.
-Kenyataannya program tidak pernah selesai, dan karena baris pencetakan
-berada setelah perulangan, program tampak ``menggantung'' tanpa
-penjelasan apa pun bagi pemakainya.
+Program pada Kode~\ref{lst:array-string} menjumlahkan array word dan
+menyalin string ke buffer.
 
 \lstinputlisting[
     language=MASM,
-    caption={Program ber-bug \file{bug-loop.asm}: perulangan tak
-    berujung.},
-    label={lst:bug-loop}
-]{\CodeDir/bug-loop.asm}
+    caption={Program \file{array-string.asm} menjumlahkan array dan
+    menyalin string.},
+    label={lst:array-string}
+]{\CodeDir/array-string.asm}
 
-Versi perbaikan pada Kode~\ref{lst:bug-loop-fix} menghapus
-\asm{INC CX} dan menambahkan rutin pencetakan dua digit desimal agar
-hasilnya dapat dilihat di layar.
+Bagian penting program:
+
+\begin{itemize}
+    \item \lstasm|BANYAK EQU ($ - deret) / 2| menghitung jumlah
+          elemen word dari selisih alamat.
+    \item Perulangan \code{JUMLAH} memakai \reg{SI} sebagai penunjuk
+          dan menambahkan dua setiap elemen.
+    \item Perulangan \code{SALIN} menyalin byte sampai menemukan
+          \code{'\$'}.
+    \item \reg{CX} menghitung karakter yang disalin, lalu hasilnya
+          disimpan pada \code{panjang}.
+\end{itemize}
+
+Hasil yang diharapkan dirangkum pada Tabel~\ref{tab:hasil-array}.
+
+\begin{table}[H]
+    \centering
+    \caption{Hasil program \file{array-string.asm}.}
+    \label{tab:hasil-array}
+    \small
+    \begin{tabular}{@{}p{3.0cm}p{3.2cm}p{6.6cm}@{}}
+        \toprule
+        \textbf{Variabel} & \textbf{Nilai} & \textbf{Keterangan} \\
+        \midrule
+        \code{jumlah} & 150 & $10+20+30+40+50$ \\
+        \addlinespace
+        \code{tujuan} & \code{'ASSEMBLY\$'} &
+        Salinan string sumber \\
+        \addlinespace
+        \code{panjang} & 8 & Jumlah karakter tanpa \code{'\$'} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Contoh 2: Mencetak Bilangan Desimal dan Heksadesimal}
+
+Program pada Kode~\ref{lst:cetak-bilangan} mencetak nilai 12345
+dalam bentuk desimal dan heksadesimal.
 
 \lstinputlisting[
     language=MASM,
-    caption={Versi perbaikan \file{bug-loop-fix.asm}.},
-    label={lst:bug-loop-fix}
-]{\CodeDir/bug-loop-fix.asm}
+    caption={Program \file{cetak-bilangan.asm} mencetak bilangan
+    desimal dan heksadesimal.},
+    label={lst:cetak-bilangan}
+]{\CodeDir/cetak-bilangan.asm}
 
-\begin{session}[caption={Keluaran program
-\file{bug-loop-fix.exe}.}, label={lst:keluaran-loop-fix}]
-Jumlah 1..5 = 15
-\end{session}
+Prosedur \code{CETAK\_DESIMAL} membagi bilangan dengan 10 berulang
+kali dan menyimpan sisa pada \eng{stack}. Prosedur
+\code{CETAK\_HEX} mengambil empat bit sekaligus dengan \asm{ROL}
+dan \asm{AND}. Keluaran program tampak pada
+Kode~\ref{lst:keluaran-bilangan}.
+
+\begin{lstlisting}[
+    style=sessiongaya,
+    caption={Keluaran program \file{cetak-bilangan.asm}.},
+    label={lst:keluaran-bilangan}
+]
+Desimal: 12345
+Heksadesimal: 3039
+\end{lstlisting}
+
+Nilai \hex{3039} sama dengan 12345 desimal. Perhatikan bahwa
+pencetakan heksadesimal selalu menghasilkan empat digit, termasuk
+nol di depan bila diperlukan.
 
 \begin{infobox}
-Perhatikan bahwa \asm{LOOP} sudah melakukan dua pekerjaan sekaligus:
-mengurangi \reg{CX} sebesar satu, lalu melompat bila \reg{CX} belum
-nol. Karena itu, penghitung perulangan \emph{tidak perlu} dan
-\emph{tidak boleh} diubah sendiri di dalam badan perulangan.
+\vspace{1.1em}
+Kedua prosedur pencetakan menyimpan \reg{AX}, \reg{BX}, \reg{CX},
+dan \reg{DX} dengan \asm{PUSH} di awal dan memulihkannya dengan
+\asm{POP} di akhir. Dengan begitu, pemanggil dapat memakai register
+tersebut setelah prosedur selesai.
 \end{infobox}
-
-\subsection{Contoh 2: Stack yang Tidak Seimbang}
-
-Program pada Kode~\ref{lst:bug-stack} memanggil prosedur
-\asm{HITUNG}, lalu bermaksud mencetak pesan penutup. Program berhasil
-dirakit, tetapi ketika dijalankan kendali melompat ke alamat yang
-tidak dikenal dan pesan penutup tidak pernah muncul. Prosedur
-tersebut menekan tiga register (\reg{AX}, \reg{BX}, \reg{CX}) tetapi
-hanya memulihkan dua, sehingga \asm{RET} tidak menemukan alamat
-kembali pada puncak \eng{stack}.
-
-\lstinputlisting[
-    language=MASM,
-    caption={Program ber-bug \file{bug-stack.asm}: \eng{stack} tidak
-    seimbang.},
-    label={lst:bug-stack}
-]{\CodeDir/bug-stack.asm}
-
-Versi perbaikan pada Kode~\ref{lst:bug-stack-fix} menambahkan satu
-instruksi \asm{POP AX} sehingga jumlah \asm{PUSH} dan \asm{POP}
-kembali seimbang.
-
-\lstinputlisting[
-    language=MASM,
-    caption={Versi perbaikan \file{bug-stack-fix.asm}.},
-    label={lst:bug-stack-fix}
-]{\CodeDir/bug-stack-fix.asm}
-
-\begin{session}[caption={Keluaran program
-\file{bug-stack-fix.exe}.}, label={lst:keluaran-stack-fix}]
-Selesai.
-\end{session}
-
-\begin{peringatanbox}
-Kaidah yang harus dihafal: \emph{setiap} \asm{PUSH} memerlukan
-\asm{POP} pasangannya pada jalur eksekusi yang sama. Pada prosedur
-yang memakai beberapa jalur keluar, pastikan seluruh jalur
-menyeimbangkan \eng{stack} sebelum \asm{RET}. Bila tidak, \asm{RET}
-akan melompat ke alamat yang salah dan gejalanya muncul jauh dari
-penyebabnya.
-\end{peringatanbox}

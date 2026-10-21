@@ -1,118 +1,195 @@
-\section{Evolusi Mikroprosesor dan Kedudukan 8086}
-\label{sec:evolusi-8086}
+\section{Kedudukan 8086 dan Pembagian Unit Internal}
+\label{sec:kedudukan-8086}
 
-Mikroprosesor adalah satu chip silikon yang memuat seluruh unit
-pengolah utama komputer. Seluruh program assembly yang ditulis pada
-mata kuliah ini pada akhirnya diterjemahkan menjadi deretan sinyal
-yang mengalir di dalam chip tersebut. Karena itu, memahami arsitektur
-mikroprosesor berarti memahami ``peta jalan'' yang dilalui setiap
-instruksi, sejak diambil dari memori sampai hasilnya ditulis kembali.
+Mikroprosesor 8086 merupakan salah satu prosesor yang menjadi dasar
+pengembangan prosesor sesudahnya. Memahami susunan internalnya
+memberi gambaran tentang bagaimana sebuah instruksi berpindah dari
+memori, diterjemahkan, lalu dijalankan. Bagian ini diringkas dari
+\cite{gunawan2019}, Bagian 1, hlm.~10--11, dan Bagian 2,
+hlm.~12--18, serta \cite{sto2001}, BAB II, hlm.~9--10.
 
-\subsection{Dari 4004 ke 8086}
+\subsection{Dari 8086 ke Prosesor Sesudahnya}
 
-Sejarah mikroprosesor dimulai pada awal dekade 1970-an. Setiap
-generasi menambah lebar kata (\eng{word}), lebar bus alamat, dan
-jumlah transistor, sehingga kemampuan pengalamatan memori meningkat
-pesat. Tabel~\ref{tab:evolusi} merangkum tonggak penting yang
-relevan bagi mata kuliah ini.
+Mikroprosesor 8086 bekerja dengan bus data 16 bit dan mampu
+mengalamatkan memori hingga 1 MB. Varian 8088 memakai inti yang sama
+tetapi bus luarnya 8 bit; varian inilah yang dipakai pada IBM PC
+awal. Prosesor 80286 menambah kemampuan pengalamatan hingga 16 MB,
+sedangkan 80386 memperluas bus data menjadi 32 bit dan ruang alamat
+menjadi 4 GB.
+
+Perkembangan tersebut tidak menghapus konsep dasar yang diperkenalkan
+8086. Register, segmentasi, bus, dan urutan pengambilan instruksi
+tetap menjadi fondasi. Karena itu, 8086 dipakai sebagai model
+pembelajaran: susunannya cukup sederhana untuk dipelajari, tetapi
+sudah memuat konsep utama sebuah prosesor.
 
 \begin{table}[H]
     \centering
-    \caption{Tonggak evolusi mikroprosesor menuju 8086.}
-    \label{tab:evolusi}
+    \caption{Perkembangan singkat prosesor setelah 8086.}
+    \label{tab:generasi-8086}
     \small
-    \begin{tabular}{@{}clccp{4.0cm}@{}}
+    \begin{tabular}{@{}lccp{6.0cm}@{}}
         \toprule
-        \textbf{Tahun} & \textbf{Prosesor} & \textbf{Bus data} &
-        \textbf{Bus alamat} & \textbf{Catatan} \\
+        \textbf{Prosesor} & \textbf{Bus data} &
+        \textbf{Ruang alamat} & \textbf{Catatan} \\
         \midrule
-        1971 & Intel 4004 & 4 bit & 12 bit &
-        Mikroprosesor komersial pertama, untuk kalkulator \\
+        8086 & 16 bit & 1 MB & Dasar arsitektur yang dipelajari \\
         \addlinespace
-        1974 & Intel 8080 & 8 bit & 16 bit &
-        Ruang alamat 64 KB; dasar microcomputer awal \\
+        8088 & 8 bit (luar) & 1 MB & Inti 16 bit, dipakai IBM PC \\
         \addlinespace
-        1978 & Intel 8086 & 16 bit & 20 bit &
-        Ruang alamat 1 MB; dasar keluarga x86 \\
+        80286 & 16 bit & 16 MB & Menambah mode terproteksi \\
         \addlinespace
-        1979 & Intel 8088 & 8 bit (luar) & 20 bit &
-        Inti 16-bit, bus luar 8-bit; dipakai IBM PC \\
-        \addlinespace
-        1982 & Intel 80286 & 16 bit & 24 bit &
-        Menambah \eng{protected mode} dan 16 MB alamat \\
+        80386 & 32 bit & 4 GB & Memperluas register dan bus data \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Dua hal penting terlihat dari Tabel~\ref{tab:evolusi}. Pertama,
-8086 muncul pada 1978 dengan bus data 16-bit dan bus alamat 20-bit.
-Kedua, varian 8088 yang dipakai IBM PC mempertahankan inti 16-bit
-yang sama, hanya menyempitkan bus luar menjadi 8-bit agar cocok
-dengan rangkaian pendukung yang sudah ada saat itu.
+\subsection{Pembagian Internal: BIU dan EU}
 
-\subsection{Mengapa 8086 Masih Dipelajari}
+Keistimewaan 8086 dibandingkan prosesor sebelumnya adalah pembagian
+internal menjadi dua unit yang bekerja bersamaan:
 
-Meskipun usianya sudah lebih dari empat dekade, 8086 tetap dipakai
-sebagai model pembelajaran karena tiga alasan
-\cite{intel1979,stallings2016}.
+\begin{itemize}
+    \item \term{Bus Interface Unit} (BIU), yaitu unit yang mengurus
+          pengalamatan dan lalu lintas data antara prosesor dengan
+          memori serta port.
+    \item \term{Execution Unit} (EU), yaitu unit yang menerjemahkan
+          dan menjalankan instruksi.
+\end{itemize}
 
-\begin{enumerate}
-    \item \textbf{Sederhana namun lengkap.} 8086 sudah memiliki
-          seluruh konsep penting prosesor modern: register, bus,
-          \eng{flag}, segmentasi, dan \eng{pipeline} sederhana,
-          tanpa mekanisme yang rumit seperti \eng{cache} berlapis.
+Pembagian ini memungkinkan BIU mengambil instruksi berikutnya
+sementara EU masih mengerjakan instruksi yang sekarang. Susunan
+kedua unit ditunjukkan pada Gambar~\ref{fig:blok-8086}.
 
-    \item \textbf{Mudah diamati.} Emulator seperti Emu8086
-          memperlihatkan isi register, memori, dan \eng{flag} secara
-          langsung pada setiap langkah eksekusi, sehingga konsep
-          abstrak dapat diverifikasi sendiri oleh mahasiswa.
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        kotak/.style={
+            draw=obeBlue,
+            line width=0.9pt,
+            rounded corners=3pt,
+            align=center,
+            inner sep=4pt,
+            font=\scriptsize
+        },
+        judul/.style={font=\small\bfseries, text=obeBlue}
+    ]
+        % ---------------- EU ----------------
+        \node[kotak, fill=obeBlueLight, minimum width=4.5cm,
+              minimum height=4.9cm] (eu) {};
+        \node[judul, anchor=north] at ([yshift=-5pt]eu.north)
+              {Execution Unit (EU)};
+        \node[kotak, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm] (alu) at ([yshift=-1.35cm]eu.north)
+              {ALU (aritmetika dan logika)};
+        \node[kotak, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of alu] (rgu)
+              {Register umum: AX BX CX DX};
+        \node[kotak, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of rgu] (rgp)
+              {Register penunjuk: SP BP SI DI};
+        \node[kotak, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of rgp] (rfl)
+              {Register flag};
 
-    \item \textbf{Akar keluarga x86.} Seluruh prosesor x86 modern
-          tetap kompatibel ke belakang. Sebuah program 8086 mode real
-          masih dapat dijalankan pada prosesor masa kini melalui mode
-          kompatibilitas \cite{carleton2011}.
-\end{enumerate}
+        % ---------------- BIU ----------------
+        \node[kotak, fill=obeTealLight, draw=obeTeal,
+              minimum width=4.5cm, minimum height=4.9cm,
+              right=1.3cm of eu] (biu) {};
+        \node[judul, text=obeTeal, anchor=north]
+              at ([yshift=-5pt]biu.north)
+              {Bus Interface Unit (BIU)};
+        \node[kotak, draw=obeTeal, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm] (rgs)
+              at ([yshift=-1.35cm]biu.north)
+              {Register segmen: CS DS SS ES};
+        \node[kotak, draw=obeTeal, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of rgs] (rip)
+              {Instruction Pointer (IP)};
+        \node[kotak, draw=obeTeal, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of rip] (ique)
+              {Instruction queue 6 byte};
+        \node[kotak, draw=obeTeal, fill=white, minimum width=3.6cm,
+              minimum height=0.6cm, below=0.28cm of ique] (adder)
+              {Penghitung alamat fisik 20-bit};
 
-\subsection{Arsitektur Internal dan Arsitektur Eksternal}
+        % ---------------- bus internal ----------------
+        \draw[{Stealth[length=2.5mm]}-{Stealth[length=2.5mm]},
+              line width=1.5pt, obeBlue]
+              (eu.east) -- (biu.west)
+              node[midway, above, font=\scriptsize, align=center]
+              {bus\\internal};
 
-Pembahasan arsitektur mikroprosesor dibedakan menjadi dua sudut
-pandang yang harus dipisahkan dengan jelas.
+        % ---------------- bus eksternal ----------------
+        \node[kotak, draw=obeAmber, fill=obeAmberLight,
+              minimum width=5.0cm, minimum height=0.9cm,
+              below=1.1cm of biu] (ext)
+              {Bus alamat, bus data, dan bus kontrol};
+        \draw[{Stealth[length=2.5mm]}-{Stealth[length=2.5mm]},
+              line width=1.3pt, obeAmber]
+              (biu.south) -- (ext.north);
+        \node[kotak, draw=obeGray, fill=obeGrayLight,
+              minimum width=5.0cm, minimum height=0.8cm,
+              below=0.55cm of ext] (mem) {Memori dan port I/O};
+        \draw[{Stealth[length=2.5mm]}-{Stealth[length=2.5mm]},
+              line width=1.1pt, obeGray]
+              (ext.south) -- (mem.north);
+    \end{tikzpicture}
+    \caption{Diagram blok internal mikroprosesor 8086: EU, BIU,
+    \eng{instruction queue}, dan bus eksternal.}
+    \label{fig:blok-8086}
+\end{figure}
 
-\begin{definisi}[Arsitektur internal]
-\term{Arsitektur internal} (\eng{internal architecture}) adalah
-susunan unit fungsional di dalam chip, yaitu register, \eng{ALU},
-unit pengendali, dan saluran data internal. Arsitektur ini menjelaskan
-\emph{bagaimana} prosesor mengolah sebuah instruksi.
-\end{definisi}
+\subsection{Pembagian Tugas}
 
-\begin{definisi}[Arsitektur eksternal]
-\term{Arsitektur eksternal} (\eng{external architecture}) adalah
-tampak luar chip, yaitu jumlah dan fungsi pin, kelompok bus, serta
-sinyal kendali yang menghubungkannya dengan memori dan perangkat
-I/O. Arsitektur ini menjelaskan \emph{bagaimana} prosesor berbicara
-dengan dunia luar.
-\end{definisi}
+Tabel~\ref{tab:biu-eu} merangkum pembagian tugas kedua unit. Secara
+ringkas, BIU mengurus hubungan dengan dunia luar, sedangkan EU
+mengurus pengolahan di dalam chip.
 
-Kedua sudut pandang tersebut saling melengkapi. Seorang programmer
-assembly lebih sering berhadapan dengan arsitektur internal karena
-ia menuliskan nama register. Sebaliknya, seorang perancang sistem
-digital lebih banyak bekerja pada arsitektur eksternal karena ia
-harus menyambungkan pin \reg{A0}--\reg{A19}, \reg{AD0}--\reg{AD15},
-dan sinyal kendali ke rangkaian lain.
+\begin{table}[H]
+    \centering
+    \caption{Pembagian tugas Bus Interface Unit dan Execution Unit.}
+    \label{tab:biu-eu}
+    \small
+    \begin{tabular}{@{}p{3.2cm}p{5.4cm}p{5.2cm}@{}}
+        \toprule
+        \textbf{Aspek} & \textbf{Bus Interface Unit (BIU)} &
+        \textbf{Execution Unit (EU)} \\
+        \midrule
+        Tugas utama & Mengambil instruksi dan data, serta menangani
+        lalu lintas bus & Menerjemahkan dan menjalankan instruksi \\
+        \addlinespace
+        Komponen utama & Register segmen, IP, \eng{queue} instruksi,
+        penghitung alamat & ALU, register umum, register penunjuk,
+        register \eng{flag}, decoder \\
+        \addlinespace
+        Akses bus luar & Berwenang penuh & Tidak langsung; meminta
+        melalui BIU \\
+        \addlinespace
+        Perhitungan alamat & Menghitung alamat fisik dari
+        \eng{segment:offset} & Menghitung alamat efektif operand \\
+        \addlinespace
+        Saat EU sibuk & Mengisi \eng{queue} dengan instruksi
+        berikutnya & Menjalankan instruksi yang sudah diterima \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \begin{infobox}
-Kesalahan pemahaman yang sering muncul adalah menganggap register
-sebagai ``kotak di memori''. Register sebenarnya berada di dalam
-chip, bukan di memori, dan jumlahnya sangat sedikit. Bab ini membahas
-kedua sisi arsitektur tersebut secara berurutan: sisi internal pada
-Bagian~\ref{sec:biu-eu}, sisi eksternal pada Bagian~\ref{sec:bus-siklus}.
+\vspace{1.1em}
+Pemisahan tugas ini penting. EU tidak berhubungan langsung dengan
+bus luar. Ketika sebuah instruksi membutuhkan operand dari memori,
+EU mengirim permintaan alamat ke BIU, lalu BIU menjalankan pertukaran
+data melalui bus dan menyerahkan hasilnya kembali.
 \end{infobox}
 
-\subsection{Kotak Hitam: Cara Pandang Sederhana}
-
-Sebelum masuk ke diagram blok yang rinci, prosesor dapat dipandang
-sebagai sebuah kotak hitam. Ke luar, kotak itu hanya berhubungan
-melalui empat kelompok saluran: bus alamat 20-bit, bus data 16-bit,
-bus kontrol, dan sumber catuan serta pewaktu. Setiap instruksi yang
-dijalankan pasti melibatkan pertukaran informasi melalui saluran
-tersebut. Isi kotak itulah yang dibahas pada bagian berikutnya.
+\begin{aktivitasbox}
+\vspace{1.1em}
+Sebelum melanjutkan, jawab pertanyaan berikut pada buku catatan.
+\begin{enumerate}
+    \item Mengapa pengambilan instruksi dan eksekusi instruksi
+          sebaiknya dikerjakan oleh unit yang berbeda?
+    \item Menurut Anda, pekerjaan apa yang harus menunggu ketika BIU
+          sedang membaca data dari memori?
+\end{enumerate}
+\end{aktivitasbox}

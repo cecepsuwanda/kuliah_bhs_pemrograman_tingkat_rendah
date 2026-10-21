@@ -4,79 +4,64 @@
 \subsection{Soal Pilihan Ganda}
 
 \begin{enumerate}
-    \item Hubungan antara satu instruksi assembly dan instruksi mesin
-          yang dihasilkannya adalah \dots
+    \item Bilangan biner adalah bilangan yang berbasis \dots
           \begin{enumerate}
-              \item satu instruksi assembly dapat menghasilkan banyak
-                    instruksi mesin
-              \item satu instruksi assembly menghasilkan tepat satu
-                    instruksi mesin
-              \item banyak instruksi assembly menghasilkan satu
-                    instruksi mesin
-              \item tidak ada hubungan tetap di antara keduanya
+              \item 2 dengan digit 0 dan 1
+              \item 8 dengan digit 0 sampai 7
+              \item 10 dengan digit 0 sampai 9
+              \item 16 dengan digit 0 sampai F
           \end{enumerate}
 
-    \item Berkas keluaran yang dihasilkan langsung oleh assembler
-          TASM adalah \dots
+    \item Nilai desimal dari \bin{1010} adalah \dots
           \begin{enumerate}
-              \item \file{.asm} \item \file{.obj}
-              \item \file{.exe} \item \file{.lst}
+              \item 8 \item 10 \item 12 \item 16
           \end{enumerate}
 
-    \item Pada program \file{.COM}, direktif yang wajib ditulis di
-          awal segmen kode adalah \dots
+    \item Nilai desimal dari \hex{F3} adalah \dots
           \begin{enumerate}
-              \item \dir{.MODEL SMALL} \item \dir{ORG 100h}
-              \item \dir{.STACK 100h} \item \dir{ASSUME CS:CODE}
+              \item 153 \item 243 \item 253 \item 263
           \end{enumerate}
 
-    \item Instruksi \lstasm|MOV AX, @DATA| diikuti
-          \lstasm|MOV DS, AX| diperlukan karena \dots
+    \item Pola 8 bit \bin{11111111} sebagai bilangan bertanda
+          bernilai \dots
           \begin{enumerate}
-              \item 8086 tidak mengizinkan nilai segera langsung ke
-                    register segmen
-              \item \reg{AX} adalah satu-satunya register yang boleh
-                    menampung alamat
-              \item DOS selalu mengosongkan \reg{DS} saat program
-                    dimuat
-              \item linker memerlukan nilai pada \reg{AX}
+              \item 255 \item 127 \item $-1$ \item $-128$
           \end{enumerate}
 
-    \item Fungsi layanan DOS untuk mengakhiri program adalah \dots
+    \item Penulisan heksadesimal yang benar pada assembler adalah
+          \dots
           \begin{enumerate}
-              \item \hex{09} \item \hex{02}
-              \item \hex{4C} \item \hex{01}
+              \item \code{A12H} \item \code{0A12H}
+              \item \code{A12} \item \code{0A12D}
           \end{enumerate}
 \end{enumerate}
 
 \subsection{Soal Uraian}
 
 \begin{enumerate}
-    \item Gambarkan diagram rantai proses dari berkas \file{.asm}
-          sampai program berjalan di memori. Jelaskan tugas setiap
-          tahap dan sebutkan perangkat lunak yang berperan pada
-          masing-masing tahap.
+    \item Ubah 200 desimal menjadi biner, oktal, dan heksadesimal.
+          Tuliskan langkah pembagian dan pengelompokan bit yang Anda
+          gunakan.
 
-    \item Jelaskan mengapa program \file{.COM} tidak memerlukan
-          inisialisasi \reg{DS}, sedangkan program \file{.EXE}
-          memerlukannya. Kaitkan jawaban Anda dengan cara DOS
-          memuat kedua bentuk program tersebut.
+    \item Jelaskan perbedaan bilangan bertanda dan tidak bertanda pada
+          8 bit. Tentukan bentuk \eng{two's complement} dari $-37$ dan
+          periksa hasilnya dengan menghitung nilai tidak bertandanya.
 
-    \item Sebuah program \file{.EXE} dirakit tanpa kesalahan, tetapi
-          saat dijalankan hanya menampilkan karakter sampah.
-          Sebutkan tiga kemungkinan penyebab dan langkah pemeriksaan
-          untuk masing-masing penyebab.
+    \item Pola \hex{F3} dapat berarti 243 atau $-13$. Jelaskan mengapa
+          hal itu mungkin, dan sebutkan peran \eng{Sign Flag} serta
+          jenis instruksi dalam menentukan tafsirnya.
 
-    \item Tuliskan program lengkap yang mencetak dua baris teks:
-          nama Anda pada baris pertama dan NIM Anda pada baris kedua.
-          Gunakan layanan DOS \code{INT 21h} fungsi \hex{09}.
+    \item Tulislah potongan segmen data yang mendefinisikan 156 dalam
+          bentuk desimal, biner, dan heksadesimal, ditambah karakter
+          \code{'Z'}. Prediksikan isi memori yang tampil pada DEBUG,
+          lalu jelaskan setiap byte.
 \end{enumerate}
 
 \subsection{Kisi-kisi Penilaian}
 
 \begin{table}[H]
     \centering
-    \caption{Kisi-kisi evaluasi Bab~\ref{chap:pengenalan}.}
+    \caption{Kisi-kisi evaluasi Bab~\ref{chap:pengantar-assembly}.}
     \label{tab:kisi-bab3}
     \small
     \begin{tabular}{@{}p{1.5cm}p{5.0cm}p{2.6cm}c@{}}
@@ -84,36 +69,39 @@
         \textbf{Sub-CPMK} & \textbf{Indikator yang diukur} &
         \textbf{Bentuk soal} & \textbf{Bobot} \\
         \midrule
-        1.1 & Menjelaskan tingkat abstraksi bahasa dan peran assembly &
-        Pilihan ganda 1, 2 & 15\% \\
+        1.1 & Menjelaskan tingkat bahasa dan peran assembly &
+        Pilihan ganda 1 & 15\% \\
         \addlinespace
-        1.1 & Menjelaskan rantai proses dan tugas assembler/linker &
-        Uraian 1 & 25\% \\
+        1.1 & Mengonversi bilangan antar basis &
+        Pilihan ganda 2, 3; Uraian 1 & 25\% \\
         \addlinespace
-        1.1 & Menganalisis struktur program dan inisialisasi segmen &
-        Pilihan ganda 3, 4; Uraian 2 & 30\% \\
+        1.1 & Membedakan bilangan bertanda dan tidak bertanda &
+        Pilihan ganda 4; Uraian 2, 3 & 30\% \\
         \addlinespace
-        1.1 & Menulis dan menelusuri kesalahan program sederhana &
-        Uraian 3, 4; Pilihan ganda 5 & 30\% \\
+        1.1 & Menulis literal dan menafsirkan isi memori &
+        Pilihan ganda 5; Uraian 4 & 30\% \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \begin{checklistbox}
-\textbf{Checklist Pencapaian Kompetensi Bab~\ref{chap:pengenalan}}
+\vspace{1.1em}
+\textbf{Checklist Pencapaian Kompetensi
+Bab~\ref{chap:pengantar-assembly}}
 
 Seorang mahasiswa dinyatakan kompeten pada Sub-CPMK 1.1 apabila:
 \begin{itemize}
     \item[\checked] dapat menjelaskan kedudukan bahasa assembly di
           antara bahasa mesin dan bahasa tingkat tinggi;
-    \item[\checked] dapat menguraikan tahapan \file{.asm} $\rightarrow$
-          \file{.obj} $\rightarrow$ \file{.exe} beserta peran setiap
-          perangkat lunak;
-    \item[\checked] dapat menuliskan kerangka program assembly
-          minimal beserta alasan setiap direktifnya;
-    \item[\checked] berhasil merakit dan menjalankan program pertama
-          dengan keluaran yang benar;
-    \item[\checked] dapat menjelaskan peran inisialisasi \reg{DS} dan
-          akibat bila dihilangkan.
+    \item[\checked] dapat mengonversi bilangan biner, oktal, desimal,
+          dan heksadesimal dengan langkah yang benar;
+    \item[\checked] dapat menuliskan literal bilangan yang diterima
+          assembler, termasuk penggunaan nol di depan;
+    \item[\checked] dapat membentuk dan menafsirkan
+          \eng{two's complement};
+    \item[\checked] dapat menjelaskan hubungan kode ASCII dengan data
+          yang disimpan di memori;
+    \item[\checked] dapat membaca dan menjelaskan hasil pemeriksaan
+          memori dengan DEBUG.
 \end{itemize}
 \end{checklistbox}

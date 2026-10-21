@@ -9,50 +9,57 @@ Pada bab ini telah dibahas:
           Bahasa assembly berada tepat di atas bahasa mesin dan
           bersifat \eng{one-to-one} terhadapnya.
 
-    \item Pemrograman tingkat rendah dipakai ketika dibutuhkan
-          kendali penuh atas perangkat keras, ukuran dan kecepatan
-          kode yang optimal, serta pemahaman mendalam untuk analisis
-          dan keamanan.
+    \item Bahasa assembly tetap dipakai ketika dibutuhkan kendali
+          langsung atas perangkat keras, ukuran program yang kecil,
+          serta pemahaman cara kerja prosesor pada level instruksi.
 
-    \item Rantai proses program assembly terdiri atas penyuntingan
-          (\file{.asm}), perakitan oleh assembler (menjadi
-          \file{.obj}), pengaitan oleh linker (menjadi \file{.exe}),
-          lalu pemuatan oleh \eng{loader} ke memori.
+    \item Bahasa assembly 8086 mengenal bilangan biner, oktal,
+          desimal, dan heksadesimal. Setiap basis mempunyai aturan
+          digit dan bobot posisi yang berbeda.
 
-    \item Lingkungan kerja yang dipakai adalah Emu8086, GUI Turbo
-          Assembler, dan DOSBox. Ketiganya tersedia bebas dan
-          memiliki kelebihan masing-masing.
+    \item Konversi dapat dilakukan dengan menjumlahkan bobot posisi,
+          membagi berulang dengan basis tujuan, atau mengelompokkan
+          bit menjadi tiga bit untuk oktal dan empat bit untuk
+          heksadesimal.
 
-    \item Struktur program assembly minimal memuat \dir{.MODEL},
-          \dir{.STACK}, \dir{.DATA}, \dir{.CODE}, label titik masuk,
-          dan \dir{END}.
+    \item Assembler menerima literal desimal tanpa akhiran atau
+          dengan akhiran \code{D}, biner dengan akhiran \code{B}, dan
+          heksadesimal dengan akhiran \code{H}. Heksadesimal yang
+          diawali huruf A--F harus diberi nol di depan.
 
-    \item Program \file{.EXE} wajib menginisialisasi register
-          \reg{DS} melalui \lstasm|MOV AX, @DATA| dan
-          \lstasm|MOV DS, AX|, sedangkan program \file{.COM} tidak.
+    \item Bilangan tidak bertanda memakai seluruh bit sebagai
+          besaran. Bilangan bertanda memakai bit paling kiri sebagai
+          bit tanda dan sisanya mengikuti aturan
+          \eng{two's complement}.
 
-    \item Pola dasar interaksi dengan sistem operasi adalah:
-          siapkan argumen pada register, panggil layanan melalui
-          \code{INT 21h}, lalu akhiri program dengan fungsi
-          \hex{4C}.
+    \item Pola bit yang sama dapat ditafsirkan berbeda. \hex{F3}
+          berarti 243 sebagai bilangan tidak bertanda dan $-13$
+          sebagai bilangan bertanda 8 bit.
+
+    \item Karakter disimpan sebagai kode ASCII satu byte. \code{'A'}
+          disimpan sebagai \hex{41}, sehingga data karakter dan data
+          bilangan dapat diperiksa dengan cara yang sama di memori.
 \end{itemize}
 
 \begin{checklistbox}
+\vspace{1.1em}
 Tandai setiap butir yang sudah Anda kuasai.
 
 \begin{itemize}
-    \item[\checkbox] Saya dapat menjelaskan perbedaan bahasa tingkat
-          tinggi dan tingkat rendah beserta contohnya.
-    \item[\checkbox] Saya dapat menjelaskan peran assembler, linker,
-          dan \eng{loader} dalam rantai proses.
-    \item[\checkbox] Saya dapat menyebutkan perbedaan program
-          \file{.COM} dan \file{.EXE}.
-    \item[\checkbox] Lingkungan kerja (Emu8086, GUI TASM, DOSBox)
-          sudah terpasang dan dapat dijalankan.
-    \item[\checkbox] Saya dapat menulis, merakit, dan menjalankan
-          program yang mencetak teks ke layar.
-    \item[\checkbox] Saya dapat menjelaskan mengapa \reg{DS} harus
-          diinisialisasi pada program \file{.EXE}.
+    \item[\checkbox] Saya dapat menjelaskan tiga tingkat bahasa
+          pemrograman dan kedudukan assembly.
+    \item[\checkbox] Saya dapat mengonversi bilangan biner, oktal,
+          desimal, dan heksadesimal.
+    \item[\checkbox] Saya dapat menuliskan literal bilangan yang
+          diterima assembler, termasuk nol di depan heksadesimal.
+    \item[\checkbox] Saya dapat membedakan bilangan bertanda dan
+          tidak bertanda.
+    \item[\checkbox] Saya dapat membentuk \eng{two's complement} dan
+          menafsirkan pola bit seperti \hex{F3}.
+    \item[\checkbox] Saya dapat menjelaskan hubungan kode ASCII dengan
+          isi memori.
+    \item[\checkbox] Saya dapat membaca hasil \file{d ds:0} pada DEBUG
+          dan menjelaskan setiap byte.
 \end{itemize}
 
 \vspace{0.4em}
@@ -61,8 +68,9 @@ bersesuaian sebelum melanjutkan ke bab berikutnya.
 \end{checklistbox}
 
 \begin{infobox}
-\textbf{Rujukan bab.} Materi pada bab ini diperkuat oleh
-\cite{intel1979}, \cite{courses2103}, \cite{carleton2011}, dan
-\cite{emu8086help}. Untuk penelusuran lebih dalam mengenai struktur
-program \file{.COM} dan \file{.EXE}, lihat \cite{hyde2010}.
+\vspace{1.1em}
+\textbf{Rujukan bab.} Materi pada bab ini diringkas dari
+\cite{gunawan2019}, Bagian 1, hlm.~10--11 dan Bagian 14.1,
+hlm.~127--128, serta \cite{sto2001}, BAB I, hlm.~6--8, BAB V,
+hlm.~23--24, dan BAB XV, hlm.~78.
 \end{infobox}

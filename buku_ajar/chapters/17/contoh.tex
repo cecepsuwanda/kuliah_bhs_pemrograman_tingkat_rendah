@@ -1,94 +1,103 @@
 \section{Contoh Penilaian Proyek Akhir}
 \label{sec:contoh-bab17}
 
-Agar rubrik pada Tabel~\ref{tab:rubrik-proyek} tidak menjadi
-dokumen yang abstrak, berikut contoh penerapannya pada satu proyek.
+Agar rubrik pada Tabel~\ref{tab:rubrik-proyek} tidak abstrak, berikut
+dua contoh penerapannya.
 
-\subsection{Deskripsi Proyek yang Dinilai}
+\subsection{Contoh 1: Proyek Kalkulator}
 
-Seorang mahasiswa mengerjakan Pilihan 1, yaitu kalkulator dengan
-validasi masukan. Proyeknya memuat:
+Mahasiswa mengerjakan pilihan kalkulator sederhana. Proyek memuat:
 
 \begin{itemize}
-    \item prosedur \code{BacaAngka} yang membaca string masukan
-          dengan \code{INT 21h} fungsi \hex{0A} lalu mengubahnya
-          menjadi nilai biner;
+    \item prosedur \code{BacaAngka} yang membaca masukan dengan
+          \code{INT 21h} fungsi \hex{0A} dan mengubahnya menjadi
+          nilai biner;
     \item prosedur \code{Hitung} yang menerima dua parameter melalui
-          stack beserta kode operator, lalu mengembalikan hasil pada
-          \reg{AX} dan \reg{DX};
-    \item prosedur \code{TulisAngka} yang mengubah hasil biner
-          kembali menjadi deretan digit dan mencetaknya;
-    \item penanganan pembagian dengan nol yang mencetak pesan
-          kesalahan dan kembali ke menu.
+          stack dan mengembalikan hasil pada \reg{AX};
+    \item prosedur \code{TulisAngka} yang mengubah hasil menjadi
+          digit desimal dan mencetaknya;
+    \item penanganan pembagian dengan nol.
 \end{itemize}
-
-\subsection{Penerapan Rubrik}
-
-Tabel~\ref{tab:contoh-penilaian} memperlihatkan cara pemberian skor
-beserta alasan yang harus dituliskan penilai. Kolom alasan inilah
-yang membuat penilaian dapat dipertanggungjawabkan.
 
 \begin{table}[H]
     \centering
-    \caption{Contoh penerapan rubrik proyek akhir.}
-    \label{tab:contoh-penilaian}
+    \caption{Contoh penerapan rubrik pada proyek kalkulator.}
+    \label{tab:contoh-penilaian-kalkulator}
     \footnotesize
     \begin{tabular}{@{}p{2.9cm}cp{7.6cm}@{}}
         \toprule
         \textbf{Kriteria} & \textbf{Skor} & \textbf{Alasan} \\
         \midrule
         Kebenaran fungsi & 4 &
-        Empat operasi berjalan benar; pembagian dengan nol ditangani
-        dengan pesan kesalahan; masukan bukan angka ditolak \\
+        Empat operasi berjalan; pembagian nol ditangani dengan pesan \\
         \addlinespace
         Kualitas kode & 3 &
-        Prosedur terpisah dengan baik, tetapi prosedur
-        \code{TulisAngka} memiliki tiga baris yang berulang dan tidak
-        dijadikan subprosedur \\
+        Prosedur terpisah, tetapi sebagian komentar belum lengkap \\
         \addlinespace
-        Penggunaan instruksi & 4 &
-        Perkalian pangkat dua memakai \asm{SHL} alih-alih
-        \asm{MUL}; mode \eng{base-relative} dipakai untuk menelusuri
-        array digit \\
+        Instruksi dan pengalamatan & 4 &
+        Parameter diakses dengan \code{[BP+4]} dan \code{[BP+6]};
+        pencetakan memakai \asm{DIV} dan \asm{LOOP} \\
         \addlinespace
         Pengujian dan \eng{debugging} & 3 &
-        Tabel \eng{trace} disertakan untuk dua dari tiga bug; satu
-        bug terakhir ditemukan dengan bantuan dosen \\
+        Tabel \eng{trace} tersedia untuk dua dari tiga bug \\
         \addlinespace
         Laporan dan presentasi & 4 &
-        Laporan memuat rancangan, kendala, dan bukti pengujian;
-        presentasi menjelaskan alasan pemilihan mode pengalamatan \\
+        Laporan lengkap; presentasi menjelaskan keputusan teknis \\
         \midrule
         \textbf{Rata-rata} & \textbf{3{,}6} &
-        Setara dengan kategori ``baik'' menuju ``sangat baik'' \\
+        Kategori ``baik'' menuju ``sangat baik'' \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\subsection{Pelajaran dari Contoh}
+\subsection{Contoh 2: Proyek Pengolah Array dan String}
 
-Tiga hal dapat dipelajari dari contoh di atas.
+Mahasiswa mengerjakan pilihan pengolah array/string. Proyek memuat:
 
-\begin{enumerate}
-    \item \textbf{Skor tertinggi tidak menuntut proyek yang paling
-          rumit.} Proyek sederhana yang dikerjakan dengan benar dan
-          didokumentasikan dengan baik memperoleh nilai lebih tinggi
-          daripada proyek rumit yang tidak dapat dijelaskan.
+\begin{itemize}
+    \item prosedur \code{JumlahArray} yang menerima alamat dan cacah
+          elemen melalui stack;
+    \item prosedur \code{SalinString} yang menyalin string sampai
+          penanda \code{'\$'};
+    \item prosedur \code{TulisDesimal} untuk mencetak hasil;
+    \item pengujian dengan array kosong, satu elemen, dan banyak
+          elemen.
+\end{itemize}
 
-    \item \textbf{Alasan harus dituliskan.} Rubrik tanpa alasan
-          hanya menghasilkan angka; rubrik dengan alasan
-          menghasilkan umpan balik yang dapat ditindaklanjuti.
-
-    \item \textbf{Bukti menentukan.} Kriteria pengujian dan
-          \eng{debugging} tidak dapat dinilai tanpa tabel
-          \eng{trace} dan catatan bug. Inilah alasan jurnal
-          praktikum wajib dipelihara sejak pertemuan pertama.
-\end{enumerate}
+\begin{table}[H]
+    \centering
+    \caption{Contoh penerapan rubrik pada proyek array/string.}
+    \label{tab:contoh-penilaian-array}
+    \footnotesize
+    \begin{tabular}{@{}p{2.9cm}cp{7.6cm}@{}}
+        \toprule
+        \textbf{Kriteria} & \textbf{Skor} & \textbf{Alasan} \\
+        \midrule
+        Kebenaran fungsi & 3 &
+        Penjumlahan dan penyalinan benar; array kosong belum ditangani \\
+        \addlinespace
+        Kualitas kode & 4 &
+        Prosedur jelas, komentar lengkap, tidak ada duplikasi \\
+        \addlinespace
+        Instruksi dan pengalamatan & 4 &
+        \reg{SI} dan \reg{DI} dipakai tepat; \asm{LOOP} dan
+        \asm{CMP} sesuai \\
+        \addlinespace
+        Pengujian dan \eng{debugging} & 4 &
+        Tabel \eng{trace} dan \eng{dump} mendukung semua temuan \\
+        \addlinespace
+        Laporan dan presentasi & 3 &
+        Laporan lengkap; presentasi cukup jelas \\
+        \midrule
+        \textbf{Rata-rata} & \textbf{3{,}6} &
+        Kategori ``baik'' menuju ``sangat baik'' \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \begin{infobox}
-Perhatikan bahwa seluruh kriteria pada rubrik berasal dari CPMK.
-Kriteria ``penggunaan instruksi'' misalnya berasal dari \CPMK{02},
-sedangkan ``kebenaran fungsi'' dan ``kualitas kode'' berasal dari
-\CPMK{03}. Tidak ada kriteria yang tidak dapat ditelusuri ke CPMK
---- inilah yang dimaksud dengan asesmen berbasis OBE.
+\vspace{1.1em}
+Skor tertinggi tidak menuntut proyek paling rumit. Proyek sederhana
+yang benar, teruji, dan terdokumentasi lebih baik daripada proyek
+rumit yang tidak dapat dijelaskan.
 \end{infobox}
