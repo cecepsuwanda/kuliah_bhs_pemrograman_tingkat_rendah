@@ -1,0 +1,194 @@
+\section{Modul 01. Keluaran}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item mencetak satu karakter dengan \texttt{INT 21h} fungsi
+          \texttt{AH=02h};
+    \item mencetak satu kalimat dengan \texttt{INT 21h} fungsi
+          \texttt{AH=09h};
+    \item menyusun string dengan direktif \texttt{DB} yang diakhiri
+          \texttt{\$} dan memuat \texttt{0Dh}, \texttt{0Ah};
+    \item menjelaskan perbedaan penyiapan \texttt{DS} pada program
+          \texttt{.COM} dan \texttt{.EXE};
+    \item merakit, menautkan, dan menjalankan kedua program dengan
+          TASM dan TLINK.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Layanan 02h: mencetak satu karakter}
+
+Layanan \texttt{AH=02h} mencetak satu karakter ke layar. Sebelum
+\texttt{INT 21h}, nomor layanan diletakkan pada \texttt{AH} dan
+karakter yang dicetak diletakkan pada \texttt{DL}. Karena
+\texttt{DL} hanya 8 bit, satu panggilan layanan ini hanya membawa
+satu karakter. Karakter dapat ditulis sebagai literal, misalnya
+\texttt{'A'}, atau sebagai kode ASCII, misalnya \texttt{41h}.
+Setelah karakter tercetak, kursor bergerak satu posisi ke kanan.
+Layanan ini tidak mengubah warna dan tidak memakai perulangan.
+
+\subsubsection*{Layanan 09h: mencetak satu kalimat}
+
+Layanan \texttt{AH=09h} mencetak deretan karakter yang ditunjuk
+pasangan \texttt{DS:DX}. Sebelum \texttt{INT 21h}, \texttt{DX} diisi
+alamat offset string dan \texttt{AH} diisi \texttt{09h}. String
+didefinisikan pada segmen data dengan tipe \texttt{DB}, lalu diakhiri
+tanda \texttt{\$}. Tanda \texttt{\$} adalah penanda akhir dan tidak
+ikut tercetak; DOS berhenti mencetak begitu menemukannya.
+
+Karakter \texttt{0Dh} mengembalikan kursor ke awal baris, sedangkan
+\texttt{0Ah} menurunkannya satu baris. Bila keduanya diletakkan
+sebelum \texttt{\$}, kalimat berikutnya dimulai pada baris baru.
+Ringkasan karakter yang dipakai pada modul ini ditunjukkan pada
+Tabel~\ref{tab:m01-kontrol}.
+
+\begin{table}[h]
+    \centering
+    \caption{Karakter kendali dan penanda akhir string.}
+    \label{tab:m01-kontrol}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Nilai} & \textbf{Nama} & \textbf{Akibat} \\
+        \midrule
+        \texttt{0Dh} & \emph{carriage return} &
+        kursor kembali ke awal baris \\
+        \texttt{0Ah} & \emph{line feed} &
+        kursor turun satu baris \\
+        \texttt{24h} & tanda \texttt{\$} &
+        akhir string; tidak ikut dicetak \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Satu string boleh ditulis dalam beberapa baris \texttt{DB}; assembler
+menyimpannya berurutan. Tanda \texttt{\$} cukup ditulis sekali, pada
+potongan terakhir.
+
+\subsubsection*{Register, segmen, dan pemilihan layanan}
+
+Layanan \texttt{02h} dan \texttt{09h} sama-sama dipanggil dengan
+\texttt{INT 21h}, tetapi register yang disiapkan berbeda. Perbedaan
+itu dirangkum pada Tabel~\ref{tab:m01-layanan}. Nomor layanan pada
+\texttt{AH} harus ditulis sebelum setiap panggilan.
+
+\begin{table}[h]
+    \centering
+    \caption{Persiapan register untuk layanan keluaran.}
+    \label{tab:m01-layanan}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Layanan} & \textbf{Register masukan} &
+        \textbf{Keluaran} \\
+        \midrule
+        \texttt{AH=02h} & \texttt{DL} = satu karakter &
+        satu karakter di layar \\
+        \texttt{AH=09h} & \texttt{DS:DX} = alamat string &
+        kalimat sampai tanda \texttt{\$} \\
+        \texttt{AH=4Ch} & \texttt{AL} = kode keluar &
+        program berakhir \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Pada program \texttt{.COM}, DOS sudah menetapkan \texttt{DS} ke
+segmen program. Pada program \texttt{.EXE}, \texttt{DS} belum
+menunjuk segmen data, sehingga harus diisi dengan
+\texttt{MOV AX,@DATA} lalu \texttt{MOV DS,AX}. Operator
+\texttt{OFFSET} menghasilkan alamat offset variabel untuk \texttt{DX}.
+
+Bila tanda \texttt{\$} lupa ditulis, DOS terus mencetak isi memori di
+belakang string. Pastikan \texttt{\$} berada sesudah \texttt{0Dh},
+\texttt{0Ah} yang ingin dicetak.
+
+Rujukan singkat: Gunawan, Bagian 6.1 dan 6.4; S'to, Bab VII dan XII;
+buku ajar, berkas \texttt{hello.asm} dan \texttt{chapters/07}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m01-cetak-karakter.asm} dan
+          \texttt{code/m01-cetak-kalimat.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama mencetak satu karakter dengan layanan \texttt{02h}.
+Program ini berbentuk \texttt{.COM}, sehingga tidak mengisi
+\texttt{DS} dan tidak memerlukan pola \texttt{JMP MULAI}.
+
+\lstinputlisting[
+    caption={Mencetak satu karakter dengan \texttt{AH=02h}.},
+    label={lst:m01-karakter}
+]{code/m01-cetak-karakter.asm}
+
+Program kedua mencetak dua baris dengan layanan \texttt{09h}.
+Program ini berbentuk \texttt{.EXE}, sehingga \texttt{DS} diisi lebih
+dahulu; \texttt{PESAN} memuat \texttt{0Dh}, \texttt{0Ah} sebelum
+tanda \texttt{\$}.
+
+\lstinputlisting[
+    caption={Mencetak kalimat dengan \texttt{AH=09h}.},
+    label={lst:m01-kalimat}
+]{code/m01-cetak-kalimat.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas
+          \texttt{.asm} ke dalamnya.
+    \item Rakit dan tautkan program pertama:
+          \texttt{tasm m01-cetak-karakter.asm}, lalu
+          \texttt{tlink /t m01-cetak-karakter.obj}. Jalankan
+          hasilnya dan catat keluarannya.
+    \item Rakit dan tautkan program kedua. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m01-cetak-kalimat.asm}\\
+          \texttt{tlink m01-cetak-kalimat.obj}
+          \end{quote}
+          Jalankan hasilnya dan catat keluarannya.
+    \item Ubah karakter pada program pertama dari \texttt{'A'} menjadi
+          huruf lain, rakit ulang, lalu jalankan. Jelaskan bagian mana
+          yang berubah.
+    \item Ubah salah satu kalimat pada \texttt{PESAN}, lalu tambahkan
+          satu pasang \texttt{0Dh}, \texttt{0Ah} sebelum \texttt{\$}.
+          Rakit ulang dan bandingkan keluarannya.
+    \item Periksa program kedua dengan DEBUG: jalankan
+          \texttt{debug m01-cetak-kalimat.exe}, ketik \texttt{r},
+          lalu \texttt{d ds:0 L 40}. Temukan string \texttt{PESAN}
+          dan byte \texttt{24h} pada hasil pemeriksaan, lalu keluar
+          dengan \texttt{q}.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan tugas \texttt{AH} dan \texttt{DL} pada layanan
+          \texttt{02h}.
+    \item Jelaskan mengapa layanan \texttt{09h} memerlukan
+          \texttt{DS:DX}, sedangkan \texttt{02h} tidak.
+    \item Tentukan keluaran yang terjadi bila tanda \texttt{\$}
+          dihapus dari string, lalu jelaskan alasannya.
+    \item Jelaskan perbedaan penyiapan \texttt{DS} pada
+          \texttt{.COM} dan \texttt{.EXE}.
+    \item Ubah program kedua agar mencetak nama lengkap Anda pada
+          baris pertama dan nama modul pada baris kedua. Tentukan
+          letak tanda \texttt{\$} yang benar.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tangkapan layar keluaran program pertama dan program kedua.
+    \item Tangkapan layar DEBUG yang memperlihatkan string dan byte
+          \texttt{24h}.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}

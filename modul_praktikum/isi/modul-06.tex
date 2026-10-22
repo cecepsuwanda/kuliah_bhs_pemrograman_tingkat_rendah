@@ -1,0 +1,176 @@
+\section{Modul 06. Prosedur, fungsi, dan macro}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item mendefinisikan prosedur dengan \texttt{PROC} dan
+          \texttt{ENDP};
+    \item memanggil prosedur dengan \texttt{CALL} dan mengakhirinya
+          dengan \texttt{RET};
+    \item menyampaikan parameter ke prosedur melalui register;
+    \item menjelaskan fungsi sebagai prosedur yang mengembalikan nilai
+          di \texttt{AL} atau \texttt{AX};
+    \item mendefinisikan dan memakai macro dengan \texttt{MACRO} dan
+          \texttt{ENDM};
+    \item merakit dan menjalankan program yang memakai prosedur,
+          fungsi, dan macro.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Prosedur dan pemanggilan}
+
+Prosedur adalah sekelompok instruksi bernama yang dapat dipanggil
+dari bagian lain program. Prosedur didefinisikan dengan \texttt{PROC}
+dan diakhiri \texttt{ENDP}. Pemanggil memakai \texttt{CALL}, sedangkan
+prosedur mengakhiri dirinya dengan \texttt{RET}. \texttt{CALL}
+menyimpan alamat kembali di stack, dan \texttt{RET} mengambil alamat
+itu. Pada modul ini \texttt{RET} ditulis tanpa angka.
+
+Data disampaikan ke prosedur melalui register. Pemanggil mengisi
+register sebelum \texttt{CALL}, dan prosedur membaca register itu.
+Pada program pertama, \texttt{DX} berisi alamat string yang akan
+dicetak. Prosedur yang sama dapat dipanggil berkali-kali dengan isi
+\texttt{DX} yang berbeda, sehingga keluarannya berbeda pula.
+
+\subsubsection*{Fungsi}
+
+Fungsi adalah prosedur yang mengembalikan nilai di \texttt{AL} atau
+\texttt{AX}. Selain menyiapkan register masukan, pemanggil juga harus
+membaca register hasil setelah \texttt{CALL} kembali. Pada program
+kedua, \texttt{AL} dipakai sebagai register masukan sekaligus
+register hasil: nilai awal diletakkan di \texttt{AL}, fungsi
+menambahkan 3, lalu hasilnya dibaca dari \texttt{AL}.
+
+Karena prosedur dan pemanggil berbagi register, pemanggil perlu
+mengetahui register mana yang dipakai untuk parameter dan mana yang
+dipakai untuk hasil. Register lain yang tidak disepakati sebaiknya
+tidak diandalkan tetap bernilai sama setelah pemanggilan.
+
+\subsubsection*{Macro}
+
+Macro didefinisikan dengan \texttt{MACRO} dan diakhiri \texttt{ENDM}.
+Berbeda dari prosedur, macro tidak dipanggil dengan \texttt{CALL} dan
+tidak diakhiri \texttt{RET}. Saat perakitan, assembler menyalin isi
+macro ke setiap tempat macro itu ditulis. Karena itu, macro yang
+dipakai berkali-kali memperbesar program, tetapi tidak memerlukan
+lompatan saat program berjalan.
+
+Macro dapat menerima parameter yang diganti secara tekstual. Pada
+modul ini macro \texttt{CETAK\_KARAKTER} tidak memakai parameter;
+karakter yang dicetak sudah disiapkan pada \texttt{DL}. Perbedaan
+prosedur dan macro dirangkum pada Tabel~\ref{tab:m06-banding}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perbandingan prosedur dan macro.}
+    \label{tab:m06-banding}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Aspek} & \textbf{Prosedur} & \textbf{Macro} \\
+        \midrule
+        Pemanggilan & \texttt{CALL} dan \texttt{RET} &
+        nama macro ditulis langsung \\
+        Waktu pengolahan & saat program berjalan &
+        saat perakitan, isinya disalin \\
+        Ukuran program & badan ditulis satu kali &
+        disalin pada setiap pemakaian \\
+        Parameter & melalui register &
+        diganti secara tekstual \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Prosedur dipilih bila bagian tersebut panjang atau sering dipanggil,
+sedangkan macro dipilih bila bagiannya pendek dan pemakaiannya
+sedikit.
+
+Rujukan singkat: Gunawan, Bagian 13; S'to, Bab XVI dan XVII; buku
+ajar, \texttt{chapters/14} bagian prosedur dan macro.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m06-prosedur.asm} dan
+          \texttt{code/m06-fungsi-macro.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama memakai satu prosedur pencetak. Prosedur
+\texttt{CETAK} dipanggil dua kali dengan \texttt{DX} yang berbeda,
+sehingga dua kalimat tercetak walaupun badan prosedur hanya ditulis
+sekali.
+
+\lstinputlisting[
+    caption={Satu prosedur yang dipanggil dua kali.},
+    label={lst:m06-prosedur}
+]{code/m06-prosedur.asm}
+
+Program kedua memakai satu fungsi dan satu macro. Fungsi
+\texttt{TAMBAH\_TIGA} menerima nilai pada \texttt{AL} dan
+mengembalikan hasilnya pada \texttt{AL}. Macro
+\texttt{CETAK\_KARAKTER} mencetak karakter yang sudah berada pada
+\texttt{DL}.
+
+\lstinputlisting[
+    caption={Fungsi pengembalian nilai di \texttt{AL} dan macro
+    pencetak karakter.},
+    label={lst:m06-fungsi-macro}
+]{code/m06-fungsi-macro.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas \texttt{.asm}
+          ke dalamnya.
+    \item Rakit dan tautkan program pertama. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m06-prosedur.asm}\\
+          \texttt{tlink m06-prosedur.obj}
+          \end{quote}
+          Jalankan hasilnya dan catat kedua kalimat yang tercetak.
+    \item Jalankan program pertama dengan \emph{single step} pada
+          emu8086. Catat isi \texttt{DX} sebelum setiap \texttt{CALL}
+          dan tunjukkan bahwa eksekusi kembali ke instruksi sesudah
+          \texttt{CALL} ketika \texttt{RET} dijalankan.
+    \item Ubah isi \texttt{BARIS2}, rakit ulang, lalu jalankan.
+          Pastikan kalimat kedua berubah tanpa mengubah prosedur.
+    \item Rakit dan tautkan program kedua dengan perintah yang sama,
+          lalu jalankan. Catat karakter yang tercetak.
+    \item Ubah nilai awal \texttt{AL} dari 5 menjadi 2, rakit ulang,
+          lalu jalankan. Catat keluarannya, lalu ubah penambahan di
+          dalam fungsi dari 3 menjadi 4 dan catat kembali hasilnya.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan tugas \texttt{PROC}, \texttt{ENDP}, \texttt{CALL},
+          dan \texttt{RET}.
+    \item Jelaskan mengapa \texttt{TAMBAH\_TIGA} disebut fungsi.
+          Sebutkan register masukan dan register hasilnya.
+    \item Jelaskan perbedaan prosedur dan macro dari segi waktu
+          pengolahan dan ukuran program.
+    \item Jelaskan mengapa prosedur \texttt{CETAK} dapat mencetak dua
+          kalimat berbeda tanpa diubah.
+    \item Panggil macro \texttt{CETAK\_KARAKTER} dua kali dengan isi
+          \texttt{DL} yang berbeda sehingga tercetak dua karakter
+          berurutan.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tangkapan layar keluaran kedua program.
+    \item Tabel jejak pemanggilan berisi \texttt{DX} atau \texttt{AL}
+          sebelum \texttt{CALL} dan hasil sesudah \texttt{RET}.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}

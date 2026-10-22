@@ -1,0 +1,193 @@
+\section{Modul 10. Logika dan geser bit}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item menjelaskan operasi \texttt{AND}, \texttt{OR},
+          \texttt{XOR}, dan \texttt{NOT} pada tingkat bit;
+    \item memakai mask untuk menyalakan, memadamkan, atau membalik
+          bit tertentu;
+    \item memakai \texttt{TEST} untuk memeriksa satu bit tanpa
+          mengubah operand;
+    \item menjelaskan \texttt{SHL} dan \texttt{SHR} serta peran
+          \texttt{CF};
+    \item menulis program yang memakai mask dan pergeseran bit.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Operasi logika}
+
+Operasi logika memperlakukan operand sebagai kumpulan bit yang
+berdiri sendiri. Hasil setiap posisi hanya bergantung pada pasangan
+bit pada posisi itu. Tabel kebenaran \texttt{AND}, \texttt{OR}, dan
+\texttt{XOR} ditunjukkan pada Tabel~\ref{tab:m10-kebenaran};
+\texttt{NOT} membalik setiap bit.
+
+\begin{table}[H]
+    \centering
+    \caption{Tabel kebenaran operasi logika.}
+    \label{tab:m10-kebenaran}
+    \small
+    \begin{tabular}{@{}cccc@{}}
+        \toprule
+        \textbf{Bit A} & \textbf{Bit B} & \textbf{AND} &
+        \textbf{OR} / \textbf{XOR} \\
+        \midrule
+        0 & 0 & 0 & 0 / 0 \\
+        0 & 1 & 0 & 1 / 1 \\
+        1 & 0 & 0 & 1 / 1 \\
+        1 & 1 & 1 & 1 / 0 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\texttt{AND} menghasilkan 1 hanya bila kedua bit bernilai 1.
+\texttt{OR} menghasilkan 1 bila salah satu atau kedua bit bernilai 1.
+\texttt{XOR} menghasilkan 1 bila kedua bit berbeda. \texttt{NOT}
+membalik seluruh bit operand dan tidak mengubah flag. Contoh dengan
+\texttt{AL=0A5h}:
+
+\begin{lstlisting}[numbers=none]
+AND AL, 0F0h        ; AL = A0h, nibble bawah dipadamkan
+OR  AL, 0Fh         ; AL = AFh, nibble bawah dinyalakan
+XOR AL, 0FFh        ; AL = 50h, seluruh bit dibalik
+NOT AL              ; AL = AFh, seluruh bit dibalik lagi
+\end{lstlisting}
+
+\subsubsection*{Mask dan TEST}
+
+Mask adalah pola bit yang dirancang untuk menyentuh posisi tertentu
+saja. Bit mask bernilai 1 mempertahankan atau menyalakan bit,
+sedangkan bit mask bernilai 0 memadamkannya. Pola pemakaian mask
+dirangkum pada Tabel~\ref{tab:m10-mask}.
+
+\begin{table}[H]
+    \centering
+    \caption{Pemakaian mask pada satu bit tertentu.}
+    \label{tab:m10-mask}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Kehendak} & \textbf{Instruksi} & \textbf{Mask} \\
+        \midrule
+        menyalakan bit & \texttt{OR} & 1 pada posisi bit \\
+        memadamkan bit & \texttt{AND} & 0 pada posisi bit \\
+        membalik bit & \texttt{XOR} & 1 pada posisi bit \\
+        memeriksa bit & \texttt{TEST} & 1 pada posisi bit \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\texttt{TEST} melakukan operasi \texttt{AND} tanpa menyimpan hasil.
+Kedua operand tidak berubah; yang diperbarui hanya flag. Bila hasil
+\texttt{AND} bernilai nol, \texttt{ZF} bernilai 1. Karena itu,
+\texttt{TEST AL,80h} diikuti \texttt{JZ} melompat bila bit 7 padam,
+dan tidak melompat bila bit 7 menyala.
+
+\subsubsection*{Pergeseran SHL dan SHR}
+
+\texttt{SHL} menggeser seluruh bit ke kiri dan mengisi bit paling
+kanan dengan nol. \texttt{SHR} menggeser seluruh bit ke kanan dan
+mengisi bit paling kiri dengan nol. Pada keduanya, bit yang terdesak
+keluar ditampung pada \texttt{CF}. Pergeseran satu bit ke kiri setara
+dengan mengalikan dua, sedangkan pergeseran satu bit ke kanan setara
+dengan membagi dua untuk bilangan tidak bertanda. Bila jumlah
+pergeseran lebih dari satu, jumlah itu disimpan pada \texttt{CL}.
+
+Contoh: \texttt{AL=09h} digeser satu bit ke kanan menghasilkan
+\texttt{AL=04h} dan \texttt{CF=1}, karena bit 0 yang bernilai 1
+keluar. Hasil \texttt{04h} masih satu digit sehingga dapat dicetak
+setelah ditambah \texttt{30h}. Hasil yang lebih dari 9 tidak dapat
+dicetak dengan cara itu dan harus diperiksa pada register.
+
+Rujukan singkat: Gunawan, Bagian 7; S'to, Bab X bagian logika dan
+pergeseran; praktikum \texttt{bab4.tex} bagian logika dan
+pergeseran; buku ajar, \texttt{chapters/11}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m10-mask.asm} dan
+          \texttt{code/m10-geser.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama menyalakan bit 7 dengan \texttt{OR}, mempertahankan
+nibble atas dengan \texttt{AND}, lalu memeriksa bit 7 dengan
+\texttt{TEST}. Kalimat ``ya'' tercetak bila bit 7 menyala; bila
+padam, yang tercetak ``tidak''.
+
+\lstinputlisting[
+    caption={Mask dengan \texttt{OR} dan \texttt{AND}, lalu
+    \texttt{TEST} satu bit.},
+    label={lst:m10-mask}
+]{code/m10-mask.asm}
+
+Program kedua menggeser \texttt{09h} satu bit ke kanan dengan
+\texttt{SHR}. Hasil \texttt{04h} dapat dilihat pada \texttt{AL},
+lalu dicetak sebagai karakter \texttt{'4'}.
+
+\lstinputlisting[
+    caption={Pergeseran satu byte dengan \texttt{SHR}.},
+    label={lst:m10-geser}
+]{code/m10-geser.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas \texttt{.asm}
+          ke dalamnya.
+    \item Rakit dan tautkan program pertama. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m10-mask.asm}\\
+          \texttt{tlink m10-mask.obj}
+          \end{quote}
+          Jalankan hasilnya dan catat kalimat yang tercetak.
+    \item Ubah mask pada \texttt{OR} dari \texttt{10000000b} menjadi
+          \texttt{00000000b}. Rakit ulang, jalankan, dan jelaskan
+          mengapa keluarannya berubah.
+    \item Jalankan program pertama dengan \emph{single step}. Catat
+          \texttt{AL} sesudah \texttt{OR}, sesudah \texttt{AND}, dan
+          nilai \texttt{ZF} sesudah \texttt{TEST}.
+    \item Rakit dan tautkan program kedua dengan perintah yang sama,
+          lalu jalankan. Catat karakter yang tercetak.
+    \item Jalankan program kedua dengan \emph{single step}. Catat
+          \texttt{AL} dan \texttt{CF} sesudah \texttt{SHR}. Ubah
+          nilai awal menjadi \texttt{0Ch}, rakit ulang, dan pastikan
+          keluarannya berubah.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan perbedaan hasil \texttt{AND}, \texttt{OR}, dan
+          \texttt{XOR} untuk pasangan bit 0 dan 1.
+    \item Jelaskan cara memadamkan bit 3 dengan \texttt{AND} dan
+          menyalakannya dengan \texttt{OR}. Tentukan mask yang
+          dipakai.
+    \item Jelaskan mengapa \texttt{TEST} tidak mengubah operand dan
+          bagaimana \texttt{ZF} dipakai sesudahnya.
+    \item Jelaskan kerja \texttt{SHL} dan \texttt{SHR}, termasuk peran
+          \texttt{CF}. Tentukan hasil \texttt{SHR AL,1} bila
+          \texttt{AL=0A5h}.
+    \item Jelaskan mengapa \texttt{SHR} hanya tepat dipakai sebagai
+          pembagian dua untuk bilangan tidak bertanda.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tangkapan layar keluaran ``ya''/``tidak'' dan keluaran
+          program kedua.
+    \item Tabel jejak berisi \texttt{AL}, \texttt{ZF}, dan
+          \texttt{CF} sesudah setiap operasi.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}

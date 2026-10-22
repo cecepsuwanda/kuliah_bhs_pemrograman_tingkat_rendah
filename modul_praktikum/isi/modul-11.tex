@@ -1,0 +1,211 @@
+\section{Modul 11. Debugging}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item membedakan kesalahan sintaks, kesalahan logika, dan program
+          yang berhenti;
+    \item memakai perintah DEBUG \texttt{R}, \texttt{T}, dan
+          \texttt{D} serta \emph{single step} emu8086;
+    \item menelusuri kesalahan perulangan dan kesalahan stack;
+    \item memperbaiki kedua kesalahan tanpa menambah jenis kesalahan
+          lain;
+    \item memverifikasi perbaikan dengan penelusuran ulang.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Jenis kesalahan dan alat}
+
+Kesalahan sintaks terdeteksi assembler dan membuat berkas
+\texttt{.OBJ} tidak terbentuk. Kesalahan logika membuat program tetap
+berjalan, tetapi hasilnya salah. Program yang berhenti tidak kembali
+ke DOS, biasanya karena perulangan tak berujung atau stack tidak
+seimbang. Perbedaannya dirangkum pada Tabel~\ref{tab:m11-jenis}.
+
+\begin{table}[H]
+    \centering
+    \caption{Tiga jenis kesalahan dan alat utamanya.}
+    \label{tab:m11-jenis}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Jenis} & \textbf{Gejala} & \textbf{Alat utama} \\
+        \midrule
+        Sintaks & pesan TASM, tidak ada \texttt{.OBJ} &
+        daftar kesalahan assembler \\
+        Logika & program selesai, hasil salah &
+        \emph{single step}, register \\
+        Berhenti & program tidak kembali ke DOS &
+        \emph{single step}, pemeriksaan stack \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+DEBUG menyediakan perintah \texttt{R} untuk menampilkan register dan
+flag, \texttt{T} untuk menjalankan satu instruksi, dan \texttt{D}
+untuk menampilkan isi memori. emu8086 menyediakan tombol
+\emph{Single Step} serta jendela register, flag, dan memori yang
+diperbarui setiap instruksi.
+
+\subsubsection*{Kesalahan perulangan}
+
+Program pertama dimaksudkan menjumlahkan 1 sampai 5. Di dalam badan
+perulangan, \texttt{INC CX} menaikkan pencacah, sedangkan
+\texttt{LOOP} selalu menurunkannya. Kedua perubahan itu saling
+meniadakan, sehingga \texttt{CX} tidak pernah mencapai nol dan
+perulangan berjalan terus. Jejak beberapa iterasi ditunjukkan pada
+Tabel~\ref{tab:m11-loop}.
+
+\begin{table}[H]
+    \centering
+    \caption{Jejak kesalahan perulangan pada program pertama.}
+    \label{tab:m11-loop}
+    \small
+    \begin{tabular}{@{}clll@{}}
+        \toprule
+        \textbf{Iterasi} & \textbf{Instruksi} & \texttt{AX} &
+        \texttt{CX} \\
+        \midrule
+        1 & \texttt{ADD AX,CX} & 5 & 5 \\
+        1 & \texttt{INC CX} & 5 & 6 \\
+        1 & \texttt{LOOP ULANG} & 5 & 5, kembali ke awal \\
+        2 & \texttt{ADD AX,CX} & 10 & 5 \\
+        2 & \texttt{INC CX} & 10 & 6 \\
+        2 & \texttt{LOOP ULANG} & 10 & 5, tidak pernah nol \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Perbaikan dilakukan dengan menghapus \texttt{INC CX}. Setelah itu
+\texttt{CX} menurun dari 5 sampai 0 dan hasilnya 15. Hasil itu perlu
+dicetak sebagai dua digit, sehingga rutin pembagian pada modul
+sebelumnya dapat dipakai.
+
+\subsubsection*{Kesalahan stack}
+
+Program kedua memanggil prosedur \texttt{HITUNG}. Prosedur mendorong
+tiga register dengan \texttt{PUSH}, tetapi hanya memulihkan dua
+dengan \texttt{POP}. Saat \texttt{RET} dijalankan, puncak stack
+berisi nilai \texttt{AX} lama, bukan alamat kembali. Prosesor
+melompat ke alamat yang salah dan program berhenti. Susunan stack
+ditunjukkan pada Tabel~\ref{tab:m11-stack}.
+
+\begin{table}[H]
+    \centering
+    \caption{Susunan stack pada program kedua.}
+    \label{tab:m11-stack}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Tahap} & \textbf{Puncak stack} & \textbf{Keterangan} \\
+        \midrule
+        sesudah \texttt{CALL} & alamat kembali &
+        disimpan oleh \texttt{CALL} \\
+        sesudah tiga \texttt{PUSH} & \texttt{AX}, \texttt{BX},
+        \texttt{CX} & tiga word tersimpan \\
+        sesudah dua \texttt{POP} & \texttt{AX} lama &
+        satu word belum dibuang \\
+        \texttt{RET} & \texttt{AX} lama dianggap alamat &
+        lompat ke alamat salah \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Perbaikan dilakukan dengan menambahkan \texttt{POP AX} sebelum
+\texttt{RET} sehingga jumlah \texttt{PUSH} dan \texttt{POP}
+seimbang. Verifikasi dilakukan dengan menelusuri ulang sampai program
+kembali ke DOS dan pesan penutup tercetak.
+
+Rujukan singkat: S'to, Bab XXVII; Gunawan, Bagian 4.3; buku ajar,
+\texttt{chapters/16} serta berkas \texttt{bug-loop.asm},
+\texttt{bug-loop-fix.asm}, \texttt{bug-stack.asm}, dan
+\texttt{bug-stack-fix.asm}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m11-bug-loop.asm} dan
+          \texttt{code/m11-bug-stack.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Kedua program berikut sengaja mengandung satu kesalahan. Program
+pertama tidak pernah selesai karena pencacah perulangannya dinaikkan.
+Program kedua melompat ke alamat salah karena stack tidak seimbang.
+
+\lstinputlisting[
+    caption={Program ber-bug: perulangan tidak berhenti.},
+    label={lst:m11-bug-loop}
+]{code/m11-bug-loop.asm}
+
+\lstinputlisting[
+    caption={Program ber-bug: jumlah \texttt{PUSH} dan \texttt{POP}
+    tidak seimbang.},
+    label={lst:m11-bug-stack}
+]{code/m11-bug-stack.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas ber-bug ke
+          dalamnya. Jangan mengubah berkas aslinya.
+    \item Rakit dan tautkan program pertama. Jalankan di emu8086
+          dengan \emph{Single Step}. Catat \texttt{AX} dan
+          \texttt{CX} pada tiga iterasi pertama, lalu hentikan
+          penelusuran. Di DEBUG, perintah \texttt{R} menampilkan
+          register dan \texttt{T} menjalankan satu instruksi.
+    \item Perbaiki program pertama dengan menghapus \texttt{INC CX}.
+          Simpan sebagai \texttt{m11-bug-loop-\allowbreak fix.asm},
+          rakit, tautkan, dan jalankan. Pastikan hasil 15 tercetak dan
+          program kembali ke DOS.
+    \item Rakit dan tautkan program kedua. Jalankan dan catat
+          gejalanya. Telusuri dengan \emph{single step} sampai masuk
+          ke prosedur \texttt{HITUNG}. Hitung \texttt{PUSH} dan
+          \texttt{POP}, lalu periksa stack dengan \texttt{D} memakai
+          \texttt{SS} dan \texttt{SP} yang dibaca dari \texttt{R}.
+    \item Perbaiki program kedua dengan menambahkan \texttt{POP AX}
+          sebelum \texttt{RET}. Simpan sebagai
+          \texttt{m11-bug-stack-\allowbreak fix.asm}, rakit, tautkan,
+          dan jalankan. Pastikan pesan \texttt{Selesai.} tercetak.
+    \item Verifikasi kedua perbaikan dengan penelusuran ulang:
+          periksa \texttt{AX} dan \texttt{CX} pada perbaikan pertama,
+          serta \texttt{SP} sebelum \texttt{CALL} dan sesudah
+          \texttt{RET} pada perbaikan kedua.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan perbedaan kesalahan sintaks, kesalahan logika, dan
+          program yang berhenti. Berikan satu contoh untuk
+          masing-masing.
+    \item Jelaskan fungsi perintah DEBUG \texttt{R}, \texttt{T}, dan
+          \texttt{D}.
+    \item Jelaskan mengapa \texttt{INC CX} di dalam perulangan membuat
+          program pertama tidak selesai. Sertakan jejak nilai
+          \texttt{CX}.
+    \item Jelaskan mengapa \texttt{RET} melompat ke alamat salah pada
+          program kedua. Sertakan susunan stack sebelum \texttt{RET}.
+    \item Jelaskan mengapa perbaikan harus diuji dengan penelusuran
+          ulang, bukan hanya dengan membaca kode.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas ber-bug serta kedua berkas perbaikan:
+          \begin{itemize}[nosep]
+              \item \texttt{m11-bug-loop-fix.asm}
+              \item \texttt{m11-bug-stack-fix.asm}
+          \end{itemize}
+    \item Tangkapan layar penelusuran pada emu8086 atau DEBUG.
+    \item Tabel jejak \texttt{AX}/\texttt{CX} dan tabel susunan stack
+          sebelum serta sesudah perbaikan.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}

@@ -1,0 +1,180 @@
+\section{Modul 02. Masukan}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item membaca satu karakter dengan \texttt{INT 21h} fungsi
+          \texttt{AH=01h} dan menjelaskan hasilnya di \texttt{AL};
+    \item membaca satu baris dengan \texttt{INT 21h} fungsi
+          \texttt{AH=0Ah} ke dalam penyangga;
+    \item menjelaskan susunan byte penyangga fungsi \texttt{0Ah};
+    \item mencetak kembali isi masukan dengan layanan \texttt{AH=02h};
+    \item merakit, menautkan, dan menjalankan kedua program dengan
+          TASM dan TLINK.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Layanan 01h: membaca satu karakter}
+
+Layanan \texttt{AH=01h} menunggu satu tombol ditekan, lalu menaruh
+kode ASCII tombol itu pada \texttt{AL}. Karakter tersebut juga
+ditampilkan ke layar; sifat ini disebut \emph{echo}. Karena hasilnya
+berada di \texttt{AL}, program dapat memindahkannya ke register lain
+atau mencetaknya kembali. Satu panggilan layanan ini hanya membaca
+satu karakter.
+
+\subsubsection*{Layanan 0Ah: membaca satu baris}
+
+Layanan \texttt{AH=0Ah} membaca beberapa karakter sekaligus sampai
+tombol Enter ditekan. Sebelum \texttt{INT 21h}, \texttt{DS:DX} harus
+menunjuk awal penyangga. Penyangga memiliki susunan tiga bagian
+seperti ditunjukkan pada Tabel~\ref{tab:m02-buffer}.
+
+\begin{table}[H]
+    \centering
+    \caption{Susunan penyangga layanan \texttt{AH=0Ah}.}
+    \label{tab:m02-buffer}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Byte} & \textbf{Diisi oleh} & \textbf{Isi} \\
+        \midrule
+        0 & program & kapasitas, termasuk tombol Enter \\
+        1 & DOS & jumlah karakter yang diketik, tanpa Enter \\
+        2 dan seterusnya & DOS & karakter masukan, diakhiri \texttt{0Dh} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Karena satu byte disediakan untuk tombol Enter, jumlah karakter yang
+dapat diketik paling banyak adalah kapasitas dikurangi satu. Bila
+kapasitas bernilai 40, pengguna dapat mengetik sampai 39 karakter.
+Angka pada byte 1 diisi DOS setelah Enter ditekan dan tidak
+memasukkan \texttt{0Dh}. Isi masukan dimulai pada byte 2 dan diakhiri
+\texttt{0Dh}. Dengan demikian, byte 1 dapat dipakai sebagai pencacah
+untuk mencetak tepat sebanyak karakter yang diketik.
+
+\subsubsection*{Mencetak kembali isi penyangga}
+
+Isi penyangga dicetak kembali dengan layanan \texttt{AH=02h}.
+Karakter diambil satu per satu dari byte 2, lalu \texttt{DL} diisi
+karakter itu dan \texttt{INT 21h} dijalankan. Pencacah diambil dari
+byte 1, sehingga \texttt{0Dh} pada akhir masukan tidak ikut tercetak.
+
+Pengulangan kecil yang dipakai di sini hanya alat bantu untuk
+menampilkan masukan. Bagian ini bukan materi perulangan dan tidak
+memakai instruksi \texttt{LOOP}. Pembahasan perulangan sebagai topik
+tersendiri diberikan pada modul berikutnya.
+
+Tabel~\ref{tab:m02-layanan} merangkum layanan masukan dan keluaran
+yang dipakai pada modul ini.
+
+\begin{table}[H]
+    \centering
+    \caption{Layanan yang dipakai pada Modul 02.}
+    \label{tab:m02-layanan}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Layanan} & \textbf{Register masukan} & \textbf{Hasil} \\
+        \midrule
+        \texttt{AH=01h} & -- & \texttt{AL} = kode ASCII, ikut tercetak \\
+        \texttt{AH=0Ah} & \texttt{DS:DX} = awal penyangga &
+        isi penyangga terisi \\
+        \texttt{AH=02h} & \texttt{DL} = satu karakter &
+        karakter tercetak \\
+        \texttt{AH=4Ch} & \texttt{AL} = kode keluar &
+        program berakhir \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Rujukan singkat: Gunawan, Bagian 6.8; S'to, Bab XV bagian masukan
+\emph{keyboard}; buku ajar, \texttt{input-nama.asm} dan
+\texttt{chapters/09}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m02-baca-karakter.asm} dan
+          \texttt{code/m02-baca-baris.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama membaca satu karakter dengan layanan \texttt{01h}.
+Karakter yang diketik tampil sekali karena \emph{echo}, lalu dicetak
+sekali lagi oleh layanan \texttt{02h} dari isi \texttt{AL}.
+
+\lstinputlisting[
+    caption={Membaca satu karakter dengan \texttt{AH=01h}.},
+    label={lst:m02-karakter}
+]{code/m02-baca-karakter.asm}
+
+Program kedua membaca satu baris dengan layanan \texttt{0Ah}.
+Setelah Enter ditekan, byte 1 berisi jumlah karakter. Program
+mengambil jumlah itu ke \texttt{CX}, lalu mencetak isi mulai byte 2
+sebanyak jumlah tersebut dengan layanan \texttt{02h}.
+
+\lstinputlisting[
+    caption={Membaca satu baris dengan \texttt{AH=0Ah}.},
+    label={lst:m02-baris}
+]{code/m02-baca-baris.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas \texttt{.asm}
+          ke dalamnya.
+    \item Rakit dan tautkan program pertama. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m02-baca-karakter.asm}\\
+          \texttt{tlink m02-baca-karakter.obj}
+          \end{quote}
+          Jalankan hasilnya, ketik satu karakter, dan catat keluarannya.
+    \item Rakit dan tautkan program kedua dengan perintah yang sama,
+          lalu jalankan. Ketik nama Anda (minimal satu karakter) dan
+          tekan Enter. Catat keluarannya.
+    \item Ulangi program kedua dengan kalimat yang lebih panjang dari
+          kapasitas penyangga. Amati jumlah karakter yang tercetak
+          dan jelaskan mengapa sisanya tidak terbaca.
+    \item Periksa penyangga dengan DEBUG: jalankan
+          \texttt{debug m02-baca-baris.exe}, ketik \texttt{r}, lalu
+          \texttt{d ds:0 L 60}. Tandai byte kapasitas, byte jumlah,
+          karakter masukan, dan byte \texttt{0Dh}.
+    \item Ubah kapasitas penyangga dari 40 menjadi 10, rakit ulang,
+          lalu ulangi langkah 3. Catat perbedaan jumlah karakter yang
+          dapat diketik.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan perbedaan layanan \texttt{AH=01h} dan
+          \texttt{AH=0Ah} dari segi jumlah karakter dan hasilnya.
+    \item Jelaskan isi byte 0, byte 1, dan byte 2 pada penyangga
+          fungsi \texttt{0Ah}.
+    \item Jelaskan mengapa karakter pada program pertama tampil dua
+          kali.
+    \item Bila byte kapasitas bernilai 10, berapa karakter paling
+          banyak yang dapat diketik sebelum Enter? Jelaskan alasannya.
+    \item Tambahkan kalimat pembuka sebelum masukan pada program
+          kedua dengan layanan \texttt{AH=09h}, lalu cetak ulang
+          masukan seperti semula.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tangkapan layar keluaran kedua program.
+    \item Tabel isi penyangga hasil pemeriksaan DEBUG, termasuk byte
+          kapasitas, byte jumlah, dan byte \texttt{0Dh}.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}
