@@ -1,7 +1,7 @@
 % =========================================================
 % ppt/src/minggu-09.tex
 % Slide pertemuan 9
-% Bab X — Instruksi Transfer Data dan Aritmatika
+% Bab X — Operasi Aritmatika
 %
 % Sub-CPMK 3.1 | CPMK03 | CPL03
 % =========================================================
@@ -16,37 +16,34 @@
 % =========================================================
 % 1. JUDUL
 % =========================================================
-\JudulDeck{Instruksi Transfer Data dan Aritmatika}{Pertemuan 9}
+\JudulDeck{Operasi Aritmatika}{Pertemuan 9}
 
 % =========================================================
 % 2. CAPAIAN DAN TUJUAN
 % =========================================================
 \begin{frame}{Capaian dan Tujuan Pembelajaran}
 \begin{block}{Sub-CPMK 3.1}
-\small Menulis program assembly lengkap dengan instruksi transfer data
-(\asm{MOV}, \asm{XCHG}, \asm{LEA}, \asm{PUSH}/\asm{POP}) dan instruksi
-aritmatika (\asm{ADD}, \asm{SUB}, \asm{INC}, \asm{DEC}, \asm{MUL},
-\asm{IMUL}, \asm{DIV}, \asm{IDIV}).
+\footnotesize Menulis program dengan instruksi ADD, ADC, INC, SUB,
+SBB, DEC, MUL, dan DIV serta menjelaskan pengaruhnya terhadap
+\eng{flag}.
 \end{block}
 
 \vspace{0.1em}
 {\small\textbf{CPMK yang didukung:} \CPMK{03}\quad\textbullet\quad
 \textbf{CPL yang didukung:} \CPL{03}\par}
 
-\vspace{0.05em}
+\vspace{0.15em}
 \begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
 \footnotesize
 \begin{enumerate}
-    \item menerapkan aturan legalitas \asm{MOV} dan mengatasi pemindahan
-          yang ditolak dengan register perantara;
-    \item membedakan \asm{MOV} dan \asm{LEA}: nilai data atau alamat data;
-    \item memakai \asm{PUSH} dan \asm{POP} untuk menyimpan dan mengambil
-          kembali data pada \eng{stack};
-    \item menjelaskan pengaruh aritmatika terhadap \flag{CF}, \flag{ZF},
-          \flag{SF}, \flag{OF}, \flag{AF}, dan \flag{PF};
-    \item menuliskan perkalian dan pembagian dengan operand implisit yang
-          benar, menangani \eng{divide overflow}, dan menyusun aritmatika
-          bertingkat dengan \asm{ADC} dan \asm{SBB}.
+    \item menggunakan ADD, ADC, INC, SUB, SBB, dan DEC;
+    \item menjelaskan pengaruh operasi terhadap CF, OF, ZF, SF,
+          AF, dan PF;
+    \item membedakan CF untuk bilangan tidak bertanda dan OF untuk
+          bilangan bertanda;
+    \item menyusun aritmatika lebih dari 16 bit dengan ADC dan SBB;
+    \item menggunakan MUL dan DIV serta menghindari
+          \eng{divide overflow}.
 \end{enumerate}
 \end{exampleblock}
 \end{frame}
@@ -57,1009 +54,581 @@ aritmatika (\asm{ADD}, \asm{SUB}, \asm{INC}, \asm{DEC}, \asm{MUL},
 \begin{frame}{Peta Materi}
 \small
 \begin{enumerate}
-    \item \textbf{Instruksi Transfer Data}\\
-          {\footnotesize \asm{MOV} dan tiga aturan legalitasnya; register
-          perantara; \asm{XCHG}; perbedaan \asm{MOV} dan \asm{LEA};
-          \asm{PUSH}/\asm{POP}; \asm{LDS}/\asm{LES}}
+    \item \textbf{Penjumlahan dan Pengurangan}\\
+          {\footnotesize ADD, ADC, INC; SUB, SBB, DEC; flag;
+          aritmatika 32 bit}
 
     \vspace{0.25em}
-    \item \textbf{Instruksi Aritmatika Dasar dan Pengaruhnya pada
-          \eng{Flag}}\\
-          {\footnotesize \asm{ADD} dan \asm{ADC}; \asm{SUB}, \asm{SBB},
-          \asm{INC}, \asm{DEC}, \asm{NEG}; makna \eng{flag}; operasi
-          bertanda dan tak bertanda; \asm{CMP}}
+    \item \textbf{Perkalian dan Pembagian}\\
+          {\footnotesize MUL dan DIV; operand implisit; letak hasil;
+          \eng{divide overflow}}
 
     \vspace{0.25em}
-    \item \textbf{Perkalian, Pembagian, dan Aritmatika Bertingkat}\\
-          {\footnotesize operand implisit; \eng{divide overflow};
-          \asm{IMUL}/\asm{IDIV} serta \asm{CBW}/\asm{CWD}; \asm{ADC} dan
-          \asm{SBB} untuk lebih dari 16 bit; konversi ke digit desimal}
+    \item \textbf{Flag, Tanda Bilangan, dan Verifikasi Hasil}\\
+          {\footnotesize CF vs OF; flag lain; verifikasi dengan
+          debugger}
 \end{enumerate}
 
-\vspace{0.3em}
+\vspace{0.35em}
 \begin{block}{Praktik pada pertemuan ini}
-\small Menelusuri \file{aritmatika.asm} dan \file{kali-bagi.asm}, mencatat
-nilai \eng{flag}, lalu membangun kalkulator empat operasi sebagai Tugas~4.
+\small Menelusuri operasi aritmatika dan memeriksa hasilnya dengan
+DEBUG serta emu8086.
 \end{block}
 \end{frame}
 
 % =========================================================
 % BAGIAN 1
 % =========================================================
-\PemisahBagian{Instruksi Transfer Data}
+\PemisahBagian{Penjumlahan dan Pengurangan}
 
 % ---------------------------------------------------------
-\begin{frame}{Instruksi \asm{MOV}: Menyalin, Bukan Memindahkan}
-\small \asm{MOV tujuan, sumber} menyalin data ke tujuan; isi sumber
-\emph{tidak} terhapus. Setelah \asm{MOV AX, BX}, kedua register berisi
-nilai yang sama.
-
-\vspace{0.2em}
-{\color{obeBlue}\bfseries Tiga aturan legalitas operand}
-\vspace{0.1em}
-\begin{enumerate}\footnotesize
-    \item \textbf{Ukuran kedua operand harus sama.} \asm{MOV AX, BL}
-          ditolak karena \reg{AX} 16 bit sedangkan \reg{BL} 8 bit.
-    \item \textbf{Tidak boleh memori ke memori.} \asm{MOV nilai2, nilai1}
-          ditolak; 8086 tidak memiliki jalur antarlokasi memori.
-    \item \textbf{Tidak boleh nilai segera ke register segmen.}
-          \asm{MOV DS, 1000h} ditolak; harus melalui register umum.
-\end{enumerate}
-
-\vspace{0.15em}
-\begin{alertblock}{Jebakan yang sering terjadi}
-\footnotesize Menambal \asm{MOV nilai2, nilai1} dengan \code{WORD PTR}
-tidak menyelesaikan masalah --- penyebabnya jenis operand, bukan ukurannya.
-\end{alertblock}
-\Sumber{Bab X, Instruksi MOV dan Aturan Legalitasnya}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Register Perantara: Cara Memperbaiki yang Ditolak}
-\small Setiap kombinasi yang ditolak diselesaikan dengan menyisipkan
-register perantara, bukan dengan menambah \code{PTR}.
+\begin{frame}[fragile]{ADD, ADC, dan INC}
+\small
+\begin{itemize}
+    \item \code{ADD tujuan, sumber}: menjumlahkan sumber ke tujuan.
+    \item \code{ADC tujuan, sumber}: menjumlahkan sumber, tujuan,
+          dan CF.
+    \item \code{INC tujuan}: menambah tujuan dengan satu.
+\end{itemize}
 
 \vspace{0.2em}
 \begin{kodeasm}[numbers=none]
-    ; memori ke memori : dua langkah melalui AX
-    MOV AX, nilai1          ; muat isi memori ke AX
-    MOV nilai2, AX          ; simpan dari AX ke memori tujuan
-
-    ; nilai segera ke DS : dua langkah melalui AX
-    MOV AX, 1000h           ; muat nilai segera ke AX
-    MOV DS, AX              ; salin dari AX ke DS
+MOV AX, 25
+ADD AX, 17          ; AX = 42
+ADC AX, BX          ; AX = AX + BX + CF
+INC AX              ; AX = AX + 1
 \end{kodeasm}
 
-\vspace{0.15em}
-{\footnotesize Pola dua langkah yang sama juga dipakai untuk pemindahan
-segmen ke segmen: \asm{MOV AX, ES} lalu \asm{MOV DS, AX}.\par}
-\Sumber{Bab X, Mengatasi Pemindahan yang Tidak Diizinkan}
+\vspace{0.1em}
+{\footnotesize\color{obeGray}ADC dipakai untuk membawa carry dari
+word rendah ke word tinggi.\par}
+\Sumber{Bab X, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Tabel Legalitas Kombinasi Operand \asm{MOV}}
+\begin{frame}[fragile]{SUB, SBB, dan DEC}
+\small
+\begin{itemize}
+    \item \code{SUB tujuan, sumber}: mengurangi tujuan dengan
+          sumber.
+    \item \code{SBB tujuan, sumber}: mengurangi tujuan dengan
+          sumber dan CF (pinjaman).
+    \item \code{DEC tujuan}: mengurangi tujuan dengan satu.
+\end{itemize}
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+MOV AX, 100
+SUB AX, 45          ; AX = 55
+SBB AX, BX          ; AX = AX - BX - CF
+DEC AX              ; AX = AX - 1
+\end{kodeasm}
+
+\vspace{0.1em}
+{\footnotesize\color{obeGray}SBB diperlukan agar pinjaman dari word
+rendah ikut dikurangkan pada word tinggi.\par}
+\Sumber{Bab X, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Pengaruh terhadap Flag}
 \footnotesize
 \begin{center}
-\begin{tabular}{@{}p{3.9cm}p{2.9cm}p{0.9cm}p{3.5cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.4cm}
+    >{\raggedright\arraybackslash}p{6.6cm}
+    >{\raggedright\arraybackslash}p{4.6cm}@{}}
     \toprule
-    \textbf{Bentuk pemindahan} & \textbf{Contoh} & \textbf{Sah} &
-    \textbf{Keterangan} \\
+    \textbf{Flag} & \textbf{Arti} & \textbf{Tanda pada hasil} \\
     \midrule
-    Register ke register & \asm{MOV AX, BX} & Ya &
-    Tanpa akses memori \\
+    CF & Simpanan keluar dari bit tertinggi atau pinjaman &
+    Luapan tak bertanda \\
     \addlinespace
-    Nilai segera ke register & \asm{MOV AX, 5} & Ya &
-    Nilai segera muat 16 bit \\
+    OF & Hasil bertanda di luar jangkauan & Luapan bertanda \\
     \addlinespace
-    Memori ke register & \asm{MOV AX, nilai1} & Ya &
-    Satu operand di memori \\
+    ZF & Hasil bernilai nol & Kedua operand sama \\
     \addlinespace
-    Register ke memori & \asm{MOV nilai1, AX} & Ya &
-    Menyimpan hasil hitungan \\
+    SF & Bit tanda hasil bernilai 1 & Hasil bertanda negatif \\
     \addlinespace
-    Register ke segmen & \asm{MOV DS, AX} & Ya &
-    Cara baku inisialisasi \reg{DS} \\
+    AF & Simpanan dari empat bit rendah & Operasi BCD \\
     \addlinespace
-    Nilai segera ke segmen & \asm{MOV DS, 1000h} & Tidak &
-    Harus lewat register umum \\
-    \addlinespace
-    Memori ke memori & \asm{MOV nilai2, nilai1} & Tidak &
-    Pakai register perantara \\
+    PF & Jumlah bit 1 pada byte rendah genap & Pemeriksaan paritas \\
     \bottomrule
 \end{tabular}
 \end{center}
-\Sumber{Bab X, Tabel Legalitas Kombinasi Operand pada Instruksi MOV}
+\Sumber{Bab X, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Instruksi \asm{XCHG}: Menukar Dua Operand}
-\small \asm{XCHG} menukar isi dua operand sehingga keduanya berubah
-sekaligus, tanpa memerlukan register ketiga.
-
-\vspace{0.2em}
-\begin{kodeasm}[numbers=none]
-    MOV AX, 1234h       ; AX = 1234h
-    MOV BX, 5678h       ; BX = 5678h
-    XCHG AX, BX         ; AX = 5678h, BX = 1234h
-\end{kodeasm}
-
-\vspace{0.15em}
-\begin{block}{Aturan \asm{XCHG} lebih ketat daripada \asm{MOV}}
-\small Minimal satu operand wajib berada di register, kedua operand harus
-berukuran sama, dan tidak ada operand yang boleh berupa nilai segera.
-\end{block}
-\Sumber{Bab X, Instruksi XCHG}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Perbedaan \asm{MOV} dan \asm{LEA}}
-\small \asm{LEA} memuat \emph{alamat} operand, sedangkan \asm{MOV} memuat
-\emph{isi} operand.
-
-\vspace{0.15em}
-\begin{columns}[t]
-\begin{column}{0.5\textwidth}
-\begin{kodeasm}[numbers=none]
-pesan DB 'Halo$'
-
-    LEA BX, pesan     ; BX = alamat pesan
-    MOV BX, OFFSET pesan
-                      ; hasilnya sama
-    MOV BX, pesan     ; BX = isi 'Ha'
-\end{kodeasm}
-\end{column}
-\begin{column}{0.47\textwidth}
-\begin{tikzpicture}[
-    kotak/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-        rounded corners=3pt, minimum width=2.6cm, minimum height=0.62cm,
-        align=center, font=\scriptsize\ttfamily, inner sep=2pt},
-    hasil/.style={draw=obeTeal, line width=0.9pt, fill=obeTealLight,
-        rounded corners=3pt, minimum width=3.1cm, minimum height=0.62cm,
-        align=center, font=\scriptsize, inner sep=2pt},
-    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeTeal}
-]
-    \node[kotak] (a) at (0, 0.7) {LEA BX, pesan};
-    \node[hasil] (b) at (0, -0.2) {BX = alamat \file{pesan}};
-    \draw[panah] (a) -- (b);
-
-    \node[kotak] (c) at (0, -1.1) {MOV BX, pesan};
-    \node[hasil] (d) at (0, -2.0) {BX = isi \code{'Ha'}};
-    \draw[panah] (c) -- (d);
-\end{tikzpicture}
-\end{column}
-\end{columns}
-
-\vspace{0.1em}
-{\footnotesize\color{obeGray}Ketiganya sah secara sintaksis, sehingga
-assembler tidak melaporkan kesalahan --- programnya saja yang salah.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Instruksi \asm{PUSH} dan \asm{POP} pada \eng{Stack}}
-\begin{columns}[t]
-\begin{column}{0.53\textwidth}
+\begin{frame}{Aritmatika 32 Bit}
 \begin{center}
 \begin{tikzpicture}[
-    sel/.style={draw=obeBlue, line width=0.7pt, minimum width=1.7cm,
-        minimum height=0.55cm, align=center, inner sep=1pt,
-        font=\scriptsize},
-    isi/.style={sel, fill=obeBlueLight},
-    kosong/.style={sel, fill=obeGrayLight},
-    sp/.style={-{Stealth[length=2mm]}, line width=1pt, obeMaroon},
-    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeTeal},
-    ket/.style={font=\bfseries\footnotesize, text=obeBlue}
+    kotak/.style={
+        draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+        rounded corners=3pt, minimum width=2.6cm,
+        minimum height=0.8cm, align=center, font=\small
+    },
+    hasil/.style={
+        draw=obeAmber, line width=0.8pt, fill=obeAmberLight,
+        rounded corners=3pt, minimum width=2.6cm,
+        minimum height=0.8cm, align=center, font=\small
+    },
+    panah/.style={-{Stealth[length=2.2mm]}, line width=0.8pt, obeTeal}
 ]
-    \node[ket] at (0, 2.35) {Sebelum};
-    \node[kosong] at (0, 0) {kosong};
-    \node[isi] at (0, 0.62) {5678h};
-    \draw[sp] (0.95, 0.62) -- (0.87, 0.62);
-    \node[font=\tiny, text=obeMaroon, anchor=west] at (1.0, 0.62) {SP};
+    \node[kotak] (alo) at (0,2.1) {word rendah A};
+    \node[kotak] (blo) at (0,1.1) {word rendah B};
+    \node[hasil] (rlo) at (4.8,1.6) {hasil rendah};
+    \draw[panah] (alo.east) -- (rlo.west);
+    \draw[panah] (blo.east) -- (rlo.west);
 
-    \node[ket] at (3.8, 2.35) {Sesudah};
-    \node[sel, fill=obeAmberLight, draw=obeAmber] (ax) at (3.8, 1.55)
-        {AX = 1234h};
-    \node[isi] (atas) at (3.8, 0.62) {1234h};
-    \node[isi] at (3.8, 0) {5678h};
-    \draw[panah] (ax.south) -- (atas.north);
-    \draw[sp] (4.75, 0.62) -- (4.67, 0.62);
-    \node[font=\tiny, text=obeMaroon, anchor=west] at (4.8, 0.62) {SP};
+    \node[kotak] (ahi) at (0,-0.2) {word tinggi A};
+    \node[kotak] (bhi) at (0,-1.2) {word tinggi B};
+    \node[hasil] (rhi) at (4.8,-0.7) {hasil tinggi};
+    \draw[panah] (ahi.east) -- (rhi.west);
+    \draw[panah] (bhi.east) -- (rhi.west);
+
+    \draw[panah, obeMaroon, line width=1pt]
+        (rlo.south) -- (rhi.north)
+        node[midway, left, font=\scriptsize, text=obeMaroon] {CF};
 \end{tikzpicture}
-
-{\tiny\color{obeGray}\reg{SP} berkurang 2 setiap kali \asm{PUSH}.\par}
 \end{center}
-\end{column}
-\begin{column}{0.45\textwidth}
-{\footnotesize\color{obeBlue}\bfseries Aturan pemakaian}
-\begin{itemize}\footnotesize
-    \item Bekerja pada satuan word; \asm{PUSH AL} tidak tersedia.
-    \item Nilai segera tidak diizinkan sebagai operand.
-    \item \reg{CS} boleh di-\asm{PUSH}, tidak boleh menjadi tujuan
-          \asm{POP}.
-    \item Setiap \asm{PUSH} harus berpasangan dengan \asm{POP} yang
-          seimbang agar \reg{SP} kembali ke posisi semula.
+
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Word rendah memakai ADD; carry-nya
+dibawa ke word tinggi melalui ADC.\par}
+\Sumber{Bab X, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh Penjumlahan 32 Bit}
+\small
+\begin{kodeasm}[numbers=none]
+MOV AX, rendahA
+ADD AX, rendahB     ; hasil rendah, CF mungkin 1
+MOV hasilRendah, AX
+MOV AX, tinggiA
+ADC AX, tinggiB     ; CF ikut dijumlahkan
+MOV hasilTinggi, AX
+\end{kodeasm}
+
+\vspace{0.2em}
+\begin{itemize}
+    \item \hex{0001FFFF} + \hex{00020001} = \hex{0004}:\hex{0000}.
+    \item Bila tahap kedua memakai ADD, carry tahap pertama hilang.
+    \item INC dan DEC tidak mengubah CF.
 \end{itemize}
-\end{column}
-\end{columns}
-\Sumber{Bab X, Instruksi PUSH dan POP}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Instruksi \asm{LDS}, \asm{LES}, dan Ringkasan Transfer Data}
-{\footnotesize \asm{LDS} dan \asm{LES} memuat \eng{pointer} jauh 32 bit
-sekaligus: offset ke register dan nomor segmen ke \reg{DS} atau
-\reg{ES}.\par}
-
-\vspace{0.2em}
-{\scriptsize
-\begin{center}
-\begin{tabular}{@{}p{1.4cm}p{3.1cm}p{4.3cm}p{3.2cm}@{}}
-    \toprule
-    \textbf{Instruksi} & \textbf{Bentuk umum} & \textbf{Kegunaan} &
-    \textbf{Contoh} \\
-    \midrule
-    \asm{MOV} & \asm{MOV tujuan, sumber} & Menyalin data; sumber tetap &
-    \asm{MOV AX, BX} \\
-    \addlinespace
-    \asm{XCHG} & \asm{XCHG op1, op2} & Menukar isi dua operand &
-    \asm{XCHG AX, BX} \\
-    \addlinespace
-    \asm{LEA} & \asm{LEA reg16, mem} & Memuat alamat efektif &
-    \asm{LEA SI, pesan} \\
-    \addlinespace
-    \asm{LDS} & \asm{LDS reg16, mem32} & Offset ke reg, segmen ke \reg{DS} &
-    \asm{LDS SI, ptrJauh} \\
-    \addlinespace
-    \asm{LES} & \asm{LES reg16, mem32} & Offset ke reg, segmen ke \reg{ES} &
-    \asm{LES DI, ptrJauh} \\
-    \addlinespace
-    \asm{PUSH} & \asm{PUSH sumber} & Menaruh word ke \eng{stack} &
-    \asm{PUSH AX} \\
-    \addlinespace
-    \asm{POP} & \asm{POP tujuan} & Mengambil word dari \eng{stack} &
-    \asm{POP BX} \\
-    \bottomrule
-\end{tabular}
-\end{center}
-}
-\Sumber{Bab X, Instruksi LDS dan LES serta Tabel Ringkasan Transfer Data}
+\Sumber{Bab X, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 1}
 \small
 \begin{itemize}
-    \item \asm{MOV} menyalin data tanpa menghapus sumber. Legalitasnya
-          dibatasi tiga aturan: ukuran operand harus sama, tidak boleh
-          memori ke memori, dan tidak boleh nilai segera ke register
-          segmen.
+    \item ADD menjumlahkan; ADC ikut menambahkan CF; INC menambah
+          satu.
 
-    \vspace{0.22em}
-    \item Pemindahan yang ditolak diselesaikan dengan register perantara
-          dua langkah, bukan dengan menambahkan \code{WORD PTR}.
+    \vspace{0.15em}
+    \item SUB mengurangi; SBB ikut mengurangkan CF; DEC mengurangi
+          satu.
 
-    \vspace{0.22em}
-    \item \asm{XCHG} menukar isi dua operand dan mensyaratkan minimal satu
-          operand berada di register; nilai segera tidak diizinkan.
+    \vspace{0.15em}
+    \item Operasi aritmatika memperbarui CF, OF, ZF, SF, AF, dan PF.
 
-    \vspace{0.22em}
-    \item \asm{MOV} memindahkan \emph{isi} memori, sedangkan \asm{LEA}
-          memindahkan \emph{alamat} memori --- lebih ringkas dan tidak
-          menyentuh memori bila alamat dihitung saat program berjalan.
+    \vspace{0.15em}
+    \item Aritmatika 32 bit memakai ADD pada word rendah dan ADC
+          pada word tinggi.
 
-    \vspace{0.22em}
-    \item \asm{PUSH} dan \asm{POP} bekerja pada satuan word, tidak
-          menerima nilai segera, dan harus berpasangan seimbang agar
-          \reg{SP} kembali ke posisi semula.
+    \vspace{0.15em}
+    \item INC dan DEC tidak mengubah CF, sehingga tidak dipakai
+          untuk meneruskan carry.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 2
 % =========================================================
-\PemisahBagian{Instruksi Aritmatika Dasar dan Pengaruhnya pada \eng{Flag}}
+\PemisahBagian{Perkalian dan Pembagian}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Penjumlahan: \asm{ADD} dan \asm{ADC}}
-\small \asm{ADD} menjumlahkan sumber ke tujuan dan menyimpan hasilnya pada
-tujuan. \asm{ADC} bekerja sama, tetapi ikut menambahkan \flag{CF} dari
-operasi sebelumnya.
+\begin{frame}{Aturan MUL}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.0cm}
+    >{\raggedright\arraybackslash}p{5.0cm}
+    >{\raggedright\arraybackslash}p{5.8cm}@{}}
+    \toprule
+    \textbf{Operand} & \textbf{Operasi} & \textbf{Letak hasil} \\
+    \midrule
+    8 bit & AL $\times$ operand & AX \\
+    \addlinespace
+    16 bit & AX $\times$ operand & DX:AX \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
-\vspace{0.2em}
-\begin{kodeasm}[numbers=none]
-    MOV AX, 25              ; AX = 25
-    ADD AX, 17              ; AX = 42
-    ADD nilai1, AX          ; nilai1 = nilai1 + AX (di memori)
-    ADC AX, BX              ; AX = AX + BX + CF
-\end{kodeasm}
-
-\vspace{0.15em}
-\begin{block}{Kapan perbedaannya terasa}
-\small Pada operasi satu langkah keduanya sering dianggap sama karena
-\flag{CF} biasanya nol. Bedanya baru tampak pada aritmatika bertingkat,
-yaitu saat \eng{carry} harus diteruskan ke word berikutnya.
-\end{block}
-\Sumber{Bab X, Penjumlahan ADD dan ADC}
+\vspace{0.3em}
+{\color{obeGray}Hasil selalu dua kali ukuran operand. CF dan OF
+bernilai 1 bila bagian hasil yang tinggi tidak nol.\par}
+\Sumber{Bab X, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Pengurangan dan Penyangkalan}
-\small \asm{SUB} mengurangi tujuan dengan sumber, \asm{SBB} ikut
-mengurangkan \flag{CF}, \asm{INC} dan \asm{DEC} menambah atau mengurangi
-satu, dan \asm{NEG} mengubah tanda bilangan.
-
-\vspace{0.2em}
+\begin{frame}[fragile]{Contoh MUL 8 dan 16 Bit}
+\small
 \begin{kodeasm}[numbers=none]
-    MOV AX, 100             ; AX = 100
-    SUB AX, 45              ; AX = 55
-    INC AX                  ; AX = 56
-    DEC AX                  ; AX = 55
-    NEG AX                  ; AX = -55 (0FFC9h)
-    SBB AX, BX              ; AX = AX - BX - CF
+; 8 bit: 25 x 4 = 100
+MOV AL, 25
+MOV BL, 4
+MUL BL              ; AX = 0064h
+
+; 16 bit: 1000 x 20 = 20000
+MOV AX, 1000
+MOV BX, 20
+MUL BX              ; DX:AX = 0000:4E20h
 \end{kodeasm}
 
 \vspace{0.15em}
-\begin{alertblock}{Dua kesalahan yang sering terjadi}
-\small \asm{NEG} tidak selalu menyetel \flag{CF}: bila \reg{AX} nol,
-hasilnya nol dan \flag{CF} bernilai 0. \asm{INC} sengaja tidak mengubah
-\flag{CF}, sehingga tidak boleh dipakai pada aritmatika bertingkat.
+{\footnotesize\color{obeGray}\hex{4E20} = 20.000 dan masih muat
+pada AX, sehingga DX = 0.\par}
+\Sumber{Bab X, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Aturan DIV}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.0cm}
+    >{\raggedright\arraybackslash}p{5.0cm}
+    >{\raggedright\arraybackslash}p{5.8cm}@{}}
+    \toprule
+    \textbf{Operand} & \textbf{Operasi} & \textbf{Letak hasil} \\
+    \midrule
+    8 bit & AX $\div$ operand & hasil bagi di AL, sisa di AH \\
+    \addlinespace
+    16 bit & DX:AX $\div$ operand & hasil bagi di AX, sisa di DX \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.3em}
+{\color{obeGray}Hasil bagi harus muat pada register tujuan yang
+ukurannya separuh operand.\par}
+\Sumber{Bab X, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh DIV 8 dan 16 Bit}
+\small
+\begin{kodeasm}[numbers=none]
+; 8 bit: 1000 / 7 = 142 sisa 6
+MOV AX, 1000
+MOV BL, 7
+DIV BL              ; AL = 142, AH = 6
+
+; 16 bit: 100000 / 1000 = 100 sisa 0
+MOV DX, 1
+MOV AX, 86A0h       ; DX:AX = 100000
+MOV BX, 1000
+DIV BX              ; AX = 100, DX = 0
+\end{kodeasm}
+
+\vspace{0.1em}
+{\footnotesize\color{obeGray}Hasil bagi dan sisa berada pada
+register yang sudah ditentukan prosesor.\par}
+\Sumber{Bab X, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Divide Overflow}
+\small
+\begin{itemize}
+    \item Hasil bagi harus muat pada register tujuan.
+
+    \vspace{0.18em}
+    \item Pembagian 8 bit: AH harus lebih kecil daripada pembagi.
+
+    \vspace{0.18em}
+    \item Pembagian 16 bit: DX harus lebih kecil daripada pembagi.
+
+    \vspace{0.18em}
+    \item Pembagi tidak boleh nol.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{alertblock}{Akibat}
+\small Bila syarat tidak dipenuhi, terjadi \eng{divide overflow}
+dan program dapat berhenti mendadak.
 \end{alertblock}
-\Sumber{Bab X, Pengurangan dan Penyangkalan}
+\Sumber{Bab X, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Perbandingan dengan \asm{CMP}}
-\small \asm{CMP} bekerja identik dengan \asm{SUB}, tetapi \emph{tidak
-menyimpan} hasilnya. Yang ditinggalkan hanyalah jejak pada \eng{flag},
-sehingga \asm{CMP} selalu diikuti lompatan bersyarat.
-
-\vspace{0.2em}
-\begin{columns}[t]
-\begin{column}{0.52\textwidth}
+\begin{frame}[fragile]{Pemeriksaan Sebelum DIV}
+\small
 \begin{kodeasm}[numbers=none]
-    CMP AX, BX         ; AX - BX
-    JE  SAMA           ; ZF = 1
-    JA  LEBIH_BESAR    ; CF = 0, ZF = 0
-    JG  LEBIH_TTD      ; SF = OF, ZF = 0
+MOV AX, 1000
+MOV BL, 7
+CMP AH, BL          ; AH = 03h, BL = 07h
+JAE luapan          ; lompat bila AH >= BL
+DIV BL              ; aman: AL = 142, AH = 6
+luapan:
 \end{kodeasm}
-\end{column}
-\begin{column}{0.45\textwidth}
-\begin{exampleblock}{Tiga pola yang paling sering}
-\footnotesize
-\asm{JE} untuk kesamaan; \asm{JA} untuk tak bertanda; \asm{JG} untuk
-bertanda. Pilihan lompatan harus sejalan dengan tafsiran operandnya.
-\end{exampleblock}
-\end{column}
-\end{columns}
 
 \vspace{0.15em}
-{\footnotesize\color{obeGray}Karena hasilnya dibuang, \asm{CMP} tidak
-mengubah nilai register apa pun --- hanya \eng{flag}.\par}
-\Sumber{Bab X, Operasi Perbandingan dengan CMP}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Makna \eng{Flag} Hasil Aritmatika}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}p{0.9cm}p{6.4cm}p{5.0cm}@{}}
-    \toprule
-    \textbf{Flag} & \textbf{Arti} & \textbf{Tanda pada hasil} \\
-    \midrule
-    \flag{CF} & \eng{Carry}: ada nilai yang keluar dari bit paling kiri;
-    pada pengurangan berarti pinjaman &
-    \flag{CF} = 1 menandakan hasil tak bertanda melampaui kapasitas \\
-    \addlinespace
-    \flag{ZF} & \eng{Zero}: hasil operasi bernilai nol &
-    \flag{ZF} = 1 menandakan kedua operand sama besar \\
-    \addlinespace
-    \flag{SF} & \eng{Sign}: bit paling kiri hasil bernilai 1 &
-    \flag{SF} = 1 menandakan hasil bertanda negatif \\
-    \addlinespace
-    \flag{OF} & \eng{Overflow}: hasil bertanda melampaui batas yang dapat
-    ditampung & \flag{OF} = 1 menandakan luapan bilangan bertanda \\
-    \addlinespace
-    \flag{AF} & \eng{Auxiliary carry} dari bit ke-3 menuju bit ke-4 &
-    Dipakai instruksi penyesuaian BCD seperti \asm{DAA} \\
-    \addlinespace
-    \flag{PF} & \eng{Parity}: cacah bit 1 pada byte paling rendah genap &
-    Dipakai pada pemeriksaan kesalahan transmisi \\
-    \bottomrule
-\end{tabular}
-\end{center}
-\Sumber{Bab X, Makna Flag Hasil Aritmatika}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Ringkasan Instruksi Aritmatika dan \eng{Flag}-nya}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}p{1.4cm}p{2.6cm}p{4.1cm}p{3.8cm}@{}}
-    \toprule
-    \textbf{Instruksi} & \textbf{Bentuk operand} & \textbf{Hasil} &
-    \textbf{Flag terpengaruh} \\
-    \midrule
-    \asm{ADD} & \asm{ADD tujuan, sumber} & tujuan $\leftarrow$ tujuan $+$
-    sumber & \flag{OF} \flag{SF} \flag{ZF} \flag{AF} \flag{PF} \flag{CF} \\
-    \addlinespace
-    \asm{ADC} & \asm{ADC tujuan, sumber} & tujuan $\leftarrow$ tujuan $+$
-    sumber $+$ \flag{CF} & seluruh \eng{flag} aritmatika \\
-    \addlinespace
-    \asm{SUB} & \asm{SUB tujuan, sumber} & tujuan $\leftarrow$ tujuan $-$
-    sumber & seluruh \eng{flag} aritmatika \\
-    \addlinespace
-    \asm{SBB} & \asm{SBB tujuan, sumber} & tujuan $\leftarrow$ tujuan $-$
-    sumber $-$ \flag{CF} & seluruh \eng{flag} aritmatika \\
-    \addlinespace
-    \asm{INC} & \asm{INC tujuan} & tujuan $\leftarrow$ tujuan $+$ 1 &
-    \flag{OF} \flag{SF} \flag{ZF} \flag{AF} \flag{PF}; \flag{CF} tetap \\
-    \addlinespace
-    \asm{DEC} & \asm{DEC tujuan} & tujuan $\leftarrow$ tujuan $-$ 1 &
-    \flag{OF} \flag{SF} \flag{ZF} \flag{AF} \flag{PF}; \flag{CF} tetap \\
-    \addlinespace
-    \asm{NEG} & \asm{NEG tujuan} & tujuan $\leftarrow$ 0 $-$ tujuan &
-    seluruh \eng{flag}; \flag{CF} = 1 bila hasil tidak nol \\
-    \addlinespace
-    \asm{CMP} & \asm{CMP tujuan, sumber} & hasil dibuang, hanya \eng{flag}
-    yang diubah & sama dengan \asm{SUB} \\
-    \bottomrule
-\end{tabular}
-\end{center}
-\Sumber{Bab X, Ringkasan Instruksi Aritmatika 8086}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Operasi Bertanda dan Tak Bertanda}
-\small Satu deretan bit yang sama dapat ditafsirkan sebagai bilangan tak
-bertanda atau bertanda dalam komplemen dua. Byte \hex{FF} berarti 255 bila
-tak bertanda, tetapi $-1$ bila bertanda.
-
-\vspace{0.15em}
-\begin{columns}[t]
-\begin{column}{0.5\textwidth}
-\begin{kodeasm}[numbers=none]
-    ; tak bertanda : 200 + 100
-    MOV AL, 200     ; AL = C8h
-    ADD AL, 100     ; AL = 2Ch, CF = 1
-                    ; -> salah
-
-    ; bertanda : -56 + 100
-    MOV AL, 200     ; AL = C8h = -56
-    ADD AL, 100     ; AL = 2Ch, OF = 0
-                    ; -> benar
-\end{kodeasm}
-\end{column}
-\begin{column}{0.47\textwidth}
-\begin{block}{Aturan praktis}
-\footnotesize
-\flag{CF} untuk hasil tak bertanda dan \flag{OF} untuk hasil bertanda.
-Karena itu, pakai lompatan tak bertanda (\asm{JA}, \asm{JB}) setelah
-operasi tak bertanda, dan lompatan bertanda (\asm{JG}, \asm{JL}) setelah
-operasi bertanda.
-\end{block}
-{\footnotesize\color{obeGray}Perbedaan yang sama mendasari pemilihan
-\asm{MUL} atau \asm{IMUL}.\par}
-\end{column}
-\end{columns}
+{\footnotesize\color{obeGray}AH = \hex{03} lebih kecil daripada
+BL = \hex{07}, sehingga hasil bagi muat di AL.\par}
+\Sumber{Bab X, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 2}
 \small
 \begin{itemize}
-    \item Instruksi aritmatika dasar: \asm{ADD}, \asm{ADC}, \asm{SUB},
-          \asm{SBB}, \asm{INC}, \asm{DEC}, \asm{NEG}, dan \asm{CMP}.
+    \item MUL 8 bit: AL $\times$ operand, hasil di AX.
 
-    \vspace{0.22em}
-    \item Setiap instruksi meninggalkan jejak pada \eng{flag}, kecuali
-          \flag{CF} yang tidak disentuh \asm{INC} dan \asm{DEC} --- itulah
-          sebabnya keduanya tidak dipakai pada aritmatika bertingkat.
+    \vspace{0.15em}
+    \item MUL 16 bit: AX $\times$ operand, hasil di DX:AX.
 
-    \vspace{0.22em}
-    \item \flag{CF} menandai luapan tak bertanda, \flag{OF} menandai
-          luapan bertanda. Pilihan instruksi dan lompatan bersyarat harus
-          mengikuti tafsiran yang dipilih.
+    \vspace{0.15em}
+    \item DIV 8 bit: AX $\div$ operand; bagi di AL, sisa di AH.
 
-    \vspace{0.22em}
-    \item \asm{NEG} menghitung $0 - AX$, sehingga \flag{CF} bernilai 0
-          ketika hasilnya nol.
+    \vspace{0.15em}
+    \item DIV 16 bit: DX:AX $\div$ operand; bagi di AX, sisa di DX.
 
-    \vspace{0.22em}
-    \item \asm{CMP} tidak menyimpan hasil, hanya menyetel \eng{flag} sama
-          seperti \asm{SUB}, lalu diikuti \asm{JE}, \asm{JA}, atau
-          \asm{JG}.
+    \vspace{0.15em}
+    \item Periksa AH/DX dan pembagi nol sebelum DIV.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 3
 % =========================================================
-\PemisahBagian{Perkalian, Pembagian, dan Aritmatika Bertingkat}
+\PemisahBagian{Flag, Tanda Bilangan, dan Verifikasi Hasil}
 
 % ---------------------------------------------------------
-\begin{frame}{Aturan Operand Implisit}
-\small \asm{MUL}, \asm{IMUL}, \asm{DIV}, dan \asm{IDIV} hanya menuliskan
-satu operand. Operand satunya sudah ditentukan prosesor dan tidak ditulis
-di dalam instruksi.
-
-\vspace{0.15em}
-\begin{center}
-\begin{tikzpicture}[
-    kotak/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-        minimum width=1.3cm, minimum height=0.55cm, align=center,
-        inner sep=2pt, font=\scriptsize},
-    hasil/.style={draw=obeAmber, line width=0.8pt, fill=obeAmberLight,
-        minimum width=1.7cm, minimum height=0.55cm, align=center,
-        inner sep=2pt, font=\scriptsize},
-    op/.style={draw=obeTeal, line width=1pt, fill=obeTealLight,
-        rounded corners=2pt, minimum width=1.1cm, minimum height=0.55cm,
-        align=center, font=\scriptsize\bfseries, inner sep=2pt},
-    panah/.style={-{Stealth[length=1.8mm]}, line width=0.8pt, obeGray},
-    baris/.style={font=\scriptsize\bfseries, text=obeBlue, align=right,
-        anchor=east},
-    ket/.style={font=\tiny, text=obeGray, align=left, anchor=west}
-]
-    \node[baris] at (-0.15, 2.7) {\asm{MUL} r/m8};
-    \node[kotak] (a1) at (1.2, 3.0) {AL};
-    \node[kotak] (a2) at (1.2, 2.4) {r/m8};
-    \node[op]    (a3) at (3.3, 2.7) {MUL};
-    \node[hasil] (a4) at (5.7, 2.7) {AX};
-    \draw[panah] (a1.east) -- (a3.west);
-    \draw[panah] (a2.east) -- (a3.west);
-    \draw[panah] (a3.east) -- (a4.west);
-
-    \node[baris] at (-0.15, 1.55) {\asm{MUL} r/m16};
-    \node[kotak] (b1) at (1.2, 1.85) {AX};
-    \node[kotak] (b2) at (1.2, 1.25) {r/m16};
-    \node[op]    (b3) at (3.3, 1.55) {MUL};
-    \node[hasil] (b4) at (5.7, 1.55) {DX:AX};
-    \draw[panah] (b1.east) -- (b3.west);
-    \draw[panah] (b2.east) -- (b3.west);
-    \draw[panah] (b3.east) -- (b4.west);
-
-    \node[baris] at (-0.15, 0.4) {\asm{DIV} r/m8};
-    \node[kotak] (c1) at (1.2, 0.7) {AX};
-    \node[kotak] (c2) at (1.2, 0.1) {r/m8};
-    \node[op]    (c3) at (3.3, 0.4) {DIV};
-    \node[hasil] (c4) at (5.7, 0.7) {AL};
-    \node[hasil] (c5) at (5.7, 0.1) {AH};
-    \draw[panah] (c1.east) -- (c3.west);
-    \draw[panah] (c2.east) -- (c3.west);
-    \draw[panah] (c3.east) -- (c4.west);
-    \draw[panah] (c3.east) -- (c5.west);
-    \node[ket] at (6.68, 0.7) {hasil bagi};
-    \node[ket] at (6.68, 0.1) {sisa};
-
-    \node[baris] at (-0.15, -0.75) {\asm{DIV} r/m16};
-    \node[kotak] (d1) at (1.2, -0.45) {DX:AX};
-    \node[kotak] (d2) at (1.2, -1.05) {r/m16};
-    \node[op]    (d3) at (3.3, -0.75) {DIV};
-    \node[hasil] (d4) at (5.7, -0.45) {AX};
-    \node[hasil] (d5) at (5.7, -1.05) {DX};
-    \draw[panah] (d1.east) -- (d3.west);
-    \draw[panah] (d2.east) -- (d3.west);
-    \draw[panah] (d3.east) -- (d4.west);
-    \draw[panah] (d3.east) -- (d5.west);
-    \node[ket] at (6.68, -0.45) {hasil bagi};
-    \node[ket] at (6.68, -1.05) {sisa};
-\end{tikzpicture}
-\end{center}
-\Sumber{Bab X, Aturan Operand Implisit}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Operand Implisit dan Ukuran Hasil}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}p{1.4cm}p{2.0cm}p{3.7cm}p{4.5cm}@{}}
-    \toprule
-    \textbf{Instruksi} & \textbf{Operand} & \textbf{Yang dihitung} &
-    \textbf{Letak hasil} \\
-    \midrule
-    \asm{MUL} & r/m8 & \reg{AL} $\times$ operand &
-    \reg{AX}; \flag{CF} = \flag{OF} = 1 bila \reg{AH} tidak nol \\
-    \addlinespace
-    \asm{MUL} & r/m16 & \reg{AX} $\times$ operand &
-    \reg{DX}:\reg{AX}; \flag{CF} = \flag{OF} = 1 bila \reg{DX} tidak nol \\
-    \addlinespace
-    \asm{IMUL} & r/m8 & \reg{AL} $\times$ operand (bertanda) &
-    \reg{AX}; \flag{OF} = 1 bila hasil tidak muat di \reg{AL} \\
-    \addlinespace
-    \asm{IMUL} & r/m16 & \reg{AX} $\times$ operand (bertanda) &
-    \reg{DX}:\reg{AX}; \flag{OF} = 1 bila tidak muat di \reg{AX} \\
-    \addlinespace
-    \asm{DIV} & r/m8 & \reg{AX} $\div$ operand &
-    hasil bagi di \reg{AL}, sisa di \reg{AH} \\
-    \addlinespace
-    \asm{DIV} & r/m16 & \reg{DX}:\reg{AX} $\div$ operand &
-    hasil bagi di \reg{AX}, sisa di \reg{DX} \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.2em}
-{\footnotesize Hasil perkalian selalu berukuran dua kali operand, sehingga
-\asm{MUL} tidak pernah kehilangan data; yang ada hanyalah penanda
-\flag{CF} dan \flag{OF}.\par}
-\Sumber{Bab X, Operand Implisit dan Ukuran Hasil}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Kesalahan \eng{Divide Overflow}}
-\small Pembagian berperilaku sebaliknya: hasil bagi harus muat pada
-register tujuan yang ukurannya hanya separuh operand. Bila tidak muat,
-prosesor membangkitkan kesalahan \eng{divide overflow} dan program DOS
-umumnya berhenti mendadak.
-
-\vspace{0.2em}
+\begin{frame}{CF untuk Tak Bertanda, OF untuk Bertanda}
+\small
 \begin{columns}[t]
-\begin{column}{0.55\textwidth}
-\begin{kodeasm}[numbers=none]
-    MOV AX, 1000    ; AX = 03E8h
-    MOV BL, 7       ; BL = pembagi
-    CMP AH, BL      ; luapan bila AH >= BL
-    JAE LUAPAN      ; periksa sebelum DIV
-    DIV BL          ; AL = 142, AH = 6
-
-LUAPAN:
-    ...             ; laporkan, jangan DIV
-\end{kodeasm}
+\begin{column}{0.47\textwidth}
+    {\color{obeTeal}\bfseries CF --- tak bertanda}\\[0.25em]
+    \begin{itemize}
+        \item Hasil melewati batas 8/16 bit.
+        \item \hex{FF} + \hex{01} = \hex{00}: CF = 1, OF = 0.
+    \end{itemize}
 \end{column}
-\begin{column}{0.42\textwidth}
-\begin{alertblock}{Syarat aman}
-\footnotesize
-\asm{DIV BL} aman hanya bila \reg{AH} lebih kecil daripada \reg{BL}.
-Untuk pembagian 16 bit, syaratnya \reg{DX} lebih kecil daripada operand
-pembagi.
-\end{alertblock}
-{\footnotesize\color{obeGray}Luapan pembagian bukan kesalahan sintaks,
-sehingga tidak dilaporkan assembler.\par}
+\begin{column}{0.49\textwidth}
+    {\color{obeMaroon}\bfseries OF --- bertanda}\\[0.25em]
+    \begin{itemize}
+        \item Hasil keluar dari jangkauan bertanda.
+        \item \hex{7F} + \hex{01} = \hex{80}: CF = 0, OF = 1.
+    \end{itemize}
 \end{column}
 \end{columns}
-\Sumber{Bab X, Kesalahan Divide Overflow}
-\end{frame}
 
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Perkalian dan Pembagian Bertanda}
-\small \asm{IMUL} dan \asm{IDIV} menafsirkan operand sebagai bilangan
-bertanda dalam komplemen dua. Sebelum \asm{IDIV}, bilangan yang dibagi
-harus diperluas tandanya.
-
-\vspace{0.2em}
-\begin{columns}[t]
-\begin{column}{0.5\textwidth}
-\begin{kodeasm}[numbers=none]
-    MOV AX, 1000    ; AX = 03E8h
-    MOV BX, 7       ; BX = 0007h
-    CWD             ; DX = 0000h
-    IDIV BX         ; AX = 142, DX = 6
-\end{kodeasm}
-\end{column}
-\begin{column}{0.47\textwidth}
-\begin{block}{\asm{CBW} dan \asm{CWD}}
-\footnotesize
-\asm{CBW} memperluas tanda \reg{AL} ke \reg{AX}; \asm{CWD} memperluas
-tanda \reg{AX} ke \reg{DX}:\reg{AX}.
+\vspace{0.35em}
+\begin{block}{Keduanya dapat terjadi sekaligus}
+\small \hex{80} + \hex{80} = \hex{00} menghasilkan CF = 1 dan
+OF = 1.
 \end{block}
-\end{column}
-\end{columns}
-
-\vspace{0.15em}
-{\footnotesize\color{obeGray}Kesalahan karena \asm{CWD} dihilangkan tidak
-terlihat pada bilangan positif; pada bilangan negatif, \reg{DX} seharusnya
-bernilai \hex{FFFF} agar tafsiran bertanda menjadi benar.\par}
-\Sumber{Bab X, Perkalian dan Pembagian Bertanda}
+\Sumber{Bab X, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Aritmatika Bertingkat dengan \asm{ADC} dan \asm{SBB}}
-\small Bilangan 32 bit dipecah menjadi word rendah (bit 0--15) dan word
-tinggi (bit 16--31). Penjumlahan dimulai dari word rendah; word tinggi
-memakai \asm{ADC} agar \eng{carry} ikut diperhitungkan.
+\begin{frame}{Flag Lain}
+\small
+\begin{itemize}
+    \item ZF = 1 bila hasil nol; dipakai memeriksa kesamaan operand.
 
-\vspace{0.15em}
-\begin{columns}[t]
-\begin{column}{0.5\textwidth}
-\begin{kodeasm}[numbers=none]
-    MOV AX, rendahA     ; word rendah A
-    ADD AX, rendahB     ; AX = 1356h, CF = 1
-    MOV hasilL, AX
+    \vspace{0.18em}
+    \item SF = 1 bila bit tanda hasil menyala (hasil bertanda
+          negatif).
 
-    MOV AX, tinggiA     ; word tinggi A
-    ADC AX, tinggiB     ; AX = 8ACFh
-    MOV hasilT, AX
-\end{kodeasm}
-\end{column}
-\begin{column}{0.47\textwidth}
-\begin{exampleblock}{Propagasi \eng{carry}}
-\footnotesize
-Word rendah: \hex{CDEF} $+$ \hex{4567} $=$ \hex{1356}, maka
-\flag{CF} = 1.\\[0.3em]
-Word tinggi: \hex{89AB} $+$ \hex{0123} $+$ 1 $=$ \hex{8ACF}.\\[0.3em]
-Hasil akhir: \hex{8ACF1356}.
-\end{exampleblock}
+    \vspace{0.18em}
+    \item AF menandai simpanan dari empat bit rendah, dipakai pada
+          operasi BCD.
+
+    \vspace{0.18em}
+    \item PF menandai paritas byte rendah hasil operasi.
+\end{itemize}
 
 \vspace{0.25em}
-{\footnotesize\color{obeGray}Bila instruksi kedua ditulis \asm{ADD},
-hasilnya \hex{8ACE} dan satu nilai hilang. Pengurangan 32 bit memakai pola
-\asm{SUB} dan \asm{SBB}.\par}
-\end{column}
-\end{columns}
-\Sumber{Bab X, Aritmatika Bertingkat dengan ADC dan SBB}
+\begin{alertblock}{INC dan DEC}
+\small Keduanya memperbarui ZF, SF, OF, AF, dan PF, tetapi tidak
+mengubah CF.
+\end{alertblock}
+\Sumber{Bab X, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Mengubah Bilangan Biner Menjadi Digit Desimal}
-\small Nilai di register selalu biner, sedangkan \code{INT 21h} fungsi
-\hex{02} mencetak satu karakter pada satu waktu. Bilangan harus dipecah
-menjadi digit dengan pembagian berulang sepuluh.
-
-\vspace{0.15em}
+\begin{frame}{Verifikasi dengan Debugger}
+\footnotesize
 \begin{columns}[t]
-\begin{column}{0.52\textwidth}
-\begin{kodeasm}[numbers=none]
-    MOV BX, 10          ; pembagi desimal
-BAGI_DIGIT:
-    XOR DX, DX          ; siapkan DX:AX
-    DIV BX              ; AX bagi, DX sisa
-    PUSH DX             ; simpan digit
-    INC CX
-    CMP AX, 0
-    JNE BAGI_DIGIT
-CETAK_DIGIT:
-    POP DX
-    ADD DL, 30h         ; nilai jadi ASCII
-    MOV AH, 02h
-    INT 21h
-    LOOP CETAK_DIGIT
-\end{kodeasm}
-\end{column}
-\begin{column}{0.45\textwidth}
-{\footnotesize\color{obeBlue}\bfseries Alur algoritma}
-\begin{enumerate}\footnotesize
-    \item Bagi nilai dengan 10; sisanya satu digit.
-    \item Simpan sisa pada \eng{stack}, tambah cacah digit.
-    \item Ulangi selama hasil bagi masih lebih besar dari nol.
-    \item Ambil kembali dari \eng{stack} agar urutan cetak terbalik
-          menjadi benar.
-    \item Tambahkan \hex{30} agar nilai $0$--$9$ menjadi kode ASCII
-          \code{'0'}--\code{'9'}.
+\begin{column}{0.44\textwidth}
+{\color{obeBlue}\bfseries Langkah}
+\begin{enumerate}
+    \item Jalankan sampai instruksi aritmatika yang diamati.
+    \item Catat register sebelum dan sesudah.
+    \item Catat CF, OF, ZF, dan SF.
+    \item Bandingkan dengan perhitungan manual.
 \end{enumerate}
+\end{column}
+\begin{column}{0.52\textwidth}
+{\color{obeBlue}\bfseries Perkiraan hasil}
+\scriptsize
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.5cm}
+    >{\raggedright\arraybackslash}p{1.8cm}
+    >{\raggedright\arraybackslash}p{1.8cm}@{}}
+    \toprule
+    \textbf{Operasi} & \textbf{Hasil} & \textbf{Letak} \\
+    \midrule
+    \hex{0001FFFF} + \hex{00020001} & \hex{0004} : \hex{0000} &
+    hasil \\
+    \addlinespace
+    \hex{00050000} $-$ \hex{00020001} & \hex{0002} : \hex{FFFF} &
+    kurang \\
+    \addlinespace
+    $25 \times 4$ & \hex{0064} & kali \\
+    \addlinespace
+    $1000 \div 7$ & \hex{008E}, sisa \hex{0006} & bagi/sisa \\
+    \bottomrule
+\end{tabular}
 \end{column}
 \end{columns}
-\Sumber{Bab X, Mengubah Bilangan Biner Menjadi Digit Desimal}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Studi Kasus: Kalkulator Empat Operasi Sederhana}
-\small Kerangka program kalkulator mencakup tiga hal sekaligus: masukan
-pengguna, pemilihan operasi, dan pencetakan hasil.
-
-\vspace{0.3em}
-\begin{enumerate}
-    \item Tampilkan menu: \code{1} tambah, \code{2} kurang, \code{3} kali,
-          \code{4} bagi.
-
-    \vspace{0.2em}
-    \item Baca pilihan, lalu arahkan alur program dengan \asm{CMP} dan
-          lompatan bersyarat.
-
-    \vspace{0.2em}
-    \item Baca dua bilangan satu digit.
-
-    \vspace{0.2em}
-    \item Jalankan operasi yang dipilih: \asm{ADD}, \asm{SUB}, \asm{MUL},
-          atau \asm{DIV}.
-
-    \vspace{0.2em}
-    \item Untuk pembagian, periksa pembagi nol dan hasil bagi yang tidak
-          muat sebelum \asm{DIV} dijalankan.
-
-    \vspace{0.2em}
-    \item Cetak hasil dengan prosedur konversi desimal \code{CETAK\_AX}.
-\end{enumerate}
-
-\vspace{0.2em}
-{\footnotesize\color{obeGray}Kerangka ini menjadi dasar Tugas~4 pada
-bagian praktikum.\par}
-\Sumber{Bab X, Studi Kasus Kalkulator Empat Operasi}
+\Sumber{Bab X, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 3}
 \small
 \begin{itemize}
-    \item \asm{MUL}, \asm{IMUL}, \asm{DIV}, dan \asm{IDIV} memakai operand
-          implisit \reg{AL} atau \reg{AX}, dan menaruh hasil pada
-          \reg{AX} atau \reg{DX}:\reg{AX}.
+    \item CF menandai luapan tak bertanda; OF menandai luapan
+          bertanda.
 
-    \vspace{0.22em}
-    \item Hasil perkalian selalu dua kali ukuran operand, sehingga
-          \asm{MUL} tidak pernah kehilangan data; yang muncul hanya
-          \flag{CF} dan \flag{OF}.
+    \vspace{0.15em}
+    \item ZF menandai hasil nol; SF menandai hasil bertanda negatif.
 
-    \vspace{0.22em}
-    \item \asm{DIV} menuntut hasil bagi muat pada register tujuan. Syarat
-          amannya \reg{AH} $<$ \reg{BL}, diperiksa dengan
-          \asm{CMP AH, BL} sebelum \asm{DIV BL} dijalankan.
+    \vspace{0.15em}
+    \item AF dipakai pada BCD; PF menandai paritas byte rendah.
 
-    \vspace{0.22em}
-    \item Sebelum \asm{IDIV}, tanda harus diperluas dengan \asm{CBW} atau
-          \asm{CWD}; luapan pembagian tidak terdeteksi saat perakitan.
+    \vspace{0.15em}
+    \item INC dan DEC memperbarui beberapa flag, tetapi tidak CF.
 
-    \vspace{0.22em}
-    \item Aritmatika bertingkat memakai \asm{ADC} dan \asm{SBB} agar
-          \eng{carry} dan pinjaman diteruskan dari word rendah ke word
-          tinggi; konversi desimal memakai pembagian berulang sepuluh.
+    \vspace{0.15em}
+    \item Hasil diverifikasi dengan single step dan perhitungan
+          manual.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % CONTOH PROGRAM
 % =========================================================
-\begin{frame}[fragile]{Contoh 1: Kalkulator Penjumlahan dan Pengurangan}
+\begin{frame}[fragile]{Contoh 1: Operasi Aritmatika Lengkap}
 \begin{columns}[t]
-\begin{column}{0.56\textwidth}
-\begin{kodeasm}[numbers=none]
-    MOV AH, 01h         ; baca satu digit
-    INT 21h
-    SUB AL, 30h         ; ASCII -> nilai 0-9
-    XOR AH, AH          ; nolkan AH
-    MOV nilai1, AX      ; simpan bilangan 1
-    ...
-    MOV AX, nilai1
-    ADD AX, nilai2      ; hasil tambah
-    MOV BX, AX          ; simpan agar AX bebas
-    MOV AX, nilai1
-    SUB AX, nilai2      ; hasil kurang
-    JNS CETAK_KURANG
-    NEG AX              ; jadikan nilai mutlak
-CETAK_KURANG:
-    CALL CETAK_AX       ; cetak AX desimal
+\begin{column}{0.53\textwidth}
+\begin{kodeasm}
+.MODEL SMALL
+.DATA
+    a_lo DW 0FFFFh
+    b_lo DW 0001h
+    a_hi DW 0001h
+    b_hi DW 0002h
+.CODE
+START:
+    MOV AX, a_lo
+    ADD AX, b_lo
+    MOV hasil_lo, AX
+    MOV AX, a_hi
+    ADC AX, b_hi
+    MOV hasil_hi, AX
+...
 \end{kodeasm}
 \end{column}
-\begin{column}{0.41\textwidth}
-{\color{obeTeal}\bfseries Keluaran}\\[0.1em]
-\begin{keluaran}
-Masukkan angka pertama (0-9): 3
-Masukkan angka kedua   (0-9): 8
-Hasil tambah : 11
-Hasil kurang : -5
-\end{keluaran}
-
-\vspace{0.3em}
-{\footnotesize Hasil tambah disimpan di \reg{BX} karena \reg{AX} akan
-dipakai prosedur pencetakan. Prosedur \code{CETAK\_AX} membagi AX dengan
-10 berulang kali dan menyimpan sisanya pada \eng{stack}.\par}
-
-\vspace{0.25em}
-{\footnotesize\color{obeGray}\file{aritmatika.asm}\par}
+\begin{column}{0.44\textwidth}
+\footnotesize
+{\color{obeTeal}\bfseries Hasil}\\[0.15em]
+\begin{itemize}
+    \item \hex{0001FFFF} + \hex{00020001} =
+          \hex{0004}:\hex{0000}; CF dari ADD dibawa ADC.
+    \item \hex{00050000} $-$ \hex{00020001} =
+          \hex{0002}:\hex{FFFF}; SUB menghasilkan pinjaman, SBB
+          melanjutkannya.
+    \item $25 \times 4 = \hex{0064}$.
+    \item $1000 \div 7 = \hex{008E}$ sisa \hex{0006}.
+\end{itemize}
 \end{column}
 \end{columns}
+\Sumber{Bab X, Contoh 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 2: Perkalian, Pembagian, dan \eng{Divide Overflow}}
+\begin{frame}[fragile]{Contoh 2: MUL dan DIV 16 Bit}
 \begin{columns}[t]
 \begin{column}{0.55\textwidth}
 \begin{kodeasm}[numbers=none]
-    MOV AL, 25      ; pengali 8 bit
-    MOV BL, 4
-    MUL BL          ; AX = AL x BL = 100
+MOV AX, 1000
+MOV BX, 20
+MUL BX              ; DX:AX = 0000:4E20h
 
-    MOV AL, 0FDh    ; 0FDh = -3
-    MOV BL, 5
-    IMUL BL         ; AX = -15 (0FFF1h)
-    ...
-    MOV AX, 1000    ; bilangan yang dibagi
-    MOV BL, 7       ; pembagi
-    CMP AH, BL      ; luapan bila AH >= BL
-    JAE LUAPAN      ; periksa sebelum DIV
-    DIV BL          ; AL = 142, AH = 6
+MOV DX, 1
+MOV AX, 86A0h       ; DX:AX = 0001:86A0h
+MOV BX, 1000
+CMP DX, BX
+JAE luapan
+DIV BX              ; AX = 100, DX = 0
+luapan:
 \end{kodeasm}
 \end{column}
 \begin{column}{0.42\textwidth}
-{\color{obeTeal}\bfseries Keluaran}\\[0.1em]
-\begin{keluaran}
-MUL  : 25 x 4   = 100
-IMUL : -3 x 5   = -15
-DIV  : 1000 / 7 = 142  sisa 6
-DIV  : 1000 / 3 = divide
-overflow: hasil bagi tidak
-muat pada AL
-\end{keluaran}
-
-\vspace{0.25em}
-{\footnotesize\color{obeGray}$1000 \div 3 = 333$ tidak muat pada
-\reg{AL} yang hanya menampung $0$--$255$. Tanpa pemeriksaan, program
-berhenti mendadak; kesalahan ini tidak terdeteksi saat
-perakitan.\par}
-
-\vspace{0.2em}
-{\footnotesize\color{obeGray}\file{kali-bagi.asm}\par}
-\end{column}
-\end{columns}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 3: Penjumlahan 32 Bit dengan \asm{ADC}}
-\begin{columns}[t]
-\begin{column}{0.56\textwidth}
-\begin{kodeasm}[numbers=none]
-    rendahA DW 0CDEFh   ; word rendah A
-    tinggiA DW 89ABh    ; word tinggi A
-    rendahB DW 4567h    ; word rendah B
-    tinggiB DW 0123h    ; word tinggi B
-    ...
-    MOV AX, rendahA     ; AX = CDEFh
-    ADD AX, rendahB     ; AX = 1356h, CF = 1
-    MOV hasilL, AX      ; simpan word rendah
-
-    MOV AX, tinggiA     ; AX = 89ABh
-    ADC AX, tinggiB     ; AX = 8ACFh
-    MOV hasilT, AX      ; simpan word tinggi
-
-    MOV AH, 4Ch
-    INT 21h
-\end{kodeasm}
-\end{column}
-\begin{column}{0.41\textwidth}
-\begin{exampleblock}{Yang diperlihatkan}
 \footnotesize
-\asm{ADD} pada tahap pertama menghasilkan word rendah sekaligus
-meninggalkan \flag{CF} = 1. Nilai inilah yang ``dibawa'' ke tahap kedua
-oleh \asm{ADC}.
-\end{exampleblock}
-
-\vspace{0.3em}
-{\footnotesize Hasil akhirnya \hex{8ACF1356}. Pola yang sama berlaku
-untuk pengurangan 32 bit dengan pasangan \asm{SUB} dan \asm{SBB}.\par}
-
-\vspace{0.25em}
-{\footnotesize\color{obeGray}Penerapan langsung dari tabel propagasi
-\eng{carry}.\par}
+\begin{itemize}
+    \item MUL 16 bit: hasil 32 bit di DX:AX.
+    \item \hex{4E20} = 20.000; DX = 0.
+    \item DIV 16 bit: DX harus lebih kecil daripada BX.
+    \item Hasil: AX = 100, DX = 0.
+\end{itemize}
 \end{column}
 \end{columns}
+\Sumber{Bab X, Contoh 2}
 \end{frame}
 
 % =========================================================
 % PRAKTIKUM
 % =========================================================
-\begin{frame}{Praktikum: Membangun Kalkulator Sederhana}
+\begin{frame}{Praktikum: Menelusuri Operasi Aritmatika}
 \begin{block}{Judul praktikum}
-\small Membangun kalkulator sederhana (masukan--proses--keluaran)
-\quad\textbullet\quad \textbf{Sub-CPMK:} 3.1
-\quad\textbullet\quad \textbf{Waktu:} 100 menit
-\quad\textbullet\quad \textbf{Bentuk:} individu \quad\textbullet\quad
-\textbf{Tugas 4} dikumpulkan
+\small Menelusuri operasi aritmatika dan memeriksa hasilnya\\[0.15em]
+\textbf{Sub-CPMK:} 3.1 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
 \end{block}
 
 \vspace{0.2em}
 \begin{columns}[t]
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 {\color{obeBlue}\bfseries Alat dan bahan}
-\begin{itemize}\small
-    \item Komputer dengan Emu8086, GUI TASM, atau DOSBox
-    \item Berkas \file{aritmatika.asm} dan \file{kali-bagi.asm}
-    \item Lembar kerja Tugas~4 dan jurnal praktikum
+\begin{itemize}\footnotesize
+    \item Komputer dengan emu8086
+    \item DOSBox dengan TASM, TLINK, dan DEBUG
+    \item Berkas \file{operasi-aritmatika.asm}
+    \item Lembar pengamatan register dan flag
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.50\textwidth}
 {\color{obeBlue}\bfseries Langkah kerja}
 \begin{enumerate}\footnotesize
-    \item Rakit dan jalankan kedua contoh; catat keluarannya.
-    \item Amati \reg{AX}, \reg{BX}, \flag{CF}, \flag{ZF}, \flag{OF}, dan
-          \reg{SP} dengan \eng{Single Step}.
-    \item Hapus sementara \asm{CMP AH, BL}, lalu amati $1000 \div 3$.
-    \item Salin kerangka menjadi \file{kalkulator.asm} dan tambahkan menu
-          empat operasi.
+    \item Rakit, link, dan jalankan program.
+    \item Periksa segmen data dengan DEBUG.
+    \item Single step ADD/ADC dan SUB/SBB.
+    \item Uji MUL dan DIV; catat bagi dan sisa.
+    \item Ubah nilai untuk memicu flag dan overflow.
 \end{enumerate}
 \end{column}
 \end{columns}
 
-\vspace{0.05em}
-{\footnotesize\textbf{Dikumpulkan:} \file{kalkulator.asm}, tangkapan layar
-keempat operasi dan pesan pembagi nol, tabel pengamatan \eng{flag}, serta
-jurnal praktikum.\par}
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} berkas \file{.asm} modifikasi,
+tabel register/flag, tangkapan layar DEBUG, analisis CF vs OF, dan
+penjelasan syarat aman pembagian.\par}
+\Sumber{Bab X, Praktikum}
 \end{frame}
 
 % =========================================================
@@ -1068,30 +637,24 @@ jurnal praktikum.\par}
 \begin{frame}{Latihan}
 \small
 \begin{enumerate}
-    \item Jelaskan tiga aturan legalitas \asm{MOV}. Untuk setiap aturan,
-          berikan satu contoh yang sah dan satu contoh yang ditolak
-          assembler.
+    \item Jelaskan perbedaan ADD dan ADC; berikan contoh ketika
+          keduanya menghasilkan nilai berbeda.
 
-    \vspace{0.25em}
-    \item Apakah perbedaan hasil antara \asm{LEA BX, pesan} dan
-          \asm{MOV BX, pesan}? Kapan \asm{LEA} lebih tepat dipakai
-          daripada \asm{MOV} dengan \asm{OFFSET}?
+    \vspace{0.15em}
+    \item Jelaskan perbedaan SUB dan SBB. Mengapa SBB diperlukan
+          pada pengurangan lebih dari 16 bit?
 
-    \vspace{0.25em}
-    \item Diberikan \asm{MOV AL, 250} lalu \asm{ADD AL, 15}. Berapa nilai
-          akhir \reg{AL} dalam heksadesimal, dan berapa nilai \flag{CF},
-          \flag{ZF}, \flag{SF}, serta \flag{OF}?
+    \vspace{0.15em}
+    \item Mengapa INC dan DEC tidak boleh dipakai untuk meneruskan
+          carry pada aritmatika bertingkat?
 
-    \vspace{0.25em}
-    \item Sebuah program menjalankan \asm{DIV BL} dengan \reg{AX} =
-          \hex{0BB8} dan \reg{BL} = \hex{03}, lalu berhenti mendadak.
-          Jelaskan penyebabnya dan tuliskan pemeriksaan yang perlu
-          ditambahkan.
+    \vspace{0.15em}
+    \item Tentukan CF, OF, ZF, dan SF untuk \hex{7F} + \hex{01},
+          \hex{80} + \hex{80}, dan \hex{FF} + \hex{01}.
 
-    \vspace{0.25em}
-    \item Tulislah program yang menjumlahkan $A = \hex{0001FFFF}$ dan
-          $B = \hex{00020001}$ dengan \asm{ADD} dan \asm{ADC}.
-          Tunjukkan word rendah, word tinggi, dan \flag{CF} setiap tahap.
+    \vspace{0.15em}
+    \item Jelaskan aturan MUL dan DIV 8/16 bit, lalu tentukan hasil
+          $25 \times 4$ dan $1000 \div 7$.
 \end{enumerate}
 \end{frame}
 
@@ -1101,65 +664,54 @@ jurnal praktikum.\par}
 \begin{frame}{Rangkuman}
 \small
 \begin{itemize}
-    \item \asm{MOV} menyalin tanpa menghapus sumber; legalitasnya dibatasi
-          ukuran operand yang sama, larangan memori ke memori, dan
-          larangan nilai segera ke register segmen.
+    \item ADD menjumlahkan; ADC ikut menambahkan CF; INC menambah
+          satu.
 
-    \vspace{0.2em}
-    \item Pemindahan yang ditolak diatasi dengan register perantara.
-          \asm{MOV} memindahkan isi memori, \asm{LEA} memindahkan
-          alamatnya; \asm{XCHG} menukar isi dua operand.
+    \vspace{0.15em}
+    \item SUB mengurangi; SBB ikut mengurangkan CF; DEC mengurangi
+          satu.
 
-    \vspace{0.2em}
-    \item \asm{PUSH} dan \asm{POP} bekerja pada satuan word, menolak nilai
-          segera, dan harus berpasangan seimbang agar \reg{SP} kembali.
+    \vspace{0.15em}
+    \item CF untuk luapan tak bertanda; OF untuk luapan bertanda.
 
-    \vspace{0.2em}
-    \item Instruksi aritmatika dasar meninggalkan jejak pada \eng{flag},
-          kecuali \flag{CF} yang tidak disentuh \asm{INC} dan \asm{DEC}.
-          \flag{CF} untuk operasi tak bertanda, \flag{OF} untuk bertanda.
+    \vspace{0.15em}
+    \item Aritmatika 32 bit memakai ADD lalu ADC, atau SUB lalu SBB.
 
-    \vspace{0.2em}
-    \item \asm{MUL}/\asm{IMUL} memakai operand implisit \reg{AL} atau
-          \reg{AX} dan menghasilkan dua kali ukuran operand;
-          \asm{DIV}/\asm{IDIV} menuntut pemeriksaan \asm{CMP AH, BL}.
+    \vspace{0.15em}
+    \item MUL 8 bit menghasilkan AX; MUL 16 bit menghasilkan DX:AX.
 
-    \vspace{0.2em}
-    \item Aritmatika bertingkat disusun dengan \asm{ADC} dan \asm{SBB};
-          bilangan biner diubah menjadi digit desimal dengan pembagian
-          berulang sepuluh.
+    \vspace{0.15em}
+    \item DIV 8 bit menghasilkan AL/AH; DIV 16 bit menghasilkan
+          AX/DX; periksa overflow lebih dahulu.
 \end{itemize}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Cek Pemahaman}
-\small
+\footnotesize
 \begin{enumerate}
-    \item Instruksi berikut yang \emph{tidak} sah pada prosesor 8086
-          adalah \dots
-          \begin{enumerate}\footnotesize
-              \item \asm{MOV AX, BX} \quad
-              \item \asm{MOV AX, nilai1} \quad
-              \item \asm{MOV nilai1, nilai2} \quad
-              \item \asm{MOV nilai1, AX}
+    \item Perbedaan utama ADC dari ADD adalah \dots
+          \begin{enumerate}
+              \item ADC hanya bekerja pada 8 bit
+              \item ADC ikut menambahkan CF
+              \item ADC tidak mengubah flag
+              \item ADC menyimpan hasil di memori
           \end{enumerate}
 
-    \vspace{0.25em}
-    \item Instruksi yang \emph{tidak} mengubah nilai \flag{CF} adalah
-          \dots
-          \begin{enumerate}\footnotesize
-              \item \asm{ADD AX, BX} \quad \item \asm{SUB AX, BX} \quad
-              \item \asm{INC AX} \quad \item \asm{NEG AX}
+    \vspace{0.2em}
+    \item Instruksi yang tidak mengubah CF adalah \dots
+          \begin{enumerate}
+              \item ADD \quad \item SUB \quad
+              \item INC \quad \item ADC
           \end{enumerate}
 
-    \vspace{0.25em}
-    \item Kesalahan \eng{divide overflow} pada \asm{DIV BL} dapat dicegah
-          dengan memeriksa \dots
-          \begin{enumerate}\footnotesize
-              \item apakah \reg{AL} bernilai nol
-              \item apakah \reg{AH} lebih kecil daripada \reg{BL}
-              \item apakah \flag{ZF} bernilai satu
-              \item apakah \reg{BL} lebih kecil daripada \reg{AL}
+    \vspace{0.2em}
+    \item Operasi \hex{7F} + \hex{01} pada 8 bit menghasilkan \dots
+          \begin{enumerate}
+              \item CF = 1, OF = 0
+              \item CF = 0, OF = 1
+              \item CF = 1, OF = 1
+              \item CF = 0, OF = 0
           \end{enumerate}
 \end{enumerate}
 \end{frame}
@@ -1168,32 +720,23 @@ jurnal praktikum.\par}
 % PENUTUP
 % =========================================================
 \begin{frame}{Penutup}
-\small
 \begin{block}{Sebelum pertemuan berikutnya}
+\small
 \begin{itemize}
-    \item Selesaikan Tugas~4: \file{kalkulator.asm} beserta tangkapan
-          layar keempat operasi dan pesan pembagi nol.
-    \item Lengkapi tabel pengamatan \reg{AX}, \flag{CF}, \flag{ZF}, dan
-          \flag{OF} serta jurnal praktikum.
-    \item Ulangi bagian yang belum dikuasai dengan menelusuri
-          \file{kali-bagi.asm} satu instruksi demi satu.
-    \item Baca \textbf{Bab XI} --- Operasi Logika, Pergeseran, dan
-          Rotasi.
+    \item Selesaikan praktikum: berkas \file{.asm} modifikasi,
+          tabel register/flag, tangkapan layar, dan analisis.
+    \item Baca \textbf{Bab XI} — Operasi Logika dan Shift.
+    \item Siapkan pertanyaan tentang AND, OR, XOR, TEST, SHL, dan
+          SHR.
 \end{itemize}
 \end{block}
 
-\vspace{0.3em}
-{\footnotesize\textbf{Bacaan lanjutan:} Bab X bagian Operand Implisit,
-Makna Flag Hasil Aritmatika, dan Kesalahan Divide Overflow; aturan
-\eng{flag} rinci pada dokumentasi Intel 8086; pembahasan interupsi dan
-layanan DOS pada Bab XII.\par}
-
-\vspace{0.35em}
+\vspace{0.4em}
 \begin{center}
 {\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
 \vspace{0.15em}
-{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
-\SemesterTeks\par}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK)
+\textbullet\ \SemesterTeks\par}
 \end{center}
 \end{frame}
 

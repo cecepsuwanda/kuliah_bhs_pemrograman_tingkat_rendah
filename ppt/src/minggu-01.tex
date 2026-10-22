@@ -1,8 +1,7 @@
 % =========================================================
 % ppt/src/minggu-01.tex
 % Slide pertemuan 1
-% Bab III — Pengenalan Pemrograman Tingkat Rendah dan
-% Lingkungan Kerja
+% Bab III — Pengantar Assembly dan Sistem Bilangan
 %
 % Sub-CPMK 1.1 | CPMK01 | CPL02
 % =========================================================
@@ -17,35 +16,35 @@
 % =========================================================
 % 1. JUDUL
 % =========================================================
-\JudulDeck{Pengenalan Pemrograman Tingkat Rendah\\ dan Lingkungan Kerja}{Pertemuan 1}
+\JudulDeck{Pengantar Assembly dan\\ Sistem Bilangan}{Pertemuan 1}
 
 % =========================================================
 % 2. CAPAIAN DAN TUJUAN
 % =========================================================
 \begin{frame}{Capaian dan Tujuan Pembelajaran}
 \begin{block}{Sub-CPMK 1.1}
-\small Menjelaskan perbedaan bahasa tingkat tinggi dan tingkat rendah,
-peran bahasa assembly, gambaran \eng{toolchain}, serta menyiapkan
-lingkungan kerja pemrograman assembly (TASM/Emu8086/DOSBox).
+\small Menjelaskan peran bahasa assembly serta mengonversi bilangan
+biner, desimal, oktal, dan heksadesimal, termasuk membedakan bilangan
+bertanda dan tidak bertanda.
 \end{block}
 
-\vspace{0.15em}
+\vspace{0.1em}
 {\small\textbf{CPMK yang didukung:} \CPMK{01}\quad\textbullet\quad
 \textbf{CPL yang didukung:} \CPL{02}\par}
 
-\vspace{0.2em}
+\vspace{0.15em}
 \begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
 \footnotesize
 \begin{enumerate}
-    \item menjelaskan perbedaan mendasar bahasa tingkat tinggi dan
-          tingkat rendah;
-    \item menjelaskan kedudukan bahasa assembly di antara
-          \eng{machine code} dan bahasa tingkat tinggi;
-    \item menguraikan rantai proses \file{.asm} $\rightarrow$
-          \file{.obj} $\rightarrow$ \file{.exe};
-    \item memasang dan mengonfigurasi Emu8086, GUI Turbo Assembler,
-          dan DOSBox;
-    \item menulis, merakit, dan menjalankan program assembly pertama.
+    \item menjelaskan kedudukan bahasa assembly di antara bahasa mesin
+          dan bahasa tingkat tinggi;
+    \item menjelaskan alasan bahasa assembly masih dipakai;
+    \item mengonversi bilangan biner, desimal, oktal, dan heksadesimal
+          beserta langkah kerjanya;
+    \item menuliskan literal bilangan yang diterima assembler;
+    \item membedakan bilangan bertanda dan tidak bertanda,
+          menerapkan \eng{two's complement}, serta menjelaskan
+          hubungan kode ASCII dengan isi memori.
 \end{enumerate}
 \end{exampleblock}
 \end{frame}
@@ -56,159 +55,149 @@ lingkungan kerja pemrograman assembly (TASM/Emu8086/DOSBox).
 \begin{frame}{Peta Materi}
 \small
 \begin{enumerate}
-    \item \textbf{Tingkat Abstraksi Bahasa Pemrograman}\\
-          {\footnotesize tiga tingkat bahasa; kapan tingkat rendah
-          dipakai; perbandingan ringkas}
+    \item \textbf{Kedudukan dan Peran Bahasa Assembly}\\
+          {\footnotesize tiga tingkat bahasa; alasan assembly masih
+          dipakai; 8086 dan perangkat praktik}
 
     \vspace{0.25em}
-    \item \textbf{Rantai Proses Pembuatan Program Assembly}\\
-          {\footnotesize editing $\rightarrow$ assembling $\rightarrow$
-          linking $\rightarrow$ loading; assembler, linker, loader;
-          \file{.COM} vs \file{.EXE}}
+    \item \textbf{Sistem Bilangan dan Konversi}\\
+          {\footnotesize notasi posisional; empat basis; konversi
+          antarjenis bilangan; literal assembler}
 
     \vspace{0.25em}
-    \item \textbf{Lingkungan Kerja dan Struktur Program Minimal}\\
-          {\footnotesize Emu8086, GUI TASM, DOSBox; kerangka baku
-          program; inisialisasi \reg{DS}; alur eksekusi}
+    \item \textbf{Bilangan Bertanda, Tak Bertanda, dan Data Karakter}\\
+          {\footnotesize bit tanda; \eng{two's complement};
+          jangkauan; kode ASCII}
 \end{enumerate}
 
-\vspace{0.4em}
+\vspace{0.35em}
 \begin{block}{Praktik pada pertemuan ini}
-\small Merakit dan menjalankan tiga contoh program, lalu memodifikasi
-salah satunya.
+\small Konversi bilangan dan pemeriksaan data di memori dengan
+DEBUG serta emu8086.
 \end{block}
 \end{frame}
 
 % =========================================================
 % BAGIAN 1
 % =========================================================
-\PemisahBagian{Tingkat Abstraksi Bahasa Pemrograman}
+\PemisahBagian{Kedudukan dan Peran Bahasa Assembly}
 
 % ---------------------------------------------------------
-\begin{frame}{Tiga Tingkat Bahasa}
+\begin{frame}{Tiga Tingkat Bahasa Pemrograman}
 \begin{center}
 \begin{tikzpicture}[
     lapis/.style={
         draw=obeBlue, line width=0.8pt, rounded corners=3pt,
-        text width=11.4cm, align=left, inner sep=7pt, font=\small
+        text width=10.4cm, minimum height=0.82cm, align=center,
+        inner sep=5pt, font=\small
     }
 ]
-    \node[lapis, fill=obeBlueLight] (l4) {
-        \textbf{Bahasa tingkat tinggi}\hfill
-        \textit{satu baris} $\Rightarrow$ \textit{banyak instruksi}};
-    \node[lapis, fill=obeTealLight, below=0.26cm of l4] (l3) {
-        \textbf{Bahasa assembly}\hfill
-        \textit{satu instruksi} $\Rightarrow$ \textit{satu instruksi mesin}};
-    \node[lapis, fill=obeAmberLight, below=0.26cm of l3] (l2) {
-        \textbf{Bahasa mesin}\hfill \hex{B8 05 00}};
-    \node[lapis, fill=obeGrayLight, below=0.26cm of l2] (l1) {
-        \textbf{Perangkat keras}\hfill
-        \textit{gerbang logika, bus, register}};
+    \node[lapis, fill=obeBlueLight] (high) {
+        \textbf{Bahasa tingkat tinggi}\\[1pt]
+        {\footnotesize satu baris $\Rightarrow$ banyak instruksi mesin}};
+    \node[lapis, fill=obeTealLight, below=0.18cm of high] (asm) {
+        \textbf{Bahasa assembly}\\[1pt]
+        {\footnotesize satu instruksi $\Rightarrow$ satu instruksi mesin}};
+    \node[lapis, fill=obeAmberLight, below=0.18cm of asm] (machine) {
+        \textbf{Bahasa mesin}\\[1pt]
+        {\footnotesize deretan bit}};
+    \node[lapis, draw=obeGray, fill=obeGrayLight,
+          below=0.18cm of machine] (hw) {
+        \textbf{Perangkat keras}\\[1pt]
+        {\footnotesize gerbang logika, bus, register}};
 \end{tikzpicture}
 \end{center}
 
-\vspace{0.35em}
-{\footnotesize\color{obeGray}Dari atas ke bawah: semakin dekat ke mesin.
-Dari bawah ke atas: semakin tinggi abstraksi. Hubungan assembly dan
-bahasa mesin bersifat \eng{one-to-one} — satu instruksi assembly
-menghasilkan tepat satu instruksi mesin.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Operasi yang Sama pada Tiga Tingkat}
-\small Satu operasi sederhana — \emph{memindahkan nilai 5 ke sebuah
-tempat} — ditulis berbeda pada setiap tingkat:
-
-\vspace{0.5em}
-\begin{columns}[t]
-\begin{column}{0.32\textwidth}
-    {\color{obeAmber}\bfseries Bahasa mesin}\\[0.3em]
-    \begin{keluaran}
-B8 05 00
-    \end{keluaran}
-    {\scriptsize deretan bit, tanpa nama simbolik}
-\end{column}
-\begin{column}{0.32\textwidth}
-    {\color{obeTeal}\bfseries Bahasa assembly}\\[0.3em]
-    \begin{kodeasm}[numbers=none]
-MOV AX, 5
-    \end{kodeasm}
-    {\scriptsize satu \eng{mnemonic} untuk satu instruksi}
-\end{column}
-\begin{column}{0.32\textwidth}
-    {\color{obeBlue}\bfseries Bahasa tingkat tinggi}\\[0.3em]
-    \begin{keluaran}
-x = 5;
-    \end{keluaran}
-    {\scriptsize menyembunyikan register dan memori}
-\end{column}
-\end{columns}
-
-\vspace{0.6em}
-\begin{block}{Inti perbedaannya}
-\small \term{Tingkat abstraksi} adalah seberapa jauh bahasa
-menyembunyikan detail perangkat keras dari programmer.
+\vspace{0.2em}
+\begin{block}{Hubungan assembly dan bahasa mesin}
+\small Bersifat \eng{one-to-one}: satu instruksi assembly
+diterjemahkan menjadi tepat satu instruksi mesin.
 \end{block}
+\Sumber{Bab III, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Kapan Pemrograman Tingkat Rendah Digunakan}
+\begin{frame}{Mengapa Bahasa Assembly Masih Dipakai}
 \small
 \begin{itemize}
-    \item \textbf{Kendali penuh atas perangkat keras.}
-          \eng{Device driver}, \eng{bootloader}, dan \eng{firmware}
-          memerlukan akses langsung ke register dan port I/O.
+    \item \textbf{Kendali perangkat keras.} Akses langsung ke
+          register, memori, dan port masukan/keluaran.
 
-    \vspace{0.3em}
-    \item \textbf{Kinerja dan ukuran kode.}
-          Pada sistem tertanam dengan memori terbatas, program assembly
-          dapat jauh lebih kecil dan lebih cepat.
+    \vspace{0.18em}
+    \item \textbf{Ukuran dan kecepatan.} Program dapat dibuat kecil
+          dan hemat instruksi pada sistem bermemori terbatas.
 
-    \vspace{0.3em}
-    \item \textbf{Analisis dan keamanan.}
-          Membaca hasil \eng{disassembly}, menganalisis
-          \eng{malware}, dan menguji keamanan perangkat lunak.
+    \vspace{0.18em}
+    \item \textbf{Pemahaman prosesor.} Instruksi, perpindahan data,
+          dan pengambilan keputusan berdasarkan \eng{flag} terlihat
+          langsung.
 
-    \vspace{0.3em}
-    \item \textbf{Pendidikan.}
-          Memperlihatkan secara eksplisit bagaimana prosesor mengambil
-          instruksi, memindahkan data, dan mengambil keputusan
-          berdasarkan \eng{flag}.
+    \vspace{0.18em}
+    \item \textbf{Analisis program.} Perilaku program dapat ditelaah
+          pada level perangkat keras.
 \end{itemize}
 
-\vspace{0.3em}
+\vspace{0.25em}
 \begin{alertblock}{Yang perlu diingat}
-\small Tingkat rendah tidak berarti ``lebih baik''. Keduanya alat
+\small Assembly bukan pengganti bahasa tingkat tinggi; keduanya alat
 dengan tujuan berbeda.
 \end{alertblock}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Perbandingan Ringkas}
+\begin{frame}{Assembly 8086 dan Perangkat Praktik}
 \small
+Mata kuliah ini memakai prosesor Intel 8086 mode real 16-bit.
+
+\vspace{0.35em}
 \begin{center}
-\begin{tabular}{@{}p{2.9cm}p{4.9cm}p{5.1cm}@{}}
+\begin{tabular}{@{}p{2.8cm}p{9.6cm}@{}}
     \toprule
-    \textbf{Aspek} & \textbf{Bahasa Tingkat Tinggi} &
-    \textbf{Bahasa Tingkat Rendah} \\
+    \textbf{Perangkat} & \textbf{Peran} \\
     \midrule
-    Kedekatan ke mesin & Jauh; mesin disembunyikan &
-    Sangat dekat; instruksi mesin tampak langsung \\
+    TASM & Meng-\eng{assemble} berkas \file{.ASM} menjadi
+    \file{.OBJ} \\
     \addlinespace
-    Portabilitas & Tinggi, satu kode untuk banyak mesin &
-    Rendah, terikat satu keluarga prosesor \\
+    TLINK & Mengaitkan \file{.OBJ} menjadi \file{.EXE} atau
+    \file{.COM} \\
     \addlinespace
-    Produktivitas & Tinggi, sedikit kode untuk banyak pekerjaan &
-    Rendah, banyak kode untuk pekerjaan sederhana \\
+    DEBUG & Memeriksa register dan isi memori \\
     \addlinespace
-    Kendali perangkat keras & Terbatas &
-    Penuh (register, memori, port I/O) \\
+    emu8086 & Menulis dan menjalankan program secara terpandu \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.25em}
+{\footnotesize\color{obeGray}Fokus bab ini: kedudukan bahasa assembly
+dan cara merepresentasikan bilangan.\par}
+\Sumber{Bab III, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Perbandingan Tiga Tingkat}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.4cm}
+    >{\raggedright\arraybackslash}p{3.2cm}
+    >{\raggedright\arraybackslash}p{3.4cm}
+    >{\raggedright\arraybackslash}p{3.2cm}@{}}
+    \toprule
+    \textbf{Aspek} & \textbf{Bahasa Mesin} &
+    \textbf{Assembly} & \textbf{Tingkat Tinggi} \\
+    \midrule
+    Satuan penulisan & Deretan bit &
+    Satu \eng{mnemonic} per instruksi & Ekspresi dan pernyataan \\
     \addlinespace
-    Ukuran hasil & Lebih besar (ada kode pustaka) &
-    Sangat kecil, dapat dioptimalkan \\
+    Contoh & \code{B8 05 00} & \code{MOV AX, 5} & \code{x = 5;} \\
     \addlinespace
-    Pemeliharaan & Mudah dibaca dan diubah &
-    Sulit dibaca, rawan kesalahan kecil \\
+    Kedekatan ke mesin & Langsung & Sangat dekat & Jauh \\
+    \addlinespace
+    Kendali perangkat keras & Penuh & Penuh & Terbatas \\
+    \addlinespace
+    Portabilitas & Rendah & Rendah & Tinggi \\
+    \addlinespace
+    Kemudahan penulisan & Sangat sulit & Sulit & Mudah \\
     \bottomrule
 \end{tabular}
 \end{center}
@@ -218,438 +207,428 @@ dengan tujuan berbeda.
 \begin{frame}{Rangkuman Bagian 1}
 \small
 \begin{itemize}
-    \item Tingkat abstraksi ditentukan oleh seberapa jauh sebuah
-          bahasa menyembunyikan detail perangkat keras. Urutannya dari
-          bawah ke atas: perangkat keras, bahasa mesin, assembly,
-          bahasa tingkat tinggi.
+    \item Tiga tingkat bahasa: mesin, assembly, dan tingkat tinggi.
+          Assembly berada tepat di atas bahasa mesin dan bersifat
+          \eng{one-to-one}.
 
-    \vspace{0.25em}
-    \item Operasi yang sama dapat dituliskan pada setiap tingkat:
-          \hex{B8 05 00} (mesin), \code{MOV AX, 5} (assembly), dan
-          \code{x = 5;} (tingkat tinggi).
+    \vspace{0.15em}
+    \item Semakin rendah tingkatnya, semakin dekat ke mesin dan
+          semakin penuh kendali atas perangkat keras; portabilitas
+          dan kemudahan penulisan menurun.
 
-    \vspace{0.25em}
-    \item Hubungan assembly dan bahasa mesin bersifat
-          \eng{one-to-one}, sedangkan satu baris bahasa tingkat tinggi
-          dapat mewakili banyak instruksi mesin.
+    \vspace{0.15em}
+    \item Assembly dipakai untuk kendali perangkat keras, ukuran dan
+          kecepatan kode, pemahaman prosesor, serta analisis program.
 
-    \vspace{0.25em}
-    \item Semakin rendah tingkatnya, semakin penuh kendali atas
-          register, memori, dan port I/O, tetapi portabilitas,
-          produktivitas, dan kemudahan pemeliharaan semakin rendah.
+    \vspace{0.15em}
+    \item Praktik memakai 8086 mode real 16-bit dengan TASM, TLINK,
+          DEBUG, dan emu8086.
 
-    \vspace{0.25em}
-    \item Pemrograman tingkat rendah dipilih ketika kendali perangkat
-          keras, ukuran atau kecepatan kode, atau analisis keamanan
-          menjadi pertimbangan utama.
+    \vspace{0.15em}
+    \item Fokus bab ini adalah kedudukan assembly dan representasi
+          bilangan, bukan penulisan program utuh.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 2
 % =========================================================
-\PemisahBagian{Rantai Proses Pembuatan Program Assembly}
+\PemisahBagian{Sistem Bilangan dan Konversi}
 
 % ---------------------------------------------------------
-\begin{frame}{Tahapan Rantai Proses}
-\begin{center}
-\begin{tikzpicture}[
-    tahap/.style={
-        draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-        rounded corners=3pt, minimum width=2.85cm, minimum height=1.05cm,
-        align=center, font=\small\bfseries, inner sep=3pt
-    },
-    alat/.style={font=\scriptsize\itshape, text=obeGray, align=center},
-    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeTeal}
-]
-    \node[tahap] (a) {\file{.asm}\\{\normalfont\scriptsize kode sumber}};
-    \node[tahap, right=0.5cm of a, fill=obeTealLight, draw=obeTeal] (b)
-        {\file{.obj}\\{\normalfont\scriptsize berkas objek}};
-    \node[tahap, right=0.5cm of b, fill=obeTealLight, draw=obeTeal] (c)
-        {\file{.exe}\\{\normalfont\scriptsize dapat dijalankan}};
-    \node[tahap, right=0.5cm of c, fill=obeAmberLight, draw=obeAmber] (d)
-        {Memori\\{\normalfont\scriptsize proses berjalan}};
-
-    \draw[panah] (a) -- (b);
-    \draw[panah] (b) -- (c);
-    \draw[panah] (c) -- (d);
-
-    \node[alat, below=0.1cm of a] {editor};
-    \node[alat, below=0.1cm of b] {assembler\\TASM / MASM};
-    \node[alat, below=0.1cm of c] {linker\\TLINK};
-    \node[alat, below=0.1cm of d] {loader\\DOS};
-\end{tikzpicture}
-\end{center}
-
-\vspace{0.3em}
+\begin{frame}{Notasi Posisional}
 \small
-\begin{enumerate}
-    \item \textbf{Penyuntingan} — menulis kode \file{.asm}.
-    \item \textbf{Perakitan} — assembler menerjemahkan \eng{mnemonic}
-          menjadi kode mesin $\rightarrow$ \file{.obj}.
-    \item \textbf{Pengaitan} — linker menyelesaikan alamat dan
-          menggabungkan pustaka $\rightarrow$ \file{.exe}.
-    \item \textbf{Pemuatan} — \eng{loader} memuat ke memori dan
-          menyerahkan kendali ke instruksi pertama.
-\end{enumerate}
+Nilai suatu angka ditentukan oleh digit dan posisinya. Untuk basis
+$b$, angka pada posisi ke-$i$ memiliki bobot $b^i$.
+
+\[
+d_n b^n + d_{n-1}b^{n-1} + \cdots + d_1 b^1 + d_0 b^0
+\]
+
+Contoh desimal:
+\[
+123_{10} = 1\cdot10^2 + 2\cdot10^1 + 3\cdot10^0 = 123.
+\]
+
+\vspace{0.15em}
+\begin{block}{Aturan yang sama}
+\small Aturan ini berlaku untuk semua basis; yang berubah hanya nilai
+basis $b$.
+\end{block}
+\Sumber{Bab III, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Assembler, Linker, dan Loader}
+\begin{frame}{Empat Basis yang Dipakai}
 \small
-\begin{description}
-    \item[Assembler] Menerjemahkan kode sumber assembly menjadi kode
-          mesin. Karena setiap instruksi assembly bersesuaian dengan
-          satu instruksi mesin, penerjemahan ini berjalan
-          \eng{one-to-one} ditambah penanganan direktif dan simbol.
+\begin{center}
+\begin{tabular}{@{}p{3.0cm}p{4.0cm}p{4.0cm}@{}}
+    \toprule
+    \textbf{Basis} & \textbf{Digit} & \textbf{Contoh} \\
+    \midrule
+    Biner ($b=2$) & 0 dan 1 & \bin{11110011} \\
+    \addlinespace
+    Oktal ($b=8$) & 0 sampai 7 & $363_8$ \\
+    \addlinespace
+    Desimal ($b=10$) & 0 sampai 9 & 243 \\
+    \addlinespace
+    Heksadesimal ($b=16$) & 0--9 dan A--F & \hex{F3} \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
-    \vspace{0.35em}
-    \item[Linker] Menyelesaikan rujukan antarberkas. Bila program
-          memanggil prosedur di berkas lain atau di pustaka,
-          linker-lah yang menyambungkannya dan menetapkan alamat akhir.
+\vspace{0.3em}
+{\footnotesize\color{obeGray}Pada heksadesimal: A = 10, B = 11,
+C = 12, D = 13, E = 14, dan F = 15.\par}
+\Sumber{Bab III, Bagian 2}
+\end{frame}
 
-    \vspace{0.35em}
-    \item[Loader] Bagian sistem operasi yang memuat \file{.exe} ke
-          memori, membuat \eng{Program Segment Prefix} (PSP),
-          menetapkan register segmen, dan melompat ke titik masuk.
-\end{description}
+% ---------------------------------------------------------
+\begin{frame}{Biner ke Desimal}
+\small
+Kalikan setiap bit dengan bobot posisinya, lalu jumlahkan.
 
-\vspace{0.4em}
-\begin{block}{Pembagian tugas}
-\small Assembler $\rightarrow$ kode mesin per instruksi \quad\textbullet\quad
-Linker $\rightarrow$ alamat akhir \quad\textbullet\quad
-Loader $\rightarrow$ memuat ke memori.
+\[
+\begin{aligned}
+&1\cdot2^7 + 1\cdot2^6 + 1\cdot2^5 + 1\cdot2^4\\
+&\quad + 0\cdot2^3 + 0\cdot2^2 + 1\cdot2^1 + 1\cdot2^0 = 243.
+\end{aligned}
+\]
+
+\[
+128 + 64 + 32 + 16 + 2 + 1 = 243.
+\]
+
+\vspace{0.15em}
+\begin{block}{Hasil}
+\small \bin{11110011} sama dengan 243 desimal.
+\end{block}
+\Sumber{Bab III, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Desimal ke Biner}
+\small
+Bagi dengan 2 secara berulang, catat sisanya, lalu baca sisa dari
+bawah ke atas.
+
+\vspace{0.2em}
+\begin{center}
+\begin{tabular}{@{}p{4.2cm}p{3.2cm}p{2.2cm}@{}}
+    \toprule
+    \textbf{Pembagian} & \textbf{Hasil} & \textbf{Sisa} \\
+    \midrule
+    $243 \div 2$ & 121 & 1 \\
+    $121 \div 2$ & 60 & 1 \\
+    $60 \div 2$ & 30 & 0 \\
+    $30 \div 2$ & 15 & 0 \\
+    $15 \div 2$ & 7 & 1 \\
+    $7 \div 2$ & 3 & 1 \\
+    $3 \div 2$ & 1 & 1 \\
+    $1 \div 2$ & 0 & 1 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.1em}
+{\small Hasil: \bin{11110011}.\par}
+\Sumber{Bab III, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Oktal dan Heksadesimal}
+\small
+Kelompokkan bit dari kanan: tiga bit untuk oktal dan empat bit untuk
+heksadesimal.
+
+\vspace{0.25em}
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+    {\color{obeTeal}\bfseries Oktal}\\[0.2em]
+    \code{011 110 011} $\rightarrow$ 3, 6, 3\\
+    Hasil: $363_8$
+\end{column}
+\begin{column}{0.48\textwidth}
+    {\color{obeTeal}\bfseries Heksadesimal}\\[0.2em]
+    \code{1111 0011} $\rightarrow$ F, 3\\
+    Hasil: \hex{F3}
+\end{column}
+\end{columns}
+
+\vspace{0.35em}
+Pemeriksaan dengan bobot posisi:
+\[
+3\cdot8^2 + 6\cdot8 + 3 = 243,
+\qquad
+15\cdot16 + 3 = 243.
+\]
+
+\begin{block}{Ringkas}
+\small Pengelompokan bit lebih cepat; bobot posisi dipakai untuk
+memeriksa hasil.
 \end{block}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Program \file{.COM} dan \file{.EXE}}
+\begin{frame}{Literal Bilangan pada Assembler}
 \small
-\begin{center}
-\begin{tabular}{@{}p{2.9cm}p{5.0cm}p{5.0cm}@{}}
-    \toprule
-    \textbf{Aspek} & \textbf{Program \file{.COM}} &
-    \textbf{Program \file{.EXE}} \\
-    \midrule
-    Ukuran maksimum & 64 KB dikurangi 256 byte &
-    Tidak dibatasi satu segmen \\
-    \addlinespace
-    Struktur segmen & Satu segmen: kode, data, stack menyatu &
-    Terpisah: segmen kode, data, stack sendiri \\
-    \addlinespace
-    Titik awal & Wajib \dir{ORG 100h} &
-    Dinyatakan oleh \dir{END} pada label awal \\
-    \addlinespace
-    Inisialisasi \reg{DS} & Otomatis sudah benar &
-    Harus sendiri: \code{MOV AX, @DATA} lalu \code{MOV DS, AX} \\
-    \addlinespace
-    Cara keluar & \code{INT 20h} &
-    \code{MOV AH, 4Ch} lalu \code{INT 21h} \\
-    \bottomrule
-\end{tabular}
-\end{center}
-\end{frame}
+\begin{itemize}
+    \item \textbf{Desimal:} \code{243} atau \code{243D}.
+    \item \textbf{Biner:} \code{11110011B}.
+    \item \textbf{Heksadesimal:} \code{0F3H}; bila digit pertama
+          A--F, tambahkan nol di depan.
+    \item \textbf{Karakter:} \code{'A'} atau \code{"A"}.
+\end{itemize}
 
-% ---------------------------------------------------------
-\begin{frame}{Jebakan Paling Sering: Register \reg{DS}}
-\begin{alertblock}{Kesalahan klasik pada program \file{.EXE}}
-\small Lupa menginisialisasi register \reg{DS}. Akibatnya instruksi
-yang mengakses variabel membaca alamat yang salah dan program mencetak
-karakter sampah.
+\vspace{0.3em}
+\begin{alertblock}{Kesalahan yang sering terjadi}
+\small Menulis \code{F3H} tanpa nol dapat dibaca assembler sebagai
+nama label, bukan bilangan.
 \end{alertblock}
-
-\vspace{0.5em}
-\begin{block}{Mengapa \file{.COM} tidak perlu?}
-\small DOS sudah menetapkan seluruh register segmen ke segmen program,
-sehingga variabel dapat langsung dialamatkan.
-\end{block}
-
-\vspace{0.6em}
-{\small\color{obeGray}Dua instruksi wajib pada awal program \file{.EXE}:\par}
-\vspace{0.3em}
-\begin{center}
-\code{MOV AX, @DATA} \quad\textbullet\quad \code{MOV DS, AX}
-\end{center}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Pesan Kesalahan Assembler yang Sering Muncul}
-\small
-\begin{center}
-\begin{tabular}{@{}p{3.5cm}p{4.2cm}p{5.2cm}@{}}
-    \toprule
-    \textbf{Pesan} & \textbf{Penyebab umum} & \textbf{Cara memperbaiki} \\
-    \midrule
-    \file{Undefined symbol} & Label atau variabel belum
-    didefinisikan & Periksa penulisan nama; pastikan label sudah
-    didefinisikan \\
-    \addlinespace
-    \file{Syntax error} & Salah tulis mnemonic atau operand &
-    Periksa ukuran operand dan tanda koma pemisah \\
-    \addlinespace
-    \file{Operand types do not match} & Ukuran operand tidak sama &
-    Samakan ukuran, atau pakai \code{BYTE PTR} / \code{WORD PTR} \\
-    \addlinespace
-    \file{Improper operand type} & Operasi memori-ke-memori yang
-    tidak diizinkan & Pindahkan salah satu operand ke register dulu \\
-    \bottomrule
-\end{tabular}
-\end{center}
+\Sumber{Bab III, Bagian 2; [2] BAB V}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 2}
 \small
 \begin{itemize}
-    \item Empat tahap rantai proses: penyuntingan \file{.asm},
-          perakitan \file{.obj}, pengaitan \file{.exe}, lalu pemuatan
-          ke memori oleh \eng{loader}.
+    \item Notasi posisional: nilai angka adalah jumlah digit
+          dikalikan bobot basisnya.
 
-    \vspace{0.25em}
-    \item Pembagian tugas: assembler menerjemahkan \eng{mnemonic}
-          menjadi kode mesin, linker menyelesaikan rujukan antarberkas
-          dan menetapkan alamat akhir, \eng{loader} membuat PSP dan
-          melompat ke titik masuk.
+    \vspace{0.15em}
+    \item Empat basis yang dipakai: biner, oktal, desimal, dan
+          heksadesimal.
 
-    \vspace{0.25em}
-    \item \file{.COM}: satu segmen, maksimum 64 KB dikurangi 256 byte,
-          wajib \dir{ORG 100h}, keluar dengan \code{INT 20h}, dan
-          \reg{DS} sudah benar dengan sendirinya.
+    \vspace{0.15em}
+    \item Biner ke desimal dihitung dengan bobot posisi; desimal ke
+          biner dengan pembagian berulang dan sisa dibaca terbalik.
 
-    \vspace{0.25em}
-    \item \file{.EXE}: segmen kode, data, dan stack terpisah, keluar
-          dengan \code{MOV AH, 4Ch} + \code{INT 21h}, dan \reg{DS}
-          wajib diinisialisasi lebih dahulu.
+    \vspace{0.15em}
+    \item Oktal dibentuk dari kelompok tiga bit; heksadesimal dari
+          kelompok empat bit.
 
-    \vspace{0.25em}
-    \item Empat pesan kesalahan assembler yang sering muncul:
-          \file{Undefined symbol}, \file{Syntax error},
-          \file{Operand types do not match}, dan
-          \file{Improper operand type}.
+    \vspace{0.15em}
+    \item Literal memakai akhiran D, B, atau H; heksadesimal yang
+          diawali huruf perlu nol di depan.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 3
 % =========================================================
-\PemisahBagian{Lingkungan Kerja dan Struktur Program Minimal}
+\PemisahBagian{Bilangan Bertanda, Tak Bertanda, dan Data Karakter}
 
 % ---------------------------------------------------------
-\begin{frame}{Pilihan Lingkungan Kerja}
+\begin{frame}{Bilangan Tidak Bertanda}
 \small
+Seluruh bit dipakai sebagai besaran. Untuk $n$ bit, jangkauannya
+adalah 0 sampai $2^n - 1$.
+
+\vspace{0.3em}
 \begin{center}
-\begin{tabular}{@{}p{3.0cm}p{4.9cm}p{5.0cm}@{}}
+\begin{tabular}{@{}p{3.0cm}p{7.0cm}@{}}
     \toprule
-    \textbf{Perangkat} & \textbf{Kelebihan} & \textbf{Keterbatasan} \\
+    \textbf{Panjang} & \textbf{Jangkauan} \\
     \midrule
-    \textbf{Emu8086} & Emulator dengan tampilan register, memori, dan
-    \eng{flag} langsung; cocok untuk pemula &
-    Menjalankan emulasi, bukan perangkat keras sungguhan \\
+    8 bit & 0 sampai 255 \\
     \addlinespace
-    \textbf{GUI Turbo Assembler} & Antarmuka grafis untuk TASM/TLINK
-    dengan \eng{debugger} terpadu; mendekati alur kerja nyata &
-    Perlu pemahaman struktur segmen dan linker \\
-    \addlinespace
-    \textbf{DOSBox} & Menyediakan lingkungan DOS asli; dapat
-    menjalankan DEBUG, TASM, TLINK, dan \file{.exe} lama &
-    Antarmuka baris perintah, tanpa tampilan register otomatis \\
+    16 bit & 0 sampai 65.535 \\
     \bottomrule
 \end{tabular}
 \end{center}
 
 \vspace{0.3em}
-{\footnotesize\color{obeGray}Ketiganya bebas biaya dan dapat dipasang
-berdampingan pada satu komputer.\par}
+Contoh: \hex{FF} pada 8 bit bernilai 255; \hex{FFFF} pada 16 bit
+bernilai 65.535.
+\Sumber{Bab III, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Penyiapan Lingkungan Kerja}
-\small Kerjakan sebelum pertemuan berikutnya:
-\vspace{0.4em}
-\begin{enumerate}
-    \item Pasang \textbf{Emu8086}, buat satu berkas program sederhana,
-          lalu jalankan.
-
-    \vspace{0.3em}
-    \item Pasang \textbf{GUI Turbo Assembler} beserta TASM dan TLINK,
-          lalu rakit ulang program yang sama.
-
-    \vspace{0.3em}
-    \item Pasang \textbf{DOSBox}, tambahkan perintah \file{mount} ke
-          direktori kerja, dan jalankan \file{DEBUG} di dalamnya.
-
-    \vspace{0.3em}
-    \item Dokumentasikan seluruh langkah pemasangan dalam jurnal
-          praktikum.
-\end{enumerate}
-
-\vspace{0.4em}
-\begin{block}{Target}
-\small Pada akhir pertemuan ini setiap mahasiswa sudah dapat merakit
-dan menjalankan satu program assembly di komputernya sendiri.
-\end{block}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Struktur Program Assembly Minimal}
-\small Kerangka baku program assembly 8086 untuk lingkungan DOS:
-
-\vspace{0.3em}
-\begin{kodeasm}[numbers=none]
-.MODEL SMALL        ; tentukan model memori
-.STACK 100h         ; sediakan ruang stack
-
-.DATA               ; ------- segmen data -------
-    ; deklarasi variabel dan konstanta di sini
-
-.CODE               ; ------- segmen kode -------
-START:              ; label titik masuk program
-    MOV AX, @DATA   ; inisialisasi register DS
-    MOV DS, AX
-
-    ; instruksi program di sini
-
-    MOV AH, 4Ch     ; keluar dari program
-    MOV AL, 00h
-    INT 21h
-
-END START           ; akhiri dan tunjuk titik masuk
-\end{kodeasm}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Peran Setiap Bagian Kerangka}
+\begin{frame}{Bilangan Bertanda dan Two's Complement}
 \small
+Bit paling kiri adalah \term{bit tanda}: 0 untuk positif atau nol,
+1 untuk negatif.
+
+\vspace{0.25em}
 \begin{center}
-\begin{tabular}{@{}p{3.0cm}p{10.3cm}@{}}
+\begin{tabular}{@{}p{6.0cm}p{5.0cm}@{}}
     \toprule
-    \textbf{Direktif / label} & \textbf{Peran} \\
+    \textbf{Langkah} & \textbf{Hasil 8 bit} \\
     \midrule
-    \dir{.MODEL SMALL} & Model memori: satu segmen kode + satu segmen
-    data, masing-masing maks.\ 64 KB \\
+    Bilangan positif 37 & \bin{00100101} \\
     \addlinespace
-    \dir{.STACK 100h} & Menyediakan \hex{100} byte (\dec{256} byte)
-    ruang stack \\
+    Balikkan seluruh bit & \bin{11011010} \\
     \addlinespace
-    \dir{.DATA} & Awal segmen data; variabel dideklarasikan dengan
-    \dir{DB}, \dir{DW}, atau \dir{DD} \\
-    \addlinespace
-    \dir{.CODE} & Awal segmen kode; seluruh instruksi yang dieksekusi \\
-    \addlinespace
-    \file{START:} & Label instruksi pertama; harus sama dengan nama
-    setelah \dir{END} \\
-    \addlinespace
-    \dir{END START} & Menutup berkas dan menunjuk titik masuk
-    eksekusi \\
+    Tambahkan 1 & \bin{11011011} = \hex{DB} \\
     \bottomrule
 \end{tabular}
 \end{center}
+
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Urutan: tulis bilangan positif, balik
+bit, lalu tambahkan 1.\par}
+\Sumber{Bab III, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Inisialisasi Register \reg{DS}}
-\small Program \file{.EXE} tidak otomatis memiliki \reg{DS} yang benar.
-Dua instruksi berikut \textbf{wajib} ada di awal program:
-
-\vspace{0.4em}
-\begin{kodeasm}[numbers=none]
-MOV AX, @DATA       ; salin alamat segmen data ke AX
-MOV DS, AX          ; lalu pindahkan ke DS
-\end{kodeasm}
-
-\vspace{0.7em}
-\begin{block}{Mengapa harus lewat \reg{AX}?}
-\small Arsitektur 8086 melarang pemindahan nilai segera
-(\eng{immediate}) langsung ke register segmen. Pemindahan ke register
-segmen hanya boleh berasal dari register umum.
-\end{block}
-
-\vspace{0.4em}
-{\footnotesize\color{obeGray}\code{@DATA} adalah simbol bawaan hasil
-\dir{.MODEL}, berisi nomor segmen tempat \dir{.DATA} berada.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Alur Eksekusi Program Pertama}
+\begin{frame}{Jangkauan Bilangan Bertanda}
 \small
-\begin{enumerate}
-    \item DOS memuat \file{.exe}, membuat \eng{Program Segment Prefix},
-          dan menetapkan \reg{CS} serta \reg{IP} ke titik masuk.
+\begin{center}
+\begin{tabular}{@{}p{2.6cm}p{4.6cm}p{5.2cm}@{}}
+    \toprule
+    \textbf{Panjang} & \textbf{Tidak Bertanda} &
+    \textbf{Bertanda} \\
+    \midrule
+    8 bit & 0 sampai 255 & $-128$ sampai 127 \\
+    \addlinespace
+    16 bit & 0 sampai 65.535 & $-32.768$ sampai 32.767 \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
-    \vspace{0.35em}
-    \item Instruksi pertama menginisialisasi \reg{DS} agar penunjukan
-          variabel pada segmen data benar.
+\vspace{0.3em}
+Nilai \bin{10000000} pada 8 bit bertanda adalah $-128$ dan tidak
+memiliki pasangan positif pada panjang bit yang sama.
+\Sumber{Bab III, Bagian 3}
+\end{frame}
 
-    \vspace{0.35em}
-    \item Instruksi program dijalankan satu per satu sesuai urutan.
+% ---------------------------------------------------------
+\begin{frame}{Menafsirkan Pola Bit}
+\small
+Pola bit yang sama dapat mempunyai dua makna.
 
-    \vspace{0.35em}
-    \item Layanan DOS \code{INT 21h} fungsi \hex{09} mencetak string
-          ke layar.
+\vspace{0.25em}
+\begin{itemize}
+    \item \hex{F3} = \bin{11110011}.
+    \item Tidak bertanda: 243.
+    \item Bertanda 8 bit: $243 - 256 = -13$.
+\end{itemize}
 
-    \vspace{0.35em}
-    \item Layanan DOS \code{INT 21h} fungsi \hex{4C} mengakhiri
-          program dan mengembalikan kendali ke DOS.
-\end{enumerate}
+\vspace{0.25em}
+\begin{itemize}
+    \item \eng{Sign Flag} mencatat tanda hasil operasi.
+    \item Program menentukan tafsir melalui jenis operasi dan
+          lompatan bersyarat yang dipilih.
+\end{itemize}
 
-\vspace{0.4em}
-\begin{block}{Pola yang akan dipakai berulang}
-\small Siapkan argumen pada register $\rightarrow$ panggil layanan
-\code{INT 21h} $\rightarrow$ akhiri program.
+\vspace{0.2em}
+\begin{block}{Aturan praktis}
+\small Bit tanda 0: nilai bertanda sama dengan nilai tidak bertanda.
+Bit tanda 1: kurangkan $2^n$ dari nilai tidak bertanda.
 \end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Kode ASCII dan Data Karakter}
+\small
+Karakter disimpan sebagai kode numerik satu byte.
+
+\vspace{0.3em}
+\begin{center}
+\begin{tabular}{@{}p{3.0cm}p{5.0cm}@{}}
+    \toprule
+    \textbf{Karakter} & \textbf{Kode} \\
+    \midrule
+    \code{'A'} & 65 = \hex{41} \\
+    \addlinespace
+    \code{'a'} & 97 = \hex{61} \\
+    \addlinespace
+    \code{'0'} & 48 = \hex{30} \\
+    \addlinespace
+    spasi & 32 = \hex{20} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.25em}
+\begin{block}{String}
+\small String adalah byte-byte ASCII berurutan. Menulis \code{'A'}
+pada segmen data sama dengan menyimpan \hex{41}.
+\end{block}
+\Sumber{Bab III, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 3}
 \small
 \begin{itemize}
-    \item Tiga lingkungan kerja yang dapat dipasang berdampingan:
-          Emu8086 (emulator dengan tampilan register, memori, dan
-          \eng{flag}), GUI Turbo Assembler (TASM/TLINK bergrafis),
-          dan DOSBox (lingkungan DOS asli dengan \file{DEBUG}).
+    \item Tidak bertanda: seluruh bit sebagai besaran; 8 bit
+          0--255, 16 bit 0--65.535.
 
-    \vspace{0.25em}
-    \item Kerangka minimal program: \dir{.MODEL SMALL},
-          \dir{.STACK 100h}, \dir{.DATA}, \dir{.CODE}, label titik
-          masuk \file{START:}, dan \dir{END START}.
+    \vspace{0.15em}
+    \item Bertanda: bit kiri adalah tanda; \eng{two's complement}
+          dibentuk dengan membalik bit lalu menambah 1.
 
-    \vspace{0.25em}
-    \item \dir{.MODEL} menentukan model memori, \dir{.STACK}
-          menyediakan \dec{256} byte ruang stack, dan nama setelah
-          \dir{END} harus sama dengan label titik masuk.
+    \vspace{0.15em}
+    \item Jangkauan bertanda: 8 bit $-128$ sampai 127; 16 bit
+          $-32.768$ sampai 32.767.
 
-    \vspace{0.25em}
-    \item Pada \file{.EXE}, inisialisasi \reg{DS} harus melalui
-          \reg{AX} (\code{MOV AX, @DATA} lalu \code{MOV DS, AX})
-          karena nilai segera tidak boleh langsung masuk ke register
-          segmen.
+    \vspace{0.15em}
+    \item \hex{F3} dapat berarti 243 atau $-13$; tafsirnya ditentukan
+          program dan dicatat \eng{Sign Flag}.
 
-    \vspace{0.25em}
-    \item Alur eksekusi: DOS memuat \file{.exe} dan membuat PSP,
-          \reg{DS} diinisialisasi, instruksi dijalankan berurutan,
-          lalu \code{INT 21h} fungsi \hex{09} mencetak dan fungsi
-          \hex{4C} mengakhiri program.
+    \vspace{0.15em}
+    \item ASCII: \code{'A'} = \hex{41}, \code{'a'} = \hex{61},
+          \code{'0'} = \hex{30}, spasi = \hex{20}.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % CONTOH PROGRAM
 % =========================================================
-\begin{frame}[fragile]{Contoh 1: Mencetak Teks dengan Layanan DOS}
+\begin{frame}{Contoh 1: Konversi Nilai 200}
+\small
 \begin{columns}[t]
-\begin{column}{0.58\textwidth}
+\begin{column}{0.46\textwidth}
+\footnotesize
+\begin{tabular}{@{}p{2.4cm}p{1.8cm}p{1.0cm}@{}}
+    \toprule
+    \textbf{Pembagian} & \textbf{Hasil} & \textbf{Sisa} \\
+    \midrule
+    $200 \div 2$ & 100 & 0 \\
+    $100 \div 2$ & 50 & 0 \\
+    $50 \div 2$ & 25 & 0 \\
+    $25 \div 2$ & 12 & 1 \\
+    $12 \div 2$ & 6 & 0 \\
+    $6 \div 2$ & 3 & 0 \\
+    $3 \div 2$ & 1 & 1 \\
+    $1 \div 2$ & 0 & 1 \\
+    \bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.50\textwidth}
+\footnotesize
+Biner: \bin{11001000}\\[0.3em]
+Oktal: \code{011 001 000} $\rightarrow$ $310_8$\\[0.3em]
+Heksadesimal: \code{1100 1000} $\rightarrow$ \hex{C8}\\[0.3em]
+Bertanda 8 bit: $200 - 256 = -56$.
+\end{column}
+\end{columns}
+
+\vspace{0.35em}
+\begin{block}{Satu pola, dua tafsir}
+\small \bin{11001000} berarti 200 sebagai bilangan tidak bertanda atau
+$-56$ sebagai bilangan bertanda.
+\end{block}
+\Sumber{Bab III, Contoh 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh 2: Menyimpan Bilangan dalam Basis Berbeda}
+\begin{columns}[t]
+\begin{column}{0.59\textwidth}
 \begin{kodeasm}
 .MODEL SMALL
 .STACK 100h
 .DATA
-    pesan DB 'Halo, dunia!', 0Dh, 0Ah, '$'
+    desimal  DB 243
+    biner    DB 11110011b
+    heksa    DB 0F3h
+    karakter DB 'A'
 .CODE
 START:
     MOV AX, @DATA
     MOV DS, AX
-    MOV AH, 09h
-    LEA DX, pesan
-    INT 21h
     MOV AH, 4Ch
     MOV AL, 00h
     INT 21h
@@ -657,132 +636,64 @@ END START
 \end{kodeasm}
 \end{column}
 \begin{column}{0.38\textwidth}
-{\color{obeTeal}\bfseries Keluaran}\\[0.3em]
+{\color{obeTeal}\bfseries Isi memori}\\[0.3em]
 \begin{keluaran}
-Halo, dunia!
+C:\>debug bilangan.exe
+-d ds:0
+0B2A:0000  F3 F3 F3 41
 \end{keluaran}
-
-\vspace{0.5em}
-{\footnotesize
-\code{AH} = nomor fungsi layanan DOS.\\[0.25em]
-\code{DX} = alamat string.\\[0.25em]
-String diakhiri \code{'\$'}.\par}
 
 \vspace{0.4em}
-{\footnotesize\color{obeGray}\file{code/asm/hello.asm}\par}
+{\footnotesize Tiga literal pertama menghasilkan \hex{F3}; karakter
+\code{'A'} menghasilkan \hex{41}.\par}
 \end{column}
 \end{columns}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 2: Program \file{.COM} dengan \dir{ORG 100h}}
-\small Bentuk lebih ringkas: seluruh kode, data, dan stack dalam satu
-segmen sehingga \reg{DS} tidak perlu diinisialisasi.
-
-\vspace{0.3em}
-\begin{kodeasm}
-.MODEL TINY
-.CODE
-ORG 100h            ; program .COM dimulai pada offset 100h
-
-START:
-    MOV AH, 09h     ; cetak string
-    MOV DX, OFFSET pesan
-    INT 21h
-
-    MOV AH, 4Ch     ; keluar
-    MOV AL, 0
-    INT 21h
-
-pesan DB 'Selamat datang di assembly!', 0Dh, 0Ah, '$'
-END START
-\end{kodeasm}
-
-\vspace{0.2em}
-{\footnotesize\color{obeGray}Perhatikan: tidak ada \code{MOV AX, @DATA}
-maupun \code{MOV DS, AX}.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 3: Menampilkan Karakter Satu per Satu}
-\small Layanan DOS fungsi \hex{02} mencetak satu karakter pada register
-\reg{DL}.
 
 \vspace{0.15em}
-\begin{columns}[t]
-\begin{column}{0.55\textwidth}
-\begin{kodeasm}
-.MODEL SMALL
-.STACK 100h
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
-    MOV AH, 02h     ; cetak karakter pada DL
-    MOV DL, 'A'
-    INT 21h
-    MOV DL, 'B'
-    INT 21h
-    MOV DL, 'C'
-    INT 21h
-    MOV AH, 4Ch
-    MOV AL, 0
-    INT 21h
-END START
-\end{kodeasm}
-\end{column}
-\begin{column}{0.41\textwidth}
-{\color{obeTeal}\bfseries Keluaran}\\[0.3em]
-\begin{keluaran}
-ABC
-\end{keluaran}
-
-\vspace{0.6em}
-{\footnotesize Ketiga contoh memakai pola yang sama: siapkan argumen
-pada register, panggil \code{INT 21h}, lalu akhiri program.\par}
-\end{column}
-\end{columns}
+{\footnotesize\color{obeGray}Tidak ada keluaran ke layar; data
+diperiksa di memori.\par}
+\Sumber{Bab III, Contoh 2}
 \end{frame}
 
 % =========================================================
 % PRAKTIKUM
 % =========================================================
-\begin{frame}{Praktikum: Program Assembly Pertama}
+\begin{frame}{Praktikum: Konversi Bilangan dan Pemeriksaan Data}
 \begin{block}{Judul praktikum}
-\small Pemasangan lingkungan kerja dan menjalankan program assembly
-pertama \quad\textbullet\quad \textbf{Sub-CPMK:} 1.1
-\quad\textbullet\quad \textbf{Waktu:} 100 menit
-\quad\textbullet\quad \textbf{Bentuk:} individu
+\small Konversi bilangan dan pemeriksaan data di memori\\[0.15em]
+\textbf{Sub-CPMK:} 1.1 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
 \end{block}
 
-\vspace{0.3em}
+\vspace{0.2em}
 \begin{columns}[t]
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 {\color{obeBlue}\bfseries Alat dan bahan}
-\begin{itemize}\small
-    \item Komputer bersistem operasi Windows
-    \item Emu8086
-    \item GUI Turbo Assembler + TASM + TLINK
-    \item DOSBox
-    \item Berkas contoh \file{hello.asm}
+\begin{itemize}\footnotesize
+    \item Komputer dengan Windows
+    \item emu8086
+    \item DOSBox dengan TASM, TLINK, dan DEBUG
+    \item Berkas \file{bilangan.asm}
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.50\textwidth}
 {\color{obeBlue}\bfseries Langkah kerja}
-\begin{enumerate}\small
-    \item Pasang Emu8086, rakit dan jalankan \file{hello.asm}
-    \item Amati register \reg{AX}, \reg{DX}, \reg{DS} dengan
-          \eng{Single Step}
-    \item Rakit dengan TASM + TLINK di DOSBox
-    \item Ubah isi \code{pesan} menjadi nama Anda, rakit ulang
+\begin{enumerate}\footnotesize
+    \item Lengkapi tabel konversi bilangan.
+    \item Tulis dan rakit \file{bilangan.asm}.
+    \item Jalankan \file{debug bilangan.exe}, lalu \file{d ds:0}.
+    \item Ubah data menjadi 37, \code{0DBh}, dan \code{'Z'}.
+    \item Bandingkan hasil DEBUG dengan emu8086.
 \end{enumerate}
 \end{column}
 \end{columns}
 
-\vspace{0.3em}
-{\footnotesize\textbf{Dikumpulkan:} \file{hello.asm} versi modifikasi,
-tangkapan layar keluaran (Emu8086 dan DOSBox), dan tabel pengamatan
-register.\par}
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} tabel konversi, berkas
+\file{.asm} modifikasi, tangkapan layar DEBUG dan emu8086, serta
+analisis singkat.\par}
+\Sumber{Bab III, Praktikum}
 \end{frame}
 
 % =========================================================
@@ -791,27 +702,26 @@ register.\par}
 \begin{frame}{Latihan}
 \small
 \begin{enumerate}
-    \item Jelaskan dengan kalimat Anda sendiri perbedaan bahasa mesin,
-          bahasa assembly, dan bahasa tingkat tinggi. Sertakan satu
-          contoh operasi yang sama pada ketiga tingkat.
+    \item Jelaskan perbedaan bahasa mesin, bahasa assembly, dan bahasa
+          tingkat tinggi. Sertakan satu operasi sederhana yang ditulis
+          pada ketiga tingkat.
 
-    \vspace{0.3em}
-    \item Mengapa hubungan assembly dan bahasa mesin disebut
-          \eng{one-to-one}, sedangkan bahasa tingkat tinggi tidak?
+    \vspace{0.18em}
+    \item Mengapa hubungan bahasa assembly dan bahasa mesin disebut
+          \eng{one-to-one}? Bandingkan dengan bahasa tingkat tinggi.
 
-    \vspace{0.3em}
-    \item Sebutkan tahapan yang dilalui \file{program.asm} sampai dapat
-          dijalankan. Apa yang dikerjakan assembler dan apa yang
-          dikerjakan linker?
+    \vspace{0.18em}
+    \item Ubah 156 desimal menjadi biner, oktal, dan heksadesimal.
+          Tuliskan langkah yang Anda pakai.
 
-    \vspace{0.3em}
-    \item Sebutkan tiga perbedaan penting program \file{.COM} dan
-          \file{.EXE}. Mengapa \file{.COM} tidak memerlukan
-          \code{MOV AX, @DATA}?
+    \vspace{0.18em}
+    \item Diberikan \bin{10110110}. Tentukan nilainya sebagai
+          bilangan tidak bertanda dan sebagai bilangan bertanda 8 bit.
 
-    \vspace{0.3em}
-    \item Tulislah program yang mencetak inisial nama Anda memakai
-          layanan \code{INT 21h} fungsi \hex{02}.
+    \vspace{0.18em}
+    \item Tentukan bentuk 8 bit dari $-45$ dengan
+          \eng{two's complement}, lalu periksa hasilnya dengan
+          mengurangkan 256 dari nilai tidak bertandanya.
 \end{enumerate}
 \end{frame}
 
@@ -821,61 +731,56 @@ register.\par}
 \begin{frame}{Rangkuman}
 \small
 \begin{itemize}
-    \item Bahasa pemrograman dibedakan menurut tingkat abstraksi:
-          bahasa mesin, assembly, dan tingkat tinggi. Assembly berada
-          tepat di atas bahasa mesin dan bersifat \eng{one-to-one}.
+    \item Tiga tingkat bahasa: mesin, assembly, dan tingkat tinggi.
+          Assembly bersifat \eng{one-to-one} terhadap bahasa mesin.
 
-    \vspace{0.25em}
-    \item Pemrograman tingkat rendah dipakai untuk kendali penuh
-          perangkat keras, ukuran/kecepatan kode, serta analisis dan
-          keamanan.
+    \vspace{0.15em}
+    \item Assembly dipakai untuk kendali perangkat keras, ukuran dan
+          kecepatan kode, serta pemahaman prosesor.
 
-    \vspace{0.25em}
-    \item Rantai proses: \file{.asm} $\rightarrow$ assembler
-          $\rightarrow$ \file{.obj} $\rightarrow$ linker
-          $\rightarrow$ \file{.exe} $\rightarrow$ \eng{loader}
-          $\rightarrow$ memori.
+    \vspace{0.15em}
+    \item Empat basis: biner, oktal, desimal, dan heksadesimal,
+          masing-masing dengan aturan digit dan bobot posisi.
 
-    \vspace{0.25em}
-    \item Struktur minimal program memuat \dir{.MODEL}, \dir{.STACK},
-          \dir{.DATA}, \dir{.CODE}, label titik masuk, dan \dir{END}.
+    \vspace{0.15em}
+    \item Konversi memakai bobot posisi, pembagian berulang, atau
+          pengelompokan tiga dan empat bit.
 
-    \vspace{0.25em}
-    \item \file{.EXE} wajib menginisialisasi \reg{DS}; \file{.COM}
-          tidak.
+    \vspace{0.15em}
+    \item Literal assembler memakai akhiran D, B, atau H; heksadesimal
+          yang diawali huruf perlu nol di depan.
 
-    \vspace{0.25em}
-    \item Pola dasar: siapkan argumen pada register, panggil
-          \code{INT 21h}, akhiri dengan fungsi \hex{4C}.
+    \vspace{0.15em}
+    \item \hex{F3} berarti 243 atau $-13$; \code{'A'} disimpan sebagai
+          \hex{41}.
 \end{itemize}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Cek Pemahaman}
-\small
+\footnotesize
 \begin{enumerate}
-    \item Hubungan satu instruksi assembly dengan instruksi mesin yang
-          dihasilkannya adalah \dots
-          \begin{enumerate}\footnotesize
-              \item satu assembly menghasilkan banyak instruksi mesin
-              \item satu assembly menghasilkan tepat satu instruksi mesin
-              \item banyak assembly menghasilkan satu instruksi mesin
-              \item tidak ada hubungan tetap
+    \item Bilangan biner adalah bilangan yang berbasis \dots
+          \begin{enumerate}
+              \item 2 dengan digit 0 dan 1
+              \item 8 dengan digit 0 sampai 7
+              \item 10 dengan digit 0 sampai 9
+              \item 16 dengan digit 0 sampai F
           \end{enumerate}
 
-    \vspace{0.25em}
-    \item Berkas keluaran yang dihasilkan langsung oleh assembler TASM
-          adalah \dots
-          \begin{enumerate}\footnotesize
-              \item \file{.asm} \quad \item \file{.obj} \quad
-              \item \file{.exe} \quad \item \file{.lst}
+    \vspace{0.2em}
+    \item Nilai desimal dari \hex{F3} adalah \dots
+          \begin{enumerate}
+              \item 153 \quad \item 243 \quad
+              \item 253 \quad \item 263
           \end{enumerate}
 
-    \vspace{0.25em}
-    \item Fungsi layanan DOS untuk mengakhiri program adalah \dots
-          \begin{enumerate}\footnotesize
-              \item \hex{09} \quad \item \hex{02} \quad
-              \item \hex{4C} \quad \item \hex{01}
+    \vspace{0.2em}
+    \item Pola 8 bit \bin{11111111} sebagai bilangan bertanda
+          bernilai \dots
+          \begin{enumerate}
+              \item 255 \quad \item 127 \quad
+              \item $-1$ \quad \item $-128$
           \end{enumerate}
 \end{enumerate}
 \end{frame}
@@ -884,22 +789,24 @@ register.\par}
 % PENUTUP
 % =========================================================
 \begin{frame}{Penutup}
-\small
 \begin{block}{Sebelum pertemuan berikutnya}
+\small
 \begin{itemize}
-    \item Selesaikan praktikum: \file{hello.asm} versi modifikasi dan
-          tabel pengamatan register.
-    \item Pastikan ketiga perangkat (Emu8086, GUI TASM, DOSBox) sudah
-          terpasang dan dapat dijalankan.
-    \item Baca \textbf{Bab IV} — Arsitektur Mikroprosesor 8086.
+    \item Selesaikan praktikum: tabel konversi, \file{bilangan.asm}
+          modifikasi, tangkapan layar, dan analisis.
+    \item Baca \textbf{Bab IV} — Arsitektur Mikroprosesor 8086:
+          BIU dan EU.
+    \item Siapkan pertanyaan tentang register dan alur pengambilan
+          instruksi.
 \end{itemize}
 \end{block}
 
-\vspace{0.5em}
+\vspace{0.4em}
 \begin{center}
 {\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
-\vspace{0.2em}
-{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\ \SemesterTeks\par}
+\vspace{0.15em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK)
+\textbullet\ \SemesterTeks\par}
 \end{center}
 \end{frame}
 

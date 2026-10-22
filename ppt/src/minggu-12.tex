@@ -1,7 +1,7 @@
 % =========================================================
 % ppt/src/minggu-12.tex
 % Slide pertemuan 12
-% Bab XIII — Prosedur dan Manajemen Stack
+% Bab XIII — Percabangan dan Perulangan
 %
 % Sub-CPMK 3.4 | CPMK03 | CPL03
 % =========================================================
@@ -16,37 +16,31 @@
 % =========================================================
 % 1. JUDUL
 % =========================================================
-\JudulDeck{Prosedur dan Manajemen Stack}{Pertemuan 12}
+\JudulDeck{Percabangan dan Perulangan}{Pertemuan 12}
 
 % =========================================================
 % 2. CAPAIAN DAN TUJUAN
 % =========================================================
 \begin{frame}{Capaian dan Tujuan Pembelajaran}
 \begin{block}{Sub-CPMK 3.4}
-\small Mengembangkan prosedur/subrutin dengan mekanisme pengiriman
-parameter (\eng{parameter passing}) dan mengelola \eng{stack frame}
-melalui instruksi \asm{PUSH} dan \asm{POP}, register \reg{BP}, serta
-konvensi pemanggilan yang benar.
+\footnotesize Menyusun percabangan dan perulangan dengan label, JMP,
+CMP, lompatan bersyarat, dan LOOP.
 \end{block}
 
+\vspace{0.1em}
 {\small\textbf{CPMK yang didukung:} \CPMK{03}\quad\textbullet\quad
 \textbf{CPL yang didukung:} \CPL{03}\par}
 
+\vspace{0.15em}
 \begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
 \footnotesize
 \begin{enumerate}
-    \item menjelaskan alasan pemakaian prosedur beserta biaya
-          pemanggilannya;
-    \item menjelaskan kerja \asm{CALL} dan \asm{RET} serta membedakan
-          pemanggilan \eng{near} dan \eng{far};
-    \item menelusuri isi stack sel per sel pada \asm{PUSH}, \asm{POP},
-          dan \asm{CALL};
-    \item membangun \eng{stack frame} melalui \eng{prologue} dan
-          \eng{epilogue} yang benar;
-    \item mengirim parameter melalui register, stack, dan variabel
-          global beserta kelebihan serta kekurangannya;
-    \item menulis prosedur rekursif dan menjelaskan risiko
-          \eng{stack overflow}.
+    \item menulis label dan menggunakannya sebagai tujuan lompatan;
+    \item menggunakan JMP dan CMP;
+    \item memilih lompatan bersyarat untuk bilangan bertanda dan
+          tidak bertanda;
+    \item menyusun if, if--else, LOOP, while, dan for;
+    \item menyusun perulangan bersarang untuk pengolahan array.
 \end{enumerate}
 \end{exampleblock}
 \end{frame}
@@ -57,993 +51,622 @@ konvensi pemanggilan yang benar.
 \begin{frame}{Peta Materi}
 \small
 \begin{enumerate}
-    \item \textbf{Prosedur, Pemanggilan, dan Pengembalian}\\
-          {\footnotesize alasan prosedur; biaya pemanggilan;
-          \asm{CALL} dan \asm{RET}; alamat kembali \reg{CS}:\reg{IP};
-          pemanggilan \eng{near} dan \eng{far}}
+    \item \textbf{Label, JMP, dan CMP}\\
+          {\footnotesize aturan label; lompatan tanpa syarat; flag
+          sebagai dasar keputusan; pola if}
 
     \vspace{0.25em}
-    \item \textbf{Stack dan Operasi Stack}\\
-          {\footnotesize LIFO; \reg{SS}:\reg{SP}; arah tumbuh ke
-          alamat rendah; \asm{PUSH}, \asm{POP}, \asm{PUSHF},
-          \asm{POPF}; penelusuran isi stack; \reg{BP} penunjuk
-          bingkai}
+    \item \textbf{Lompatan Bersyarat dan Percabangan}\\
+          {\footnotesize tabel Jcc; bertanda vs tidak bertanda;
+          if--else dan alurnya}
 
     \vspace{0.25em}
-    \item \textbf{Stack Frame, Konvensi Pemanggilan, dan Rekursi}\\
-          {\footnotesize \eng{prologue} dan \eng{epilogue}; akses
-          parameter; konvensi pemanggilan; nilai balik; rekursi dan
-          \eng{stack overflow}}
+    \item \textbf{Perulangan}\\
+          {\footnotesize LOOP dan variannya; while/for; perulangan
+          bersarang; pola nilai maksimum}
 \end{enumerate}
 
 \vspace{0.35em}
 \begin{block}{Praktik pada pertemuan ini}
-\small Menulis prosedur berparameter dan memeriksa isi stack dengan
-\eng{debugger} pada \file{prosedur-luas.asm} dan \file{faktorial.asm}.
+\small Menelusuri percabangan dan perulangan pada program array.
 \end{block}
 \end{frame}
 
 % =========================================================
 % BAGIAN 1
 % =========================================================
-\PemisahBagian{Prosedur, Pemanggilan, dan Pengembalian}
+\PemisahBagian{Label, JMP, dan CMP}
 
 % ---------------------------------------------------------
-\begin{frame}{Mengapa Prosedur Diperlukan}
+\begin{frame}{Label}
 \small
-Program yang ditulis sebagai satu deretan instruksi panjang sulit
-dibaca, diuji, dan diperbaiki. Solusinya adalah \term{prosedur}.
+\begin{itemize}
+    \item Nama label boleh dimulai huruf, \code{@}, \code{\_}, atau
+          \code{?}; tidak boleh berspasi atau diawali angka.
 
-\vspace{0.3em}
-\begin{enumerate}
-    \item \term{Modularitas.} Setiap prosedur menangani satu tugas
-          yang batasnya jelas, sehingga program besar menjadi
-          kumpulan bagian kecil yang dapat diuji terpisah.
+    \vspace{0.18em}
+    \item Panjang maksimal 31 karakter dan harus unik.
 
-    \vspace{0.2em}
-    \item \term{Penggunaan ulang} (\eng{reuse}). Kode yang sering
-          dipakai cukup ditulis sekali, misalnya prosedur pencetak
-          bilangan heksadesimal.
+    \vspace{0.18em}
+    \item Label didefinisikan dengan titik dua, misalnya
+          \code{ULANG:}.
 
-    \vspace{0.2em}
-    \item \term{Abstraksi.} Pemanggil cukup mengetahui antarmuka
-          prosedur: nama, parameter, dan nilai baliknya. Rincian di
-          dalamnya dapat diganti tanpa mengubah pemanggil.
-\end{enumerate}
+    \vspace{0.18em}
+    \item Saat menjadi tujuan lompatan, label ditulis tanpa titik dua.
+\end{itemize}
 
 \vspace{0.25em}
-\begin{block}{Prosedur dan \asm{JMP}}
-\small \asm{JMP} hanya memindahkan kendali tanpa menyediakan cara
-kembali; prosedur melengkapinya dengan mekanisme pengembalian.
-\end{block}
-\Sumber{Bab XIII, Mengapa Prosedur Diperlukan}
+\begin{alertblock}{Nama ganda}
+\small Label yang sama didefinisikan dua kali menghasilkan pesan
+\file{Symbol already defined}.
+\end{alertblock}
+\Sumber{Bab XIII, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Definisi dan Biaya Pemanggilan Prosedur}
+\begin{frame}[fragile]{Lompatan Tanpa Syarat JMP}
 \small
-\begin{exampleblock}{Definisi}
-\small \term{Prosedur} (disebut juga \term{subrutin}) adalah
-sekelompok instruksi bernama yang dapat dipanggil dari bagian lain
-program, menerima parameter, dan dapat mengembalikan nilai kepada
-pemanggilnya.
-\end{exampleblock}
-
-\vspace{0.15em}
-{\small Pemakaian prosedur tidak gratis. Setiap pemanggilan
-menimbulkan \term{biaya pemanggilan prosedur}:\par}
-
-\vspace{0.12em}
-{\footnotesize
-\begin{center}
-\begin{tabular}{@{}p{5.4cm}cp{6.0cm}@{}}
-    \toprule
-    \textbf{Tahap} & \textbf{Siklus} & \textbf{Keterangan} \\
-    \midrule
-    \asm{PUSH} parameter & 11--15 &
-    setiap parameter menimbulkan akses memori \\
-    \addlinespace
-    \asm{CALL} prosedur & 19 &
-    menyimpan alamat kembali lalu melompat \\
-    \addlinespace
-    \asm{RET} & 16 &
-    mengambil alamat kembali dari stack \\
-    \bottomrule
-\end{tabular}
-\end{center}}
+\code{JMP} memindahkan kendali ke label tujuan tanpa memeriksa
+\eng{flag}.
 
 \vspace{0.2em}
-{\footnotesize\color{obeGray}Untuk prosedur yang sangat sederhana,
-biaya ini dapat melebihi biaya pekerjaannya sendiri. Karena itu
-prosedur dipakai bukan untuk mengejar kecepatan, melainkan untuk
-kejelasan dan kemudahan pemeliharaan.\par}
-\Sumber{Bab XIII, Mengapa Prosedur Diperlukan}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Instruksi \asm{CALL} dan \asm{RET}}
-\small
-\asm{CALL} mengerjakan dua hal sekaligus: menyimpan \term{alamat
-kembali} --- nilai \reg{CS} dan \reg{IP} pada instruksi \emph{sesudah}
-\asm{CALL} --- lalu memuat alamat prosedur ke \reg{CS} dan \reg{IP}.
-
-\vspace{0.25em}
 \begin{kodeasm}[numbers=none]
-    CALL HitungLuas        ; simpan alamat kembali, lalu lompat
-    MOV  luas, AX          ; dieksekusi setelah RET
+    JMP SELESAI         ; langsung menuju SELESAI
+    MOV AX, 1           ; dilewati
+SELESAI:
+    ; eksekusi berlanjut di sini
 \end{kodeasm}
 
-\vspace{0.25em}
-{\small
-\begin{itemize}
-    \item Alamat kembali yang disimpan adalah alamat \code{MOV luas,
-          AX}; \asm{RET} memuatnya kembali ke \reg{IP}.
-    \item Stack dengan demikian merupakan bagian dari mekanisme
-          kendali program, bukan sekadar tempat menyimpan data.
-\end{itemize}}
-
-\vspace{0.2em}
-\begin{alertblock}{\asm{CALL} tidak sama dengan \asm{JMP}}
-\small \asm{JMP} tidak menyimpan alamat kembali, sehingga \asm{RET}
-akan mengambil alamat yang salah dari stack.
-\end{alertblock}
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Dipakai untuk melewati blok, mengakhiri
+percabangan, atau membentuk perulangan tanpa syarat.\par}
+\Sumber{Bab XIII, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Pemanggilan \eng{Near} dan \eng{Far}}
+\begin{frame}{CMP dan Flag}
 \footnotesize
+\code{CMP} mengurangkan operand kedua dari operand pertama tanpa
+menyimpan hasil; hanya \eng{flag} yang berubah.
+
+\vspace{0.2em}
 \begin{center}
-\begin{tabular}{@{}p{3.0cm}p{4.9cm}p{4.9cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.4cm}
+    >{\raggedright\arraybackslash}p{5.2cm}
+    >{\raggedright\arraybackslash}p{6.2cm}@{}}
     \toprule
-    \textbf{Aspek} & \textbf{\asm{CALL} \eng{near}} &
-    \textbf{\asm{CALL} \eng{far}} \\
+    \textbf{Flag} & \textbf{Makna} & \textbf{Dipakai oleh} \\
     \midrule
-    Isi yang didorong ke stack & \reg{IP} saja (\dec{2} byte) &
-    \reg{CS} lalu \reg{IP} (\dec{4} byte) \\
+    ZF & Hasil operasi nol & JE, JNE, JZ, JNZ \\
     \addlinespace
-    Instruksi kembali & \asm{RET} (\code{C3h}) &
-    \asm{RETF} (\code{CBh}) \\
+    CF & Pinjaman/simpanan tak bertanda & JB, JAE, JC, JNC \\
     \addlinespace
-    Bentuk penulisan & \asm{CALL HitungLuas} &
-    \asm{CALL LUAR:HitungLuas} \\
+    SF & Bit tanda hasil & JS, JNS \\
     \addlinespace
-    Pemakaian lazim & Prosedur pada satu berkas program &
-    Prosedur pada pustaka atau \eng{overlay} lain \\
+    OF & Luapan bertanda & JO, JNO \\
     \bottomrule
 \end{tabular}
 \end{center}
+\Sumber{Bab XIII, Bagian 1}
+\end{frame}
 
-\vspace{0.35em}
-{\footnotesize Pada \term{pemanggilan dekat} (\eng{near call})
-prosedur berada pada segmen kode yang sama, sehingga hanya \reg{IP}
-yang perlu disimpan. Pada \term{pemanggilan jauh} (\eng{far call})
-prosedur berada pada segmen lain, sehingga \reg{CS} dan \reg{IP}
-sama-sama disimpan. Seluruh contoh pada bab ini memakai pemanggilan
-\eng{near}.\par}
-\Sumber{Bab XIII, Pemanggilan Near dan Far}
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Percabangan if}
+\small
+Pola \code{if} menjadi \code{CMP} diikuti lompatan bersyarat.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+; if (AX > BX) { AX = BX }
+CMP AX, BX
+JLE TIDAK_LEBIH
+MOV AX, BX
+TIDAK_LEBIH:
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Blok yang dijalankan diletakkan di antara
+lompatan dan label akhir.\par}
+\Sumber{Bab XIII, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{if dengan Blok Panjang}
+\small
+Lompatan bersyarat 8086 hanya menjangkau jarak terbatas. Bila blok
+\code{if} sangat panjang, balik syarat dan gunakan \code{JMP} sebagai
+perantara.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+JLE LANJUT
+JMP BLOK_PANJANG
+LANJUT:
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Pola ini menghindari kesalahan jangkauan
+lompatan.\par}
+\Sumber{Bab XIII, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 1}
 \small
 \begin{itemize}
-    \item Prosedur dipakai untuk memperoleh modularitas, penggunaan
-          ulang, dan abstraksi; \asm{JMP} tidak dapat menggantikannya
-          karena tidak menyediakan cara kembali.
+    \item Label menandai lokasi kode; definisi memakai titik dua,
+          tujuan lompatan tanpa titik dua.
 
-    \vspace{0.25em}
-    \item Biaya pemanggilan mencakup dorongan parameter
-          (\dec{11}--\dec{15} siklus per \asm{PUSH}), \asm{CALL}
-          (\dec{19} siklus), dan \asm{RET} (\dec{16} siklus) ---
-          sehingga prosedur dipakai demi kejelasan, bukan kecepatan.
+    \vspace{0.15em}
+    \item JMP memindahkan kendali tanpa syarat.
 
-    \vspace{0.25em}
-    \item \asm{CALL} menyimpan alamat kembali (\reg{CS}:\reg{IP} pada
-          instruksi sesudah \asm{CALL}) ke stack, lalu melompat;
-          \asm{RET} mengambil alamat itu kembali ke \reg{IP}.
+    \vspace{0.15em}
+    \item CMP memperbarui flag tanpa menyimpan hasil.
 
-    \vspace{0.25em}
-    \item Pemanggilan \eng{near} menyimpan \reg{IP} saja
-          (\dec{2} byte) dan ditutup \asm{RET}; pemanggilan \eng{far}
-          menyimpan \reg{CS} dan \reg{IP} (\dec{4} byte) dan ditutup
-          \asm{RETF}.
+    \vspace{0.15em}
+    \item Pola if memakai CMP dan satu lompatan bersyarat.
+
+    \vspace{0.15em}
+    \item Blok panjang dapat memakai JMP perantara.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 2
 % =========================================================
-\PemisahBagian{Stack dan Operasi Stack}
+\PemisahBagian{Lompatan Bersyarat dan Percabangan}
 
 % ---------------------------------------------------------
-\begin{frame}{Stack: LIFO dan Arah Tumbuh}
-\small
-\begin{itemize}
-    \item \term{Stack} adalah daerah memori yang dipakai dengan aturan
-          \eng{last in, first out} (LIFO): data yang terakhir
-          dimasukkan adalah data yang pertama dikeluarkan.
-
-    \vspace{0.2em}
-    \item Stack 8086 ditunjuk oleh pasangan \reg{SS} dan \reg{SP};
-          alamat fisik sel teratas adalah
-          \reg{SS} $\times$ \hex{10} $+$ \reg{SP}.
-
-    \vspace{0.2em}
-    \item \important{Setiap penambahan isi stack menurunkan nilai
-          \reg{SP}, sehingga stack tumbuh menuju alamat yang semakin
-          rendah.}
-\end{itemize}
-
-\vspace{0.3em}
-\begin{exampleblock}{Contoh angka}
-\small Bila \reg{SS} $=$ \hex{1000} dan ruang stack \hex{100}, maka
-\reg{SP} mula-mula bernilai \hex{FFFE} --- alamat tertinggi dari ruang
-yang disediakan direktif \dir{.STACK} --- dan alamat fisik sel
-teratasnya adalah \hex{1FFFE}.
-\end{exampleblock}
-\Sumber{Bab XIII, Pengertian dan Arah Tumbuh Stack}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Instruksi \asm{PUSH} dan \asm{POP}}
-\small
-\begin{kodeasm}[numbers=none]
-PUSH sumber    ; SP <- SP - 2, lalu isi sumber ke memori SS:SP
-POP  tujuan    ; isi SS:SP ke tujuan, lalu SP <- SP + 2
-\end{kodeasm}
-
-\vspace{0.2em}
-\small
-\begin{itemize}
-    \item Keduanya selalu bekerja pada satu \term{kata}
-          (\eng{word}) berukuran \dec{2} byte.
-    \item Pada 8086, \asm{PUSH} hanya menerima register atau isi
-          memori 16-bit, sehingga \asm{PUSH 5} tidak sah.
-    \item \asm{PUSHA} dan \asm{POPA} belum tersedia karena baru
-          diperkenalkan pada prosesor 80186.
-\end{itemize}
-
-\vspace{0.2em}
-\begin{exampleblock}{\asm{PUSHF} dan \asm{POPF}}
-\small \asm{PUSHF} mendorong seluruh isi register \reg{FLAGS} sebagai
-satu kata 16-bit, \asm{POPF} memulihkannya. Dipakai bila prosedur
-mengubah \eng{flag} untuk keperluan internal. Perlu diingat bahwa
-\asm{POPF} ikut memulihkan \flag{IF}, sehingga pemulihan yang salah
-dapat mematikan interupsi.
-\end{exampleblock}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Jejak \asm{PUSH AX} pada Stack}
+\begin{frame}{Tabel Lompatan Bersyarat}
+\scriptsize
 \begin{center}
-\begin{tikzpicture}[
-    sel/.style={draw=obeBlue,line width=0.6pt,minimum width=1.9cm,
-        minimum height=0.5cm,font=\ttfamily\footnotesize,inner sep=1pt},
-    alamat/.style={font=\ttfamily\scriptsize,text=obeGray,anchor=west},
-    judul/.style={font=\scriptsize\bfseries,text=obeBlue},
-    penunjuk/.style={-{Stealth[length=2.2mm]},line width=1pt,obeTeal}
-]
-    % --- keadaan sebelum ---
-    \node[judul] (ja) at (0, 1.10) {sebelum \asm{PUSH AX}};
-    \node[sel,fill=obeGrayLight] (a0) at (0, 0) {\textit{bebas}};
-    \node[alamat] at ([xshift=0.12cm]a0.east) {\hex{FFFE}};
-    \node[font=\ttfamily\scriptsize,text=obeBlue,left=0.5cm of a0] (spa)
-        {SP};
-    \draw[penunjuk] (spa.east) -- (a0.west);
-
-    % --- keadaan sesudah ---
-    \node[judul] (jb) at (5.0, 1.10) {setelah \asm{PUSH AX}};
-    \node[sel,fill=obeGrayLight] (b0) at (5.0, 0.55) {\textit{bebas}};
-    \node[sel,fill=obeAmberLight] (b1) at (5.0, 0) {1234h};
-    \node[alamat] at ([xshift=0.12cm]b0.east) {\hex{FFFE}};
-    \node[alamat] at ([xshift=0.12cm]b1.east) {\hex{FFFC}};
-    \node[font=\ttfamily\scriptsize,text=obeBlue,left=0.5cm of b1] (spb)
-        {SP};
-    \draw[penunjuk] (spb.east) -- (b1.west);
-\end{tikzpicture}
-\end{center}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Keadaan awal \reg{SP} $=$ \hex{FFFE} dan
-\reg{AX} $=$ \hex{1234}. Setelah \asm{PUSH AX}, \reg{SP} turun ke
-\hex{FFFC}; byte rendah \hex{34} ditulis pada \hex{FFFC} dan byte
-tinggi \hex{12} pada \hex{FFFD} --- byte rendah selalu berada pada
-alamat yang lebih rendah.\par}
-\Sumber{Bab XIII, Instruksi PUSH dan POP}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Menelusuri Isi Stack pada Pemanggilan (1/2)}
-\footnotesize Keadaan awal: \reg{SS} $=$ \hex{1000}, \reg{SP} $=$
-\hex{FFFE}, stack kosong.
-
-\vspace{0.15em}
-\begin{center}
-\begin{tabular}{@{}p{0.6cm}p{2.8cm}p{1.65cm}p{2.35cm}p{3.9cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}
+    >{\raggedright\arraybackslash}p{4.2cm}
+    >{\raggedright\arraybackslash}p{5.6cm}@{}}
     \toprule
-    \textbf{\#} & \textbf{Instruksi} & \textbf{\reg{SP} sesudah} &
-    \textbf{Isi sel teratas} & \textbf{Keterangan} \\
+    \textbf{Instruksi} & \textbf{Syarat} & \textbf{Jenis bilangan} \\
     \midrule
-    1 & (keadaan awal) & \hex{FFFE} & kosong &
-    \reg{SP} menunjuk sel teratas \\
+    JE / JZ & ZF = 1 & bertanda dan tak bertanda \\
     \addlinespace
-    2 & \asm{PUSH} \code{tinggi} & \hex{FFFC} & \hex{000A} &
-    parameter kedua masuk lebih dahulu \\
+    JNE / JNZ & ZF = 0 & bertanda dan tak bertanda \\
     \addlinespace
-    3 & \asm{PUSH} \code{lebar} & \hex{FFFA} & \hex{0005} &
-    parameter pertama masuk paling akhir \\
+    JG / JNLE & ZF = 0 dan SF = OF & bertanda \\
     \addlinespace
-    4 & \asm{CALL} \code{HitungLuas} & \hex{FFF8} & \hex{0102} &
-    alamat kembali (\reg{IP}) didorong \\
+    JGE / JNL & SF = OF & bertanda \\
+    \addlinespace
+    JL / JNGE & SF $\neq$ OF & bertanda \\
+    \addlinespace
+    JLE / JNG & ZF = 1 atau SF $\neq$ OF & bertanda \\
+    \addlinespace
+    JA / JNBE & CF = 0 dan ZF = 0 & tak bertanda \\
+    \addlinespace
+    JAE / JNB & CF = 0 & tak bertanda \\
+    \addlinespace
+    JB / JNAE & CF = 1 & tak bertanda \\
+    \addlinespace
+    JBE / JNA & CF = 1 atau ZF = 1 & tak bertanda \\
     \bottomrule
 \end{tabular}
 \end{center}
-
-\vspace{0.25em}
-{\footnotesize\color{obeGray}Urutan sel itu bukan kebetulan,
-melainkan akibat langsung dari urutan \asm{PUSH} dan \asm{CALL}:
-parameter yang didorong paling akhir berada paling dekat dengan
-\reg{BP}.\par}
-\Sumber{Bab XIII, Menelusuri Isi Stack pada Pemanggilan Prosedur}
+\Sumber{Bab XIII, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Menelusuri Isi Stack pada Pemanggilan (2/2)}
-\footnotesize Lanjutan jejak: \eng{prologue}, \eng{epilogue}, dan
-\asm{RET}.
-
-\vspace{0.15em}
+\begin{frame}{Bertanda vs Tidak Bertanda}
+\footnotesize
 \begin{center}
-\begin{tabular}{@{}p{0.6cm}p{2.8cm}p{1.65cm}p{2.35cm}p{3.9cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.8cm}
+    >{\raggedright\arraybackslash}p{4.4cm}
+    >{\raggedright\arraybackslash}p{4.6cm}@{}}
     \toprule
-    \textbf{\#} & \textbf{Instruksi} & \textbf{\reg{SP} sesudah} &
-    \textbf{Isi sel teratas} & \textbf{Keterangan} \\
+    \textbf{Perbandingan} & \textbf{Bertanda} &
+    \textbf{Tidak bertanda} \\
     \midrule
-    5 & \asm{PUSH} \reg{BP} & \hex{FFF6} & \hex{0000} &
-    \reg{BP} milik pemanggil disimpan \\
+    dst $>$ src & JG & JA \\
     \addlinespace
-    6 & \asm{MOV} \reg{BP}, \reg{SP} & \hex{FFF6} & \hex{0000} &
-    \reg{BP} $=$ \hex{FFF6}; bingkai stack siap \\
+    dst $\geq$ src & JGE & JAE \\
     \addlinespace
-    7 & \asm{POP} \reg{BP} & \hex{FFF8} & \hex{0102} &
-    \reg{BP} milik pemanggil dipulihkan \\
+    dst $<$ src & JL & JB \\
     \addlinespace
-    8 & \asm{RET} \code{4} & \hex{FFFE} & kosong &
-    \reg{IP} diambil, lalu \reg{SP} naik \dec{4} byte \\
+    dst $\leq$ src & JLE & JBE \\
+    \addlinespace
+    dst $=$ src & JE/JZ & JE/JZ \\
+    \addlinespace
+    dst $\neq$ src & JNE/JNZ & JNE/JNZ \\
     \bottomrule
 \end{tabular}
 \end{center}
+\Sumber{Bab XIII, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Contoh: FF vs 1}
+\small
+\hex{FF} dapat dibaca sebagai 255 (tidak bertanda) atau $-1$
+(bertanda).
 
 \vspace{0.25em}
-{\footnotesize\color{obeGray}Langkah 1--4 terlihat pada frame
-sebelumnya. Perhatikan bahwa \asm{MOV BP, SP} tidak mengubah
-\reg{SP}: yang berubah hanyalah nilai \reg{BP} sebagai titik acuan
-bingkai.\par}
-\Sumber{Bab XIII, Menelusuri Isi Stack pada Pemanggilan Prosedur}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Isi Stack Sel per Sel Setelah \eng{Prologue}}
-\begin{center}
-\begin{tikzpicture}[
-    sel/.style={draw=obeBlue,line width=0.6pt,minimum width=2.9cm,
-        minimum height=0.55cm,font=\ttfamily\small,inner sep=1pt},
-    alamat/.style={font=\ttfamily\scriptsize,text=obeGray,anchor=west},
-    catatan/.style={font=\scriptsize,text=obeMaroon,anchor=west},
-    penunjuk/.style={-{Stealth[length=2.4mm]},line width=1pt,obeBlue}
-]
-    \node[sel,fill=obeGrayLight] (c0) {\textit{(bebas)}};
-    \node[sel,fill=obeAmberLight,below=0pt of c0] (c1) {000Ah};
-    \node[sel,fill=obeAmberLight,below=0pt of c1] (c2) {0005h};
-    \node[sel,fill=obeBlueLight,below=0pt of c2] (c3) {0102h};
-    \node[sel,fill=obeGreenLight,below=0pt of c3] (c4) {0000h};
-    \node[sel,fill=obeGrayLight,below=0pt of c4] (c5) {\textit{(bebas)}};
-
-    \node[alamat] at ([xshift=0.12cm]c0.east) {\hex{FFFE}};
-    \node[alamat] at ([xshift=0.12cm]c1.east) {\hex{FFFC}};
-    \node[alamat] at ([xshift=0.12cm]c2.east) {\hex{FFFA}};
-    \node[alamat] at ([xshift=0.12cm]c3.east) {\hex{FFF8}};
-    \node[alamat] at ([xshift=0.12cm]c4.east) {\hex{FFF6}};
-    \node[alamat] at ([xshift=0.12cm]c5.east) {\hex{FFF4}};
-
-    \node[catatan] at ([xshift=1.25cm]c1.east)
-        {parameter 2: tinggi \code{[BP+6]}};
-    \node[catatan] at ([xshift=1.25cm]c2.east)
-        {parameter 1: lebar \code{[BP+4]}};
-    \node[catatan] at ([xshift=1.25cm]c3.east)
-        {alamat kembali \code{[BP+2]}};
-    \node[catatan] at ([xshift=1.25cm]c4.east)
-        {\reg{BP} lama \code{[BP+0]}};
-    \node[catatan] at ([xshift=1.25cm]c5.east)
-        {di bawah \reg{SP}: ruang bebas};
-
-    \node[font=\scriptsize,text=obeTeal,above=0.06cm of c0]
-        {alamat tinggi};
-    \node[font=\scriptsize,text=obeTeal,below=0.06cm of c5]
-        {alamat rendah};
-
-    \node[font=\ttfamily\scriptsize,text=obeBlue,left=0.75cm of c4] (sp)
-        {SP = BP};
-    \draw[penunjuk] (sp.east) -- (c4.west);
-\end{tikzpicture}
-\end{center}
-
-\vspace{0.2em}
-{\footnotesize\color{obeGray}Keadaan pada langkah keenam. Setiap sel
-berukuran \dec{2} byte.\par}
-\Sumber{Bab XIII, Menelusuri Isi Stack pada Pemanggilan Prosedur}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Register \reg{BP} sebagai Penunjuk Bingkai}
-\small
 \begin{itemize}
-    \item Akses parameter tidak dilakukan langsung melalui \reg{SP}
-          karena \reg{SP} terus berubah setiap kali prosedur
-          mendorong atau mengambil data.
-
-    \vspace{0.2em}
-    \item Register \reg{BP} (\eng{base pointer}) menyimpan salinan
-          \reg{SP} melalui \asm{MOV BP, SP} dan tidak diubah oleh
-          operasi \asm{PUSH} maupun \asm{POP} berikutnya.
-
-    \vspace{0.2em}
-    \item Karena itu jarak \reg{BP} ke setiap parameter tetap
-          konstan. Pola inilah yang disebut \term{bingkai stack}
-          (\eng{stack frame}).
+    \item Sebagai bilangan tidak bertanda, \hex{FF} $>$ 1: gunakan
+          \code{JA}.
+    \item Sebagai bilangan bertanda, \hex{FF} $<$ 1: gunakan
+          \code{JL}.
 \end{itemize}
 
-\vspace{0.3em}
-\begin{block}{Segmen bawaan \reg{BP} adalah \reg{SS}}
-\small \code{[BP+4]} selalu mengacu ke stack tanpa perlu awalan
-segmen. Cara ini merupakan penerapan mode pengalamatan
-\eng{base-relative} yang dibahas pada Bab VIII.
+\vspace{0.25em}
+\begin{block}{Inti}
+\small Pola bit sama, tafsir berbeda; pilihan Jcc harus mengikuti
+jenis bilangan.
 \end{block}
-\Sumber{Bab XIII, Register BP sebagai Penunjuk Bingkai}
+\Sumber{Bab XIII, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Percabangan if--else}
+\small
+Pola \code{if--else} memerlukan satu \code{JMP} untuk melewati blok
+\code{else}.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+; if (AX == BX) { hasil = 1 } else { hasil = 0 }
+CMP AX, BX
+JNE BLOK_ELSE
+MOV hasil, 1
+JMP SELESAI
+BLOK_ELSE:
+MOV hasil, 0
+SELESAI:
+\end{kodeasm}
+\Sumber{Bab XIII, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Alur if--else}
+\begin{center}
+\begin{tikzpicture}[
+    blok/.style={
+        draw=obeBlue, line width=0.7pt, fill=obeBlueLight,
+        rounded corners=2pt, minimum width=3.2cm,
+        minimum height=0.8cm, align=center, font=\small
+    },
+    uji/.style={
+        draw=obeTeal, line width=0.7pt, fill=obeTealLight,
+        diamond, aspect=2.4, minimum width=3.6cm,
+        align=center, font=\scriptsize, inner sep=1pt
+    },
+    panah/.style={-{Stealth[length=2.2mm]}, line width=0.8pt, obeGray},
+    ket/.style={font=\scriptsize, text=obeGray}
+]
+    \node[uji] (cmp) {AX $=$ BX?};
+    \node[blok, below left=0.9cm and 1.6cm of cmp] (ya)
+        {blok if\\hasil $=1$};
+    \node[blok, below right=0.9cm and 1.6cm of cmp] (tidak)
+        {blok else\\hasil $=0$};
+    \node[blok, below=2.2cm of cmp] (selesai) {lanjut};
+
+    \draw[panah] (cmp.west) -| node[ket, above left] {ya}
+        (ya.north);
+    \draw[panah] (cmp.east) -| node[ket, above right] {tidak}
+        (tidak.north);
+    \draw[panah] (ya.south) |- (selesai.west);
+    \draw[panah] (tidak.south) |- (selesai.east);
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Hanya satu blok yang dijalankan, lalu
+alur bertemu di label akhir.\par}
+\Sumber{Bab XIII, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 2}
 \small
 \begin{itemize}
-    \item Stack bekerja secara LIFO dan ditunjuk \reg{SS}:\reg{SP};
-          alamat fisik sel teratas $=$ \reg{SS} $\times$ \hex{10}
-          $+$ \reg{SP}.
+    \item Jcc memeriksa flag; syarat terpenuhi berarti lompat.
 
-    \vspace{0.25em}
-    \item Stack 8086 tumbuh ke arah alamat rendah: \asm{PUSH}
-          menurunkan \reg{SP} \dec{2} byte lebih dahulu lalu menyimpan
-          data, sedangkan \asm{POP} mengambil data lebih dahulu lalu
-          menaikkan \reg{SP}.
+    \vspace{0.15em}
+    \item JG/JGE/JL/JLE untuk bilangan bertanda.
 
-    \vspace{0.25em}
-    \item Setiap operasi bekerja pada satu kata (\dec{2} byte); byte
-          rendah selalu berada pada alamat yang lebih rendah.
-          \asm{PUSHF} dan \asm{POPF} menyimpan serta memulihkan
-          register \reg{FLAGS}.
+    \vspace{0.15em}
+    \item JA/JAE/JB/JBE untuk bilangan tidak bertanda.
 
-    \vspace{0.25em}
-    \item Penelusuran satu pemanggilan lengkap: dua \asm{PUSH}
-          parameter, \asm{CALL}, \asm{PUSH BP}, \asm{MOV BP, SP},
-          lalu \asm{POP BP} dan \asm{RET 4} mengembalikan \reg{SP} ke
-          \hex{FFFE}.
+    \vspace{0.15em}
+    \item if--else memerlukan JMP untuk melewati blok else.
 
-    \vspace{0.25em}
-    \item \reg{BP} dipakai sebagai titik acuan karena nilainya tidak
-          berubah oleh \asm{PUSH}/\asm{POP}, sehingga jarak ke setiap
-          parameter tetap.
+    \vspace{0.15em}
+    \item Jangan menyisipkan instruksi yang mengubah flag antara CMP
+          dan Jcc.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 3
 % =========================================================
-\PemisahBagian{Stack Frame, Konvensi Pemanggilan, dan Rekursi}
+\PemisahBagian{Perulangan}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{\eng{Prologue} dan \eng{Epilogue}}
-\small Prosedur selalu mengerjakan empat hal: membangun bingkai,
-mengakses parameter, menghasilkan nilai balik, lalu membongkar
-bingkai. Pola bakunya disebut \term{stack frame} standar.
+\begin{frame}[fragile]{Instruksi LOOP}
+\small
+\code{LOOP} mengurangi CX dengan satu, lalu melompat bila CX belum
+nol.
 
 \vspace{0.2em}
 \begin{kodeasm}[numbers=none]
-HitungLuas PROC
-    PUSH BP            ; prologue : simpan BP pemanggil
-    MOV  BP, SP        ; prologue : BP <- titik acuan bingkai
-
-    ; --- badan prosedur ---
-    ; parameter diakses sebagai [BP+4], [BP+6], ...
-
-    POP  BP            ; epilogue : pulihkan BP pemanggil
-    RET                ; epilogue : kembali ke pemanggil
-HitungLuas ENDP
+MOV CX, 5
+ULANG:
+    ; badan perulangan
+    LOOP ULANG      ; CX--; lompat bila CX <> 0
 \end{kodeasm}
 
 \vspace{0.15em}
-{\footnotesize\color{obeGray}\asm{PUSH BP} wajib ada karena \reg{BP}
-hanya satu buah; tanpa menyimpannya, prosedur akan menimpa \reg{BP}
-milik pemanggil. Pasangan \asm{PUSH BP} dan \asm{POP BP} harus
-seimbang pada setiap jalur keluar prosedur.\par}
-\Sumber{Bab XIII, Prologue dan Epilogue}
+{\footnotesize\color{obeGray}Badan selalu dijalankan minimal sekali.
+Bila CX = 0 di awal, LOOP mengulang 65.536 kali; gunakan JCXZ untuk
+mencegahnya.\par}
+\Sumber{Bab XIII, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Mengakses Parameter dan Variabel Lokal}
-\begin{columns}[t]
-\begin{column}{0.5\textwidth}
-\begin{kodeasm}[numbers=none]
-    PUSH BP              ; prologue
-    MOV  BP, SP
-    SUB  SP, 4           ; dua var lokal
-    MOV  WORD PTR [BP-2], 0
-    MOV  WORD PTR [BP-4], 0
-    MOV  SP, BP          ; epilogue
-    POP  BP
-    RET
-\end{kodeasm}
-\end{column}
-\begin{column}{0.46\textwidth}
-{\footnotesize\bfseries\color{obeBlue}Susunan bingkai}\\[0.2em]
-{\footnotesize
-\begin{itemize}
-    \item \code{[BP+0]} --- \reg{BP} milik pemanggil
-    \item \code{[BP+2]} --- alamat kembali (\reg{IP})
-    \item \code{[BP+4]} --- parameter pertama
-    \item \code{[BP+6]} --- parameter kedua
-    \item \code{[BP+8]} --- parameter ketiga
-    \item \code{[BP-2]} --- variabel lokal pertama
-\end{itemize}}
-\end{column}
-\end{columns}
+\begin{frame}{Varian LOOP}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}
+    >{\raggedright\arraybackslash}p{5.0cm}
+    >{\raggedright\arraybackslash}p{5.0cm}@{}}
+    \toprule
+    \textbf{Instruksi} & \textbf{Aksi} & \textbf{Kegunaan} \\
+    \midrule
+    LOOP & CX $\leftarrow$ CX $-1$; lompat bila CX $\neq0$ &
+    Cacah diketahui \\
+    \addlinespace
+    LOOPE/LOOPZ & Seperti LOOP, tetapi hanya bila ZF = 1 &
+    Mencari ketidakcocokan \\
+    \addlinespace
+    LOOPNE/LOOPNZ & Seperti LOOP, tetapi hanya bila ZF = 0 &
+    Berhenti saat nilai ditemukan \\
+    \addlinespace
+    JCXZ & Lompat bila CX = 0; CX tidak berubah &
+    Menangani cacah nol \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab XIII, Bagian 3}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{DEC/JNZ dan while}
+\small
+\code{LOOP} setara dengan \code{DEC CX} lalu \code{JNZ}, tetapi
+pasangan itu lebih luwes karena pencacah tidak harus CX.
 
 \vspace{0.2em}
-\begin{alertblock}{Urutan \asm{PUSH} menentukan nomor offset}
-\footnotesize Karena pemanggil mendorong parameter kedua lebih
-dahulu, parameter pertama-lah yang berada pada \code{[BP+4]}. Bila
-urutannya dibalik tanpa mengubah badan prosedur, kedua nilai akan
-tertukar tanpa pesan kesalahan apa pun.
-\end{alertblock}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Konvensi Pemanggilan: Tiga Cara Pengiriman Parameter}
-\footnotesize
-\begin{center}
-\begin{tabular}{@{}p{2.1cm}p{3.3cm}p{3.5cm}p{3.2cm}@{}}
-    \toprule
-    \textbf{Cara} & \textbf{Kelebihan} & \textbf{Kekurangan} &
-    \textbf{Contoh} \\
-    \midrule
-    Melalui register & tidak ada akses memori; paling cepat dan
-    ringkas & jumlah parameter terbatas oleh jumlah register &
-    \asm{MOV AX, 5} lalu \asm{CALL Tulis} \\
-    \addlinespace
-    Melalui stack & jumlah parameter tidak terbatas; pemanggil tidak
-    perlu tahu register yang dipakai prosedur & lebih lambat karena
-    setiap parameter menimbulkan akses memori; rawan stack tidak
-    seimbang & \asm{PUSH 5} lalu \asm{CALL HitungLuas} \\
-    \addlinespace
-    Melalui variabel global & prosedur sangat sederhana; tidak ada
-    instruksi tambahan & prosedur tidak dapat dipakai ulang; sulit
-    ditelusuri saat kesalahan terjadi & \asm{MOV lebar, 5} lalu
-    \asm{CALL HitungLuas} \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}\term{Konvensi pemanggilan} (\eng{calling
-convention}) adalah kesepakatan tentang tiga hal: letak parameter,
-letak nilai balik, dan siapa yang membersihkan stack. Tanpa
-kesepakatan ini, prosedur yang ditulis satu orang tidak dapat dipakai
-oleh program orang lain.\par}
-\Sumber{Bab XIII, Konvensi Pemanggilan}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Siapa yang Membersihkan Stack}
-\small
-\begin{columns}[t]
-\begin{column}{0.46\textwidth}
-\begin{exampleblock}{Prosedur membersihkan}
-\footnotesize \eng{Epilogue} berakhir dengan \asm{RET} \code{n}:
-mengambil \reg{IP} lalu menambahkan \code{n} pada \reg{SP} sekaligus.
-\end{exampleblock}
 \begin{kodeasm}[numbers=none]
-    POP  BP
-    RET  4        ; SP <- SP + 4
+; while (AX < 10) { AX = AX + 1 }
+ULANG_WHILE:
+    CMP AX, 10
+    JGE SELESAI_WHILE
+    INC AX
+    JMP ULANG_WHILE
+SELESAI_WHILE:
 \end{kodeasm}
-\end{column}
-\begin{column}{0.48\textwidth}
-\begin{exampleblock}{Pemanggil membersihkan}
-\footnotesize Prosedur memakai \asm{RET} biasa, dan pemanggil
-menambahkan \asm{ADD SP, 4} setelah \asm{CALL}.
-\end{exampleblock}
-\begin{kodeasm}[numbers=none]
-    CALL HitungLuas
-    ADD  SP, 4    ; buang argumen
-\end{kodeasm}
-\end{column}
-\end{columns}
-
-\vspace{0.25em}
-\begin{alertblock}{Jangan dipakai bersama-sama}
-\small \asm{RET} \code{4} yang disusul \asm{ADD SP, 4} membuat
-\reg{SP} naik \dec{8} byte padahal hanya \dec{4} byte yang perlu
-dibuang.
-\end{alertblock}
-\Sumber{Bab XIII, Konvensi Pemanggilan}
+\Sumber{Bab XIII, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Tanggung Jawab Penyimpanan Register}
-\footnotesize
-\begin{center}
-\begin{tabular}{@{}p{3.0cm}p{2.3cm}p{3.4cm}p{3.4cm}@{}}
-    \toprule
-    \textbf{Golongan} & \textbf{Register} & \textbf{Tanggung jawab} &
-    \textbf{Akibat bila dilanggar} \\
-    \midrule
-    Boleh dirusak (\eng{caller-saved}) & \reg{AX}, \reg{BX},
-    \reg{CX}, \reg{DX}, \reg{ES} & pemanggil menyimpan sendiri bila
-    nilainya masih diperlukan & pemanggil memakai nilai yang sudah
-    berubah \\
-    \addlinespace
-    Wajib dipulihkan (\eng{callee-saved}) & \reg{BP}, \reg{SI},
-    \reg{DI}, \reg{DS}, \reg{SS} & prosedur menyimpan pada
-    \eng{prologue} dan memulihkan pada \eng{epilogue} & pemanggil
-    kehilangan nilai lama; akses data dapat salah alamat \\
-    \addlinespace
-    Selalu dipulihkan & \reg{SP} & stack harus seimbang saat
-    \asm{RET} dijalankan & \asm{RET} mengambil alamat yang salah;
-    program berhenti tak terkendali \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Pada 8086 tidak ada aturan perangkat
-keras yang memaksa, sehingga kesepakatan dibuat di tingkat program;
-pembagian di atas mengikuti konvensi Microsoft C untuk 8086.\par}
-\Sumber{Bab XIII, Konvensi Pemanggilan}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Nilai Balik Prosedur}
+\begin{frame}[fragile]{Pola for}
 \small
-Nilai balik dikembalikan melalui register, bukan melalui stack.
+Perulangan \code{for} dengan cacah tetap lebih ringkas memakai
+\code{LOOP}.
 
-\vspace{0.3em}
-\begin{center}
-\begin{tabular}{@{}p{3.2cm}p{4.2cm}p{5.2cm}@{}}
-    \toprule
-    \textbf{Ukuran hasil} & \textbf{Register} & \textbf{Keterangan} \\
-    \midrule
-    \dec{8} bit & \reg{AL} &
-    hasil satu byte, misalnya pencarian karakter \\
-    \addlinespace
-    \dec{16} bit & \reg{AX} &
-    ukuran lazim untuk prosedur 8086 \\
-    \addlinespace
-    \dec{32} bit & \reg{DX}:\reg{AX} &
-    hasil \asm{MUL} dan \asm{IMUL} memang tersimpan di kedua register
-    ini \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.35em}
-\begin{block}{Mengapa bukan melalui stack}
-\small \reg{DX}:\reg{AX} muncul secara alami karena \asm{MUL} dan
-\asm{IMUL} menyimpan hasil kalinya pada kedua register itu.
-\reg{AX} termasuk register yang boleh dirusak, sehingga prosedur
-tidak wajib memulihkannya.
-\end{block}
-\Sumber{Bab XIII, Nilai Balik Prosedur}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Rekursi pada Assembly}
-\begin{columns}[t]
-\begin{column}{0.55\textwidth}
+\vspace{0.2em}
 \begin{kodeasm}[numbers=none]
-Faktorial PROC
-    PUSH BP              ; prologue
-    MOV  BP, SP
-    MOV  AX, [BP+4]      ; AX <- n
-    CMP  AX, 1
-    JBE  basis           ; kasus basis
-    DEC  AX
-    PUSH AX              ; dorong (n-1)
-    CALL Faktorial       ; rekursi
-    ADD  SP, 2           ; buang argumen
-    MUL  WORD PTR [BP+4] ; AX <- (n-1)! * n
-    POP  BP              ; epilogue
-    RET
-basis:
-    MOV  AX, 1           ; 0! = 1! = 1
-    POP  BP
-    RET
-Faktorial ENDP
+; for (CX = 8; CX > 0; CX--) { proses }
+MOV CX, 8
+ULANG_FOR:
+    ; badan perulangan
+    LOOP ULANG_FOR
 \end{kodeasm}
-\end{column}
-\begin{column}{0.42\textwidth}
-{\footnotesize
-\begin{itemize}
-    \item \term{Rekursi} adalah pemanggilan prosedur oleh dirinya
-          sendiri.
 
-    \vspace{0.2em}
-    \item Pada bahasa tingkat tinggi rekursi tampak sebagai fitur
-          bahasa; pada assembly rekursi tampak jelas sebagai
-          penumpukan bingkai stack.
-
-    \vspace{0.2em}
-    \item Setiap pemanggilan menambah satu bingkai baru berisi
-          parameter, alamat kembali, dan \reg{BP} sendiri.
-
-    \vspace{0.2em}
-    \item Tanpa kasus basis, rekursi tidak akan berhenti dan stack
-          akan melampaui batasnya.
-\end{itemize}}
-\end{column}
-\end{columns}
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Periksa CX bila cacah perulangan mungkin
+nol.\par}
+\Sumber{Bab XIII, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Kedalaman Rekursi dan \eng{Stack Overflow}}
+\begin{frame}[fragile]{Perulangan Bersarang}
 \small
-\begin{columns}[t]
-\begin{column}{0.5\textwidth}
-\begin{exampleblock}{Pemakaian stack}
-\footnotesize
-\begin{itemize}
-    \item Setiap bingkai rekursif memerlukan \dec{6} byte:
-          \dec{2} parameter, \dec{2} alamat kembali, \dec{2}
-          \reg{BP} lama.
-    \item Untuk $5!$ terbentuk lima bingkai $\approx$ \dec{30}
-          byte, sehingga kebutuhan stack setara $O(n)$.
-    \item Versi iteratif cukup satu bingkai saja ($O(1)$), tanpa
-          biaya \asm{CALL} dan \eng{prologue} berulang.
-\end{itemize}
-\end{exampleblock}
-\end{column}
-\begin{column}{0.46\textwidth}
-\begin{alertblock}{\eng{Stack overflow}}
-\footnotesize Prosesor 8086 tidak memiliki pengaman batas stack. Bila
-rekursi terlalu dalam atau kasus basis tidak pernah tercapai,
-\reg{SP} terus turun melewati batas bawah ruang \dir{.STACK}, lalu
-menimpa segmen data atau segmen kode --- tanpa pesan kesalahan.
-\end{alertblock}
-\end{column}
-\end{columns}
+\code{LOOP} selalu memakai CX. Pencacah luar harus disimpan sebelum
+perulangan dalam dimulai.
 
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Fibonacci rekursif $F(n) = F(n-1) +
-F(n-2)$ jauh lebih berat: untuk $n = \dec{20}$ jumlah pemanggilannya
-melebihi \dec{10.000}, sedangkan versi iteratifnya cukup satu
-perulangan. Karena itu Fibonacci jauh lebih baik ditulis secara
-iteratif pada assembly. Rekursi baru dipakai bila persoalannya memang
-bercabang, misalnya penelusuran pohon.\par}
-\Sumber{Bab XIII, Rekursi pada Assembly}
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+MOV CX, 3
+LUAR:
+    PUSH CX
+    MOV CX, 4
+DALAM:
+    ; badan perulangan dalam
+    LOOP DALAM
+    POP CX
+    LOOP LUAR
+\end{kodeasm}
+
+\vspace{0.1em}
+{\footnotesize\color{obeMaroon}Kesalahan umum: lupa memulihkan
+pencacah luar.\par}
+\Sumber{Bab XIII, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Kesalahan Umum Pengelolaan Stack}
-\small Empat kesalahan berikut paling sering dijumpai.
+\begin{frame}[fragile]{Pola Nilai Maksimum}
+\small
+Kandidat maksimum disimpan di AX; setiap elemen dibandingkan dengan
+kandidat.
 
-\vspace{0.3em}
-\begin{enumerate}
-    \item \textbf{Stack tidak seimbang.} Jumlah \asm{PUSH} tidak sama
-          dengan jumlah \asm{POP} pada setiap jalur eksekusi,
-          sehingga \asm{RET} mengambil alamat yang salah.
-
-    \vspace{0.25em}
-    \item \textbf{\asm{RET} ke alamat yang salah.} Pemanggilan
-          \eng{near} ditutup dengan \asm{RETF} atau sebaliknya,
-          sehingga jumlah byte yang diambil dari stack tidak cocok.
-
-    \vspace{0.25em}
-    \item \textbf{Lupa menyimpan register yang dipakai.} Prosedur
-          memakai \reg{SI} atau \reg{DI} tanpa menyimpannya, sehingga
-          pemanggil kehilangan nilai lama register itu.
-
-    \vspace{0.25em}
-    \item \textbf{Kerusakan \eng{stack frame}.} \reg{BP} diubah di
-          tengah prosedur, atau jalur keluar prosedur melompati
-          \asm{POP BP}, sehingga \eng{epilogue} memulihkan nilai yang
-          salah.
-\end{enumerate}
-\Sumber{Bab XIII, Kesalahan Umum Pengelolaan Stack}
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+LEA SI, deret
+MOV CX, BANYAK - 1
+MOV AX, [SI]
+ADD SI, 2
+CARI:
+    CMP AX, [SI]
+    JAE LANJUT
+    MOV AX, [SI]
+LANJUT:
+    ADD SI, 2
+    LOOP CARI
+\end{kodeasm}
+\Sumber{Bab XIII, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 3}
 \small
 \begin{itemize}
-    \item \eng{Stack frame} standar dibangun \eng{prologue}
-          \asm{PUSH BP} dan \asm{MOV BP, SP}, lalu dibongkar
-          \eng{epilogue} \asm{POP BP} dan \asm{RET}.
+    \item LOOP mengurangi CX dan melompat bila CX belum nol.
 
-    \vspace{0.25em}
-    \item Parameter diakses melalui \code{[BP+4]}, \code{[BP+6]}, dan
-          seterusnya; variabel lokal melalui \code{[BP-2]} setelah
-          \asm{SUB SP, n} pada \eng{prologue}.
+    \vspace{0.15em}
+    \item LOOPE/LOOPNE menambahkan syarat ZF.
 
-    \vspace{0.25em}
-    \item Konvensi pemanggilan mengatur letak parameter, letak nilai
-          balik, dan tanggung jawab pembersihan stack --- melalui
-          \asm{RET} \code{n} oleh prosedur, atau \asm{ADD SP, n} oleh
-          pemanggil, tetapi tidak keduanya.
+    \vspace{0.15em}
+    \item JCXZ menangani cacah nol.
 
-    \vspace{0.25em}
-    \item Nilai balik diletakkan pada \reg{AL}, \reg{AX}, atau
-          \reg{DX}:\reg{AX}. \reg{AX}, \reg{BX}, \reg{CX}, \reg{DX},
-          dan \reg{ES} boleh dirusak; \reg{BP}, \reg{SI}, \reg{DI},
-          \reg{DS}, dan \reg{SS} wajib dipulihkan.
+    \vspace{0.15em}
+    \item while memeriksa syarat sebelum badan; for memakai LOOP.
 
-    \vspace{0.25em}
-    \item Rekursi pada assembly adalah penumpukan bingkai stack
-          ($O(n)$) dan berisiko \eng{stack overflow}; versi iteratif
-          memakai stack tetap ($O(1)$).
+    \vspace{0.15em}
+    \item Perulangan bersarang menyimpan pencacah luar dengan
+          PUSH/POP.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % CONTOH PROGRAM
 % =========================================================
-\begin{frame}[fragile]{Contoh 1: Prosedur \code{HitungLuas}}
-\scriptsize Menghitung luas persegi panjang dengan prosedur
-berparameter melalui stack; nilai balik pada \reg{AX}, prosedur
-membersihkan sendiri argumennya dengan \asm{RET} \code{4}.
-
-\vspace{0.15em}
+\begin{frame}[fragile]{Contoh 1: Mencari Nilai Maksimum}
 \begin{columns}[t]
 \begin{column}{0.53\textwidth}
-\begin{kodeasm}[numbers=none]
-.MODEL SMALL
-.STACK 100h
-.DATA
-    lebar  DW 5
-    tinggi DW 10
-    luas   DW 0
+\begin{kodeasm}
 .CODE
 START:
-    MOV  AX, @DATA
-    MOV  DS, AX
-    PUSH tinggi        ; param kedua
-    PUSH lebar         ; param pertama
-    CALL HitungLuas    ; AX <- luas
-    MOV  luas, AX
-    MOV  AH, 4Ch
-    INT  21h
+    MOV AX, @DATA
+    MOV DS, AX
+    LEA SI, deret
+    MOV CX, BANYAK-1
+    MOV AX, [SI]
+CARI:
+    ADD SI, 2
+    CMP AX, [SI]
+    JAE LANJUT
+    MOV AX, [SI]
+LANJUT:
+    LOOP CARI
 \end{kodeasm}
 \end{column}
 \begin{column}{0.44\textwidth}
-\begin{kodeasm}[numbers=none]
-HitungLuas PROC
-    PUSH BP
-    MOV  BP, SP
-    MOV  AX, [BP+4]    ; lebar
-    MUL  WORD PTR [BP+6]
-    POP  BP
-    RET  4             ; buang 4 byte
-HitungLuas ENDP
-END START
-\end{kodeasm}
+\footnotesize
+{\color{obeTeal}\bfseries Keluaran}\\[0.15em]
+\begin{keluaran}
+Nilai maksimum: 93
+\end{keluaran}
+
+\vspace{0.3em}
+\begin{itemize}
+    \item AX menyimpan kandidat maksimum.
+    \item JAE memakai tafsiran tidak bertanda.
+    \item LOOP mengulang sampai semua elemen diperiksa.
+\end{itemize}
 
 \vspace{0.2em}
-\begin{block}{Hasil}
-\footnotesize $5 \times 10 = \dec{50}$ (\hex{0032}) pada \reg{AX} dan
-variabel \code{luas}. Pemanggil \emph{tidak} perlu \asm{ADD SP, 4}
-karena \asm{RET} \code{4} sudah membuang kedua parameter.
-\end{block}
+{\footnotesize\color{obeGray}\code{deret} dan \code{BANYAK}
+didefinisikan di \dir{.DATA}.\par}
 \end{column}
 \end{columns}
-
-{\scriptsize\color{obeGray}Sumber: \file{prosedur-luas.asm} ---
-prosedur ini hanya merusak \reg{AX}.\par}
+\Sumber{Bab XIII, Contoh 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 2: Faktorial Rekursif}
-\scriptsize Menghitung $5!$ secara rekursif; rekursi pada assembly
-adalah penumpukan bingkai stack.
-
-\vspace{0.1em}
+\begin{frame}[fragile]{Contoh 2: Pengurutan Gelembung}
 \begin{columns}[t]
-\begin{column}{0.4\textwidth}
-\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7.5}{8.4}\selectfont]
-.MODEL SMALL
-.STACK 100h
-.DATA
-    n     DW 5
-    hasil DW 0
-.CODE
-START:
-    MOV  AX, @DATA
-    MOV  DS, AX
-    PUSH n             ; argumen n
-    CALL Faktorial     ; AX <- n!
-    ADD  SP, 2
-    MOV  hasil, AX
-    MOV  AH, 4Ch
-    INT  21h
+\begin{column}{0.53\textwidth}
+\begin{kodeasm}
+LINTASAN:
+    PUSH CX
+    MOV SI, 0
+    MOV CX, BANYAK-1
+BANDING:
+    MOV AL, deret[SI]
+    MOV BL, deret[SI+1]
+    CMP AL, BL
+    JBE TIDAK_TUKAR
+    MOV deret[SI], BL
+    MOV deret[SI+1], AL
+TIDAK_TUKAR:
+    INC SI
+    LOOP BANDING
 \end{kodeasm}
 \end{column}
-\begin{column}{0.56\textwidth}
-\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7.5}{8.4}\selectfont]
-Faktorial PROC
-    PUSH BP              ; prologue
-    MOV  BP, SP
-    MOV  AX, [BP+4]      ; AX <- n
-    CMP  AX, 1           ; n <= 1 ?
-    JBE  basis           ; kasus basis
-    DEC  AX
-    PUSH AX              ; dorong (n-1)
-    CALL Faktorial       ; rekursi
-    ADD  SP, 2           ; buang argumen
-    MUL  WORD PTR [BP+4] ; AX <- (n-1)! * n
-    POP  BP              ; epilogue
-    RET
-basis:
-    MOV  AX, 1           ; 0! = 1! = 1
-    POP  BP
-    RET
-Faktorial ENDP
-\end{kodeasm}
+\begin{column}{0.44\textwidth}
+\footnotesize
+{\color{obeTeal}\bfseries Keluaran}\\[0.15em]
+\begin{keluaran}
+Hasil pengurutan: 1 2 3 4 6 7 8 9
+\end{keluaran}
+
+\vspace{0.3em}
+\begin{itemize}
+    \item PUSH CX menyimpan pencacah luar.
+    \item JBE melewati penukaran bila sudah urut.
+    \item Setelah LOOP BANDING, POP CX dan LOOP LINTASAN
+          melanjutkan lintasan berikutnya.
+\end{itemize}
 \end{column}
 \end{columns}
-
-{\scriptsize\color{obeGray}Hasil: \reg{AX} $=$ \dec{120} (\hex{0078});
-lima bingkai $\times$ \dec{6} byte $\approx$ \dec{30} byte stack.
-Sumber: \file{faktorial.asm}.\par}
+\Sumber{Bab XIII, Contoh 2}
 \end{frame}
 
 % =========================================================
 % PRAKTIKUM
 % =========================================================
-\begin{frame}{Praktikum: Menulis Prosedur dan Memeriksa Stack}
+\begin{frame}{Praktikum: Percabangan dan Perulangan}
 \begin{block}{Judul praktikum}
-\small Menulis prosedur berparameter dan memeriksa isi stack dengan
-\eng{debugger} \quad\textbullet\quad \textbf{Sub-CPMK:} 3.4
-\quad\textbullet\quad \textbf{Waktu:} 100 menit
-\quad\textbullet\quad \textbf{Bentuk:} individu
-\quad\textbullet\quad \textbf{Tugas 6}
+\small Menelusuri percabangan dan perulangan pada program array\\[0.15em]
+\textbf{Sub-CPMK:} 3.4 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
 \end{block}
 
-\vspace{0.15em}
+\vspace{0.2em}
 \begin{columns}[t]
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 {\color{obeBlue}\bfseries Alat dan bahan}
 \begin{itemize}\footnotesize
-    \item Emu8086 dengan jendela register, memori, dan stack, atau
-          GUI Turbo Assembler
-    \item DOSBox beserta \file{DEBUG}, TASM, dan TLINK
-    \item Berkas \file{prosedur-luas.asm} dan \file{faktorial.asm}
+    \item Komputer dengan emu8086
+    \item DOSBox dengan TASM, TLINK, dan DEBUG
+    \item \file{loop-maksimum.asm} dan \file{bubble-sort.asm}
+    \item Lembar pengamatan register dan flag
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.50\textwidth}
 {\color{obeBlue}\bfseries Langkah kerja}
 \begin{enumerate}\footnotesize
-    \item Rakit dan jalankan \file{prosedur-luas.asm}; pastikan
-          \reg{AX} dan \code{luas} bernilai \hex{0032}.
-    \item Ubah \code{lebar} menjadi \dec{7} dan \code{tinggi}
-          \dec{6}; pastikan hasilnya \dec{42} (\hex{002A}).
-    \item Telusuri isi stack per langkah; buktikan \code{[BP+4]}
-          $=$ \hex{0005} dan \code{[BP+6]} $=$ \hex{000A}.
-    \item Ubah \asm{RET} \code{4} menjadi \asm{RET} biasa pada salinan
-          berkas, lalu jelaskan akibatnya.
+    \item Jalankan program maksimum; catat keluaran.
+    \item Single step; catat AX, SI, CX, dan flag.
+    \item Ubah array; pastikan maksimum berubah.
+    \item Jalankan bubble sort; telusuri satu lintasan.
+    \item Ganti LOOP dengan DEC/JNZ dan bandingkan.
 \end{enumerate}
 \end{column}
 \end{columns}
 
-\vspace{0.15em}
-{\footnotesize\textbf{Dikumpulkan:} \file{prosedur-luas.asm}
-berparameter tiga (memakai \code{[BP+8]}), \file{prosedur-ganjil.asm},
-tabel pengamatan \reg{SP}/\reg{BP}/\reg{SS}, tangkapan layar jendela
-stack, dan jawaban pertanyaan langkah 1(c), 3(b), 4(b).\par}
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} dua berkas \file{.asm}
+modifikasi, tangkapan layar, tabel pengamatan, penjelasan JAE/JBE,
+dan potongan if--else.\par}
+\Sumber{Bab XIII, Praktikum}
 \end{frame}
 
 % =========================================================
@@ -1052,35 +675,24 @@ stack, dan jawaban pertanyaan langkah 1(c), 3(b), 4(b).\par}
 \begin{frame}{Latihan}
 \small
 \begin{enumerate}
-    \item Sebutkan tiga alasan mengapa program sebaiknya dipecah
-          menjadi prosedur. Jelaskan pula mengapa pemakaian prosedur
-          tidak selalu membuat program lebih cepat, dan kapan
-          prosedur sebaiknya dihindari.
+    \item Jelaskan aturan penulisan label. Mengapa definisi memakai
+          titik dua, sedangkan tujuan lompatan tidak?
 
-    \vspace{0.28em}
-    \item Jelaskan apa yang dikerjakan \asm{CALL} dan \asm{RET}.
-          Mengapa \asm{JMP} tidak dapat dipakai sebagai pengganti
-          \asm{CALL}?
+    \vspace{0.15em}
+    \item Jelaskan perbedaan JMP dan Jcc. Kapan masing-masing
+          dipakai?
 
-    \vspace{0.28em}
-    \item Diketahui \reg{SS} $=$ \hex{2000} dan \reg{SP} $=$
-          \hex{FFFC}. Tentukan alamat fisik sel teratas, lalu nilai
-          \reg{SP} serta isi sel setelah \asm{MOV AX, 1234h},
-          \asm{PUSH AX}, \asm{PUSH BX}, dan \asm{POP CX}. Berapa byte
-          data yang masih tertinggal di stack?
+    \vspace{0.15em}
+    \item Jelaskan cara kerja CMP. Mengapa CMP tidak mengubah operand
+          tetapi dapat dipakai mengambil keputusan?
 
-    \vspace{0.28em}
-    \item Prosedur \code{Jumlah} memakai \eng{prologue} \asm{PUSH BP}
-          dan \asm{MOV BP, SP}, membaca \code{[BP+4]} dan
-          \code{[BP+6]}, lalu ditutup \asm{RET} \code{4}. Tuliskan
-          urutan instruksi pemanggil yang tepat, dan jelaskan mengapa
-          pemanggil tidak boleh menambahkan \asm{ADD SP, 4}.
+    \vspace{0.15em}
+    \item Setelah CMP AX, BX, tentukan Jcc untuk AX $>$ BX
+          (bertanda), AX $<$ BX (tidak bertanda), dan AX $=$ BX.
 
-    \vspace{0.28em}
-    \item Tulislah prosedur \code{HitungRataRata} yang menerima dua
-          parameter 16-bit melalui stack dan mengembalikan hasil bagi
-          keduanya (dibulatkan ke bawah) pada \reg{AX}, lengkap dengan
-          \eng{prologue}, \eng{epilogue}, dan program pemanggilnya.
+    \vspace{0.15em}
+    \item Jelaskan cara kerja LOOP. Apa yang terjadi bila CX = 0 di
+          awal, dan bagaimana mencegahnya?
 \end{enumerate}
 \end{frame}
 
@@ -1088,79 +700,54 @@ stack, dan jawaban pertanyaan langkah 1(c), 3(b), 4(b).\par}
 % RANGKUMAN
 % =========================================================
 \begin{frame}{Rangkuman}
-\footnotesize
+\small
 \begin{itemize}
-    \item Prosedur dipakai untuk memperoleh modularitas, penggunaan
-          ulang, dan abstraksi. Biaya pemanggilannya berupa dorongan
-          parameter, \asm{CALL}, \eng{prologue}, \eng{epilogue}, dan
-          \asm{RET}.
+    \item Label menandai lokasi kode; JMP melompat tanpa syarat.
 
-    \vspace{0.18em}
-    \item \asm{CALL} menyimpan alamat kembali \reg{CS}:\reg{IP} ke
-          stack lalu melompat; \asm{RET} mengambil alamat itu dan
-          mengembalikan kendali. Pemanggilan \eng{near} menyimpan
-          \reg{IP} (\dec{2} byte) dan ditutup \asm{RET}, pemanggilan
-          \eng{far} menyimpan \reg{CS} dan \reg{IP} (\dec{4} byte)
-          dan ditutup \asm{RETF}.
+    \vspace{0.15em}
+    \item CMP memperbarui flag tanpa menyimpan hasil.
 
-    \vspace{0.18em}
-    \item Stack bekerja secara LIFO dan ditunjuk \reg{SS}:\reg{SP},
-          serta tumbuh ke arah alamat rendah: \asm{PUSH} menurunkan
-          \reg{SP} \dec{2} byte, \asm{POP} menaikkannya kembali.
-          \asm{PUSHF} dan \asm{POPF} menyimpan serta memulihkan
-          \reg{FLAGS}.
+    \vspace{0.15em}
+    \item JG/JGE/JL/JLE untuk bertanda; JA/JAE/JB/JBE untuk tak
+          bertanda.
 
-    \vspace{0.18em}
-    \item \eng{Stack frame} standar dibangun \eng{prologue}
-          \asm{PUSH BP} dan \asm{MOV BP, SP}, lalu dibongkar
-          \eng{epilogue} \asm{POP BP} dan \asm{RET}. Parameter diakses
-          melalui \code{[BP+4]}, \code{[BP+6]}, dan seterusnya;
-          variabel lokal melalui \code{[BP-2]}.
+    \vspace{0.15em}
+    \item if memakai satu Jcc; if--else memerlukan JMP.
 
-    \vspace{0.18em}
-    \item Konvensi pemanggilan mengatur letak parameter, letak nilai
-          balik, dan tanggung jawab pembersihan stack. Nilai balik
-          diletakkan pada \reg{AL}, \reg{AX}, atau \reg{DX}:\reg{AX};
-          \reg{AX}--\reg{DX} dan \reg{ES} boleh dirusak, sedangkan
-          \reg{BP}, \reg{SI}, \reg{DI}, \reg{DS}, dan \reg{SS} wajib
-          dipulihkan.
+    \vspace{0.15em}
+    \item LOOP memakai CX; LOOPE/LOOPNE menambahkan syarat ZF.
 
-    \vspace{0.18em}
-    \item Rekursi pada assembly adalah penumpukan bingkai stack.
-          Rekursi memakai stack $O(n)$ dan berisiko
-          \eng{stack overflow}, sedangkan versi iteratif biasanya
-          memakai stack tetap $O(1)$.
+    \vspace{0.15em}
+    \item Perulangan bersarang menyimpan pencacah luar dengan
+          PUSH/POP.
 \end{itemize}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Cek Pemahaman}
-\small
+\footnotesize
 \begin{enumerate}
-    \item Instruksi \asm{CALL} \eng{near} menyimpan \dots\ ke dalam
-          stack.
-          \begin{enumerate}\footnotesize
-              \item register \reg{CS} dan \reg{IP} \quad
-              \item register \reg{IP} saja \quad
-              \item seluruh register umum \quad
-              \item register \reg{FLAGS} dan \reg{BP}
+    \item Instruksi yang memindahkan kendali tanpa memeriksa flag
+          adalah \dots
+          \begin{enumerate}
+              \item JE \quad \item JNE \quad
+              \item JMP \quad \item LOOP
           \end{enumerate}
 
-    \vspace{0.25em}
-    \item Pada 8086, instruksi \asm{PUSH} bekerja dengan cara \dots
-          \begin{enumerate}\footnotesize
-              \item menambah \reg{SP} \dec{2}, lalu menyimpan data \quad
-              \item mengurangi \reg{SP} \dec{2}, lalu menyimpan data \\
-              \item menyimpan data, lalu menambah \reg{SP} \dec{2} \quad
-              \item menyimpan data, lalu mengurangi \reg{SP} \dec{2}
+    \vspace{0.2em}
+    \item \code{CMP AX, BX} \dots
+          \begin{enumerate}
+              \item mengubah AX dan BX
+              \item hanya mengubah flag
+              \item menyimpan hasil di AX
+              \item menyimpan hasil di memori
           \end{enumerate}
 
-    \vspace{0.25em}
-    \item Setelah \eng{prologue} dijalankan, parameter pertama yang
-          didorong paling akhir oleh pemanggil berada pada \dots
-          \begin{enumerate}\footnotesize
-              \item \code{[BP+0]} \quad \item \code{[BP+2]} \quad
-              \item \code{[BP+4]} \quad \item \code{[BP+6]}
+    \vspace{0.2em}
+    \item LOOP memakai register \dots{} sebagai pencacah.
+          \begin{enumerate}
+              \item AX \quad \item BX \quad
+              \item CX \quad \item DX
           \end{enumerate}
 \end{enumerate}
 \end{frame}
@@ -1169,32 +756,23 @@ stack, dan jawaban pertanyaan langkah 1(c), 3(b), 4(b).\par}
 % PENUTUP
 % =========================================================
 \begin{frame}{Penutup}
-\small
 \begin{block}{Sebelum pertemuan berikutnya}
+\small
 \begin{itemize}
-    \item Selesaikan Tugas 6: \file{prosedur-luas.asm} berparameter
-          tiga, \file{prosedur-ganjil.asm}, tabel pengamatan
-          \reg{SP}/\reg{BP}/\reg{SS}, dan tangkapan layar jendela
-          stack.
-    \item Ulangi bagian yang belum dikuasai dengan menelusuri
-          \file{prosedur-luas.asm} dan \file{faktorial.asm} satu
-          instruksi demi satu pada \eng{debugger}.
-    \item Baca \textbf{Bab XIV} --- Interupsi BIOS/DOS dan Operasi
-          I/O.
+    \item Selesaikan praktikum: dua berkas \file{.asm} modifikasi,
+          tabel pengamatan, dan potongan if--else.
+    \item Baca \textbf{Bab XIV} — Stack, Prosedur, dan Macro.
+    \item Siapkan pertanyaan tentang PUSH/POP, CALL/RET, dan
+          parameter melalui stack.
 \end{itemize}
 \end{block}
-
-\vspace{0.35em}
-{\footnotesize\textbf{Bacaan lanjutan:} Bab XIII bagian Konvensi
-Pemanggilan dan Rekursi pada Assembly; pembahasan mode pengalamatan
-\eng{base-relative} pada Bab VIII; pembahasan segmen pada Bab VI.\par}
 
 \vspace{0.4em}
 \begin{center}
 {\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
-\vspace{0.12em}
-{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
-\SemesterTeks\par}
+\vspace{0.15em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK)
+\textbullet\ \SemesterTeks\par}
 \end{center}
 \end{frame}
 

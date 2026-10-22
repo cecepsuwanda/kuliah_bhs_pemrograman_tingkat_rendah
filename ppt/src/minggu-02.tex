@@ -1,9 +1,9 @@
 % =========================================================
 % ppt/src/minggu-02.tex
 % Slide pertemuan 2
-% Bab IV — Arsitektur Mikroprosesor 8086
+% Bab IV — Arsitektur Mikroprosesor 8086: BIU dan EU
 %
-% Sub-CPMK 1.1 | CPMK01 | CPL02
+% Sub-CPMK 1.2 | CPMK01 | CPL02
 % =========================================================
 
 \documentclass[aspectratio=169,11pt]{beamer}
@@ -16,37 +16,34 @@
 % =========================================================
 % 1. JUDUL
 % =========================================================
-\JudulDeck{Arsitektur Mikroprosesor 8086}{Pertemuan 2}
+\JudulDeck{Arsitektur Mikroprosesor 8086:\\ BIU dan EU}{Pertemuan 2}
 
 % =========================================================
 % 2. CAPAIAN DAN TUJUAN
 % =========================================================
 \begin{frame}{Capaian dan Tujuan Pembelajaran}
-\begin{block}{Sub-CPMK 1.1}
-\small Menjelaskan arsitektur dasar mikroprosesor 8086
-(\eng{Execution Unit} dan \eng{Bus Interface Unit}), peran bus
-alamat/data/kontrol, serta tahapan siklus instruksi
-(\eng{fetch}--\eng{decode}--\eng{execute}).
+\begin{block}{Sub-CPMK 1.2}
+\small Menjelaskan pembagian \eng{Bus Interface Unit} dan
+\eng{Execution Unit}, peran bus, \eng{queue} instruksi, dan ALU,
+serta urutan pengambilan dan eksekusi instruksi pada 8086.
 \end{block}
 
-\vspace{0.15em}
+\vspace{0.1em}
 {\small\textbf{CPMK yang didukung:} \CPMK{01}\quad\textbullet\quad
 \textbf{CPL yang didukung:} \CPL{02}\par}
 
-\vspace{0.2em}
+\vspace{0.15em}
 \begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
-\small
+\footnotesize
 \begin{enumerate}
-    \item menjelaskan kedudukan 8086 sebagai dasar keluarga x86
-          beserta evolusinya;
-    \item membedakan arsitektur internal dan arsitektur eksternal
-          mikroprosesor;
-    \item menguraikan pembagian tugas BIU dan EU serta peran
-          \eng{instruction queue};
-    \item menyebutkan fungsi bus alamat, data, dan kontrol beserta
-          sinyal utamanya;
-    \item menelusuri satu instruksi melalui
-          \eng{fetch}--\eng{decode}--\eng{execute}--\eng{store}.
+    \item menjelaskan kedudukan 8086 dan alasan pembagian internalnya
+          menjadi dua unit;
+    \item menjelaskan tugas dan komponen \eng{Bus Interface Unit};
+    \item menjelaskan tugas dan komponen \eng{Execution Unit};
+    \item menghitung alamat fisik dari pasangan
+          \eng{segment:offset};
+    \item menelusuri \eng{fetch}--\eng{decode}--\eng{execute} serta
+          membedakan instruksi register dan instruksi memori.
 \end{enumerate}
 \end{exampleblock}
 \end{frame}
@@ -57,676 +54,609 @@ alamat/data/kontrol, serta tahapan siklus instruksi
 \begin{frame}{Peta Materi}
 \small
 \begin{enumerate}
-    \item \textbf{Evolusi Mikroprosesor dan Kedudukan 8086}\\
-          {\footnotesize dari 4004 sampai 8086; mengapa 8086 masih
-          dipelajari; arsitektur internal dan eksternal}
+    \item \textbf{Kedudukan 8086 dan Pembagian Unit Internal}\\
+          {\footnotesize dari 8086 ke prosesor sesudahnya; BIU dan
+          EU; pembagian tugas; kerja bersamaan}
 
     \vspace{0.25em}
-    \item \textbf{Bus Interface Unit dan Execution Unit}\\
-          {\footnotesize diagram blok 8086; pembagian tugas unit;
-          \eng{instruction queue} dan \eng{pipelining}; alamat fisik}
+    \item \textbf{Bus Interface Unit: Bus, Queue, dan Alamat}\\
+          {\footnotesize tugas dan komponen BIU; \eng{queue} enam
+          byte; tiga kelompok bus; alamat fisik}
 
     \vspace{0.25em}
-    \item \textbf{Bus Eksternal dan Siklus Instruksi}\\
-          {\footnotesize bus alamat, data, kontrol;
-          \eng{multiplexing} AD0--AD15; siklus
-          \eng{fetch}--\eng{store}}
+    \item \textbf{Execution Unit dan Urutan Pengambilan--Eksekusi}\\
+          {\footnotesize tugas dan komponen EU; ALU, \eng{flag},
+          \eng{operand}; urutan pemrosesan instruksi}
 \end{enumerate}
 
-\vspace{0.4em}
+\vspace{0.35em}
 \begin{block}{Praktik pada pertemuan ini}
-\small Menggambar diagram blok BIU/EU dari ingatan, lalu menelusuri
-siklus instruksi dengan \eng{Single Step} pada Emu8086.
+\small Menggambar diagram blok BIU/EU, lalu menelusuri siklus
+instruksi dengan \eng{single step}.
 \end{block}
 \end{frame}
 
 % =========================================================
 % BAGIAN 1
 % =========================================================
-\PemisahBagian{Evolusi Mikroprosesor dan Kedudukan 8086}
+\PemisahBagian{Kedudukan 8086 dan Pembagian Unit Internal}
 
 % ---------------------------------------------------------
-\begin{frame}{Dari 4004 ke 8086}
-\begin{center}
+\begin{frame}{Dari 8086 ke Prosesor Sesudahnya}
 \footnotesize
-\begin{tabular}{@{}p{0.95cm}p{1.75cm}p{1.25cm}p{1.35cm}p{6.9cm}@{}}
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.2cm}
+    >{\raggedright\arraybackslash}p{2.4cm}
+    >{\raggedright\arraybackslash}p{2.6cm}
+    >{\raggedright\arraybackslash}p{4.8cm}@{}}
     \toprule
-    \textbf{Tahun} & \textbf{Prosesor} & \textbf{Bus data} &
-    \textbf{Bus alamat} & \textbf{Catatan} \\
+    \textbf{Prosesor} & \textbf{Bus data} & \textbf{Ruang alamat} &
+    \textbf{Catatan} \\
     \midrule
-    1971 & Intel 4004 & 4 bit & 12 bit &
-    Mikroprosesor komersial pertama, untuk kalkulator \\
+    8086 & 16 bit & 1 MB & Dasar arsitektur yang dipelajari \\
     \addlinespace
-    1974 & Intel 8080 & 8 bit & 16 bit &
-    Ruang alamat 64 KB; \eng{microcomputer} awal \\
+    8088 & 8 bit (luar) & 1 MB & Inti 16 bit, dipakai IBM PC \\
     \addlinespace
-    1978 & Intel 8086 & 16 bit & 20 bit &
-    Ruang alamat 1 MB; dasar keluarga x86 \\
+    80286 & 16 bit & 16 MB & Menambah mode terproteksi \\
     \addlinespace
-    1979 & Intel 8088 & 8 bit (luar) & 20 bit &
-    Inti 16-bit, bus luar 8-bit; dipakai IBM PC \\
-    \addlinespace
-    1982 & Intel 80286 & 16 bit & 24 bit &
-    Menambah \eng{protected mode}, 16 MB alamat \\
+    80386 & 32 bit & 4 GB & Memperluas register dan bus data \\
     \bottomrule
 \end{tabular}
 \end{center}
 
-\vspace{0.35em}
-{\footnotesize\color{obeGray}Setiap generasi menambah lebar kata,
-lebar bus alamat, dan jumlah transistor. Varian 8088 berinti 16 bit
-hanya menyempitkan bus luarnya menjadi 8 bit.\par}
-
-\Sumber{Bab IV, Bagian 1.1 --- Tabel 4.1}
+\vspace{0.3em}
+{\color{obeGray}Perkembangan prosesor memperluas kemampuan, tetapi
+konsep dasar 8086 tetap menjadi fondasi.\par}
+\Sumber{Bab IV, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Mengapa 8086 Masih Dipelajari}
+\begin{frame}{Mengapa 8086 Dipakai sebagai Model}
 \small
-\begin{enumerate}
-    \item \textbf{Sederhana namun lengkap.}
-          Sudah memiliki seluruh konsep penting prosesor modern:
-          register, bus, \eng{flag}, segmentasi, dan
-          \eng{pipeline} sederhana, tanpa mekanisme rumit seperti
-          \eng{cache} berlapis.
+\begin{itemize}
+    \item 8086 memiliki bus data 16 bit dan bus alamat 20 bit
+          sehingga menjangkau memori 1 MB.
 
-    \vspace{0.35em}
-    \item \textbf{Mudah diamati.}
-          Emu8086 memperlihatkan isi register, memori, dan
-          \eng{flag} pada setiap langkah eksekusi, sehingga konsep
-          abstrak dapat diverifikasi sendiri.
+    \vspace{0.18em}
+    \item Susunan internalnya cukup sederhana untuk dipelajari,
+          tetapi sudah memuat konsep utama sebuah prosesor.
 
-    \vspace{0.35em}
-    \item \textbf{Akar keluarga x86.}
-          Prosesor x86 modern tetap kompatibel ke belakang; program
-          8086 mode real masih dapat dijalankan melalui mode
-          kompatibilitas.
-\end{enumerate}
+    \vspace{0.18em}
+    \item Register, segmentasi, bus, dan urutan pengambilan
+          instruksi tetap menjadi fondasi prosesor sesudahnya.
 
-\vspace{0.45em}
-\begin{alertblock}{Intinya}
-\small Usianya lebih dari empat dekade, tetapi 8086 adalah model
-paling jernih untuk memahami cara kerja sebuah prosesor.
-\end{alertblock}
-\end{frame}
+    \vspace{0.18em}
+    \item Varian 8088 memakai inti yang sama dengan bus luar 8 bit
+          dan dipakai pada IBM PC awal.
+\end{itemize}
 
-% ---------------------------------------------------------
-\begin{frame}{Arsitektur Internal dan Eksternal}
-\begin{exampleblock}{Arsitektur internal (\eng{internal architecture})}
-\small Susunan unit fungsional \textbf{di dalam chip}: register,
-ALU, unit pengendali, dan saluran data internal. Menjelaskan
-\emph{bagaimana} prosesor mengolah sebuah instruksi.
-\end{exampleblock}
-
-\vspace{0.35em}
-\begin{block}{Arsitektur eksternal (\eng{external architecture})}
-\small Tampak \textbf{luar chip}: jumlah dan fungsi pin, kelompok
-bus, serta sinyal kendali ke memori dan perangkat I/O.
-Menjelaskan \emph{bagaimana} prosesor berbicara dengan dunia luar.
+\vspace{0.25em}
+\begin{block}{Kedudukan dalam mata kuliah}
+\small 8086 dipakai sebagai model pembelajaran, bukan sebagai
+prosesor terbaru.
 \end{block}
-
-\vspace{0.45em}
-{\footnotesize\color{obeGray}Programmer assembly lebih sering
-berhadapan dengan arsitektur internal (menuliskan nama register);
-perancang sistem digital lebih banyak bekerja pada arsitektur
-eksternal (pin \reg{A0}--\reg{A19}, \reg{AD0}--\reg{AD15}, sinyal
-kendali).\par}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Cara Pandang Sederhana: Kotak Hitam}
-\vspace{0.2em}
+\begin{frame}{Pembagian Internal: BIU dan EU}
 \begin{center}
 \begin{tikzpicture}[
-    kotak/.style={
-        draw=obeBlue, line width=1pt, fill=obeBlueLight,
-        rounded corners=3pt, minimum width=3.8cm, minimum height=1.5cm,
-        align=center, font=\small\bfseries
+    unit/.style={
+        draw=obeBlue, line width=0.8pt, rounded corners=3pt,
+        fill=obeBlueLight, minimum width=4.4cm, minimum height=3.2cm,
+        align=center, font=\footnotesize, inner sep=4pt
+    },
+    biu/.style={
+        draw=obeTeal, line width=0.8pt, rounded corners=3pt,
+        fill=obeTealLight, minimum width=4.4cm, minimum height=3.2cm,
+        align=center, font=\footnotesize, inner sep=4pt
     },
     bus/.style={
-        draw=obeTeal, line width=0.8pt, fill=obeTealLight,
-        rounded corners=2pt, minimum width=4.4cm, minimum height=0.62cm,
-        align=center, font=\scriptsize
+        draw=obeAmber, line width=0.8pt, rounded corners=3pt,
+        fill=obeAmberLight, minimum width=9.8cm, minimum height=0.65cm,
+        align=center, font=\footnotesize
     },
-    panah/.style={line width=0.8pt, obeTeal, -{Stealth[length=2mm]}},
-    panah2/.style={
-        line width=0.8pt, obeTeal,
-        {Stealth[length=2mm]}-{Stealth[length=2mm]}
-    }
+    luar/.style={
+        draw=obeGray, line width=0.8pt, rounded corners=3pt,
+        fill=obeGrayLight, minimum width=9.8cm, minimum height=0.55cm,
+        align=center, font=\footnotesize
+    },
+    panah/.style={-{Stealth[length=2.2mm]}, line width=1pt, obeBlue}
 ]
-    \node[kotak] (cpu) at (0,0) {Mikroprosesor\\8086};
-    \node[bus, right=1.1cm of cpu, yshift=1.35cm] (a)
-        {Bus alamat 20-bit};
-    \node[bus, right=1.1cm of cpu, yshift=0.45cm] (d)
-        {Bus data 16-bit};
-    \node[bus, right=1.1cm of cpu, yshift=-0.45cm] (c)
-        {Bus kontrol};
-    \node[bus, right=1.1cm of cpu, yshift=-1.35cm] (p)
-        {Catuan \& pewaktu};
-    \draw[panah] (cpu.east) -- (a.west);
-    \draw[panah2] (cpu.east) -- (d.west);
-    \draw[panah2] (cpu.east) -- (c.west);
-    \draw[panah] (cpu.east) -- (p.west);
+    \node[unit] (eu) at (0,0) {
+        \textbf{Execution Unit (EU)}\\[0.25em]
+        ALU\\
+        Register umum\\
+        Register penunjuk\\
+        Register \eng{flag}};
+    \node[biu, right=1.0cm of eu] (biu) {
+        \textbf{Bus Interface Unit (BIU)}\\[0.25em]
+        Register segmen\\
+        Instruction Pointer\\
+        Queue 6 byte\\
+        Penghitung alamat};
+
+    \draw[{Stealth[length=2.2mm]}-{Stealth[length=2.2mm]},
+          line width=1pt, obeBlue]
+          (eu.east) -- node[above, font=\scriptsize] {bus internal}
+          (biu.west);
+
+    \node[bus] (ext) at
+        ([yshift=-0.75cm]$(eu.south)!0.5!(biu.south)$)
+        {Bus alamat, bus data, dan bus kontrol};
+    \draw[{Stealth[length=2.2mm]}-{Stealth[length=2.2mm]},
+          line width=1pt, obeAmber]
+          (biu.south) -- (ext.north);
+
+    \node[luar, below=0.3cm of ext] (mem) {Memori dan port I/O};
+    \draw[{Stealth[length=2.2mm]}-{Stealth[length=2.2mm]},
+          line width=1pt, obeGray]
+          (ext.south) -- (mem.north);
 \end{tikzpicture}
 \end{center}
 
-\vspace{0.5em}
-\small Ke luar, prosesor hanya berhubungan melalui empat kelompok
-saluran tersebut. Setiap instruksi yang dijalankan pasti melibatkan
-pertukaran informasi lewat salah satunya.
+\vspace{0.1em}
+{\footnotesize\color{obeGray}EU mengolah di dalam chip; BIU
+menghubungkan chip dengan memori dan port.\par}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Ringkasan Bagian 1}
+\begin{frame}{Pembagian Tugas BIU dan EU}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}
+    >{\raggedright\arraybackslash}p{5.0cm}
+    >{\raggedright\arraybackslash}p{5.0cm}@{}}
+    \toprule
+    \textbf{Aspek} & \textbf{Bus Interface Unit} &
+    \textbf{Execution Unit} \\
+    \midrule
+    Tugas utama & Mengambil instruksi dan data, serta menangani lalu
+    lintas bus & Menerjemahkan dan menjalankan instruksi \\
+    \addlinespace
+    Komponen utama & Register segmen, IP, \eng{queue}, penghitung
+    alamat & ALU, register umum, register penunjuk, \eng{flag},
+    decoder \\
+    \addlinespace
+    Akses bus luar & Berwenang penuh & Tidak langsung; meminta
+    melalui BIU \\
+    \addlinespace
+    Perhitungan alamat & Alamat fisik dari \eng{segment:offset} &
+    Alamat efektif \eng{operand} \\
+    \addlinespace
+    Saat EU sibuk & Mengisi \eng{queue} & Menjalankan instruksi \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Kerja Bersamaan BIU dan EU}
 \small
 \begin{itemize}
-    \item Mikroprosesor berkembang dari Intel 4004 (4 bit) sampai
-          8086 (16 bit; bus alamat 20 bit) yang menjadi dasar
-          keluarga x86.
+    \item BIU dapat mengambil instruksi berikutnya sementara EU
+          masih mengerjakan instruksi yang sekarang.
 
-    \vspace{0.3em}
-    \item Varian 8088 berinti 16 bit dengan bus luar 8 bit dipakai
-          pada IBM PC.
+    \vspace{0.18em}
+    \item EU tidak berhubungan langsung dengan bus luar.
 
-    \vspace{0.3em}
-    \item 8086 dipelajari karena sederhana namun lengkap, mudah
-          diamati pada emulator, dan menjadi akar keluarga x86.
+    \vspace{0.18em}
+    \item Bila instruksi memerlukan \eng{operand} memori, EU
+          mengirim alamat ke BIU; BIU menjalankan siklus bus dan
+          menyerahkan hasilnya.
 
-    \vspace{0.3em}
-    \item Arsitektur dipandang dari dua sisi: \term{internal}
-          (register, ALU, unit di dalam chip) dan \term{eksternal}
-          (pin, bus, sinyal kendali).
+    \vspace{0.18em}
+    \item \eng{Queue} enam byte menjadi penyeimbang antara
+          pengambilan dan eksekusi.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{block}{Akibat pembagian tugas}
+\small Pengambilan instruksi dan eksekusi dapat berjalan tumpang
+tindih, sehingga prosesor tidak selalu menunggu memori.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 1}
+\small
+\begin{itemize}
+    \item 8086 memakai bus data 16 bit dan bus alamat 20 bit
+          sehingga menjangkau memori 1 MB.
+
+    \vspace{0.15em}
+    \item 8088, 80286, dan 80386 memperluas bus atau ruang alamat,
+          tetapi konsep dasar 8086 tetap dipakai.
+
+    \vspace{0.15em}
+    \item Arsitektur internal 8086 dibagi menjadi BIU dan EU.
+
+    \vspace{0.15em}
+    \item BIU mengurus hubungan dengan memori dan port; EU
+          menerjemahkan dan menjalankan instruksi.
+
+    \vspace{0.15em}
+    \item Pembagian tugas memungkinkan pengambilan instruksi
+          berjalan bersamaan dengan eksekusi.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 2
 % =========================================================
-\PemisahBagian{Bus Interface Unit dan Execution Unit}
+\PemisahBagian{Bus Interface Unit: Bus, Queue, dan Alamat}
 
 % ---------------------------------------------------------
-\begin{frame}{Diagram Blok Internal 8086}
+\begin{frame}{Tugas Bus Interface Unit}
+\small
+\begin{enumerate}
+    \item Mengirim tugas ke bagian lain di dalam prosesor.
+
+    \vspace{0.18em}
+    \item Mengambil instruksi dari memori.
+
+    \vspace{0.18em}
+    \item Membaca atau menulis data dari dan ke memori serta port.
+
+    \vspace{0.18em}
+    \item Menangani pengalamatan dan transfer data.
+\end{enumerate}
+
+\vspace{0.3em}
+\begin{block}{Pintu keluar-masuk prosesor}
+\small Seluruh instruksi dan data yang berasal dari memori atau port
+melewati BIU.
+\end{block}
+\Sumber{Bab IV, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Komponen Bus Interface Unit}
+\footnotesize
 \begin{center}
-\begin{tikzpicture}[
-    unit/.style={
-        draw=obeBlue, line width=1pt, rounded corners=3pt,
-        fill=obeBlueLight, minimum width=4.75cm, minimum height=2.7cm
-    },
-    unitb/.style={
-        draw=obeTeal, line width=1pt, rounded corners=3pt,
-        fill=obeTealLight, minimum width=4.75cm, minimum height=2.7cm
-    },
-    isi/.style={
-        draw=obeBlue, fill=white, minimum width=4.0cm,
-        minimum height=0.5cm, align=center, font=\scriptsize
-    },
-    isib/.style={
-        draw=obeTeal, fill=white, minimum width=4.0cm,
-        minimum height=0.5cm, align=center, font=\scriptsize
-    },
-    judul/.style={font=\small\bfseries},
-    panah/.style={
-        {Stealth[length=2.2mm]}-{Stealth[length=2.2mm]},
-        line width=1.3pt, obeBlue
-    }
-]
-    % ---------------- EU ----------------
-    \node[unit] (eu) {};
-    \node[judul, text=obeBlue, anchor=north]
-        at ([yshift=-4pt]eu.north) {Execution Unit (EU)};
-    \node[isi] (e1) at ([yshift=-0.85cm]eu.north) {ALU};
-    \node[isi, below=0.14cm of e1] (e2)
-        {Register umum, penunjuk, indeks};
-    \node[isi, below=0.14cm of e2] (e3) {Register \eng{flag}};
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.2cm}
+    >{\raggedright\arraybackslash}p{9.4cm}@{}}
+    \toprule
+    \textbf{Komponen} & \textbf{Peran} \\
+    \midrule
+    Bus & Jalur tempat instruksi dan data mengalir antara prosesor,
+    memori, dan perangkat lain \\
+    \addlinespace
+    \eng{Queue} & Antrean enam byte yang diisi BIU dan diambil EU \\
+    \addlinespace
+    Register segmen & CS, DS, SS, dan ES; menyimpan nomor segmen
+    kode, data, \eng{stack}, dan segmen tambahan \\
+    \addlinespace
+    \eng{Instruction Pointer} & Menyimpan \eng{offset} instruksi
+    berikutnya; pasangan CS:IP menunjukkan lokasinya \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab IV, Bagian 2}
+\end{frame}
 
-    % ---------------- BIU ----------------
-    \node[unitb, right=1.55cm of eu] (biu) {};
-    \node[judul, text=obeTeal, anchor=north]
-        at ([yshift=-4pt]biu.north) {Bus Interface Unit (BIU)};
-    \node[isib] (b1) at ([yshift=-0.85cm]biu.north)
-        {Register segmen \& \reg{IP}};
-    \node[isib, below=0.14cm of b1] (b2)
-        {\eng{Instruction queue} 6 byte};
-    \node[isib, below=0.14cm of b2] (b3)
-        {Penghitung alamat 20-bit};
+% ---------------------------------------------------------
+\begin{frame}{Instruction Queue Enam Byte}
+\small
+Memori lebih lambat daripada prosesor. BIU mengisi \eng{queue}
+sambil EU mengerjakan instruksi yang sekarang.
 
-    \draw[panah] (eu.east) -- (biu.west)
-        node[midway, above, font=\tiny, text=obeBlue] {16-bit};
-
-    % ---------------- bus luar ----------------
-    \node[draw=obeAmber, fill=obeAmberLight, rounded corners=2pt,
-          minimum width=4.3cm, minimum height=0.62cm, align=center,
-          font=\scriptsize, below=0.95cm of biu] (ext)
-          {Bus eksternal: alamat 20-bit / data 16-bit};
-    \draw[panah, obeAmber] (biu.south) -- (ext.north);
-    \node[draw=obeGray, fill=obeGrayLight, rounded corners=2pt,
-          minimum width=4.3cm, minimum height=0.62cm, align=center,
-          font=\scriptsize, below=0.4cm of ext] (mem)
-          {Memori dan perangkat I/O};
-    \draw[panah, obeGray] (ext.south) -- (mem.north);
-\end{tikzpicture}
+\vspace{0.25em}
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.8cm}
+    >{\raggedright\arraybackslash}p{5.2cm}
+    >{\raggedright\arraybackslash}p{5.2cm}@{}}
+    \toprule
+    \textbf{Siklus} & \textbf{Tanpa Antrean} &
+    \textbf{Dengan Antrean} \\
+    \midrule
+    1 & ambil instruksi 1 & ambil instruksi 1 \\
+    \addlinespace
+    2 & eksekusi instruksi 1 & eksekusi 1 dan ambil 2 \\
+    \addlinespace
+    3 & ambil instruksi 2 & eksekusi 2 dan ambil 3 \\
+    \addlinespace
+    4 & eksekusi instruksi 2 & eksekusi 3 \\
+    \addlinespace
+    5 & ambil instruksi 3 & --- \\
+    \addlinespace
+    6 & eksekusi instruksi 3 & --- \\
+    \bottomrule
+\end{tabular}
 \end{center}
 
 \vspace{0.15em}
-{\footnotesize\color{obeGray}EU di kiri, BIU di kanan, dihubungkan
-bus internal 16 bit. Hanya BIU yang menyentuh pin luar chip.\par}
+{\footnotesize\color{obeGray}Model sederhana, bukan angka waktu
+sebenarnya. Antrean diisi kembali ketika isinya berkurang dua byte.
+\par}
+\Sumber{Bab IV, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Tugas Masing-masing Unit}
-\begin{center}
+\begin{frame}{Tiga Kelompok Bus}
 \footnotesize
-\begin{tabular}{@{}p{2.4cm}p{5.3cm}p{5.3cm}@{}}
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.2cm}
+    >{\raggedright\arraybackslash}p{1.8cm}
+    >{\raggedright\arraybackslash}p{2.2cm}
+    >{\raggedright\arraybackslash}p{5.8cm}@{}}
     \toprule
-    \textbf{Aspek} & \textbf{Bus Interface Unit (BIU)} &
-    \textbf{Execution Unit (EU)} \\
+    \textbf{Bus} & \textbf{Lebar} & \textbf{Arah} &
+    \textbf{Fungsi} \\
     \midrule
-    Tugas utama & Mengambil instruksi dan data; menangani seluruh
-    lalu lintas bus & Menerjemahkan dan menjalankan instruksi \\
+    Alamat & 20 bit & keluar & Membawa alamat memori atau port
+    yang akan diakses \\
     \addlinespace
-    Register & \reg{CS}, \reg{DS}, \reg{SS}, \reg{ES}, \reg{IP},
-    \eng{instruction queue} & \reg{AX}--\reg{DX}, \reg{SP},
-    \reg{BP}, \reg{SI}, \reg{DI}, \eng{flag} \\
+    Data & 16 bit & dua arah & Membawa data yang dibaca atau
+    ditulis \\
     \addlinespace
-    Akses bus luar & Wewenang tunggal &
-    Tidak punya; harus meminta melalui BIU \\
-    \addlinespace
-    Perhitungan alamat & Alamat fisik 20-bit dari pasangan
-    segmen:offset & Hanya \eng{offset} (\eng{effective address}) \\
+    Kontrol & sinyal & keluar/masuk & Mengatur jenis, arah, dan
+    waktu pertukaran data \\
     \bottomrule
 \end{tabular}
 \end{center}
 
-\vspace{0.4em}
-\begin{alertblock}{Yang perlu diingat}
-\small Ketika sebuah instruksi memerlukan operand dari memori, EU
-mengirim permintaan alamat ke BIU, lalu BIU menjalankan siklus bus
-dan menyerahkan datanya kembali.
-\end{alertblock}
+\vspace{0.25em}
+{\color{obeGray}Bus alamat 20 bit menjangkau $2^{20}$ byte = 1 MB;
+bus data 16 bit memindahkan dua byte sekaligus.\par}
+\Sumber{Bab IV, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Instruction Queue dan Pipelining}
-\small Selama EU masih sibuk, BIU memakai waktu luang bus untuk
-mengisi \eng{instruction queue} enam byte.
-
-\vspace{0.35em}
-\begin{center}
-\begin{tikzpicture}[x=1.4cm, y=0.55cm, font=\scriptsize]
-    % --- baris 1: tanpa antrean ---
-    \node[anchor=east, font=\scriptsize\bfseries] at (-0.1,2.6)
-        {Tanpa antrean};
-    \foreach \i/\lbl/\c in {%
-        0/F1/obeBlueLight, 1/E1/obeGreenLight,
-        2/F2/obeBlueLight, 3/E2/obeGreenLight,
-        4/F3/obeBlueLight, 5/E3/obeGreenLight} {
-        \draw[draw=obeGray, fill=\c, line width=0.4pt]
-            (\i,2.2) rectangle (\i+1,3.0);
-        \node at (\i+0.5,2.6) {\lbl};
-    }
-    % --- baris 2: dengan antrean ---
-    \node[anchor=east, font=\scriptsize\bfseries] at (-0.1,1.1)
-        {Dengan antrean};
-    \draw[draw=obeGray, fill=obeBlueLight, line width=0.4pt]
-        (0,0.4) rectangle (1,1.8);
-    \node at (0.5,1.1) {F1};
-    \draw[draw=obeGray, fill=obeGreenLight, line width=0.4pt]
-        (1,1.1) rectangle (2,1.8);
-    \node[font=\tiny] at (1.5,1.45) {E1};
-    \draw[draw=obeGray, fill=obeBlueLight, line width=0.4pt]
-        (1,0.4) rectangle (2,1.1);
-    \node[font=\tiny] at (1.5,0.75) {F2};
-    \draw[draw=obeGray, fill=obeGreenLight, line width=0.4pt]
-        (2,1.1) rectangle (3,1.8);
-    \node[font=\tiny] at (2.5,1.45) {E2};
-    \draw[draw=obeGray, fill=obeBlueLight, line width=0.4pt]
-        (2,0.4) rectangle (3,1.1);
-    \node[font=\tiny] at (2.5,0.75) {F3};
-    \draw[draw=obeGray, fill=obeGreenLight, line width=0.4pt]
-        (3,0.4) rectangle (4,1.8);
-    \node at (3.5,1.1) {E3};
-    % --- sumbu siklus ---
-    \foreach \i in {1,...,6} {
-        \node[font=\tiny, text=obeGray] at (\i-0.5,0.05) {\i};
-    }
-    \node[font=\tiny, text=obeGray, anchor=west] at (6.05,0.05)
-        {siklus};
-\end{tikzpicture}
-\end{center}
-
-\vspace{0.2em}
-{\footnotesize F = \eng{fetch} (BIU) \quad\textbullet\quad
-E = \eng{execute} (EU) \quad\textbullet\quad Tanpa antrean: 6
-siklus; dengan antrean: 4 siklus.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Peringatan: Queue Flush}
-\begin{alertblock}{\eng{Pipeline} pada 8086 hanya satu tingkat}
-\small Antreannya hanya enam byte. Ketika EU menjalankan instruksi
-lompatan (\asm{JMP}, \asm{CALL}), isi antrean sudah tidak relevan
-sehingga harus dikosongkan. Peristiwa ini disebut
-\term{queue flush}.
-\end{alertblock}
-
-\vspace{0.5em}
+\begin{frame}{Perhitungan Alamat Fisik}
 \small
-\begin{itemize}
-    \item \eng{Queue flush} menghapus keuntungan \eng{pipeline}
-          untuk instruksi tersebut.
+Register segmen hanya 16 bit, sedangkan bus alamat 20 bit. BIU
+menjembatani keduanya dengan rumus:
 
-    \vspace{0.25em}
-    \item Akibatnya, program yang penuh lompatan berjalan lebih
-          lambat daripada program lurus dengan panjang yang sama.
+\[
+\text{alamat fisik} = (\text{nilai segmen} \times 16)
++ \text{offset}
+\]
+
+Contoh: \reg{CS} = \hex{1234} dan \reg{IP} = \hex{0010}.
+
+\[
+\hex{1234} \times 16 + \hex{0010}
+= \hex{12340} + \hex{0010} = \hex{12350}
+\]
+
+\begin{itemize}
+    \item Perkalian dengan 16 sama dengan menggeser nilai segmen
+          satu digit heksadesimal ke kiri.
+    \item Perhitungan ini dikerjakan oleh BIU.
 \end{itemize}
-
-\Sumber{Bab IV, Bagian 2.3}
+\Sumber{Bab IV, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Peran Segmentasi pada BIU}
-\small BIU mengubah pasangan \term{segmen:offset} menjadi alamat
-fisik 20-bit. Register segmen hanya 16 bit, sedangkan bus alamat
-selebar 20 bit.
-
-\vspace{0.5em}
-\begin{center}
-{\color{obeBlue}\large Alamat fisik $=$ (register segmen $\times$
-16) $+$ \eng{offset}}
-\end{center}
-
-\vspace{0.5em}
-\begin{exampleblock}{Contoh}
-\small \reg{CS} $=$ \hex{1234}, \reg{IP} $=$ \hex{0010}\\[0.25em]
-\hex{12340} $+$ \hex{0010} $=$ \textbf{\hex{12350}}\\[0.25em]
-{\footnotesize Mengalikan dengan 16 sama dengan menggeser nilai
-segmen satu digit heksadesimal ke kiri.}
-\end{exampleblock}
-
-\vspace{0.35em}
-{\footnotesize\color{obeGray}Rumus inilah alasan 8086 mampu
-menjangkau 1 MB memori meskipun register-nya hanya 16 bit.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Sekilas Register Internal}
-\begin{center}
-\footnotesize
-\begin{tabular}{@{}p{2.7cm}p{3.1cm}p{6.7cm}@{}}
-    \toprule
-    \textbf{Kelompok} & \textbf{Anggota} & \textbf{Kegunaan utama} \\
-    \midrule
-    Register umum & \reg{AX}, \reg{BX}, \reg{CX}, \reg{DX} &
-    Menyimpan data dan hasil operasi aritmetika \\
-    \addlinespace
-    Register penunjuk & \reg{SP}, \reg{BP} &
-    Puncak \eng{stack} dan kerangka data prosedur \\
-    \addlinespace
-    Register indeks & \reg{SI}, \reg{DI} &
-    Sumber dan tujuan pada operasi string \\
-    \addlinespace
-    Register segmen & \reg{CS}, \reg{DS}, \reg{SS}, \reg{ES} &
-    Nomor segmen kode, data, \eng{stack}, dan tambahan \\
-    \addlinespace
-    Penunjuk instruksi & \reg{IP} &
-    \eng{Offset} instruksi berikutnya \\
-    \addlinespace
-    Register \eng{flag} & \flag{CF}, \flag{ZF}, \flag{SF}, \dots &
-    Kondisi hasil operasi terakhir \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.35em}
-{\footnotesize\color{obeGray}Register segmen, \reg{IP}, dan
-\eng{instruction queue} berada di BIU; sisanya berada di EU.
-Rincian setiap register dibahas pada Bab V.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Ringkasan Bagian 2}
+\begin{frame}{Rangkuman Bagian 2}
 \small
 \begin{itemize}
-    \item 8086 terbagi menjadi BIU dan EU yang bekerja secara
-          paralel.
+    \item BIU mengambil instruksi, membaca dan menulis data, serta
+          menangani pengalamatan dan transfer data.
 
-    \vspace{0.3em}
-    \item BIU: register segmen, \reg{IP}, penghitung alamat 20-bit,
-          dan \eng{instruction queue} enam byte; pemegang tunggal
-          bus luar.
+    \vspace{0.15em}
+    \item Komponen BIU: bus, \eng{queue} enam byte, register segmen
+          CS/DS/SS/ES, dan \eng{Instruction Pointer}.
 
-    \vspace{0.3em}
-    \item EU: ALU, register umum/penunjuk/indeks, dan register
-          \eng{flag}; sama sekali tidak terhubung ke pin luar.
+    \vspace{0.15em}
+    \item \eng{Queue} memungkinkan pengambilan instruksi berikutnya
+          berjalan sementara EU mengeksekusi.
 
-    \vspace{0.3em}
-    \item Antrean memungkinkan \eng{pipelining} (6 siklus menjadi 4
-          siklus); alamat fisik $=$ (segmen $\times$ 16) $+$
-          \eng{offset}.
+    \vspace{0.15em}
+    \item Tiga kelompok bus: alamat 20 bit, data 16 bit, dan kontrol.
+
+    \vspace{0.15em}
+    \item Alamat fisik = (segmen $\times$ 16) + offset; contoh
+          \hex{1234}:\hex{0010} menghasilkan \hex{12350}.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 3
 % =========================================================
-\PemisahBagian{Bus Eksternal dan Siklus Instruksi}
+\PemisahBagian{Execution Unit dan Urutan Pengambilan--Eksekusi}
 
 % ---------------------------------------------------------
-\begin{frame}{Tiga Kelompok Bus}
-\small Bus adalah sekumpulan penghantar yang dipakai bersama oleh
-prosesor, memori, dan perangkat I/O.
+\begin{frame}{Tugas Execution Unit}
+\small
+\begin{enumerate}
+    \item Menerjemahkan perintah yang diterima dari BIU.
 
-\vspace{0.35em}
-\begin{itemize}
-    \item \textbf{Bus alamat} (\eng{address bus}) --- 20 bit, yaitu
-          \reg{A0}--\reg{A19}; membawa alamat lokasi yang akan
-          diakses. Menjangkau $2^{20}$ byte $=$ 1 MB dan bersifat
-          \textbf{satu arah} (prosesor $\rightarrow$ memori/I/O).
+    \vspace{0.18em}
+    \item Mengeksekusi perintah tersebut.
 
-    \vspace{0.3em}
-    \item \textbf{Bus data} (\eng{data bus}) --- 16 bit, yaitu
-          \reg{AD0}--\reg{AD15}; membawa data yang sedang dibaca
-          atau ditulis, dan bersifat \textbf{dua arah}.
+    \vspace{0.18em}
+    \item Memberi tahu BIU dari mana instruksi atau data harus
+          diambil.
+\end{enumerate}
 
-    \vspace{0.3em}
-    \item \textbf{Bus kontrol} (\eng{control bus}) --- mengatur
-          \emph{jenis} dan \emph{arah} pertukaran data: baca atau
-          tulis, memori atau perangkat I/O, dan kapan perangkat
-          siap melayani.
-\end{itemize}
+\vspace{0.3em}
+\begin{block}{Hubungan dengan bus luar}
+\small EU tidak berhubungan langsung dengan bus luar. Bila
+\eng{operand} berada di memori, EU meminta BIU membacanya.
+\end{block}
+\Sumber{Bab IV, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{\eng{Multiplexing} \reg{AD0}--\reg{AD15}}
-\small Kemasan 8086 hanya \textbf{40 pin}, sehingga sebagian pin
-dipakai bergantian: \reg{AD0}--\reg{AD15} membawa alamat pada awal
-siklus bus, lalu membawa data.
-
-\vspace{0.6em}
-\begin{center}
-\begin{tikzpicture}[font=\scriptsize]
-    \draw[draw=obeBlue, fill=obeBlueLight, line width=0.9pt]
-        (0,0) rectangle (5,0.95);
-    \node at (2.5,0.475) {Alamat \reg{A0}--\reg{A15}};
-    \draw[draw=obeTeal, fill=obeTealLight, line width=0.9pt]
-        (5,0) rectangle (10,0.95);
-    \node at (7.5,0.475) {Data \reg{D0}--\reg{D15}};
-
-    \draw[{Stealth[length=2mm]}-, line width=0.9pt, obeAmber]
-        (5,1.5) -- (5,1.0);
-    \node[anchor=south, font=\scriptsize, text=obeAmber]
-        at (5,1.5) {\reg{ALE} $=1$: tangkap alamat};
-    \node[anchor=north, font=\scriptsize, text=obeGray]
-        at (0,0) {awal siklus};
-    \node[anchor=north, font=\scriptsize, text=obeGray]
-        at (10,0) {akhir siklus};
-\end{tikzpicture}
-\end{center}
-
-\vspace{0.5em}
-{\footnotesize\color{obeGray}Karena alamat hanya muncul sebentar,
-rangkaian luar bernama \eng{latch} harus menangkapnya. Sinyal
-\reg{ALE} (\eng{Address Latch Enable}) memberi tahu kapan saat yang
-tepat.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Sinyal Kendali Utama 8086}
-\begin{center}
+\begin{frame}{Komponen Execution Unit}
 \footnotesize
-\begin{tabular}{@{}p{1.4cm}p{1.6cm}p{9.8cm}@{}}
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.2cm}
+    >{\raggedright\arraybackslash}p{8.8cm}@{}}
     \toprule
-    \textbf{Sinyal} & \textbf{Arah} & \textbf{Fungsi} \\
+    \textbf{Komponen} & \textbf{Fungsi} \\
     \midrule
-    \reg{ALE} & Keluaran &
-    Menandai bahwa \reg{AD0}--\reg{AD15} sedang membawa alamat \\
+    ALU & Menjalankan operasi aritmetika dan logika \\
     \addlinespace
-    \code{M/IO} & Keluaran &
-    Sasaran akses: tinggi untuk memori, rendah untuk perangkat I/O \\
+    Register \eng{flag} & Menyimpan penanda hasil ALU: nol,
+    negatif, atau \eng{carry} \\
     \addlinespace
-    \reg{RD} & Keluaran &
-    Aktif rendah; prosesor sedang melakukan operasi baca \\
+    \eng{Operand} & Data yang dioperasikan: nilai, register, atau
+    variabel \\
     \addlinespace
-    \reg{WR} & Keluaran &
-    Aktif rendah; prosesor sedang melakukan operasi tulis \\
+    \eng{Instruction decoder and control} & Menerjemahkan perintah
+    dan mengendalikan operasi di dalam EU \\
     \addlinespace
-    \reg{READY} & Masukan &
-    Perangkat lambat sudah selesai; bila rendah, prosesor menambah
-    \eng{wait state} \\
+    Register umum & AX, BX, CX, DX; menyimpan data yang sedang
+    diolah \\
     \addlinespace
-    \reg{RESET} & Masukan &
-    Kembali ke keadaan awal; \reg{CS} diisi \hex{FFFF} dan
-    \reg{IP} diisi \hex{0000} \\
+    Register penunjuk dan indeks & SP, BP, SI, DI; menunjuk lokasi
+    memori untuk \eng{stack}, data, atau string \\
     \bottomrule
 \end{tabular}
 \end{center}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Sinyal \code{MN/MX} memilih mode
-minimum atau maksimum. Seluruh contoh pada buku ini dapat dipandang
-berjalan pada mode minimum.\par}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Siklus Instruksi 8086}
-\vspace{0.2em}
+\begin{frame}{ALU, Flag, dan Operand}
+\small
+\begin{itemize}
+    \item \textbf{ALU} menjalankan operasi aritmetika dan logika:
+          penjumlahan, pengurangan, perkalian, pembagian, AND, OR,
+          dan NOT.
+
+    \vspace{0.18em}
+    \item \textbf{Register \eng{flag}} menandai hasil operasi,
+          misalnya hasil nol, hasil negatif, atau \eng{carry}.
+
+    \vspace{0.18em}
+    \item \textbf{\eng{Operand}} adalah data yang dioperasikan;
+          dapat berupa nilai langsung, register, atau isi memori.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{block}{Contoh}
+\small Pada \code{ADD AL, 5}, \code{AL} dan \code{5} adalah
+\eng{operand}, sedangkan \code{ADD} menentukan operasinya.
+\end{block}
+\Sumber{Bab IV, Bagian 3}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Urutan Fetch--Decode--Execute}
 \begin{center}
 \begin{tikzpicture}[
     tahap/.style={
         draw=obeBlue, line width=0.9pt, fill=obeBlueLight,
-        rounded corners=3pt, minimum width=2.25cm,
-        minimum height=1.1cm, align=center, font=\small\bfseries
+        rounded corners=3pt, minimum width=2.9cm,
+        minimum height=1.2cm, align=center, font=\small\bfseries
     },
-    panah/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, obeTeal},
+    panah/.style={-{Stealth[length=2.5mm]}, line width=1pt, obeTeal},
     unit/.style={font=\scriptsize, text=obeGray}
 ]
-    \node[tahap] (f) {Fetch\\{\normalfont\scriptsize ambil opcode}};
-    \node[tahap, right=0.4cm of f, fill=obeTealLight, draw=obeTeal] (d)
-        {Decode\\{\normalfont\scriptsize baca opcode}};
-    \node[tahap, right=0.4cm of d, fill=obeAmberLight, draw=obeAmber] (e)
-        {Execute\\{\normalfont\scriptsize jalankan}};
-    \node[tahap, right=0.4cm of e, fill=obeMaroonLight, draw=obeMaroon]
-        (s) {Store\\{\normalfont\scriptsize simpan hasil}};
+    \node[tahap] (f) {Fetch\\{\normalfont\scriptsize ambil instruksi}};
+    \node[tahap, right=0.8cm of f, fill=obeTealLight,
+          draw=obeTeal] (d)
+          {Decode\\{\normalfont\scriptsize terjemahkan}};
+    \node[tahap, right=0.8cm of d, fill=obeAmberLight,
+          draw=obeAmber] (e)
+          {Execute\\{\normalfont\scriptsize jalankan}};
 
     \draw[panah] (f) -- (d);
     \draw[panah] (d) -- (e);
-    \draw[panah] (e) -- (s);
 
-    \node[unit, below=0.08cm of f] {BIU};
-    \node[unit, below=0.08cm of d] {EU};
-    \node[unit, below=0.08cm of e] {EU};
-    \node[unit, below=0.08cm of s] {BIU};
-
-    \draw[panah, dashed]
-        (s.east) -- ([xshift=0.45cm]s.east)
-        -- ([xshift=0.45cm, yshift=-1.5cm]s.east)
-        -- ([xshift=-0.45cm, yshift=-1.5cm]f.west)
-        -- ([xshift=-0.45cm]f.west) -- (f.west);
-    \node[font=\scriptsize, text=obeGray]
-        at ($([xshift=0.45cm]s.east)!0.5!([xshift=-0.45cm]f.west)
-             + (0,-1.72cm)$)
-        {instruksi berikutnya};
+    \node[unit, below=0.12cm of f] {dikerjakan BIU};
+    \node[unit, below=0.12cm of d] {dikerjakan EU};
+    \node[unit, below=0.12cm of e] {dikerjakan EU};
 \end{tikzpicture}
 \end{center}
 
-\vspace{0.35em}
-\small \term{Fetch}: BIU menghitung alamat dari \reg{CS}:\reg{IP}
-dan mengisi antrean \quad\textbullet\quad \term{Decode}: EU
-mengenali opcode \quad\textbullet\quad \term{Store}: hanya
-memerlukan siklus bus bila tujuannya memori.
+\vspace{0.6em}
+\begin{block}{Tiga tahap, dua unit}
+\small BIU mengambil instruksi; EU menerjemahkan dan
+menjalankannya.
+\end{block}
+\Sumber{Bab IV, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Menelusuri Satu Instruksi}
-\small Instruksi \code{MOV AX, 1234h} berukuran tiga byte dengan
-opcode \hex{B8} diikuti \hex{34} dan \hex{12} secara
-\eng{little endian}. Andaikan \reg{CS} $=$ \hex{1000}, \reg{IP} $=$
-\hex{0000}.
+\begin{frame}{Fetch, Decode, Execute}
+\small
+\begin{enumerate}
+    \item \textbf{Fetch.} BIU menghitung alamat fisik dari
+          \reg{CS}:\reg{IP}, mengambil byte instruksi melalui bus,
+          memasukkannya ke \eng{queue}, lalu menambah \reg{IP}
+          sesuai panjang instruksi.
 
-\vspace{0.35em}
-\begin{center}
-\footnotesize
-\begin{tabular}{@{}p{0.7cm}p{1.4cm}p{1.5cm}p{1.1cm}p{7.3cm}@{}}
-    \toprule
-    \textbf{No.} & \textbf{Tahap} & \textbf{Alamat} &
-    \textbf{\reg{IP}} & \textbf{Kejadian} \\
-    \midrule
-    1 & Fetch & \hex{10000} & \hex{0003} &
-    BIU membaca \hex{B8}, \hex{34}, \hex{12}; antrean: \hex{B8 34 12} \\
-    \addlinespace
-    2 & Decode & --- & \hex{0003} &
-    EU mengenali opcode: \code{MOV reg16, imm16} \\
-    \addlinespace
-    3 & Execute & --- & \hex{0003} &
-    EU menyusun \hex{1234}, lalu menulis ke \reg{AX} \\
-    \addlinespace
-    4 & Store & --- & \hex{0003} &
-    Tujuan register: tidak ada siklus bus \\
-    \bottomrule
-\end{tabular}
-\end{center}
+    \vspace{0.15em}
+    \item \textbf{Decode.} EU mengambil byte dari \eng{queue} dan
+          menerjemahkannya: operasi apa yang dilakukan dan
+          \eng{operand} apa yang terlibat.
 
-\vspace{0.35em}
-{\footnotesize\color{obeGray}\reg{IP} bertambah tiga --- panjang
-instruksi menentukan kenaikannya. Bandingkan \code{MOV hasil1, AX}
-yang tujuannya di memori: BIU harus menjalankan siklus bus
-tulis.\par}
+    \vspace{0.15em}
+    \item \textbf{Execute.} EU menjalankan operasi melalui ALU atau
+          memindahkan data. Bila \eng{operand} di memori, EU
+          meminta BIU membacanya.
+\end{enumerate}
 
-\Sumber{Bab IV, Bagian 3.3 --- Tabel 4.6}
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Urutan ini tidak berarti BIU dan EU
+selalu bergantian; BIU dapat mengisi \eng{queue} sementara EU
+mengeksekusi.\par}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Ringkasan Bagian 3}
+\begin{frame}{Hasil ke Register vs Hasil ke Memori}
+\small
+\begin{columns}[t]
+\begin{column}{0.47\textwidth}
+    {\color{obeTeal}\bfseries Hasil ke register}\\[0.25em]
+    \begin{itemize}
+        \item Ditulis di dalam chip.
+        \item Tidak memerlukan bus luar.
+        \item Contoh: \code{MOV AX, 1234h}.
+    \end{itemize}
+\end{column}
+\begin{column}{0.49\textwidth}
+    {\color{obeMaroon}\bfseries Hasil ke memori}\\[0.25em]
+    \begin{itemize}
+        \item Memerlukan siklus bus tulis.
+        \item Dikerjakan melalui BIU.
+        \item Waktu eksekusi lebih lama.
+    \end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{0.5em}
+\begin{block}{Sumber perbedaan waktu}
+\small Perbedaan hasil akhir tidak selalu terlihat, tetapi jumlah
+langkah bus yang dikerjakan BIU berbeda.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Rangkuman Bagian 3}
 \small
 \begin{itemize}
-    \item Tiga kelompok bus: alamat 20-bit (satu arah), data 16-bit
-          (dua arah), dan kontrol.
+    \item EU menerjemahkan dan menjalankan instruksi serta memberi
+          tahu BIU alamat \eng{operand} yang diperlukan.
 
-    \vspace{0.3em}
-    \item Pin \reg{AD0}--\reg{AD15} dimultipleks; alamat ditangkap
-          \eng{latch} dengan bantuan sinyal \reg{ALE}.
+    \vspace{0.15em}
+    \item Komponen EU: ALU, register \eng{flag}, \eng{operand},
+          decoder, register umum, serta register penunjuk dan indeks.
 
-    \vspace{0.3em}
-    \item Siklus instruksi: \eng{fetch} (BIU) $\rightarrow$
-          \eng{decode} (EU) $\rightarrow$ \eng{execute} (EU)
-          $\rightarrow$ \eng{store} (BIU).
+    \vspace{0.15em}
+    \item ALU menjalankan operasi aritmetika dan logika; hasilnya
+          ditandai melalui \eng{flag}.
 
-    \vspace{0.3em}
-    \item Tahap \eng{store} hanya memerlukan siklus bus bila
-          tujuannya berada di memori.
+    \vspace{0.15em}
+    \item Urutan pemrosesan: \eng{fetch} oleh BIU, lalu
+          \eng{decode} dan \eng{execute} oleh EU.
+
+    \vspace{0.15em}
+    \item Hasil ke register tidak memerlukan bus luar; hasil ke
+          memori memerlukan siklus bus melalui BIU.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % CONTOH PROGRAM
 % =========================================================
-\begin{frame}[fragile]{Contoh 1: Menelusuri Siklus Instruksi}
-\small Program sesingkat mungkin agar setiap langkah dapat diamati
-tanpa kehilangan jejak.
-
-\vspace{0.3em}
+\begin{frame}[fragile]{Contoh 1: Menelusuri Program Pendek}
 \begin{columns}[t]
-\begin{column}{0.5\textwidth}
+\begin{column}{0.43\textwidth}
 \begin{kodeasm}
 .MODEL SMALL
 .STACK 100h
@@ -736,124 +666,120 @@ tanpa kehilangan jejak.
 START:
     MOV AX, @DATA
     MOV DS, AX
-    MOV AX, 1234h    ; B8 34 12
+    MOV AX, 1234h
     MOV AH, 4Ch
     MOV AL, 00h
     INT 21h
 END START
 \end{kodeasm}
 \end{column}
-\begin{column}{0.46\textwidth}
-{\color{obeTeal}\bfseries Panjang instruksi}\\[0.3em]
-\begin{keluaran}
-1000:0000  MOV AX, @DATA  3
-1000:0003  MOV DS, AX     2
-1000:0005  MOV AX, 1234h  3
-1000:0008  MOV AH, 4Ch    2
-1000:000A  MOV AL, 00h    2
-1000:000C  INT 21h        2
-\end{keluaran}
+\begin{column}{0.54\textwidth}
+\footnotesize
+Awal: \reg{CS}:\reg{IP} = \hex{1000}:\hex{0000}.
 
-\vspace{0.35em}
-{\footnotesize
-\reg{IP} bertambah menurut panjang instruksi: 3 byte $\rightarrow$
-$+3$, 2 byte $\rightarrow$ $+2$.\\[0.25em]
-Dua instruksi 2 byte dapat berada dalam antrean enam byte
-sekaligus.\\[0.25em]
-Instruksi yang membaca variabel memicu siklus bus tambahan.\par}
+\vspace{0.25em}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.8cm}
+    >{\raggedright\arraybackslash}p{2.7cm}
+    >{\raggedright\arraybackslash}p{1.2cm}
+    >{\raggedright\arraybackslash}p{1.4cm}@{}}
+    \toprule
+    \textbf{\#} & \textbf{Instruksi} & \textbf{Byte} &
+    \textbf{IP akhir} \\
+    \midrule
+    1 & \code{MOV AX, @DATA} & 3 & \hex{0003} \\
+    \addlinespace
+    2 & \code{MOV DS, AX} & 2 & \hex{0005} \\
+    \addlinespace
+    3 & \code{MOV AX, 1234h} & 3 & \hex{0008} \\
+    \addlinespace
+    4 & \code{MOV AH, 4Ch} & 2 & \hex{000A} \\
+    \addlinespace
+    5 & \code{MOV AL, 00h} & 2 & \hex{000C} \\
+    \addlinespace
+    6 & \code{INT 21h} & 2 & \hex{000E} \\
+    \bottomrule
+\end{tabular}
 
-\vspace{0.3em}
-{\footnotesize\color{obeGray}\file{code/asm/siklus-dasar.asm}\par}
+\vspace{0.25em}
+{\color{obeGray}\reg{IP} bertambah sesuai panjang instruksi.\par}
 \end{column}
 \end{columns}
+\Sumber{Bab IV, Contoh 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 2: Dua Cara Menjumlahkan}
+\begin{frame}[fragile]{Contoh 2: Operand Register dan Operand Memori}
 \begin{columns}[t]
-\begin{column}{0.55\textwidth}
-\begin{kodeasm}
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX
-    ; cara 1: operand di register
-    MOV AX, 1234h
-    MOV BX, 5678h
-    ADD AX, BX
-    MOV hasil1, AX
-    ; cara 2: operand di memori
-    MOV AX, bil1
-    ADD AX, bil2
-    MOV hasil2, AX
-    MOV AH, 4Ch
-    INT 21h
+\begin{column}{0.38\textwidth}
+\begin{kodeasm}[numbers=none]
+MOV AX, BX
+MOV AX, [BX]
 \end{kodeasm}
-\end{column}
-\begin{column}{0.42\textwidth}
-{\footnotesize\color{obeGray}\dir{.DATA}: \code{bil1} \hex{1234},
-\code{bil2} \hex{5678}, \code{hasil1} \hex{0}, \code{hasil2}
-\hex{0}.\par}
-
-\vspace{0.4em}
-{\color{obeTeal}\bfseries Keluaran}\\[0.3em]
-\begin{keluaran}
-hasil1 = 68ACh
-hasil2 = 68ACh
-\end{keluaran}
-
-\vspace{0.4em}
-{\footnotesize
-Cara 1 (register): \textbf{11 siklus}.\\[0.25em]
-Cara 2 (memori): \textbf{29 siklus}.\\[0.25em]
-Penjumlahannya sama; yang bertambah adalah dua siklus bus pada
-tahap \eng{store}.\par}
 
 \vspace{0.3em}
-{\footnotesize\color{obeGray}\file{code/asm/jumlah-dua-cara.asm}\par}
+{\footnotesize\color{obeGray}Hasil akhir sama: \reg{AX} berisi data
+yang sama. Jalur busnya berbeda.\par}
+\end{column}
+\begin{column}{0.58\textwidth}
+\footnotesize
+{\color{obeTeal}\bfseries \code{MOV AX, BX}}\\[0.15em]
+BIU hanya mengambil byte instruksi. EU menyalin isi \reg{BX} ke
+\reg{AX} di dalam chip; tidak ada pertukaran data melalui bus luar.
+
+\vspace{0.35em}
+{\color{obeMaroon}\bfseries \code{MOV AX, [BX]}}\\[0.15em]
+EU meminta BIU membaca memori pada \reg{DS}:\reg{BX}. BIU
+menjalankan siklus bus baca, mengambil dua byte, lalu menyerahkannya
+ke EU.
+
+\vspace{0.35em}
+\begin{block}{Perbedaan}
+\small Instruksi kedua memerlukan siklus bus tambahan.
+\end{block}
 \end{column}
 \end{columns}
+\Sumber{Bab IV, Contoh 2}
 \end{frame}
 
 % =========================================================
 % PRAKTIKUM
 % =========================================================
-\begin{frame}{Praktikum: Diagram Blok dan Penelusuran}
+\begin{frame}{Praktikum: Diagram Blok dan Penelusuran Siklus}
 \begin{block}{Judul praktikum}
-\small Menggambar diagram blok 8086 dan menelusuri siklus instruksi
-dengan \eng{Single Step} \quad\textbullet\quad \textbf{Sub-CPMK:}
-1.1 \quad\textbullet\quad \textbf{Waktu:} 100 menit
-\quad\textbullet\quad \textbf{Bentuk:} individu
+\small Diagram blok 8086 dan penelusuran siklus instruksi\\[0.15em]
+\textbf{Sub-CPMK:} 1.2 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
 \end{block}
 
-\vspace{0.3em}
+\vspace{0.2em}
 \begin{columns}[t]
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 {\color{obeBlue}\bfseries Alat dan bahan}
-\begin{itemize}\small
-    \item Komputer dengan Emu8086 terpasang
-    \item \file{siklus-dasar.asm} dan
-          \file{jumlah-dua-cara.asm}
-    \item Kertas kosong dan alat tulis
-    \item Lembar jurnal praktikum
+\begin{itemize}\footnotesize
+    \item Komputer dengan emu8086
+    \item DOSBox dengan TASM, TLINK, dan DEBUG
+    \item Berkas \file{siklus-dasar.asm}
+    \item Kertas, alat tulis, dan jurnal
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.50\textwidth}
 {\color{obeBlue}\bfseries Langkah kerja}
-\begin{enumerate}\small
-    \item Gambar diagram blok 8086 dari ingatan, lalu koreksi
-    \item Catat \reg{CS}, \reg{IP}, \reg{AX}, \reg{DS} mula-mula
-    \item Tekan \eng{Single Step}, catat perubahan tiap langkah
-    \item Bandingkan panjang instruksi dengan hasil
-          \eng{disassembly}
+\begin{enumerate}\footnotesize
+    \item Gambar diagram BIU/EU dari ingatan.
+    \item Telusuri program dengan \eng{Single Step}.
+    \item Ulangi dengan DEBUG: \file{r} lalu \file{t}.
+    \item Tandai unit yang bekerja pada tiap instruksi.
+    \item Hitung alamat fisik setiap baris.
 \end{enumerate}
 \end{column}
 \end{columns}
 
-\vspace{0.35em}
-{\footnotesize\textbf{Dikumpulkan:} gambar diagram blok beserta
-koreksinya, tabel pengamatan \reg{CS}/\reg{IP}/antrean, dan
-perbandingan jumlah siklus kedua cara penjumlahan.\par}
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} diagram beserta koreksi, tabel
+penelusuran, tabel alamat fisik, berkas \file{.asm} modifikasi, dan
+analisis pembagian tugas.\par}
+\Sumber{Bab IV, Praktikum}
 \end{frame}
 
 % =========================================================
@@ -862,29 +788,27 @@ perbandingan jumlah siklus kedua cara penjumlahan.\par}
 \begin{frame}{Latihan}
 \small
 \begin{enumerate}
-    \item Jelaskan perbedaan arsitektur internal dan arsitektur
-          eksternal sebuah mikroprosesor. Sebutkan dua contoh
-          masing-masing pada 8086.
+    \item Mengapa 8086 membagi prosesor menjadi BIU dan EU?
+          Jelaskan keuntungannya dibandingkan pengambilan dan
+          eksekusi yang bergantian.
 
-    \vspace{0.3em}
-    \item Mengapa 8086 dibagi menjadi BIU dan EU? Jelaskan
-          keuntungannya dibandingkan prosesor dengan satu unit
-          pengolah.
+    \vspace{0.15em}
+    \item Sebutkan tugas utama BIU dan empat komponennya. Jelaskan
+          peran register segmen dan \eng{Instruction Pointer}.
 
-    \vspace{0.3em}
-    \item Diketahui \reg{CS} $=$ \hex{2A10} dan \reg{IP} $=$
-          \hex{00F3}. Hitung alamat fisik instruksi berikutnya dan
-          tunjukkan langkah perhitungannya.
+    \vspace{0.15em}
+    \item Sebutkan tiga tugas utama EU. Jelaskan peran ALU,
+          register \eng{flag}, dan \eng{operand}.
 
-    \vspace{0.3em}
-    \item Jelaskan mengapa instruksi \asm{JMP} menghapus keuntungan
-          \eng{instruction queue}. Kaitkan dengan istilah
-          \eng{queue flush}.
+    \vspace{0.15em}
+    \item Hitung alamat fisik untuk:
+          \reg{CS}=\hex{1000}, \reg{IP}=\hex{0025};
+          \reg{DS}=\hex{2000}, \reg{BX}=\hex{0100};
+          \reg{SS}=\hex{3000}, \reg{SP}=\hex{FFFE}.
 
-    \vspace{0.3em}
-    \item Di Emu8086, \reg{IP} bertambah tiga setelah
-          \code{MOV AX, 1234h} tetapi hanya bertambah satu setelah
-          \code{INC AX}. Benarkah programnya salah? Jelaskan.
+    \vspace{0.15em}
+    \item Mengapa \eng{queue} berukuran enam byte? Apa yang terjadi
+          ketika isinya berkurang dua byte?
 \end{enumerate}
 \end{frame}
 
@@ -894,42 +818,39 @@ perbandingan jumlah siklus kedua cara penjumlahan.\par}
 \begin{frame}{Rangkuman}
 \small
 \begin{itemize}
-    \item Mikroprosesor berkembang dari Intel 4004 (4 bit) hingga
-          8086 (16 bit) yang menjadi dasar keluarga x86; varian 8088
-          dipakai pada IBM PC.
+    \item 8086 memakai bus data 16 bit dan bus alamat 20 bit;
+          ruang alamatnya 1 MB.
 
-    \vspace{0.22em}
-    \item Arsitektur dipandang dari dua sisi: \term{internal}
-          (register, ALU, unit dalam chip) dan \term{eksternal}
-          (pin, bus, sinyal kendali).
+    \vspace{0.15em}
+    \item Arsitektur internal dibagi menjadi BIU dan EU agar
+          pengambilan instruksi dan eksekusi dapat berjalan
+          bersamaan.
 
-    \vspace{0.22em}
-    \item 8086 terbagi menjadi BIU dan EU. BIU memegang seluruh lalu
-          lintas bus luar; EU hanya menjalankan instruksi.
+    \vspace{0.15em}
+    \item BIU mengambil instruksi, melayani data, menangani
+          pengalamatan, dan mengisi \eng{queue} enam byte.
 
-    \vspace{0.22em}
-    \item Alamat fisik $=$ (segmen $\times$ 16) $+$ \eng{offset},
-          sehingga 8086 menjangkau 1 MB meski register-nya 16 bit.
+    \vspace{0.15em}
+    \item Bus alamat 20 bit, bus data 16 bit, dan bus kontrol
+          menghubungkan prosesor dengan memori serta port.
 
-    \vspace{0.22em}
-    \item \eng{Instruction queue} enam byte memungkinkan
-          \eng{pipelining}; lompatan mengosongkan antrean
-          (\eng{queue flush}).
+    \vspace{0.15em}
+    \item Alamat fisik = (segmen $\times$ 16) + offset.
 
-    \vspace{0.22em}
-    \item Tiga kelompok bus: alamat 20-bit (satu arah), data 16-bit
-          (dua arah), kontrol. Siklus instruksi:
-          \eng{fetch}--\eng{decode}--\eng{execute}--\eng{store}.
+    \vspace{0.15em}
+    \item Urutan instruksi: \eng{fetch} oleh BIU, \eng{decode} dan
+          \eng{execute} oleh EU; hasil ke memori memerlukan siklus
+          bus tambahan.
 \end{itemize}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Cek Pemahaman}
-\small
+\footnotesize
 \begin{enumerate}
-    \item Unit yang menghitung alamat fisik 20-bit dari pasangan
-          segmen:offset adalah \dots
-          \begin{enumerate}\footnotesize
+    \item Unit yang menghitung alamat fisik dari
+          \eng{segment:offset} adalah \dots
+          \begin{enumerate}
               \item \eng{Execution Unit}
               \item \eng{Bus Interface Unit}
               \item \eng{Arithmetic Logic Unit}
@@ -938,15 +859,15 @@ perbandingan jumlah siklus kedua cara penjumlahan.\par}
 
     \vspace{0.2em}
     \item Ukuran \eng{instruction queue} pada 8086 adalah \dots
-          \begin{enumerate}\footnotesize
+          \begin{enumerate}
               \item 2 byte \quad \item 4 byte \quad
               \item 6 byte \quad \item 16 byte
           \end{enumerate}
 
     \vspace{0.2em}
-    \item Bila \reg{CS} $=$ \hex{1000} dan \reg{IP} $=$ \hex{0025},
-          instruksi berikutnya diambil dari alamat fisik \dots
-          \begin{enumerate}\footnotesize
+    \item Bila \reg{CS} = \hex{1000} dan \reg{IP} = \hex{0025},
+          alamat fisik instruksi berikutnya adalah \dots
+          \begin{enumerate}
               \item \hex{10025} \quad \item \hex{10250} \quad
               \item \hex{1002} \quad \item \hex{100025}
           \end{enumerate}
@@ -957,23 +878,23 @@ perbandingan jumlah siklus kedua cara penjumlahan.\par}
 % PENUTUP
 % =========================================================
 \begin{frame}{Penutup}
-\small
 \begin{block}{Sebelum pertemuan berikutnya}
+\small
 \begin{itemize}
-    \item Selesaikan praktikum: diagram blok BIU/EU dari ingatan,
-          tabel penelusuran, dan perbandingan jumlah siklus.
-    \item Pelajari kembali hubungan panjang instruksi dengan
-          kenaikan \reg{IP}.
-    \item Baca \textbf{Bab V} --- Register 8086 dan Register Flag.
+    \item Selesaikan praktikum: diagram BIU/EU, tabel penelusuran,
+          tabel alamat fisik, dan analisis.
+    \item Baca \textbf{Bab V} — Register 8086 dan Register Flag.
+    \item Siapkan pertanyaan tentang register umum, register segmen,
+          dan \eng{flag}.
 \end{itemize}
 \end{block}
 
-\vspace{0.5em}
+\vspace{0.4em}
 \begin{center}
 {\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
-\vspace{0.2em}
-{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
-\SemesterTeks\par}
+\vspace{0.15em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK)
+\textbullet\ \SemesterTeks\par}
 \end{center}
 \end{frame}
 

@@ -1,9 +1,9 @@
 % =========================================================
 % ppt/src/minggu-15.tex
 % Slide pertemuan 15
-% Bab XVI — Analisis Kode Mesin, Disassembly, dan Optimasi
+% Bab XVI — Debugging Level Instruksi
 %
-% Sub-CPMK 4.3 | CPMK04 | CPL03
+% Sub-CPMK 4.1--4.3 | CPMK04 | CPL03
 % =========================================================
 
 \documentclass[aspectratio=169,11pt]{beamer}
@@ -16,37 +16,37 @@
 % =========================================================
 % 1. JUDUL
 % =========================================================
-\JudulDeck{Analisis Kode Mesin, Disassembly, dan Optimasi}{Pertemuan 15}
+\JudulDeck{Debugging Level Instruksi}{Pertemuan 15}
 
 % =========================================================
 % 2. CAPAIAN DAN TUJUAN
 % =========================================================
 \begin{frame}{Capaian dan Tujuan Pembelajaran}
-\begin{block}{Sub-CPMK 4.3}
-\small Menganalisis kode mesin hasil \eng{disassembly} dan menerapkan
-strategi optimasi program pada level instruksi.
+\begin{block}{Sub-CPMK 4.1--4.3}
+\footnotesize
+\textbf{4.1} Melakukan penelusuran program per instruksi
+(\eng{single step}/\eng{trace}) dan memantau perubahan register
+serta \eng{flag}.\\
+\textbf{4.2} Memeriksa isi memori dan stack (\eng{dump}) untuk
+menemukan kesalahan sintaks dan kesalahan logika.\\
+\textbf{4.3} Menganalisis penyebab program berhenti (\eng{hang}) dan
+memperbaiki kesalahan berdasarkan hasil penelusuran.
 \end{block}
 
 \vspace{0.1em}
 {\small\textbf{CPMK yang didukung:} \CPMK{04}\quad\textbullet\quad
 \textbf{CPL yang didukung:} \CPL{03}\par}
 
-\vspace{0.05em}
+\vspace{0.15em}
 \begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
 \footnotesize
 \begin{enumerate}
-    \item menjelaskan pengertian \eng{disassembly} dan perbedaannya
-          dengan \eng{assembly};
-    \item membongkar kode mesin dengan perintah \code{U} pada DEBUG
-          serta perkakas sejenis;
-    \item menyebutkan keterbatasan \eng{disassembly} dan mengenali pola
-          hasilnya;
-    \item menghitung empat metrik optimasi serta menjelaskan bahwa
-          tanpa pengukuran optimasi hanyalah dugaan;
-    \item menerapkan teknik optimasi level instruksi: \eng{strength
-          reduction}, \asm{LEA}, \eng{loop unrolling}, dan
-          \asm{XOR reg, reg};
-    \item menjelaskan trade-off optimasi ukuran dan optimasi kecepatan.
+    \item membedakan kesalahan sintaks, logika, dan \eng{hang};
+    \item menggunakan DEBUG, emu8086, dan Turbo Debugger;
+    \item mencatat register dan \eng{flag} per instruksi;
+    \item memeriksa memori dan stack dengan \eng{dump};
+    \item memperbaiki perulangan tak berujung dan stack tidak
+          seimbang.
 \end{enumerate}
 \end{exampleblock}
 \end{frame}
@@ -57,1019 +57,544 @@ strategi optimasi program pada level instruksi.
 \begin{frame}{Peta Materi}
 \small
 \begin{enumerate}
-    \item \textbf{Disassembly: Mengembalikan Kode Mesin ke
-          Mnemonic}\\
-          {\footnotesize pengertian \eng{disassembly}; perintah \code{U}
-          pada DEBUG; perkakas sejenis; empat keterbatasan
-          \eng{disassembly}}
+    \item \textbf{Jenis Kesalahan dan Alat Debugging}\\
+          {\footnotesize sintaks, logika, hang; DEBUG, emu8086,
+          Turbo Debugger; alur debugging}
 
     \vspace{0.25em}
-    \item \textbf{Mengenali Pola Hasil Disassembly dan Metrik
-          Optimasi}\\
-          {\footnotesize sembilan pola yang sering muncul; empat metrik
-          optimasi; tabel perkiraan siklus; tanpa pengukuran optimasi
-          hanyalah dugaan}
+    \item \textbf{Menelusuri Program per Instruksi}\\
+          {\footnotesize menyiapkan trace; register dan flag;
+          perulangan tak berujung}
 
     \vspace{0.25em}
-    \item \textbf{Strategi Optimasi pada Level Instruksi}\\
-          {\footnotesize register daripada memori; \eng{strength
-          reduction}; pergeseran pengganti \asm{MUL}/\asm{DIV};
-          \asm{LEA}; \eng{unrolling}; \asm{XOR reg, reg}; trade-off;
-          pengukuran yang adil; etika optimasi}
+    \item \textbf{Memeriksa Memori, Stack, dan Memperbaiki Hang}\\
+          {\footnotesize dump; stack tidak seimbang; stack frame;
+          analisis hang}
 \end{enumerate}
 
-\vspace{0.3em}
+\vspace{0.35em}
 \begin{block}{Praktik pada pertemuan ini}
-\small Membongkar \file{naif.asm}, \file{teroptimasi.asm}, dan
-\file{teroptimasi-unroll.asm} dengan perintah \code{U}, menghitung
-metriknya, lalu menulis \file{optimasi-anda.asm} beserta laporan
-pengukuran.
+\small Menemukan dan memperbaiki kesalahan dengan \eng{single step}
+dan \eng{dump}.
 \end{block}
 \end{frame}
 
 % =========================================================
 % BAGIAN 1
 % =========================================================
-\PemisahBagian{Disassembly: Mengembalikan Kode Mesin ke Mnemonic}
+\PemisahBagian{Jenis Kesalahan dan Alat Debugging}
 
 % ---------------------------------------------------------
-\begin{frame}{Mengapa Disassembly Diperlukan}
-\begin{columns}[t]
-\begin{column}{0.53\textwidth}
-\small
-\begin{itemize}
-    \item \textbf{Analisis perangkat lunak pihak ketiga.} Bila kode
-          sumber tidak tersedia, satu-satunya cara memahami perilaku
-          program adalah membongkar kode mesinnya.
-
-    \vspace{0.18em}
-    \item \textbf{Analisis keamanan.} Program mencurigakan dibongkar
-          untuk menemukan instruksi yang berbahaya.
-
-    \vspace{0.18em}
-    \item \textbf{Verifikasi hasil kompilasi.} Memastikan kompilator
-          benar-benar menghasilkan instruksi yang dikehendaki.
-
-    \vspace{0.18em}
-    \item \textbf{Optimasi terarah.} Hambatan yang sesungguhnya harus
-          ditemukan pada kode mesin, bukan pada kode sumber.
-\end{itemize}
-\end{column}
-\begin{column}{0.44\textwidth}
+\begin{frame}{Tiga Jenis Kesalahan}
+\footnotesize
 \begin{center}
-\begin{tikzpicture}[
-    kotak/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-        rounded corners=3pt, minimum width=5.0cm, minimum height=0.62cm,
-        align=center, font=\scriptsize, inner sep=2pt},
-    hasil/.style={draw=obeTeal, line width=0.9pt, fill=obeTealLight,
-        rounded corners=3pt, minimum width=5.0cm, minimum height=0.62cm,
-        align=center, font=\scriptsize, inner sep=2pt},
-    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeTeal}
-]
-    \node[kotak] (byte) at (0, 2.25)
-        {Deretan byte \code{B9 0A 00}};
-    \node[kotak] (op) at (0, 1.35)
-        {\code{B9} = \asm{MOV CX,imm16}};
-    \node[kotak] (pan) at (0, 0.45)
-        {Panjang: 1 + 2 = 3 byte};
-    \node[hasil] (out) at (0, -0.45)
-        {\eng{Mnemonic} \asm{MOV CX, 000A}};
-    \node[kotak, draw=obeMaroon, fill=obeMaroonLight] (amb) at (0, -1.5)
-        {byte data yang salah ditafsirkan\\menghasilkan \eng{mnemonic}
-        palsu};
-    \draw[panah] (byte) -- (op);
-    \draw[panah] (op) -- (pan);
-    \draw[panah] (pan) -- (out);
-    \draw[panah, dashed, obeMaroon] (amb.north) -- (out.south);
-\end{tikzpicture}
-\end{center}
-\end{column}
-\end{columns}
-\Sumber{Bab XVI, Mengapa Disassembly Diperlukan}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Perintah \code{U} pada DEBUG}
-\small \code{U} (\eng{unassemble}) membaca sejumlah byte mulai dari
-alamat tertentu, menerjemahkannya menjadi \eng{mnemonic}, lalu
-menampilkan alamat, byte mesin, dan instruksinya berdampingan.
-
-\vspace{0.2em}
-\begin{columns}[t]
-\begin{column}{0.55\textwidth}
-\begin{keluaran}
--U 100 108
-1D2F:0100 B90A00   MOV   CX,000A
-1D2F:0103 BE0000   MOV   SI,0000
-1D2F:0106 B80000   MOV   AX,0000
-\end{keluaran}
-\end{column}
-\begin{column}{0.42\textwidth}
-\begin{kodeasm}[numbers=none]
-U             ; 32 byte dari CS:IP
-U 100 108     ; offset 100h-108h
-U 100 L 8     ; 8 byte dari 100h
-\end{kodeasm}
-\end{column}
-\end{columns}
-
-\vspace{0.1em}
-{\footnotesize\color{obeGray}Byte mesin dicetak lebih dahulu karena
-itulah data yang tersimpan di memori; \eng{mnemonic} adalah penafsiran
-DEBUG atas byte tersebut.\par}
-\Sumber{Bab XVI, Perintah U pada DEBUG dan Perkakas Sejenis}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Perkakas Disassembly untuk Program 8086}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}p{3.0cm}p{4.0cm}p{5.6cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}
+    >{\raggedright\arraybackslash}p{5.0cm}
+    >{\raggedright\arraybackslash}p{5.0cm}@{}}
     \toprule
-    \textbf{Perkakas} & \textbf{Perintah} & \textbf{Kegunaan utama} \\
+    \textbf{Jenis} & \textbf{Gejala} & \textbf{Alat utama} \\
     \midrule
-    MS-DEBUG & \code{U [alamat] [L n]} & Bongkar kode di dalam
-    memori; tersedia di DOSBox tanpa pemasangan tambahan \\
+    Sintaks & Pesan TASM; tidak ada \file{.OBJ} &
+    Daftar kesalahan assembler \\
     \addlinespace
-    Emu8086 & tombol \file{Disassembler} & Kode mesin dan
-    \eng{mnemonic} berdampingan dengan tampilan register dan memori \\
+    Logika & Program selesai, hasil salah &
+    Single step, pemeriksaan register \\
     \addlinespace
-    GUI Turbo Assembler & menu \file{Disassemble} & Membongkar berkas
-    \file{.exe} lengkap dengan navigasi prosedur \\
-    \addlinespace
-    \code{ndisasm} (NASM) & \code{ndisasm -b 16 prog.com} &
-    Membongkar berkas biner secara massal; keluarannya berupa teks
-    yang dapat disalin \\
-    \addlinespace
-    \code{objdump} (GNU) & \code{objdump -d -M intel prog.o} &
-    Membongkar berkas objek hasil kompilator; berguna pada arsitektur
-    modern \\
+    \eng{Hang} & Program tidak kembali ke DOS &
+    Single step, pemeriksaan stack \\
     \bottomrule
 \end{tabular}
 \end{center}
-\Sumber{Bab XVI, Perkakas Disassembly untuk Program 8086}
+\Sumber{Bab XVI, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Empat Keterbatasan Disassembly}
-\footnotesize
+\begin{frame}{Alat Debugging}
+\small
 \begin{itemize}
-    \item \textbf{Kode dan data sulit dibedakan.} Byte \hex{48} dapat
-          berarti instruksi \asm{DEC AX} atau huruf \code{'H'};
-          \eng{disassembler} bekerja dengan asumsi semua byte adalah
-          instruksi.
+    \item \textbf{DEBUG}: \eng{debugger} baris perintah DOS dengan
+          perintah R, T, P, D, dan G.
 
-    \vspace{0.2em}
-    \item \textbf{Alamat relatif dan displacement.} \code{LOOP 0109}
-          di dalam memori sesungguhnya berisi byte \hex{E2} \hex{F7},
-          yaitu ``mundur 9 byte''; hasil hitungan ulang hanya benar
-          bila instruksi berada di posisi yang tepat.
+    \vspace{0.18em}
+    \item \textbf{emu8086}: tombol \eng{Single Step} serta jendela
+          register, \eng{flag}, dan memori.
 
-    \vspace{0.2em}
-    \item \textbf{Nama simbolik hilang.} Variabel \code{larik} dan
-          label \code{ULANG} tidak tersimpan di berkas biner; keduanya
-          muncul sebagai \asm{[SI+01F4]}.
-
-    \vspace{0.2em}
-    \item \textbf{Sulit dibaca dan dipelihara.} Komentar hilang, makro
-          sudah dijabarkan, dan tidak ada satu pun nama yang bermakna.
+    \vspace{0.18em}
+    \item \textbf{Turbo Debugger}: tampilan register, \eng{flag},
+          memori, dan stack; F7 masuk instruksi, F8 melewati
+          prosedur.
 \end{itemize}
 
-\vspace{0.1em}
-{\footnotesize\important{Bongkar hanya daerah yang benar-benar berisi
-kode} --- periksa batas segmen dengan mencatat \reg{CS} dan \reg{IP}
-saat program dimulai.\par}
-\Sumber{Bab XVI, Keterbatasan Disassembly}
+\vspace{0.2em}
+\begin{block}{Prinsip}
+\small Alat dipilih sesuai jenis kesalahan; hasil pengamatan dicatat,
+bukan ditebak.
+\end{block}
+\Sumber{Bab XVI, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Perintah DEBUG}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.8cm}
+    >{\raggedright\arraybackslash}p{5.6cm}
+    >{\raggedright\arraybackslash}p{5.4cm}@{}}
+    \toprule
+    \textbf{Perintah} & \textbf{Fungsi} & \textbf{Pemakaian} \\
+    \midrule
+    R & Menampilkan register dan flag &
+    Keadaan sebelum/sesudah instruksi \\
+    \addlinespace
+    T & Menjalankan satu instruksi & Masuk ke prosedur \\
+    \addlinespace
+    P & Satu instruksi, melewati prosedur &
+    Prosedur yang sudah dipercaya \\
+    \addlinespace
+    D & Menampilkan isi memori &
+    Variabel, string, dan stack \\
+    \addlinespace
+    G & Menjalankan sampai alamat tertentu &
+    Melewati bagian yang tidak dicurigai \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab XVI, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Alur Debugging}
+\begin{center}
+\begin{tikzpicture}[
+    tahap/.style={
+        draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+        rounded corners=3pt, minimum width=2.6cm,
+        minimum height=0.9cm, align=center, font=\small
+    },
+    panah/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, obeTeal}
+]
+    \node[tahap] (rep) at (0,2.0) {Reproduksi};
+    \node[tahap] (iso) at (3.0,2.0) {Isolasi};
+    \node[tahap] (hip) at (6.0,2.0) {Hipotesis};
+    \node[tahap] (uji) at (9.0,2.0) {Uji trace};
+    \node[tahap] (fix) at (6.0,0.6) {Perbaiki};
+    \node[tahap] (ver) at (3.0,0.6) {Verifikasi};
+
+    \draw[panah] (rep) -- (iso);
+    \draw[panah] (iso) -- (hip);
+    \draw[panah] (hip) -- (uji);
+    \draw[panah] (uji) -- (fix);
+    \draw[panah] (fix) -- (ver);
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Perbaikan tanpa verifikasi belum
+dianggap selesai.\par}
+\Sumber{Bab XVI, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 1}
 \small
 \begin{itemize}
-    \item \eng{Disassembly} mengubah kode mesin kembali menjadi
-          \eng{mnemonic}. Pekerjaannya searah dan tidak dapat
-          membalikkan \eng{assembly} sepenuhnya, karena nama simbolik,
-          komentar, dan batas data hilang saat perakitan.
+    \item Tiga jenis kesalahan: sintaks, logika, dan \eng{hang}.
 
-    \vspace{0.22em}
-    \item Perintah \code{U} pada DEBUG menampilkan alamat, byte mesin,
-          dan \eng{mnemonic} sekaligus; byte mesin adalah acuan yang
-          benar.
+    \vspace{0.15em}
+    \item Sintaks dilaporkan assembler; logika dan hang dicari dengan
+          \eng{debugger}.
 
-    \vspace{0.22em}
-    \item Perkakas lain: \eng{disassembler} Emu8086, GUI Turbo
-          Assembler, \code{ndisasm}, dan \code{objdump}.
+    \vspace{0.15em}
+    \item DEBUG menyediakan R, T, P, D, dan G.
 
-    \vspace{0.22em}
-    \item Keterbatasan utama: kode dan data sulit dibedakan,
-          \eng{displacement} menggantikan nama variabel, dan semua
-          penanda yang berguna bagi manusia hilang.
+    \vspace{0.15em}
+    \item emu8086 dan Turbo Debugger memberi tampilan register,
+          flag, memori, dan stack.
+
+    \vspace{0.15em}
+    \item Debugging sistematis: reproduksi, isolasi, hipotesis, uji,
+          perbaikan, verifikasi.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 2
 % =========================================================
-\PemisahBagian{Mengenali Pola Hasil Disassembly dan Metrik Optimasi}
+\PemisahBagian{Menelusuri Program per Instruksi}
 
 % ---------------------------------------------------------
-\begin{frame}{Pola Disassembly: Alur Kendali dan Prosedur}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}p{2.5cm}p{4.1cm}p{6.3cm}@{}}
-    \toprule
-    \textbf{Pola kode sumber} & \textbf{Bentuk hasil
-    \eng{disassembly}} & \textbf{Cara mengenalinya} \\
-    \midrule
-    Pembandingan dan percabangan & \asm{CMP AX,0064h} +
-    \asm{JE 0140h} & \asm{CMP} atau \asm{TEST} selalu diikuti
-    lompatan bersyarat \\
-    \addlinespace
-    Perulangan berpenghitung & \asm{LOOP 0109h} atau \asm{DEC CX} +
-    \asm{JNZ} & Lompatan mundur yang dikendalikan \reg{CX} \\
-    \addlinespace
-    Perulangan uji-di-akhir & \asm{CMP SI,0014h} + \asm{JB 0100h} &
-    Lompatan mundur setelah pembandingan batas \\
-    \addlinespace
-    \eng{Prologue} prosedur & \asm{PUSH BP} + \asm{MOV BP,SP} &
-    Menyimpan bingkai \eng{stack} lama lalu menyediakan variabel
-    lokal \\
-    \addlinespace
-    \eng{Epilogue} prosedur & \asm{POP BP} + \asm{RET} & \asm{RET}
-    selalu menjadi instruksi terakhir \\
-    \bottomrule
-\end{tabular}
-\end{center}
-\Sumber{Bab XVI, Pola-Pola yang Sering Dijumpai}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Pola Disassembly: Sistem dan Aritmatika}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}p{2.5cm}p{4.1cm}p{6.3cm}@{}}
-    \toprule
-    \textbf{Pola kode sumber} & \textbf{Bentuk hasil
-    \eng{disassembly}} & \textbf{Cara mengenalinya} \\
-    \midrule
-    Inisialisasi segmen & \asm{MOV AX,1D2Fh} + \asm{MOV DS,AX} &
-    Pemindahan ke register segmen selalu melalui register umum \\
-    \addlinespace
-    Pemanggilan interupsi & \asm{MOV AH,09h} + \asm{INT 21h} &
-    Nomor fungsi dimuat ke \reg{AH} tepat sebelum \asm{INT} \\
-    \addlinespace
-    Perkalian pangkat dua & \asm{SHL AX,1} atau \asm{SHL AX,CL} &
-    Pergeseran menggantikan \asm{MUL}; tidak ada operand pengali \\
-    \addlinespace
-    Pengosongan register & \asm{XOR AX,AX} & Kedua operand sama;
-    hasilnya selalu nol \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.25em}
-{\footnotesize\color{obeGray}Lompatan mundur adalah tanda perulangan
-yang paling dapat diandalkan, sedangkan lompatan maju yang jauh
-biasanya menandai percabangan pemilihan.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Tiga Pola dalam Satu Potongan Hasil Disassembly}
-\small Perhatikan bahwa \code{LOOP 0108} menunjuk ke alamat \hex{0108},
-lebih kecil daripada alamat dirinya sendiri (\hex{010D}).
-
-\vspace{0.2em}
-\begin{columns}[t]
-\begin{column}{0.56\textwidth}
-\begin{keluaran}
-1D2F:0100 B82F1D    MOV   AX,1D2F
-1D2F:0103 8ED8      MOV   DS,AX
-1D2F:0105 B90A00    MOV   CX,000A
-1D2F:0108 0304      ADD   AX,[SI]
-1D2F:010A 83C602    ADD   SI,+02
-1D2F:010D E2F9      LOOP  0108
-1D2F:010F B409      MOV   AH,09
-1D2F:0111 BA1001    MOV   DX,0110
-1D2F:0114 CD21      INT   21
-\end{keluaran}
-\end{column}
-\begin{column}{0.41\textwidth}
-\begin{exampleblock}{Tiga pola sekaligus}
-\footnotesize
-\begin{itemize}
-    \item Inisialisasi segmen: \asm{MOV AX,1D2F} lalu \asm{MOV DS,AX}.
-    \item Perulangan berpenghitung \reg{CX}: \asm{LOOP 0108}.
-    \item Pemanggilan interupsi: \asm{MOV AH,09} lalu \asm{INT 21}.
-\end{itemize}
-\end{exampleblock}
-\end{column}
-\end{columns}
-\Sumber{Bab XVI, Pola-Pola yang Sering Dijumpai}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Empat Metrik Optimasi}
+\begin{frame}{Menyiapkan Penelusuran}
 \small
 \begin{enumerate}
-    \item \textbf{Jumlah instruksi.} Banyaknya instruksi yang
-          \emph{dieksekusi}, bukan yang tertulis di kode. Metrik ini
-          diperoleh dengan menghitung iterasi.
+    \item Rakit dan link program.
 
-    \vspace{0.25em}
-    \item \textbf{Perkiraan jumlah siklus.} Dihitung dari tabel siklus
-          tiap instruksi, bukan diukur langsung pada mesin.
+    \vspace{0.15em}
+    \item Jalankan di bawah DEBUG, emu8086, atau Turbo Debugger.
 
-    \vspace{0.25em}
-    \item \textbf{Ukuran kode dalam byte.} Panjang kode mesin yang
-          dihasilkan; penting pada sistem tertanam dengan memori
-          terbatas.
+    \vspace{0.15em}
+    \item Catat keadaan awal register dan \eng{flag}.
 
-    \vspace{0.25em}
-    \item \textbf{Jumlah akses memori.} Akses memori jauh lebih mahal
-          daripada akses register, sehingga pengurangan satu akses
-          saja sudah berarti.
+    \vspace{0.15em}
+    \item Jalankan satu instruksi dengan T atau F7.
+
+    \vspace{0.15em}
+    \item Catat perubahan register dan \eng{flag}.
+
+    \vspace{0.15em}
+    \item Ulangi sampai kesalahan ditemukan.
 \end{enumerate}
 
-\vspace{0.2em}
-\begin{block}{Ukuran keberhasilan ditetapkan lebih dahulu}
-\small Sebelum memperbaiki sesuatu, metrik yang dipakai harus dipilih
-agar perbandingan sebelum dan sesudah dapat dipercaya.
-\end{block}
-\Sumber{Bab XVI, Metrik Optimasi}
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Gunakan P atau F8 untuk melewati prosedur
+yang sudah dipercaya.\par}
+\Sumber{Bab XVI, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Perkiraan Siklus Instruksi 8086 (1)}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}p{4.4cm}p{1.3cm}p{2.3cm}p{4.0cm}@{}}
-    \toprule
-    \textbf{Instruksi} & \textbf{Byte} & \textbf{Siklus
-    (perkiraan)} & \textbf{Keterangan} \\
-    \midrule
-    \asm{MOV reg, reg} & 2 & 2 & Paling murah \\
-    \addlinespace
-    \asm{MOV reg, imm16} & 3 & 4 & Memuat konstanta \\
-    \addlinespace
-    \asm{ADD reg, reg} & 2 & 3 & Aritmatika register \\
-    \addlinespace
-    \asm{XOR reg, reg} & 2 & 3 & Hasilnya sama dengan
-    \asm{MOV reg,0}, tetapi lebih pendek \\
-    \addlinespace
-    \asm{ADD AX, [SI]} & 2 & 9 + 5 = 14 & Alamat efektif \code{[SI]}
-    = 5 siklus \\
-    \addlinespace
-    \asm{ADD AX, [SI+2]} & 3 & 9 + 8 = 17 & EA dengan
-    \eng{displacement} lebih mahal \\
-    \bottomrule
-\end{tabular}
-\end{center}
-\Sumber{Bab XVI, Tabel Perkiraan Siklus Instruksi 8086}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Perkiraan Siklus Instruksi 8086 (2)}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}p{4.4cm}p{1.3cm}p{2.3cm}p{4.0cm}@{}}
-    \toprule
-    \textbf{Instruksi} & \textbf{Byte} & \textbf{Siklus
-    (perkiraan)} & \textbf{Keterangan} \\
-    \midrule
-    \asm{MOV mem, reg} & 4 & 9 + 6 = 15 & Alamat langsung \\
-    \addlinespace
-    \asm{SHL reg, 1} & 2 & 2 & Pergeseran satu bit \\
-    \addlinespace
-    \asm{SHL reg, CL} & 2 & 8 + 4$\cdot$CL & Naik seiring nilai
-    \reg{CL} \\
-    \addlinespace
-    \asm{LEA reg, [SI+2]} & 3 & 2 + 8 = 10 & Tidak mengubah
-    \eng{flag}; lebih ringkas daripada \asm{MOV} + \asm{ADD} \\
-    \addlinespace
-    \asm{MUL reg16} & 2 & 118--133 & Sangat mahal \\
-    \addlinespace
-    \asm{DIV reg16} & 2 & $\approx$150 & Paling mahal \\
-    \addlinespace
-    \asm{LOOP label} & 2 & 17 / 5 & 17 siklus bila melompat, 5 siklus
-    bila berhenti \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.2em}
-{\footnotesize\color{obeGray}Angka berlaku pada kondisi ideal: tanpa
-\eng{wait state}, operand di register, dan \eng{prefetch queue} selalu
-terisi.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Tanpa Pengukuran, Optimasi Hanyalah Dugaan}
+\begin{frame}[fragile]{bug-loop: Gejala dan Penyebab}
 \small
-\begin{itemize}
-    \item \textbf{Hambatan yang berbeda.} Perbaikan hanya berguna bila
-          menyerang bagian yang paling banyak dieksekusi; mempercepat
-          instruksi yang dijalankan seratus kali tidak berarti apa-apa
-          bila ada perulangan yang berjalan sejuta kali.
-
-    \vspace{0.25em}
-    \item \textbf{Metrik yang bertentangan.} Suatu perubahan dapat
-          mempercepat program tetapi memperbesar kode; bila target
-          program adalah ukuran, perubahan itu justru merugikan.
-
-    \vspace{0.25em}
-    \item \textbf{Lingkungan yang berbeda.} Hasil yang cepat pada
-          emulator belum tentu cepat pada perangkat keras
-          sesungguhnya, dan sebaliknya.
-\end{itemize}
+Program dimaksudkan menjumlahkan 1 sampai 5, tetapi CX dinaikkan di
+dalam perulangan.
 
 \vspace{0.2em}
-\begin{exampleblock}{Aktivitas}
-\small Tuliskan dugaan Anda tentang bagian program yang paling lambat,
-bongkar program itu dengan \code{U}, lalu bandingkan dugaan dengan
-kenyataan pada jurnal praktikum.
-\end{exampleblock}
-\Sumber{Bab XVI, Tanpa Pengukuran, Optimasi Hanyalah Dugaan}
+\begin{kodeasm}[numbers=none]
+XOR AX, AX
+MOV CX, 5
+ULANG:
+    ADD AX, CX
+    INC CX          ; BUG: CX dinaikkan
+    LOOP ULANG
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize\color{obeMaroon}LOOP menurunkan CX kembali, sehingga CX
+tidak pernah mencapai nol.\par}
+\Sumber{Bab XVI, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Trace bug-loop}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.4cm}
+    >{\raggedright\arraybackslash}p{2.6cm}
+    >{\raggedright\arraybackslash}p{1.2cm}
+    >{\raggedright\arraybackslash}p{1.2cm}
+    >{\raggedright\arraybackslash}p{5.0cm}@{}}
+    \toprule
+    \textbf{Iterasi} & \textbf{Instruksi} & \textbf{AX} &
+    \textbf{CX} & \textbf{Keterangan} \\
+    \midrule
+    1 & ADD AX, CX & 5 & 5 & AX = 0 + 5 \\
+    \addlinespace
+    1 & INC CX & 5 & 6 & CX naik \\
+    \addlinespace
+    1 & LOOP ULANG & 5 & 5 & CX turun; lompat \\
+    \addlinespace
+    2 & ADD AX, CX & 10 & 5 & AX = 5 + 5 \\
+    \addlinespace
+    2 & INC CX & 10 & 6 & CX naik lagi \\
+    \addlinespace
+    2 & LOOP ULANG & 10 & 5 & CX tidak pernah nol \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab XVI, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Perbaikan bug-loop}
+\small
+Hapus \code{INC CX}; LOOP sudah menurunkan CX sendiri.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+XOR AX, AX
+MOV CX, 5
+ULANG:
+    ADD AX, CX
+    LOOP ULANG
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize\color{obeTeal}Hasil: AX = 15; keluaran
+\code{Jumlah 1..5 = 15}.\par}
+\Sumber{Bab XVI, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 2}
 \small
 \begin{itemize}
-    \item Pola hasil \eng{disassembly} dapat dikenali: pembandingan dan
-          percabangan, perulangan, \eng{prologue}/\eng{epilogue},
-          inisialisasi segmen, dan pemanggilan interupsi.
+    \item Single step menjalankan satu instruksi lalu berhenti.
 
-    \vspace{0.22em}
-    \item Ciri perulangan yang paling andal adalah lompatan mundur ke
-          alamat yang lebih kecil daripada alamat instruksi lompatan.
+    \vspace{0.15em}
+    \item Catat register dan flag setiap langkah.
 
-    \vspace{0.22em}
-    \item Empat metrik optimasi: jumlah instruksi yang dieksekusi,
-          perkiraan siklus, ukuran kode dalam byte, dan jumlah akses
-          memori.
+    \vspace{0.15em}
+    \item T/F7 masuk prosedur; P/F8 melewati prosedur.
 
-    \vspace{0.22em}
-    \item Jarak biaya antarinstrusi sangat lebar: \asm{MOV reg, reg} 2
-          siklus, sedangkan \asm{DIV reg16} sekitar 150 siklus.
+    \vspace{0.15em}
+    \item Perulangan tak berujung terjadi bila pencacah tidak pernah
+          mencapai nilai berhenti.
 
-    \vspace{0.22em}
-    \item Angka perkiraan hanya berlaku pada kondisi ideal; tanpa
-          pengukuran pada mesin yang dipakai, optimasi hanyalah dugaan.
+    \vspace{0.15em}
+    \item Hapus INC CX memperbaiki bug-loop.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 3
 % =========================================================
-\PemisahBagian{Strategi Optimasi pada Level Instruksi}
+\PemisahBagian{Memeriksa Memori, Stack, dan Memperbaiki Hang}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Memilih Register daripada Memori}
-\small Teknik paling mendasar adalah menyimpan nilai yang sering dipakai
-di dalam register, bukan di memori.
+\begin{frame}[fragile]{Memeriksa Memori dengan Dump}
+\small
+Perintah D menampilkan isi memori dalam heksadesimal.
 
-\vspace{0.15em}
+\vspace{0.2em}
 \begin{kodeasm}[numbers=none]
-    ; --- kurang baik: nilai diambil dari memori setiap iterasi ---
-    MOV CX, 10
-ULANG:
-    ADD AX, jumlah      ; akses memori: 9 + 6 = 15 siklus
-    LOOP ULANG
-
-    ; --- lebih baik: nilai sudah ada di register ---
-    MOV CX, 10
-    MOV BX, jumlah      ; sekali saja: 8 + 6 = 14 siklus
-ULANG2:
-    ADD AX, BX          ; akses register: 3 siklus
-    LOOP ULANG2
+D DS:0000           ; awal segmen data
+D DS:0010 L 20      ; 20h byte mulai offset 0010h
+D SS:SP             ; stack pada puncak saat ini
 \end{kodeasm}
 
-\vspace{0.1em}
-{\footnotesize\color{obeGray}Sepuluh iterasi versi pertama
-$10 \times 15 = 150$ siklus; versi kedua
-$14 + 10 \times 3 = 44$ siklus.\par}
-\Sumber{Bab XVI, Memilih Register daripada Memori}
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Baca DS lebih dahulu dengan R. Alamat yang
+tampil adalah pasangan segmen:offset, bukan alamat fisik.\par}
+\Sumber{Bab XVI, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Strength Reduction: Penggantian Operasi}
-\scriptsize
+\begin{frame}[fragile]{bug-stack: Gejala dan Penyebab}
+\small
+Prosedur mendorong tiga register, tetapi hanya memulihkan dua.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+HITUNG PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    POP CX
+    POP BX
+    ; POP AX tidak ada
+    RET
+HITUNG ENDP
+\end{kodeasm}
+
+\vspace{0.1em}
+{\footnotesize\color{obeMaroon}RET mengambil nilai AX lama, bukan alamat
+kembali.\par}
+\Sumber{Bab XVI, Bagian 3}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Trace bug-stack}
+\footnotesize
 \begin{center}
-\begin{tabular}{@{}p{3.5cm}p{3.5cm}p{5.9cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.0cm}
+    >{\raggedright\arraybackslash}p{3.8cm}
+    >{\raggedright\arraybackslash}p{4.8cm}@{}}
     \toprule
-    \textbf{Operasi asal} & \textbf{Pengganti} & \textbf{Syarat
-    berlaku} \\
+    \textbf{Tahap} & \textbf{Isi puncak stack} & \textbf{Keterangan} \\
     \midrule
-    \asm{MUL BX}, \reg{BX} = 2 & \asm{ADD AX, AX} & Pengali tepat
-    dua; hasil tidak memerlukan \reg{DX} \\
+    Sebelum CALL & kosong & stack belum dipakai \\
     \addlinespace
-    \asm{MUL BX}, \reg{BX} = $2^n$ & \asm{SHL AX, n} & Pengali pangkat
-    dua dan tak bertanda \\
+    Sesudah CALL & alamat kembali & disimpan CALL \\
     \addlinespace
-    \asm{DIV BX}, \reg{BX} = $2^n$ & \asm{SHR AX, n} & Pembagi pangkat
-    dua, nilai tak bertanda, sisa tidak diperlukan \\
+    Sesudah tiga PUSH & AX, BX, CX & tiga word tersimpan \\
     \addlinespace
-    \asm{IDIV BX}, \reg{BX} = $2^n$ & \asm{SAR AX, n} & Nilai bertanda
-    (komplemen dua); pembulatan ke bawah \\
+    Sesudah dua POP & AX lama & satu word tersisa \\
     \addlinespace
-    \asm{MOV AX, 0} & \asm{XOR AX, AX} & Hasil harus nol; \eng{flag}
-    memang boleh berubah \\
-    \addlinespace
-    \asm{CMP AX, 0} & \asm{TEST AX, AX} & Uji dilakukan hanya terhadap
-    nol \\
-    \addlinespace
-    \asm{ADD SI, 2} & \asm{LEA SI, [SI+2]} & \eng{Flag} harus
-    dipertahankan agar pembandingan sebelumnya tetap sahih \\
-    \addlinespace
-    \asm{DEC CX} + \asm{JNZ} & \asm{LOOP} & Penghitung di \reg{CX} dan
-    jarak lompatan kurang dari $\pm$128 byte \\
+    RET & AX lama dianggap alamat & lompat ke alamat salah \\
     \bottomrule
 \end{tabular}
 \end{center}
-\Sumber{Bab XVI, Strength Reduction}
+\Sumber{Bab XVI, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Pergeseran sebagai Pengganti \asm{MUL} dan \asm{DIV}}
-\small \asm{MUL BX} memerlukan 118--133 siklus, sedangkan
-\asm{SHL AX, 1} hanya 2 siklus. Untuk mengalikan dengan delapan, tiga
-kali pergeseran satu bit sudah cukup.
+\begin{frame}[fragile]{Perbaikan dan Pemeriksaan Stack Frame}
+\begin{columns}[t]
+\begin{column}{0.44\textwidth}
+{\color{obeTeal}\bfseries Perbaikan}\\[0.15em]
+\begin{kodeasm}[numbers=none]
+POP CX
+POP BX
+POP AX          ; perbaikan
+RET
+\end{kodeasm}
 
 \vspace{0.2em}
-\begin{kodeasm}[numbers=none]
-    ; --- varian cepat: 3 instruksi, 6 byte, 6 siklus ---
-    SHL AX, 1           ; AX = AX x 2
-    SHL AX, 1           ; AX = AX x 4
-    SHL AX, 1           ; AX = AX x 8
-
-    ; --- varian kecil: 2 instruksi, 4 byte, 20 siklus ---
-    MOV CL, 3           ; CL = banyak pergeseran
-    SHL AX, CL          ; 8 + 4 x 3 = 20 siklus
-\end{kodeasm}
-
-\vspace{0.1em}
-\begin{alertblock}{Syarat yang tidak boleh dilupakan}
-\footnotesize Pergeseran hanya setara perkalian bila nilai yang digeser
-tak bertanda dan bit yang keluar boleh hilang. \asm{MUL} memerhatikan
-\flag{CF} dan \flag{OF} untuk mendeteksi luapan, \asm{SHL} tidak.
-\end{alertblock}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{\asm{LEA} untuk Aritmatika Tanpa Mengubah \eng{Flag}}
-\small \asm{ADD} mengubah \flag{ZF} sehingga lompatan bersyarat menjadi
-salah; \asm{LEA} menghitung alamat tanpa menyentuh \eng{flag}.
+{\footnotesize Jumlah PUSH dan POP seimbang.\par}
+\end{column}
+\begin{column}{0.52\textwidth}
+{\color{obeTeal}\bfseries Periksa stack frame}\\[0.15em]
+\begin{itemize}\footnotesize
+    \item \code{[BP+0]}: BP lama
+    \item \code{[BP+2]}: alamat kembali
+    \item \code{[BP+4]}: parameter pertama
+    \item \code{[BP+6]}: parameter kedua
+\end{itemize}
 
 \vspace{0.2em}
-\begin{kodeasm}[numbers=none]
-    CMP AX, 0           ; ZF = 1 bila AX = 0
-    ADD SI, 2           ; SALAH: ADD mengubah ZF
-    JE  kosong          ; lompatan tidak lagi dapat dipercaya
-
-    CMP AX, 0           ; ZF = 1 bila AX = 0
-    LEA SI, [SI+2]      ; BENAR: LEA tidak mengubah flag
-    JE  kosong          ; lompatan masih sahih
-\end{kodeasm}
-
-\vspace{0.15em}
-{\footnotesize\asm{LEA SI, [BX+SI+4]} menjumlahkan \reg{BX}, \reg{SI},
-dan konstanta 4 sekaligus dalam satu instruksi. Namun \asm{LEA} bukan
-pilihan yang lebih cepat: pada 8086 ia 10 siklus, sedangkan
-\asm{ADD SI, 2} hanya 4 siklus --- keunggulannya keringkasan dan sifat
-tidak mengubah \eng{flag}.\par}
-\Sumber{Bab XVI, LEA untuk Aritmatika Tanpa Mengubah Flag}
+{\footnotesize\color{obeGray}Periksa dengan \code{D SS:BP}.\par}
+\end{column}
+\end{columns}
+\Sumber{Bab XVI, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Mengurangi Lompatan dan \eng{Loop Unrolling}}
-\small \asm{LOOP} memerlukan 17 siklus dan menghalangi \eng{prefetch
-queue} mengisi instruksi berikutnya. \eng{Unrolling} menggandakan isi
-perulangan sehingga overhead \asm{LOOP} berkurang separuh.
-
-\vspace{0.15em}
-\begin{kodeasm}[numbers=none]
-    ; --- perulangan biasa: 1 elemen per iterasi ---
-    MOV CX, 10
-ULANG:
-    ADD AX, [SI]
-    ADD SI, 2
-    LOOP ULANG
-
-    ; --- setelah unrolling 2x: 2 elemen per iterasi ---
-    MOV CX, 5           ; cukup 5 iterasi
-ULANG2:
-    ADD AX, [SI]        ; elemen ke-1
-    ADD AX, [SI+2]      ; elemen ke-2
-    ADD SI, 4           ; maju dua word
-    LOOP ULANG2
-\end{kodeasm}
-
-{\footnotesize\color{obeGray}Harganya jelas: kode menjadi lebih
-panjang.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Mengosongkan Register dengan \asm{XOR reg, reg}}
-\small Cara ini benar dan mudah dibaca, tetapi bukan yang terpendek.
-
-\vspace{0.2em}
-\begin{kodeasm}[numbers=none]
-    MOV AX, 0           ; 3 byte (B8 00 00), 4 siklus
-    XOR AX, AX          ; 2 byte (31 C0),    3 siklus
-    SUB AX, AX          ; 2 byte (29 C0),    3 siklus
-\end{kodeasm}
-
-\vspace{0.15em}
-{\footnotesize \asm{XOR AX, AX} lebih pendek satu byte dan lebih cepat
-satu siklus karena tidak perlu memuat nilai segera; ia juga
-mengosongkan register 16 bit sekaligus.\par}
-
-\vspace{0.15em}
-\begin{alertblock}{Harganya adalah \eng{flag}}
-\footnotesize \asm{XOR} mengubah \flag{ZF}, \flag{SF}, \flag{PF} serta
-menghapus \flag{CF} dan \flag{OF}. Bila dipakai di antara sebuah
-pembandingan dan lompatan bersyaratnya, program justru rusak ---
-tempatkan pada awal blok, bukan di tengah alur keputusan.
-\end{alertblock}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Trade-off: Optimasi Ukuran atau Kecepatan}
-\begin{center}
-\begin{tikzpicture}[
-    simpul/.style={draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-        rounded corners=3pt, align=center, font=\footnotesize,
-        inner sep=4pt, text width=4.6cm},
-    uji/.style={draw=obeAmber, line width=0.8pt, fill=obeAmberLight,
-        diamond, aspect=3.0, align=center, font=\scriptsize,
-        inner sep=1pt, text width=3.4cm},
-    akhir/.style={draw=obeGreen, line width=0.8pt, fill=obeGreenLight,
-        rounded corners=3pt, align=center, font=\footnotesize,
-        inner sep=4pt, text width=4.6cm},
-    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeTeal},
-    ket/.style={font=\tiny, text=obeGray, fill=white, inner sep=1pt}
-]
-    \node[simpul] (ukur) at (0, 2.35)
-        {\textbf{Langkah 1:} ukur versi naif (waktu dan ukuran byte)};
-    \node[uji] (pilih) at (0, 1.15) {Batasan pokok proyek?};
-    \node[akhir] (kecil) at (-2.7, -0.35)
-        {Optimasi ukuran: varian pendek, tanpa \eng{unrolling}};
-    \node[akhir] (cepat) at (2.7, -0.35)
-        {Optimasi kecepatan: register, tiga kali \asm{SHL AX,1},
-        \eng{unrolling}};
-    \node[simpul] (verif) at (0, -1.85)
-        {\textbf{Langkah 3:} ukur ulang dan verifikasi hasil tetap
-        benar};
-
-    \draw[panah] (ukur) -- (pilih);
-    \draw[panah] (pilih) -- node[ket, left] {ukuran} (kecil);
-    \draw[panah] (pilih) -- node[ket, right] {kecepatan} (cepat);
-    \draw[panah] (kecil.south) |- (verif.west);
-    \draw[panah] (cepat.south) |- (verif.east);
-\end{tikzpicture}
-\end{center}
-
-\vspace{0.1em}
-{\footnotesize\color{obeGray}Tidak ada optimasi yang gratis: setiap
-perubahan hampir selalu memindahkan biaya dari satu metrik ke metrik
-lain.\par}
-\Sumber{Bab XVI, Trade-off: Ukuran Kode atau Kecepatan}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Pengukuran yang Adil}
-\footnotesize
+\begin{frame}{Analisis Program yang Berhenti}
+\small
 \begin{enumerate}
-    \item \textbf{Masukan sama dan jumlah iterasi sama.} Kedua versi
-          memakai larik yang sama dan mengerjakan pekerjaan yang sama
-          banyaknya; penghitung iterasi dicatat untuk membuktikannya.
-    \item \textbf{Batas pengukuran sama.} Waktu mulai dicatat tepat
-          sebelum pekerjaan dan berhenti tepat sesudahnya, tanpa
-          pemuatan program, pencetakan keluaran, atau penekanan tombol.
-    \item \textbf{Diulang beberapa kali.} Jalankan minimal lima kali,
-          buang percobaan pertama (pemanasan), lalu ambil nilai tengah.
+    \item Periksa syarat berhenti perulangan.
+    \item Periksa nilai pencacah setiap iterasi.
+    \item Periksa keseimbangan PUSH dan POP.
+    \item Periksa isi stack pada CALL dan RET.
+    \item Periksa apakah program mencapai INT 21h fungsi 4Ch.
 \end{enumerate}
 
 \vspace{0.2em}
-\begin{kodeasm}[numbers=none]
-    MOV AH, 00h         ; baca pencacah tick BIOS
-    INT 1Ah             ; CX:DX = tick sejak tengah malam
-    MOV tick_awal, DX   ; simpan titik awal
-
-    ; ... pekerjaan yang diukur ...
-
-    INT 1Ah             ; baca lagi
-    SUB DX, tick_awal   ; selisih tick (18,2 tick = 1 detik)
-\end{kodeasm}
-\Sumber{Bab XVI, Pengukuran yang Adil}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Etika dan Batas Optimasi}
-\small
-\begin{itemize}
-    \item \textbf{Benar lebih dahulu, cepat kemudian.} Program yang
-          cepat tetapi salah tidak berguna; uji kebenaran setiap versi
-          dengan masukan yang sama sebelum membandingkan kecepatannya.
-
-    \vspace{0.25em}
-    \item \textbf{Jangan mengoptimasi dini.} Optimasi hanya layak pada
-          bagian yang sudah terbukti menjadi hambatan melalui
-          pengukuran, bukan pada bagian yang hanya \emph{diperkirakan}
-          lambat.
-
-    \vspace{0.25em}
-    \item \textbf{Jaga keterbacaan dan dokumentasi.} Setiap trik diberi
-          komentar yang menjelaskan alasan dan syarat berlakunya, dan
-          versi naif disimpan sebagai pembanding.
-\end{itemize}
-
-\vspace{0.25em}
-\begin{block}{Optimasi yang dapat dipertanggungjawabkan}
-\small Ada pengukuran sebelum, ada penjelasan mengapa perubahan dipilih,
-dan ada pengukuran sesudah. Bila salah satunya tidak ada, yang
-dikerjakan bukan optimasi melainkan sekadar perubahan.
-\end{block}
-\Sumber{Bab XVI, Etika dan Batas Optimasi}
+\begin{alertblock}{Hang belum tentu kerusakan prosesor}
+\small Sering kali program hanya terjebak pada perulangan yang
+syaratnya tidak pernah terpenuhi.
+\end{alertblock}
+\Sumber{Bab XVI, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 3}
 \small
 \begin{itemize}
-    \item Teknik paling mendasar adalah menyimpan nilai yang sering
-          dipakai di register, bukan di memori: 150 siklus menjadi 44
-          siklus pada sepuluh iterasi.
+    \item Perintah D menampilkan memori atau stack dalam
+          heksadesimal.
 
-    \vspace{0.22em}
-    \item \eng{Strength reduction} menggantikan operasi mahal dengan
-          operasi murah, tetapi hanya sahih bila syaratnya dipenuhi
-          --- misalnya pengali harus pangkat dua dan nilai harus tak
-          bertanda.
+    \vspace{0.15em}
+    \item Alamat DEBUG adalah segmen:offset, bukan alamat fisik.
 
-    \vspace{0.22em}
-    \item \asm{LEA} menghitung alamat dalam satu instruksi tanpa
-          mengubah \eng{flag}, sehingga pembandingan sebelumnya tetap
-          sahih.
+    \vspace{0.15em}
+    \item Stack tidak seimbang membuat RET mengambil alamat salah.
 
-    \vspace{0.22em}
-    \item \eng{Unrolling} mengurangi separuh overhead \asm{LOOP} dengan
-          harga kode yang lebih panjang; \asm{XOR reg, reg} lebih
-          pendek satu byte dan lebih cepat satu siklus daripada
-          \asm{MOV reg, 0}.
+    \vspace{0.15em}
+    \item Perbaikan: tambahkan POP AX sebelum RET.
 
-    \vspace{0.22em}
-    \item Optimasi ukuran dan optimasi kecepatan sering bertentangan;
-          pilihan ditentukan batasan proyek dan dibuktikan dengan
-          pengukuran yang adil.
+    \vspace{0.15em}
+    \item Analisis hang: perulangan, pencacah, stack, dan instruksi
+          keluar.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % CONTOH PROGRAM
 % =========================================================
-\begin{frame}[fragile]{Contoh 1: Versi Naif}
-\scriptsize Ketiga contoh mengerjakan pekerjaan sama: menjumlahkan
-sepuluh elemen larik $10, 20, \dots, 100$, lalu mengalikan jumlahnya
-($550$) dengan delapan sehingga hasilnya \hex{1130}.
-
-\vspace{0.15em}
+\begin{frame}[fragile]{Contoh 1: Perulangan Tak Berujung}
 \begin{columns}[t]
-\begin{column}{0.57\textwidth}
+\begin{column}{0.47\textwidth}
+{\color{obeMaroon}\bfseries Sebelum perbaikan}\\[0.15em]
 \begin{kodeasm}[numbers=none]
-    MOV CX, 10          ; 10 elemen
-    MOV SI, 0           ; indeks byte
-    MOV AX, 0           ; akumulator = 0
+XOR AX, AX
+MOV CX, 5
 ULANG:
-    ADD AX, larik[SI]   ; ambil dari memori
-    ADD SI, 2           ; maju satu word
+    ADD AX, CX
+    INC CX
     LOOP ULANG
-    MOV jumlah, AX      ; simpan ke memori
-    MOV AX, jumlah      ; muat kembali lagi
-    MOV BX, 8           ; pengali = 8
-    MUL BX              ; 118-133 siklus
-    MOV hasil, AX       ; simpan hasil akhir
 \end{kodeasm}
 \end{column}
-\begin{column}{0.4\textwidth}
-{\color{obeBlue}\bfseries Empat pemborosan}
-\begin{enumerate}\footnotesize
-    \item \asm{ADD AX, larik[SI]} memakai \eng{displacement} sehingga
-          alamat efektifnya 8 siklus, bukan 5.
-    \item \asm{MOV AX, 0} tiga byte, padahal ada cara dua byte.
-    \item Hasil ditulis ke memori lalu dibaca kembali --- dua akses
-          memori yang tidak perlu.
-    \item \asm{MUL BX} untuk mengalikan delapan adalah pilihan paling
-          mahal: 118--133 siklus.
-\end{enumerate}
-\vspace{0.2em}
-{\footnotesize\color{obeGray}\file{naif.asm}\par}
-\end{column}
-\end{columns}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 2: Versi Teroptimasi}
-\scriptsize Empat perbaikan diterapkan tanpa mengubah hasil akhir:
-\reg{hasil} tetap bernilai \hex{1130}.
-
-\vspace{0.15em}
-\begin{columns}[t]
-\begin{column}{0.57\textwidth}
+\begin{column}{0.49\textwidth}
+{\color{obeTeal}\bfseries Sesudah perbaikan}\\[0.15em]
 \begin{kodeasm}[numbers=none]
-    MOV CX, 10          ; penghitung iterasi
-    MOV SI, OFFSET larik ; SI ke larik
-    XOR AX, AX          ; akumulator = 0
+XOR AX, AX
+MOV CX, 5
 ULANG:
-    ADD AX, [SI]        ; tanpa displacement
-    ADD SI, 2           ; maju satu word
+    ADD AX, CX
     LOOP ULANG
-    SHL AX, 1           ; AX = AX x 2
-    SHL AX, 1           ; AX = AX x 4
-    SHL AX, 1           ; AX = AX x 8
-    MOV hasil, AX       ; satu akses memori
 \end{kodeasm}
 \end{column}
-\begin{column}{0.4\textwidth}
-{\color{obeTeal}\bfseries Empat perbaikan}
-\begin{itemize}\footnotesize
-    \item \reg{SI} menunjuk langsung ke larik, sehingga
-          \asm{ADD AX, [SI]} hanya 5 siklus alamat efektif.
-    \item \asm{XOR AX, AX} mengosongkan akumulator dalam dua byte dan
-          tiga siklus.
-    \item Nilai antara tidak lagi bolak-balik ke memori; \reg{AX}
-          dipakai sebagai akumulator sampai akhir.
-    \item \asm{MUL BX} diganti tiga \asm{SHL AX, 1} --- enam siklus,
-          sekitar dua puluh kali lebih cepat.
-\end{itemize}
-\vspace{0.2em}
-{\footnotesize\color{obeGray}\file{teroptimasi.asm}\par}
-\end{column}
 \end{columns}
+
+\vspace{0.2em}
+{\footnotesize\color{obeTeal}Keluaran setelah perbaikan:
+\code{Jumlah 1..5 = 15}.\par}
+\Sumber{Bab XVI, Contoh 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 3: Teroptimasi dengan \eng{Loop Unrolling}}
-\scriptsize Isi perulangan digandakan sehingga satu iterasi mengerjakan
-dua elemen; jumlah iterasi turun dari sepuluh menjadi lima.
-
-\vspace{0.15em}
+\begin{frame}[fragile]{Contoh 2: Stack Tidak Seimbang}
 \begin{columns}[t]
-\begin{column}{0.57\textwidth}
+\begin{column}{0.47\textwidth}
+{\color{obeMaroon}\bfseries Sebelum perbaikan}\\[0.15em]
 \begin{kodeasm}[numbers=none]
-    MOV CX, 5           ; cukup 5 iterasi
-    MOV SI, OFFSET larik
-    XOR AX, AX          ; akumulator = 0
-ULANG:
-    ADD AX, [SI]        ; elemen ke-1
-    ADD AX, [SI+2]      ; elemen ke-2
-    ADD SI, 4           ; maju dua word
-    LOOP ULANG
-    SHL AX, 1           ; AX = AX x 2
-    SHL AX, 1           ; AX = AX x 4
-    SHL AX, 1           ; AX = AX x 8
-    MOV hasil, AX       ; satu akses memori
+PUSH AX
+PUSH BX
+PUSH CX
+POP CX
+POP BX
+RET
 \end{kodeasm}
 \end{column}
-\begin{column}{0.4\textwidth}
-{\color{obeAmber}\bfseries Yang diperoleh dan harganya}
-\begin{itemize}\footnotesize
-    \item Overhead \asm{LOOP} (17 siklus) berkurang separuh karena
-          iterasi hanya lima kali.
-    \item Dua elemen diambil per iterasi: \asm{ADD AX, [SI]} dan
-          \asm{ADD AX, [SI+2]}.
-    \item Alamat maju empat byte sekaligus dengan \asm{ADD SI, 4}.
-    \item Harganya: ukuran kode bertambah tiga byte dibandingkan versi
-          teroptimasi.
-\end{itemize}
+\begin{column}{0.49\textwidth}
+{\color{obeTeal}\bfseries Sesudah perbaikan}\\[0.15em]
+\begin{kodeasm}[numbers=none]
+PUSH AX
+PUSH BX
+PUSH CX
+POP CX
+POP BX
+POP AX
+RET
+\end{kodeasm}
+\end{column}
+\end{columns}
+
 \vspace{0.2em}
-{\footnotesize\color{obeGray}\file{teroptimasi-unroll.asm}\par}
-\end{column}
-\end{columns}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Perbandingan Hasil Disassembly: Naif vs Teroptimasi}
-\scriptsize Keduanya dibongkar dengan asumsi program dimuat pada alamat
-\hex{1D2F}:0100, larik pada offset \hex{01F4}, \code{jumlah} pada
-\hex{0208}, dan \code{hasil} pada \hex{020A}.
-
-\vspace{0.15em}
-\begin{columns}[t]
-\begin{column}{0.48\textwidth}
-{\footnotesize\color{obeMaroon}\bfseries Versi naif}\\[0.1em]
-\begin{keluaran}
-1D2F:0103 BE0000   MOV  SI,0000
-1D2F:0106 B80000   MOV  AX,0000
-1D2F:0109 0384F401 ADD  AX,[SI+01F4]
-1D2F:0110 E2F7     LOOP 0109
-1D2F:0112 89060802 MOV  [0208],AX
-1D2F:0116 8B060802 MOV  AX,[0208]
-1D2F:011A BB0800   MOV  BX,0008
-1D2F:011D F7E3     MUL  BX
-\end{keluaran}
-{\scriptsize\color{obeGray}11 instruksi, 35 byte\par}
-\end{column}
-\begin{column}{0.48\textwidth}
-{\footnotesize\color{obeTeal}\bfseries Versi teroptimasi}\\[0.1em]
-\begin{keluaran}
-1D2F:0103 BEF401   MOV  SI,01F4
-1D2F:0106 31C0     XOR  AX,AX
-1D2F:0108 0304     ADD  AX,[SI]
-1D2F:010D E2F9     LOOP 0108
-1D2F:010F D1E0     SHL  AX,1
-1D2F:0111 D1E0     SHL  AX,1
-1D2F:0113 D1E0     SHL  AX,1
-1D2F:0115 89060A02 MOV  [020A],AX
-\end{keluaran}
-{\scriptsize\color{obeGray}10 instruksi, 25 byte\par}
-\end{column}
-\end{columns}
-
-\vspace{0.1em}
-{\footnotesize\color{obeGray}Nama simbolik \code{larik} hilang menjadi
-\eng{displacement} \hex{01F4}; \asm{MOV AX, 0000} (3 byte) menjadi
-\asm{XOR AX, AX} (2 byte); \asm{MUL BX} menjadi tiga \asm{SHL AX, 1}.
-Hasil \eng{disassembly} tidak memberi tahu \emph{mengapa} perubahan itu
-dilakukan --- penjelasannya hanya ada pada perbandingan metrik.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Tabel Perbandingan Hasil Pengukuran}
-\footnotesize
-\begin{center}
-\begin{tabular}{@{}p{3.2cm}p{2.1cm}p{2.0cm}p{2.2cm}p{1.7cm}@{}}
-    \toprule
-    \textbf{Versi} & \textbf{Instruksi} & \textbf{Ukuran} &
-    \textbf{Perkiraan} & \textbf{Akses} \\
-     & \textbf{dieksekusi} & \textbf{kode} & \textbf{siklus} &
-    \textbf{memori} \\
-    \midrule
-    Naif & 38 & 35 byte & $\approx$546 & 13 \\
-    \addlinespace
-    Teroptimasi & 37 & 25 byte & $\approx$370 & 11 \\
-    \addlinespace
-    Teroptimasi + \eng{unrolling} & 27 & 28 byte & $\approx$280 & 11
-    \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.25em}
-\begin{alertblock}{Pelajaran dari tabel}
-\small Jumlah instruksi saja menyesatkan: naif 38 berbanding
-teroptimasi 37 hampir sama, padahal perkiraan siklusnya turun sekitar 32
-persen. Yang menentukan adalah \emph{jenis} instruksi dan banyaknya
-akses memori. Versi \eng{unrolling} paling cepat, tetapi ukurannya
-bertambah tiga byte. Angka ini masih perkiraan --- pembuktiannya tetap
-memerlukan pengukuran pada mesin.
-\end{alertblock}
+{\footnotesize\color{obeTeal}Setelah perbaikan, program kembali ke
+pemanggil dan mencetak \code{Selesai.}\par}
+\Sumber{Bab XVI, Contoh 2}
 \end{frame}
 
 % =========================================================
 % PRAKTIKUM
 % =========================================================
-\begin{frame}{Praktikum: Menganalisis, Mengoptimasi, dan Mengukur}
+\begin{frame}{Praktikum: Menemukan dan Memperbaiki Kesalahan}
 \begin{block}{Judul praktikum}
-\small Menganalisis, mengoptimasi, dan mengukur program pada level
-instruksi.\\
-{\footnotesize \textbf{Sub-CPMK:} 4.3 \quad\textbullet\quad
-\textbf{Waktu:} 150 menit \quad\textbullet\quad \textbf{Bentuk:}
-kelompok (2--3 mahasiswa) dan laporan individu}
+\small Menemukan dan memperbaiki kesalahan dengan \eng{single step}
+dan \eng{dump}\\[0.15em]
+\textbf{Sub-CPMK:} 4.1--4.3 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
 \end{block}
 
-\vspace{0.1em}
+\vspace{0.2em}
 \begin{columns}[t]
 \begin{column}{0.46\textwidth}
 {\color{obeBlue}\bfseries Alat dan bahan}
 \begin{itemize}\footnotesize
-    \item DOSBox dan MS-DEBUG, atau Emu8086
-    \item TASM dan TLINK (atau GUI Turbo Assembler)
-    \item Berkas \file{naif.asm}, \file{teroptimasi.asm}, dan
-          \file{teroptimasi-unroll.asm}
-    \item Lembar kerja pengukuran dan jurnal praktikum
+    \item Komputer dengan emu8086
+    \item DOSBox dengan TASM, TLINK, dan DEBUG
+    \item Empat berkas \file{bug-*.asm}
+    \item Lembar laporan debugging
 \end{itemize}
-
-\vspace{0.15em}
-{\scriptsize\textbf{Dikumpulkan:} \file{optimasi-anda.asm}, tabel
-perbandingan \eng{disassembly}, tabel pengukuran, dan analisis
-singkat.\par}
 \end{column}
-\begin{column}{0.5\textwidth}
+\begin{column}{0.50\textwidth}
 {\color{obeBlue}\bfseries Langkah kerja}
 \begin{enumerate}\footnotesize
-    \item Rakit dan jalankan ketiga versi; \code{hasil} harus bernilai
-          \hex{1130}.
-    \item Bongkar dengan \code{U}; catat alamat, byte mesin,
-          \eng{mnemonic}, dan tandai polanya.
-    \item Tandai inefisiensi versi naif dan hitung perkiraan siklusnya.
-    \item Salin menjadi \file{optimasi-anda.asm}; terapkan minimal tiga
-          teknik optimasi.
-    \item Ukur ketiga versi dengan \code{INT 1Ah}; lima kali, buang
-          percobaan pertama.
+    \item Reproduksi hang pada \file{bug-loop.asm}.
+    \item Single step; catat AX dan CX.
+    \item Hapus INC CX; uji ulang.
+    \item Reproduksi hang pada \file{bug-stack.asm}.
+    \item Periksa stack; tambahkan POP AX.
 \end{enumerate}
 \end{column}
 \end{columns}
+
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} dua berkas perbaikan, tabel
+penelusuran AX/CX/SP/stack, tangkapan layar, dan laporan
+debugging.\par}
+\Sumber{Bab XVI, Praktikum}
 \end{frame}
 
 % =========================================================
@@ -1078,34 +603,24 @@ singkat.\par}
 \begin{frame}{Latihan}
 \small
 \begin{enumerate}
-    \item Jelaskan mengapa \eng{disassembly} tidak dapat mengembalikan
-          kode sumber asli. Sebutkan tiga informasi yang hilang selama
-          perakitan dan mengapa informasi itu tidak tersimpan di dalam
-          berkas \file{.exe}.
+    \item Jelaskan perbedaan kesalahan sintaks, logika, dan hang;
+          berikan satu contoh masing-masing.
 
-    \vspace{0.25em}
-    \item Byte \hex{48} dapat berarti instruksi \asm{DEC AX} atau
-          karakter \code{'H'}. Jelaskan bagaimana keadaan itu
-          menyulitkan \eng{disassembly}, lalu sebutkan dua cara praktis
-          menentukan batas daerah kode dan daerah data.
+    \vspace{0.15em}
+    \item Sebutkan fungsi R, T, P, D, dan G pada DEBUG. Kapan P lebih
+          tepat daripada T?
 
-    \vspace{0.2em}
-    \item Diberikan potongan hasil \eng{disassembly} berisi
-          \asm{MOV CX,000A}, \asm{XOR BX,BX}, \asm{ADD AX,[SI]},
-          \asm{ADD SI,+02}, dan \asm{LOOP 0205}. Pola apa yang tampak,
-          berapa kali \asm{ADD AX, [SI]} dieksekusi, dan berapa jarak
-          relatif yang disimpan pada byte \hex{E2} \hex{F9}?
+    \vspace{0.15em}
+    \item Jelaskan mengapa CX tidak pernah nol pada
+          \file{bug-loop.asm} dan tentukan perbaikannya.
 
-    \vspace{0.2em}
-    \item Perulangan 20 kali berisi \asm{ADD AX, [SI]},
-          \asm{ADD SI, 2}, dan \asm{LOOP}. Hitung perkiraan jumlah
-          siklusnya, lalu sebutkan dua alasan mengapa angka itu belum
-          tentu sama dengan waktu sesungguhnya.
+    \vspace{0.15em}
+    \item Jelaskan mengapa RET melompat ke alamat salah pada
+          \file{bug-stack.asm} dan tentukan perbaikannya.
 
-    \vspace{0.2em}
-    \item Tuliskan hasil \eng{strength reduction} untuk \asm{MOV AX, 0},
-          \asm{ADD AX, nilai}, \asm{MOV BX, 16}, \asm{MUL BX},
-          \asm{CMP AX, 0}, dan \asm{JE kosong}, beserta syarat sahihnya.
+    \vspace{0.15em}
+    \item Sebutkan langkah pemeriksaan untuk menemukan penyebab
+          program yang berhenti.
 \end{enumerate}
 \end{frame}
 
@@ -1115,34 +630,23 @@ singkat.\par}
 \begin{frame}{Rangkuman}
 \small
 \begin{itemize}
-    \item \eng{Disassembly} mengubah kode mesin kembali menjadi
-          \eng{mnemonic}; pekerjaan ini tidak dapat membalikkan
-          \eng{assembly} sepenuhnya karena nama simbolik, komentar, dan
-          batas data hilang saat perakitan.
+    \item Kesalahan dibagi menjadi sintaks, logika, dan hang.
 
-    \vspace{0.18em}
-    \item Perintah \code{U} pada DEBUG menampilkan alamat, byte mesin,
-          dan \eng{mnemonic} sekaligus; perkakas lain: Emu8086, GUI
-          Turbo Assembler, \code{ndisasm}, dan \code{objdump}.
+    \vspace{0.15em}
+    \item DEBUG menyediakan R, T, P, D, dan G untuk penelusuran.
 
-    \vspace{0.18em}
-    \item Pola hasil \eng{disassembly} dapat dikenali: pembandingan dan
-          percabangan, perulangan, \eng{prologue} dan \eng{epilogue}
-          prosedur, inisialisasi segmen, dan pemanggilan interupsi.
+    \vspace{0.15em}
+    \item Penelusuran mencatat register dan flag setiap instruksi.
 
-    \vspace{0.18em}
-    \item Empat metrik optimasi: jumlah instruksi yang dieksekusi,
-          perkiraan siklus, ukuran kode dalam byte, dan jumlah akses
-          memori. Tanpa pengukuran, optimasi hanyalah dugaan.
+    \vspace{0.15em}
+    \item Perulangan tak berujung: pencacah tidak mencapai nilai
+          berhenti.
 
-    \vspace{0.18em}
-    \item \eng{Strength reduction} hanya sahih bila syaratnya dipenuhi.
-          Optimasi ukuran dan kecepatan sering bertentangan, sehingga
-          pilihan ditentukan batasan proyek.
+    \vspace{0.15em}
+    \item Stack tidak seimbang: jumlah PUSH dan POP berbeda.
 
-    \vspace{0.18em}
-    \item Batas etika optimasi: kebenaran lebih dahulu, larangan
-          optimasi dini, serta kewajiban menjaga keterbacaan.
+    \vspace{0.15em}
+    \item Perbaikan harus diverifikasi dengan trace ulang.
 \end{itemize}
 \end{frame}
 
@@ -1150,29 +654,26 @@ singkat.\par}
 \begin{frame}{Cek Pemahaman}
 \footnotesize
 \begin{enumerate}
-    \item Perintah MS-DEBUG untuk membongkar kode mesin menjadi
-          \eng{mnemonic} adalah \dots
+    \item Perintah DEBUG untuk menjalankan satu instruksi adalah
+          \dots
           \begin{enumerate}
-              \item \code{T} \quad \item \code{U} \quad
-              \item \code{D} \quad \item \code{G}
+              \item R \quad \item T \quad \item D \quad \item G
           \end{enumerate}
 
-    \vspace{0.18em}
-    \item Nama variabel \code{larik} berubah menjadi \asm{[SI+01F4]}
-          pada hasil \eng{disassembly} karena \dots
+    \vspace{0.2em}
+    \item Perintah yang menjalankan satu instruksi tetapi melewati
+          prosedur adalah \dots
           \begin{enumerate}
-              \item nama simbolik tidak disimpan di berkas biner
-              \item DEBUG selalu menghapus nama simbolik
-              \item linker mengubahnya menjadi alamat relatif
-              \item disassembler hanya membaca register
+              \item T \quad \item P \quad \item D \quad \item R
           \end{enumerate}
 
-    \vspace{0.18em}
-    \item Instruksi tunggal pengganti \asm{MUL BX} untuk mengalikan
-          \reg{AX} (tak bertanda) dengan delapan adalah \dots
+    \vspace{0.2em}
+    \item Penyebab hang pada \file{bug-stack.asm} adalah \dots
           \begin{enumerate}
-              \item \asm{SHR AX, 3} \quad \item \asm{SHL AX, 3} \quad
-              \item \asm{SAR AX, 3} \quad \item \asm{DIV AX, 8}
+              \item terlalu banyak POP
+              \item satu POP tidak ada
+              \item CALL tidak menyimpan alamat kembali
+              \item prosedur tidak memiliki RET
           \end{enumerate}
 \end{enumerate}
 \end{frame}
@@ -1181,30 +682,24 @@ singkat.\par}
 % PENUTUP
 % =========================================================
 \begin{frame}{Penutup}
+\begin{block}{Menuju UAS dan Proyek Akhir}
 \small
-\begin{block}{Sebelum ujian akhir semester}
 \begin{itemize}
-    \item Selesaikan laporan praktikum 15: \file{optimasi-anda.asm},
-          tabel perbandingan \eng{disassembly}, dan tabel pengukuran.
-    \item Lengkapi jurnal dan refleksi: apakah dugaan Anda tentang
-          bagian yang paling lambat terbukti setelah diukur?
-    \item Telusuri ketiga berkas contoh satu instruksi demi satu untuk
-          bagian yang belum dikuasai.
-    \item Siapkan presentasi proyek akhir (7 + 3 menit); setiap klaim
-          perbaikan wajib disertai angka.
+    \item Selesaikan praktikum: dua berkas perbaikan, tabel
+          penelusuran, tangkapan layar, dan laporan debugging.
+    \item Ulangi Bab X--XVI untuk UAS: aritmatika, logika, mode
+          pengalamatan, kontrol, prosedur/macro, array/string, dan
+          debugging.
+    \item Tidak ada deck materi baru pada Minggu 16 (UAS).
 \end{itemize}
 \end{block}
 
-\vspace{0.25em}
-{\footnotesize\textbf{Bacaan lanjutan:} Bab XVI bagian Pengukuran yang
-Adil dan Etika dan Batas Optimasi; prosedur pengukuran pada Bab XV.\par}
-
-\vspace{0.3em}
+\vspace{0.4em}
 \begin{center}
 {\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
 \vspace{0.15em}
-{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
-\SemesterTeks\par}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK)
+\textbullet\ \SemesterTeks\par}
 \end{center}
 \end{frame}
 

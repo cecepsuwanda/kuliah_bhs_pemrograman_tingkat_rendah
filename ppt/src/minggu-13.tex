@@ -1,9 +1,9 @@
 % =========================================================
 % ppt/src/minggu-13.tex
 % Slide pertemuan 13
-% Bab XIV — Interupsi BIOS/DOS dan Operasi I/O
+% Bab XIV — Stack, Prosedur, dan Macro
 %
-% Sub-CPMK 2.4 | CPMK02 | CPL02
+% Sub-CPMK 3.5 | CPMK03 | CPL03
 % =========================================================
 
 \documentclass[aspectratio=169,11pt]{beamer}
@@ -16,34 +16,31 @@
 % =========================================================
 % 1. JUDUL
 % =========================================================
-\JudulDeck{Interupsi BIOS/DOS dan Operasi I/O}{Pertemuan 13}
+\JudulDeck{Stack, Prosedur, dan Macro}{Pertemuan 13}
 
 % =========================================================
 % 2. CAPAIAN DAN TUJUAN
 % =========================================================
 \begin{frame}{Capaian dan Tujuan Pembelajaran}
-\begin{block}{Sub-CPMK 2.4}
-\small Menjelaskan mekanisme interupsi dan layanan BIOS/DOS
-(\code{INT 10h}, \code{INT 21h}) sebagai jembatan antara instruksi mesin
-dan perangkat keras serta operasi masukan/keluaran.
+\begin{block}{Sub-CPMK 3.5}
+\footnotesize Menggunakan stack (PUSH/POP), prosedur
+(PROC/ENDP, CALL/RET), dan macro dalam program yang modular.
 \end{block}
 
-{\small\textbf{CPMK yang didukung:} \CPMK{02}\quad\textbullet\quad
-\textbf{CPL yang didukung:} \CPL{02}\par}
+\vspace{0.1em}
+{\small\textbf{CPMK yang didukung:} \CPMK{03}\quad\textbullet\quad
+\textbf{CPL yang didukung:} \CPL{03}\par}
 
+\vspace{0.15em}
 \begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
 \footnotesize
 \begin{enumerate}
-    \item menjelaskan alasan diperlukannya interupsi dan membedakan
-          tiga jenisnya;
-    \item menghitung alamat vektor interupsi ke-$n$ dan menyebutkan
-          vektor-vektor penting beserta kegunaannya;
-    \item menelusuri penyimpanan \reg{FLAGS}, \reg{CS}, dan \reg{IP}
-          pada stack serta pengambilannya kembali oleh \asm{IRET};
-    \item menggunakan layanan BIOS \code{INT 10h}, \code{INT 16h},
-          \code{INT 17h} serta layanan DOS \code{INT 21h};
-    \item memasang \eng{interrupt handler} sederhana dengan mengganti
-          isi sebuah vektor, lalu memulihkan vektor tersebut.
+    \item menjelaskan sifat \eng{last in, first out} pada stack;
+    \item menggunakan PUSH/POP dan menjelaskan perubahan SP;
+    \item menulis prosedur dengan PROC/ENDP serta CALL/RET;
+    \item mengakses parameter melalui \eng{stack frame} dan BP;
+    \item mendefinisikan macro berparameter dan membedakannya dari
+          prosedur.
 \end{enumerate}
 \end{exampleblock}
 \end{frame}
@@ -54,1046 +51,578 @@ dan perangkat keras serta operasi masukan/keluaran.
 \begin{frame}{Peta Materi}
 \small
 \begin{enumerate}
-    \item \textbf{Konsep Interupsi dan Tabel Vektor}\\
-          {\footnotesize \eng{polling} dan interupsi; tiga jenis
-          interupsi; tabel vektor \hex{0000}--\hex{03FF}; alamat vektor
-          ke-$n$; mekanisme \asm{INT} dan \asm{IRET}; \flag{TF}}
+    \item \textbf{Stack dan Instruksi PUSH/POP}\\
+          {\footnotesize LIFO; SS:SP; PUSH dan POP; aturan
+          pemakaian}
 
     \vspace{0.25em}
-    \item \textbf{Interupsi BIOS: Video, Keyboard, dan Printer}\\
-          {\footnotesize kedudukan BIOS; \code{INT 10h} (fungsi
-          \hex{09}, \hex{13}, \hex{02}); byte atribut warna;
-          \code{INT 16h}; \code{INT 17h}}
+    \item \textbf{Prosedur dan Penyampaian Data}\\
+          {\footnotesize PROC/ENDP; CALL/RET; stack frame dan BP;
+          register/stack/variabel}
 
     \vspace{0.25em}
-    \item \textbf{Interupsi DOS dan Penangan Buatan Sendiri}\\
-          {\footnotesize fungsi \code{INT 21h} (\hex{0A}, \hex{09},
-          \hex{02}, \hex{25}, \hex{35}, \hex{4C}); penyangga fungsi
-          \hex{0A}; \code{INT 20h}; pemasangan dan pemulihan vektor;
-          interupsi berantai}
+    \item \textbf{Macro}\\
+          {\footnotesize MACRO/ENDM; parameter; perbedaan dengan
+          prosedur}
 \end{enumerate}
 
 \vspace{0.35em}
 \begin{block}{Praktik pada pertemuan ini}
-\small Operasi masukan/keluaran dengan \code{INT 21h} dan penelusuran
-isi stack sebelum serta sesudah pemanggilan \asm{INT} pada
-\file{input-nama.asm} dan \file{warna-layar.asm}.
+\small Menelusuri stack, prosedur berparameter, dan macro.
 \end{block}
 \end{frame}
 
 % =========================================================
 % BAGIAN 1
 % =========================================================
-\PemisahBagian{Konsep Interupsi dan Tabel Vektor}
+\PemisahBagian{Stack dan Instruksi PUSH/POP}
 
 % ---------------------------------------------------------
-\begin{frame}{Mengapa Interupsi Diperlukan}
+\begin{frame}{Stack: LIFO dan SS:SP}
 \small
 \begin{itemize}
-    \item Prosesor berjalan jauh lebih cepat daripada perangkat di
-          sekitarnya. Bila program terus-menerus memeriksa status
-          keyboard, sebagian besar waktunya terbuang untuk pengulangan
-          yang hampir selalu sia-sia --- cara ini disebut
-          \eng{polling}.
+    \item Stack menyimpan data sementara dengan aturan
+          \eng{last in, first out}.
 
-    \vspace{0.25em}
-    \item \term{Interupsi} adalah mekanisme yang memaksa prosesor
-          menghentikan sementara alur program, memindahkan kendali ke
-          rutin khusus yang disebut \term{penangan interupsi}
-          (\eng{interrupt handler}), lalu melanjutkan kembali program
-          semula tepat pada instruksi berikutnya.
+    \vspace{0.18em}
+    \item Stack dipakai untuk alamat kembali, parameter, dan nilai
+          sementara.
 
-    \vspace{0.25em}
-    \item Interupsi juga menjadi sarana baku untuk meminta layanan
-          sistem: program cukup memanggil \code{INT 10h} tanpa menulis
-          sendiri rutin pengendali video.
+    \vspace{0.18em}
+    \item Puncak stack ditunjuk \reg{SS}:\reg{SP}; alamat fisiknya
+          $(\reg{SS} \times 16) + \reg{SP}$.
+
+    \vspace{0.18em}
+    \item Stack 8086 tumbuh ke alamat yang lebih rendah; satu sel
+          berukuran satu word.
 \end{itemize}
 
-\vspace{0.3em}
-\begin{exampleblock}{Kotak hitam yang dibuka}
-\small Sejak Bab III, \code{INT 21h} dipakai sebagai kotak hitam.
-Pertanyaannya kini bukan lagi ``bagaimana memakai'' layanan,
-melainkan ``apa yang sesungguhnya terjadi'' ketika \asm{INT}
-dijalankan.
-\end{exampleblock}
-\Sumber{Bab XIV, Mengapa Interupsi Diperlukan}
+\vspace{0.2em}
+\begin{block}{Arah pertumbuhan}
+\small Setiap data didorong, SP berkurang dua; setiap data diambil,
+SP bertambah dua.
+\end{block}
+\Sumber{Bab XIV, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Tiga Jenis Interupsi}
-\footnotesize
-\begin{center}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.9cm}
-    >{\raggedright\arraybackslash}p{2.4cm}
-    >{\raggedright\arraybackslash}p{3.6cm}
-    >{\raggedright\arraybackslash}p{4.2cm}@{}}
-    \toprule
-    \textbf{Jenis} & \textbf{Sumber} & \textbf{Contoh} &
-    \textbf{Sifat} \\
-    \midrule
-    Perangkat keras & Kaki \file{INTR} atau \file{NMI} &
-    Timer 18,2 kali per detik (\hex{08}); penekanan tombol (\hex{09}) &
-    Terjadi kapan saja, tidak direncanakan program \\
-    \addlinespace
-    Perangkat lunak & Instruksi \asm{INT} \code{n} &
-    \code{INT 21h} fungsi \hex{09} untuk mencetak string &
-    Disengaja, hasilnya dapat diperkirakan \\
-    \addlinespace
-    Pengecualian & Prosesor, akibat kesalahan eksekusi &
-    Pembagian dengan nol (\hex{00}); limpahan \asm{INTO} (\hex{04}) &
-    Menandakan kesalahan yang harus ditangani \\
-    \bottomrule
-\end{tabular}
-\end{center}
+\begin{frame}[fragile]{PUSH}
+\small
+\code{PUSH} menyimpan satu word ke puncak stack:
+SP dikurangi dua, lalu operand disalin ke \reg{SS}:\reg{SP}.
 
-\vspace{0.3em}
-{\footnotesize Interupsi melalui \file{INTR} bersifat
-\eng{maskable}: dapat ditahan bila \flag{IF} bernilai nol. Interupsi
-\file{NMI} tidak dapat ditolak dan dipakai untuk kejadian gawat.\par}
-\Sumber{Bab XIV, Tiga Jenis Interupsi}
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+MOV AX, 1234h
+PUSH AX             ; SP = SP - 2; [SS:SP] = 1234h
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}PUSH hanya bekerja pada operand 16 bit;
+pada 8086 tidak ada \code{PUSH AL} atau nilai segera.\par}
+\Sumber{Bab XIV, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Tabel Vektor Interupsi}
+\begin{frame}[fragile]{POP}
+\small
+\code{POP} mengambil satu word dari puncak stack:
+isi \reg{SS}:\reg{SP} disalin ke tujuan, lalu SP ditambah dua.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+POP BX              ; BX = [SS:SP]; SP = SP + 2
+\end{kodeasm}
+
+\vspace{0.15em}
+{\footnotesize\color{obeGray}Setiap PUSH harus berpasangan dengan
+POP agar SP kembali ke posisi semula.\par}
+\Sumber{Bab XIV, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Perubahan Stack}
 \begin{center}
 \begin{tikzpicture}[
-    sel/.style={draw=obeGray,line width=0.6pt,minimum height=0.5cm,
-        minimum width=1.45cm,inner sep=0pt,anchor=west,
-        fill=obeBlueLight},
-    alamat/.style={font=\ttfamily\scriptsize,text=obeGray,anchor=east},
-    ket/.style={font=\scriptsize,anchor=west,text=obeBlue},
-    kopf/.style={font=\scriptsize\bfseries,text=obeGray}
+    sel/.style={
+        draw=obeBlue, line width=0.6pt, minimum width=3.4cm,
+        minimum height=0.55cm, font=\ttfamily\small, inner sep=0pt
+    },
+    isi/.style={sel, fill=obeBlueLight},
+    kosong/.style={sel, fill=obeGrayLight},
+    panah/.style={-{Stealth[length=2.2mm]}, line width=0.9pt,
+        obeMaroon}
 ]
-    \node[kopf,anchor=east] at (1.4,0) {vektor};
-    \node[kopf,anchor=east] at (2.9,0) {alamat};
-    \node[kopf,anchor=west] at (3.2,0) {isi 4 byte};
-    \node[kopf,anchor=west] at (6.4,0) {keterangan};
-    \draw[obeGray,line width=0.5pt] (-0.15,0.28) -- (9.2,0.28);
+    \node[isi] (a0) at (0,0) {1234h};
+    \node[kosong] (a1) at (0,-0.55) {kosong};
+    \node[font=\scriptsize, text=obeGray, anchor=west]
+        at (1.9,0) {SP sesudah PUSH};
+    \node[font=\scriptsize, text=obeGray, anchor=west]
+        at (1.9,-0.55) {SP sebelum PUSH};
 
-    \foreach \r/\v/\a/\k in {%
-        0/00h/0000h/{pembagian dengan nol},
-        1/09h/0024h/{keyboard},
-        2/10h/0040h/{layanan video BIOS},
-        3/21h/0084h/{layanan DOS}}{%
-        \pgfmathsetmacro{\y}{-0.58*\r-0.30}
-        \node[alamat] at (1.4,\y) {\v};
-        \node[alamat] at (2.9,\y) {\a};
-        \node[sel] at (3.2,\y) {offset};
-        \node[sel] at (4.65,\y) {segmen};
-        \node[ket] at (6.4,\y) {\k};
-    }
+    \draw[panah] (-2.1,0) -- (-1.8,0);
+    \draw[panah] (-2.1,-0.55) -- (-1.8,-0.55);
+    \node[font=\scriptsize, text=obeMaroon, anchor=east]
+        at (-2.2,0) {PUSH};
+    \node[font=\scriptsize, text=obeMaroon, anchor=east]
+        at (-2.2,-0.55) {awal};
 \end{tikzpicture}
 \end{center}
 
 \vspace{0.2em}
-{\footnotesize 256 kemungkinan interupsi diberi nomor \hex{00} sampai
-\hex{FF}. Tabelnya menempati \dec{1.024} byte pertama memori ---
-alamat \hex{0000} sampai \hex{03FF} pada segmen nol --- sehingga mampu
-menampung $1.024 \div 4 = 256$ vektor.\par}
-
-\vspace{0.15em}
-{\footnotesize\color{obeGray}Setiap entri berisi 2 byte \term{offset}
-penangan (dimuat ke \reg{IP}) diikuti 2 byte \term{segmen} (dimuat ke
-\reg{CS}); bagian bernilai lebih rendah diletakkan pada alamat yang
-lebih rendah. Entri berisi \emph{alamat} penangan, bukan penangannya
-sendiri.\par}
-\Sumber{Bab XIV, Tabel Vektor Interupsi}
+{\footnotesize\color{obeGray}POP bergerak sebaliknya: data teratas
+diambil lebih dahulu, lalu SP bertambah dua.\par}
+\Sumber{Bab XIV, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Menghitung Alamat Vektor ke-\texorpdfstring{$n$}{n}}
-\small Karena setiap vektor berukuran tetap, alamat awal vektor
-bernomor $n$ dihitung dengan rumus berikut.
-
-\vspace{0.3em}
-\begin{center}
-{\large alamat vektor$_n$ $= n \times 4$}
-\end{center}
-
-\vspace{0.3em}
-{\small Hasilnya adalah \emph{offset di dalam segmen nol}.\par}
-
-\vspace{0.35em}
-\begin{center}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}
-    >{\raggedright\arraybackslash}p{4.4cm}
-    >{\raggedright\arraybackslash}p{5.6cm}@{}}
-    \toprule
-    \textbf{Vektor} & \textbf{Perhitungan} & \textbf{Alamat entri} \\
-    \midrule
-    \hex{09} keyboard & $9 \times 4 = 36$ & \hex{24} \\
-    \addlinespace
-    \hex{10} video BIOS & $16 \times 4 = 64$ & \hex{40} \\
-    \addlinespace
-    \hex{21} layanan DOS & $33 \times 4 = 132$ & \hex{84} \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.35em}
-{\footnotesize\color{obeGray}Offset inilah yang dipakai program untuk
-mengganti atau membaca entri vektor, misalnya melalui fungsi \hex{25}
-dan \hex{35} layanan DOS.\par}
-\Sumber{Bab XIV, Menghitung Alamat Vektor ke-$n$}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Vektor Interupsi yang Penting}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.5cm}
-    >{\raggedright\arraybackslash}p{1.8cm}
-    >{\raggedright\arraybackslash}p{3.2cm}
-    >{\raggedright\arraybackslash}p{6.0cm}@{}}
-    \toprule
-    \textbf{Vektor} & \textbf{Alamat} & \textbf{Pemicu} &
-    \textbf{Kegunaan} \\
-    \midrule
-    \hex{00} & \hex{0000} & Pengecualian prosesor &
-    Pembagian dengan nol, dipicu oleh \asm{DIV} \\
-    \addlinespace
-    \hex{01} & \hex{0004} & Pengecualian prosesor &
-    Eksekusi satu langkah, dipicu saat \flag{TF} = 1 \\
-    \addlinespace
-    \hex{08} & \hex{0020} & Perangkat keras &
-    Timer sistem, 18,2 kali per detik \\
-    \addlinespace
-    \hex{09} & \hex{0024} & Perangkat keras &
-    Penekanan dan pelepasan tombol \\
-    \addlinespace
-    \hex{10} & \hex{0040} & Perangkat lunak &
-    Layanan video BIOS: mode, kursor, karakter \\
-    \addlinespace
-    \hex{16} & \hex{0058} & Perangkat lunak &
-    Layanan keyboard BIOS: baca dan periksa tombol \\
-    \addlinespace
-    \hex{17} & \hex{005C} & Perangkat lunak &
-    Layanan printer BIOS \\
-    \addlinespace
-    \hex{1A} & \hex{0068} & Perangkat lunak &
-    Waktu dan tanggal dari jam perangkat keras \\
-    \addlinespace
-    \hex{1C} & \hex{0070} & Perangkat lunak &
-    Timer \eng{tick} bagi pengguna, dipanggil dari \hex{08} \\
-    \addlinespace
-    \hex{21} & \hex{0084} & Perangkat lunak &
-    Layanan DOS: masukan, keluaran, berkas, terminasi \\
-    \bottomrule
-\end{tabular}
-\end{center}
-\Sumber{Bab XIV, Menghitung Alamat Vektor ke-$n$}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Mekanisme \asm{INT} dan \asm{IRET}}
-\begin{columns}[t]
-\begin{column}{0.56\textwidth}
-{\footnotesize\asm{INT} \code{n} bekerja seperti pemanggilan prosedur
-jarak jauh, dengan tambahan penyimpanan \eng{flag}:}
-\begin{enumerate}\footnotesize
-    \item \reg{FLAGS} disimpan ke stack;
-    \item \reg{CS} disimpan ke stack;
-    \item \reg{IP} --- sudah menunjuk instruksi sesudah \asm{INT}
-          \code{n} --- disimpan ke stack;
-    \item \flag{IF} dan \flag{TF} dikosongkan;
-    \item alamat penangan dibaca dari entri vektor pada alamat
-          $n \times 4$: dua byte pertama ke \reg{IP}, dua byte
-          berikutnya ke \reg{CS}.
-\end{enumerate}
-{\footnotesize Ketiga penyimpanan itu menurunkan \reg{SP} sebanyak
-\dec{6} byte.\par}
-\end{column}
-\begin{column}{0.42\textwidth}
-\begin{center}
-\begin{tikzpicture}[
-    sel/.style={draw=obeTeal,line width=0.7pt,fill=obeTealLight,
-        minimum width=2.6cm,minimum height=0.5cm,
-        font=\ttfamily\footnotesize,inner sep=0pt},
-    old/.style={draw=obeGray,line width=0.7pt,fill=obeGrayLight,
-        minimum width=2.6cm,minimum height=0.5cm,
-        font=\ttfamily\footnotesize,inner sep=0pt},
-    alamat/.style={font=\ttfamily\scriptsize,text=obeGray,anchor=west},
-    panah/.style={-{Stealth[length=2.2mm]},line width=0.9pt,obeMaroon}
-]
-    \node[sel] (ip) at (0,0) {\reg{IP}};
-    \node[sel] (cs) [below=0pt of ip] {\reg{CS}};
-    \node[sel] (fl) [below=0pt of cs] {\reg{FLAGS}};
-    \node[old] (lama) [below=0pt of fl] {data lama};
-
-    \node[alamat] at (1.45,0) {SS:SP};
-    \node[alamat] at (1.45,-0.5) {SS:SP+2};
-    \node[alamat] at (1.45,-1.0) {SS:SP+4};
-
-    \node[font=\scriptsize,text=obeMaroon,anchor=east] at (-1.95,0)
-        {SP};
-    \draw[panah] (-1.9,0) -- (-1.35,0);
-\end{tikzpicture}
-\end{center}
-\end{column}
-\end{columns}
-
-\begin{alertblock}{Penangan wajib diakhiri \asm{IRET}, bukan \asm{RET}}
-\footnotesize \asm{IRET} mengambil \reg{IP}, \reg{CS}, lalu
-\reg{FLAGS} --- kebalikan urutan penyimpanan; setara \asm{RET}
-ditambah \asm{POPF}. Bila \asm{RET} yang dipakai, \reg{FLAGS}
-terambil sebagai alamat kembali sehingga prosesor melompat ke alamat
-acak.
-\end{alertblock}
-\Sumber{Bab XIV, Mekanisme INT dan IRET}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Flag \flag{TF} dan Eksekusi Satu Langkah}
+\begin{frame}{Aturan Pemakaian Stack}
 \small
 \begin{itemize}
-    \item Bit ke-8 register \reg{FLAGS} adalah \term{trap flag}
-          \flag{TF}. Bila bit ini bernilai satu, prosesor menjalankan
-          satu instruksi lalu segera membangkitkan interupsi vektor
-          \hex{01}.
+    \item PUSH dan POP bekerja pada operand 16 bit.
 
-    \vspace{0.25em}
-    \item Mekanisme inilah yang dipakai \eng{debugger} untuk
-          menyediakan tombol \file{Single Step} pada Emu8086 atau
-          perintah \file{T} pada DEBUG.
+    \vspace{0.18em}
+    \item Nilai segera tidak dapat didorong langsung pada 8086.
 
-    \vspace{0.25em}
-    \item Peran \flag{TF} menjelaskan langkah keempat mekanisme
-          \asm{INT}: bila flag itu tetap bernilai satu, penangan akan
-          memicu vektor \hex{01} setiap kali satu instruksinya selesai
-          sehingga prosesor terjebak.
+    \vspace{0.18em}
+    \item Jumlah PUSH dan POP harus seimbang.
+
+    \vspace{0.18em}
+    \item Isi stack bersifat sementara dan dapat ditimpa pemanggilan
+          berikutnya.
 \end{itemize}
 
-\vspace{0.3em}
-\begin{block}{\file{T} dan \file{P} pada DEBUG}
-\small Perintah \file{T} (\eng{trace}) menjalankan satu instruksi dan
-\emph{masuk} ke rutin penangan, sedangkan \file{P} (\eng{proceed})
-menjalankannya sampai selesai tanpa masuk ke penangan.
-\end{block}
-\Sumber{Bab XIV, Flag TF dan Eksekusi Satu Langkah}
+\vspace{0.25em}
+\begin{alertblock}{Bila tidak seimbang}
+\small SP tidak kembali ke posisi semula; RET dapat mengambil alamat
+kembali yang salah.
+\end{alertblock}
+\Sumber{Bab XIV, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 1}
 \small
 \begin{itemize}
-    \item Interupsi lebih hemat daripada \eng{polling}: prosesor
-          dipanggil hanya ketika ada kejadian, lalu melanjutkan
-          program tepat pada instruksi berikutnya. Interupsi juga
-          menjadi sarana baku meminta layanan sistem.
+    \item Stack bersifat LIFO dan ditunjuk SS:SP.
 
-    \vspace{0.25em}
-    \item Berdasarkan sumbernya ada tiga jenis: perangkat keras
-          (\file{INTR} \eng{maskable} dan \file{NMI}), perangkat lunak
-          (\asm{INT} \code{n}), dan pengecualian yang dibangkitkan
-          prosesor.
+    \vspace{0.15em}
+    \item Stack tumbuh ke alamat rendah; satu sel dua byte.
 
-    \vspace{0.25em}
-    \item Tabel vektor menempati \hex{0000}--\hex{03FF} pada segmen
-          nol; setiap vektor 4 byte (offset lalu segmen), sehingga
-          alamat entri vektor ke-$n$ adalah $n \times 4$.
+    \vspace{0.15em}
+    \item PUSH: SP $-2$, lalu simpan operand.
 
-    \vspace{0.25em}
-    \item \asm{INT} \code{n} menyimpan \reg{FLAGS}, \reg{CS}, lalu
-          \reg{IP} (SP turun \dec{6} byte), mengosongkan \flag{IF} dan
-          \flag{TF}, lalu memuat \reg{CS}:\reg{IP} dari vektor.
-          \asm{IRET} mengembalikan ketiganya secara terbalik.
+    \vspace{0.15em}
+    \item POP: ambil operand, lalu SP $+2$.
 
-    \vspace{0.25em}
-    \item \flag{TF} adalah dasar eksekusi satu langkah pada
-          \eng{debugger}: satu instruksi, lalu interupsi vektor
-          \hex{01}.
+    \vspace{0.15em}
+    \item Jumlah PUSH dan POP harus seimbang.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 2
 % =========================================================
-\PemisahBagian{Interupsi BIOS: Video, Keyboard, dan Printer}
+\PemisahBagian{Prosedur dan Penyampaian Data}
 
 % ---------------------------------------------------------
-\begin{frame}{Kedudukan BIOS}
+\begin{frame}[fragile]{PROC, ENDP, CALL, dan RET}
 \small
-\begin{itemize}
-    \item \term{BIOS} (\eng{Basic Input/Output System}) adalah
-          kumpulan rutin yang tersimpan pada cip memori baca-saja dan
-          dipetakan ke alamat \hex{F000} pada ruang memori.
+Prosedur didefinisikan dengan PROC dan diakhiri ENDP. Pemanggil
+memakai CALL; prosedur kembali dengan RET.
 
-    \vspace{0.25em}
-    \item Rutin ini berbicara langsung dengan pengendali video,
-          pengendali keyboard, dan port printer, lalu menyajikan
-          antarmuka yang seragam bagi program di atasnya.
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+HitungLuas PROC
+    ; isi prosedur
+    RET
+HitungLuas ENDP
 
-    \vspace{0.25em}
-    \item Karena perbedaan perangkat keras disembunyikan di sini,
-          program tidak perlu mengenal nomor port perangkat.
-\end{itemize}
-
-\vspace{0.35em}
-\begin{exampleblock}{Konvensi seluruh layanan BIOS}
-\small \reg{AH} berisi nomor fungsi, register lain berisi argumen, dan
-hasil dikembalikan pada register.
-\end{exampleblock}
-\Sumber{Bab XIV, Kedudukan BIOS}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{\code{INT 10h}: Layanan Video (1/2)}
-\scriptsize Interupsi \hex{10} melayani keperluan tampilan. Fungsi
-yang paling sering dipakai pada praktikum:
+CALL HitungLuas
+\end{kodeasm}
 
 \vspace{0.1em}
-\begin{center}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.2cm}
-    >{\raggedright\arraybackslash}p{4.0cm}
-    >{\raggedright\arraybackslash}p{3.0cm}
-    >{\raggedright\arraybackslash}p{4.0cm}@{}}
-    \toprule
-    \textbf{Fungsi} & \textbf{Register masukan} &
-    \textbf{Register keluaran} & \textbf{Keterangan} \\
-    \midrule
-    \hex{00} & \reg{AL} = nomor mode video & --- &
-    Menetapkan mode; \hex{03} berarti teks $80\times25$ berwarna, dan
-    layar dibersihkan \\
-    \addlinespace
-    \hex{02} & \reg{BH} = halaman; \reg{DH} = baris;
-    \reg{DL} = kolom & --- &
-    Memindahkan posisi kursor tanpa mencetak apa pun \\
-    \addlinespace
-    \hex{03} & \reg{BH} = halaman &
-    \reg{DH}, \reg{DL} = posisi kursor; \reg{CX} = bentuk kursor &
-    Membaca posisi kursor, berguna untuk menyimpan lalu memulihkan
-    posisi \\
-    \addlinespace
-    \hex{06} & \reg{AL} = jumlah baris gulung; \reg{BH} = atribut;
-    \reg{CH}, \reg{CL}, \reg{DH}, \reg{DL} = batas jendela & --- &
-    Menggulung jendela ke atas; \reg{AL} = \hex{00} menggulung
-    seluruh jendela \\
-    \bottomrule
-\end{tabular}
-\end{center}
-\Sumber{Bab XIV, INT 10h: Layanan Video}
+{\footnotesize\color{obeGray}CALL menyimpan alamat kembali; RET
+memuatnya kembali ke IP.\par}
+\Sumber{Bab XIV, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{\code{INT 10h}: Layanan Video (2/2)}
-\scriptsize
+\begin{frame}{CALL vs JMP}
+\footnotesize
+CALL menyimpan alamat instruksi sesudahnya ke stack; JMP tidak.
+
+\vspace{0.2em}
 \begin{center}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.2cm}
-    >{\raggedright\arraybackslash}p{4.0cm}
-    >{\raggedright\arraybackslash}p{3.0cm}
-    >{\raggedright\arraybackslash}p{4.0cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}
+    >{\raggedright\arraybackslash}p{5.0cm}
+    >{\raggedright\arraybackslash}p{4.8cm}@{}}
     \toprule
-    \textbf{Fungsi} & \textbf{Register masukan} &
-    \textbf{Register keluaran} & \textbf{Keterangan} \\
+    \textbf{Aspek} & \textbf{CALL dekat} & \textbf{CALL jauh} \\
     \midrule
-    \hex{09} & \reg{AL} = karakter; \reg{BH} = halaman;
-    \reg{BL} = atribut; \reg{CX} = jumlah penulisan & --- &
-    Menulis karakter berwarna berulang; kursor \emph{tidak}
-    bergeser \\
+    Alamat disimpan & IP (2 byte) & CS dan IP (4 byte) \\
     \addlinespace
-    \hex{0A} & \reg{AL} = karakter; \reg{BH} = halaman;
-    \reg{CX} = jumlah penulisan & --- &
-    Menulis karakter memakai atribut yang sudah ada di layar; kursor
-    juga tidak bergeser \\
+    Instruksi kembali & RET & RETF \\
     \addlinespace
-    \hex{13} & \reg{AL} = mode tulis; \reg{BH} = halaman;
-    \reg{BL} = atribut; \reg{CX} = panjang string; \reg{DH},
-    \reg{DL} = posisi; \reg{ES}:\reg{BP} = alamat string & --- &
-    Menulis seluruh string sekaligus; mode \reg{AL} = \hex{01}
-    memindahkan kursor ke akhir string \\
+    Pemakaian & Segmen kode sama & Segmen kode lain \\
     \bottomrule
 \end{tabular}
 \end{center}
 
-\vspace{0.25em}
-{\footnotesize Fungsi \hex{09} menulis satu karakter yang dapat diulang
-sebanyak nilai \reg{CX} tanpa menggeser kursor, sehingga tepat untuk
-membuat blok warna. Fungsi \hex{13} mencetak seluruh string pada
-\reg{ES}:\reg{BP}, sehingga \reg{DS} harus disalin ke \reg{ES} lebih
-dahulu.\par}
-\Sumber{Bab XIV, INT 10h: Layanan Video}
+\vspace{0.2em}
+{\color{obeGray}Contoh pada bab ini memakai pemanggilan dekat.\par}
+\Sumber{Bab XIV, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Byte Atribut Warna}
-\small Warna pada mode teks ditentukan satu byte \term{atribut} dengan
-susunan bit yang tetap.
-
-\vspace{0.35em}
+\begin{frame}{Stack Frame dan Register BP}
 \begin{center}
 \begin{tikzpicture}[
-    bit/.style={draw=obeBlue,line width=0.6pt,minimum width=0.8cm,
-        minimum height=0.52cm,font=\ttfamily\scriptsize,inner sep=0pt},
-    ket/.style={font=\scriptsize,text=obeGray,align=center}
+    sel/.style={
+        draw=obeBlue, line width=0.7pt, minimum width=4.6cm,
+        minimum height=0.55cm, align=center, font=\small,
+        inner sep=2pt
+    },
+    param/.style={sel, fill=obeAmberLight, draw=obeAmber},
+    kendali/.style={sel, fill=obeTealLight, draw=obeTeal},
+    lama/.style={sel, fill=obeGrayLight, draw=obeGray},
+    ket/.style={font=\scriptsize, text=obeGray, anchor=west}
 ]
-    \foreach \i [count=\c from 0] in {7,6,5,4,3,2,1,0}{%
-        \node[bit,fill=obeBlueLight] (b\i) at (0.8*\c,0) {\i};
-    }
-    \node[bit,fill=obeAmberLight] at (0,0) {7};
-    \node[ket,above=0.22cm of b7] {bit 7: kedip};
-    \node[ket] at (1.6,-0.62) {bit 6--4: warna latar};
-    \node[ket] at (4.4,-0.62) {bit 3--0: warna huruf};
+    \node[param] (p2) at (0,0) {parameter kedua \quad [BP+6]};
+    \node[param] (p1) at (0,-0.55) {parameter pertama \quad [BP+4]};
+    \node[kendali] (ret) at (0,-1.1) {alamat kembali \quad [BP+2]};
+    \node[lama] (bp) at (0,-1.65) {BP lama \quad [BP+0]};
+    \node[sel, fill=obeBlueLight] (lokal) at (0,-2.2)
+        {variabel lokal / ruang bebas};
+
+    \node[ket] at (2.5,0) {alamat tinggi};
+    \node[ket] at (2.5,-2.2) {alamat rendah};
+    \node[font=\scriptsize, text=obeMaroon, anchor=east]
+        at (-2.5,-1.65) {BP dan SP};
+    \draw[-{Stealth[length=2.2mm]}, line width=0.9pt, obeMaroon]
+        (-2.5,-1.65) -- (-2.35,-1.65);
 \end{tikzpicture}
 \end{center}
 
-\vspace{0.3em}
-{\small\reg{BL} = \hex{0E} berarti \bin{00001110}: bit 3--0 bernilai
-\hex{E} (kuning terang) dan bit 6--4 bernilai \hex{0} (latar
-hitam).\par}
+\vspace{0.1em}
+{\footnotesize\color{obeGray}BP dibentuk dengan PUSH BP lalu MOV BP,
+SP.\par}
+\Sumber{Bab XIV, Bagian 2}
+\end{frame}
 
-\vspace{0.25em}
-\begin{block}{Atribut yang sering dipakai}
-\small \hex{07} abu-abu terang pada latar hitam (bawaan DOS),
-\hex{0E} kuning, \hex{1F} putih pada latar biru, \hex{4E} kuning pada
-latar merah.
-\end{block}
+% ---------------------------------------------------------
+\begin{frame}{Akses Parameter melalui BP}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}
+    >{\raggedright\arraybackslash}p{9.0cm}@{}}
+    \toprule
+    \textbf{Alamat} & \textbf{Isi} \\
+    \midrule
+    \code{[BP+0]} & Nilai BP lama \\
+    \addlinespace
+    \code{[BP+2]} & Alamat kembali \\
+    \addlinespace
+    \code{[BP+4]} & Parameter pertama \\
+    \addlinespace
+    \code{[BP+6]} & Parameter kedua \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
 \vspace{0.2em}
-{\footnotesize\color{obeGray}Pemakaian \code{INT 10h} lebih aman
-daripada menulis langsung ke memori video pada alamat \hex{B800},
-karena BIOS sudah mengurus alamat karakter dan atributnya.\par}
-\Sumber{Bab XIV, Byte Atribut Warna}
+{\color{obeGray}Parameter pertama berada paling dekat dengan alamat
+kembali karena didorong terakhir.\par}
+\Sumber{Bab XIV, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{\code{INT 16h}: Layanan Keyboard}
-\small Interupsi \hex{16} menyediakan tiga fungsi utama.
+\begin{frame}{Penyampaian Data}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.4cm}
+    >{\raggedright\arraybackslash}p{4.4cm}
+    >{\raggedright\arraybackslash}p{5.8cm}@{}}
+    \toprule
+    \textbf{Cara} & \textbf{Contoh} & \textbf{Keterangan} \\
+    \midrule
+    Register & \code{MOV AX, lebar}; \code{CALL Hitung} &
+    Cepat; jumlah parameter terbatas \\
+    \addlinespace
+    Stack & \code{PUSH lebar}; \code{CALL Hitung} &
+    Banyak parameter; akses \code{[BP+4]} \\
+    \addlinespace
+    Variabel & \code{MOV lebar, 5}; \code{CALL Hitung} &
+    Sederhana; bergantung variabel global \\
+    \bottomrule
+\end{tabular}
+\end{center}
 
-\vspace{0.3em}
-\begin{enumerate}
-    \item \textbf{Fungsi \hex{00} --- baca tombol.} Prosesor menunggu
-          sampai ada tombol ditekan, lalu mengembalikan \reg{AH} =
-          \eng{scan code} dan \reg{AL} = kode ASCII. Untuk tombol
-          panah, kode ASCII bernilai nol sehingga \reg{AH} yang harus
-          diperiksa.
-
-    \vspace{0.25em}
-    \item \textbf{Fungsi \hex{01} --- periksa status tombol.} Fungsi
-          ini tidak menunggu. Bila ada tombol pada penyangga keyboard,
-          \flag{ZF} bernilai nol dan \reg{AX} berisi tombol tersebut
-          tanpa mengeluarkannya.
-
-    \vspace{0.25em}
-    \item \textbf{Fungsi \hex{02} --- status tombol pengubah.}
-          Mengembalikan keadaan \file{Shift}, \file{Ctrl},
-          \file{Alt}, dan \file{Caps Lock} pada \reg{AL}.
-\end{enumerate}
-
-\vspace{0.3em}
-\begin{alertblock}{BIOS tidak melakukan \eng{echo}}
-\small Masukan DOS melakukan \eng{echo} ke layar dan menghormati
-tombol \file{Ctrl}+\file{C}, sedangkan masukan BIOS tidak melakukan
-keduanya. Program yang memakai BIOS bertanggung jawab mencetak sendiri
-karakter yang dibaca.
-\end{alertblock}
-\Sumber{Bab XIV, INT 16h: Layanan Keyboard}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{\code{INT 17h}: Layanan Printer}
-\small
-\begin{itemize}
-    \item Interupsi \hex{17} mengirim satu byte ke printer melalui
-          \eng{port} paralel.
-    \item Fungsi \hex{00} mencetak karakter pada \reg{AL}, fungsi
-          \hex{01} menginisialisasi printer, dan fungsi \hex{02}
-          membaca statusnya.
-\end{itemize}
-
-\vspace{0.4em}
-\begin{exampleblock}{Bit status pada \reg{AH}}
-\small
-\begin{itemize}
-    \item bit 1 --- waktu tunggu habis
-    \item bit 3 --- kesalahan masukan/keluaran
-    \item bit 5 --- kertas habis
-    \item bit 7 --- printer sibuk
-\end{itemize}
-\end{exampleblock}
-\Sumber{Bab XIV, INT 17h: Layanan Printer}
+\vspace{0.2em}
+{\color{obeGray}RET $n$ membuang $n$ byte parameter setelah
+kembali.\par}
+\Sumber{Bab XIV, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 2}
 \small
 \begin{itemize}
-    \item BIOS adalah kumpulan rutin pada cip ROM yang dipetakan ke
-          \hex{F000} dan menyembunyikan perbedaan perangkat keras;
-          seluruh layanannya memakai \reg{AH} sebagai nomor fungsi.
+    \item Prosedur memakai PROC/ENDP; CALL memanggil, RET kembali.
 
-    \vspace{0.25em}
-    \item \code{INT 10h} melayani video: \hex{00} menetapkan mode,
-          \hex{02} memindahkan kursor, \hex{03} membacanya, \hex{09}
-          menulis karakter berulang tanpa menggeser kursor, dan
-          \hex{13} menulis seluruh string pada \reg{ES}:\reg{BP}.
+    \vspace{0.15em}
+    \item CALL menyimpan alamat kembali ke stack.
 
-    \vspace{0.25em}
-    \item Warna ditentukan byte atribut: bit 3--0 huruf, bit 6--4
-          latar, bit 7 kedip; \hex{0E} kuning pada latar hitam.
+    \vspace{0.15em}
+    \item Stack frame dibentuk PUSH BP lalu MOV BP, SP.
 
-    \vspace{0.25em}
-    \item \code{INT 16h} melayani keyboard (fungsi \hex{00},
-          \hex{01}, \hex{02}) tanpa \eng{echo} dan tanpa menghormati
-          \file{Ctrl}+\file{C}.
+    \vspace{0.15em}
+    \item Parameter pertama di [BP+4], kedua di [BP+6].
 
-    \vspace{0.25em}
-    \item \code{INT 17h} mengirim satu byte ke printer melalui
-          \eng{port} paralel dan mengembalikan bit status pada
-          \reg{AH}.
+    \vspace{0.15em}
+    \item Data dapat dikirim melalui register, stack, atau variabel.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 3
 % =========================================================
-\PemisahBagian{Interupsi DOS dan Penangan Buatan Sendiri}
+\PemisahBagian{Macro}
 
 % ---------------------------------------------------------
-\begin{frame}{Dua Tingkat Layanan}
+\begin{frame}[fragile]{Mendefinisikan Macro}
+\small
+Macro didefinisikan dengan MACRO dan diakhiri ENDM. Assembler
+menyalin isi macro ke tempat pemakaian saat perakitan.
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+Cetak_Kar MACRO Kar
+    MOV CX, 3
+    MOV AH, 02h
+    MOV DL, Kar
+Ulang:
+    INT 21h
+    LOOP Ulang
+ENDM
+
+Cetak_Kar 'S'
+\end{kodeasm}
+\Sumber{Bab XIV, Bagian 3}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Parameter Macro}
 \small
 \begin{itemize}
-    \item BIOS menyediakan akses ke perangkat keras, tetapi belum
-          mengenal berkas, direktori, atau konsep ``program yang
-          sedang berjalan''.
+    \item Parameter macro diganti secara tekstual oleh assembler.
 
-    \vspace{0.25em}
-    \item Semua itu adalah tugas \term{DOS} (\eng{Disk Operating
-          System}) yang dibangun di atas BIOS melalui interupsi
-          \hex{21}.
+    \vspace{0.18em}
+    \item Argumen dapat berupa karakter, angka, nama variabel, atau
+          register.
 
-    \vspace{0.25em}
-    \item \important{BIOS menggerakkan perangkat, DOS mengatur
-          pemakaian sistem secara keseluruhan.}
+    \vspace{0.18em}
+    \item Prosedur tidak memiliki daftar parameter pada PROC; data
+          dikirim lewat register, stack, atau variabel.
+
+    \vspace{0.18em}
+    \item Macro memiliki daftar parameter langsung pada definisinya.
 \end{itemize}
 
-\vspace{0.35em}
-\begin{exampleblock}{Konvensi pemanggilan \code{INT 21h}}
-\small Sama dengan konvensi BIOS: \reg{AH} berisi nomor fungsi dan
-register lain berisi argumen.
-\end{exampleblock}
-\Sumber{Bab XIV, Dua Tingkat Layanan}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Fungsi \code{INT 21h} yang Penting (1/2)}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.2cm}
-    >{\raggedright\arraybackslash}p{3.8cm}
-    >{\raggedright\arraybackslash}p{2.6cm}
-    >{\raggedright\arraybackslash}p{4.0cm}@{}}
-    \toprule
-    \textbf{Fungsi} & \textbf{Register masukan} &
-    \textbf{Register keluaran} & \textbf{Keterangan} \\
-    \midrule
-    \hex{01} & \reg{AH} = \hex{01} & \reg{AL} = karakter &
-    Membaca satu karakter dan menampilkannya (\eng{echo});
-    menunggu sampai ada tombol \\
-    \addlinespace
-    \hex{02} & \reg{AH} = \hex{02}; \reg{DL} = karakter & --- &
-    Mencetak satu karakter pada layar \\
-    \addlinespace
-    \hex{09} & \reg{AH} = \hex{09}; \reg{DS}:\reg{DX} = alamat
-    string & --- &
-    Mencetak string yang diakhiri tanda \code{'\$'}; tanda itu
-    sendiri tidak dicetak \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Pasangan \reg{DS}:\reg{DX} adalah bentuk
-baku alamat jauh pada 8086: \reg{DS} menyimpan nomor segmen dan
-\reg{DX} menyimpan offset di dalamnya. Karena itu program \file{.EXE}
-yang memakai fungsi \hex{09} wajib menginisialisasi \reg{DS}.\par}
-\Sumber{Bab XIV, Fungsi INT 21h yang Penting}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Fungsi \code{INT 21h} yang Penting (2/2)}
-\scriptsize
-\begin{center}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.2cm}
-    >{\raggedright\arraybackslash}p{3.8cm}
-    >{\raggedright\arraybackslash}p{2.6cm}
-    >{\raggedright\arraybackslash}p{4.0cm}@{}}
-    \toprule
-    \textbf{Fungsi} & \textbf{Register masukan} &
-    \textbf{Register keluaran} & \textbf{Keterangan} \\
-    \midrule
-    \hex{0A} & \reg{AH} = \hex{0A}; \reg{DS}:\reg{DX} = alamat
-    penyangga & Penyangga terisi &
-    Membaca string yang diketik pengguna sampai tombol \file{Enter};
-    karakter ditampilkan (\eng{echo}) \\
-    \addlinespace
-    \hex{25} & \reg{AH} = \hex{25}; \reg{AL} = nomor vektor;
-    \reg{DS}:\reg{DX} = alamat penangan & --- &
-    Mengganti isi entri vektor dengan alamat penangan baru \\
-    \addlinespace
-    \hex{35} & \reg{AH} = \hex{35}; \reg{AL} = nomor vektor &
-    \reg{ES}:\reg{BX} = alamat penangan &
-    Membaca isi entri vektor yang sedang berlaku \\
-    \addlinespace
-    \hex{4C} & \reg{AH} = \hex{4C}; \reg{AL} = kode keluar & --- &
-    Mengakhiri program, menutup berkas, dan mengembalikan kendali ke
-    DOS \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
 \vspace{0.2em}
-{\footnotesize\color{obeGray}Enam fungsi di atas --- bersama tiga
-fungsi bagian sebelumnya --- adalah seluruh layanan DOS yang dipakai
-sepanjang bab ini.\par}
-\Sumber{Bab XIV, Fungsi INT 21h yang Penting}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Penyangga Fungsi \hex{0A}}
-\small Fungsi \hex{0A} berbeda dari fungsi lain karena pengguna juga
-menyediakan penyangga (\eng{buffer}) yang tata letaknya ditentukan
-DOS.
-
-\vspace{0.15em}
-\begin{kodeasm}[numbers=none]
-.DATA
-    nama    DB 20           ; byte 0: kapasitas maksimum,
-                            ;   termasuk tombol Enter
-            DB 0            ; byte 1: jumlah karakter yang diketik,
-                            ;   diisi oleh DOS
-            DB 20 DUP(0)    ; byte 2 dan seterusnya: isi yang diketik
-\end{kodeasm}
-
-\vspace{0.15em}
-{\footnotesize Byte pertama harus diisi \emph{sebelum} pemanggilan,
-byte kedua diisi DOS dengan jumlah karakter yang benar-benar diketik.
-DOS juga menambahkan \code{0Dh}, tetapi \emph{tidak} menambahkan tanda
-\code{'\$'}.\par}
-
-\vspace{0.15em}
-\begin{alertblock}{Tanda \code{'\$'} harus disisipkan program}
-\footnotesize Karena fungsi \hex{09} berhenti hanya ketika menemukan
-\code{'\$'}, tanda itu dituliskan pada posisi
-\code{penyangga + 2 + jumlah karakter}. Bila tidak, fungsi \hex{09}
-terus mencetak isi memori sesudah penyangga sampai menemukan byte
-\hex{24} --- layar dipenuhi karakter sampah.
+\begin{alertblock}{Label dalam macro}
+\small Bila macro berlabel dipakai berkali-kali, label yang sama
+disalin berulang dan dapat memicu \file{Symbol already defined}.
 \end{alertblock}
-\Sumber{Bab XIV, Penyangga Fungsi 0Ah}
+\Sumber{Bab XIV, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{\code{INT 20h} dan \code{INT 21h} Fungsi \hex{4C}}
+\begin{frame}{Prosedur vs Macro}
 \footnotesize
 \begin{center}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.2cm}
-    >{\raggedright\arraybackslash}p{4.6cm}
-    >{\raggedright\arraybackslash}p{4.6cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}
+    >{\raggedright\arraybackslash}p{5.0cm}
+    >{\raggedright\arraybackslash}p{4.8cm}@{}}
     \toprule
-    \textbf{Aspek} & \textbf{\code{INT 20h}} &
-    \textbf{\code{INT 21h} fungsi \hex{4C}} \\
+    \textbf{Aspek} & \textbf{Prosedur} & \textbf{Macro} \\
     \midrule
-    Bentuk program & Cocok untuk \file{.COM} &
-    Dapat dipakai \file{.COM} maupun \file{.EXE} \\
+    Pemanggilan & CALL dan RET & nama macro ditulis langsung \\
     \addlinespace
-    Prasyarat & \reg{CS} harus menunjuk ke segmen awal program &
-    Tidak ada prasyarat khusus \\
+    Ukuran program & kode ditulis sekali &
+    kode disalin setiap pemakaian \\
     \addlinespace
-    Kode keluar & Tidak dapat disertakan &
-    Diberikan pada \reg{AL}, dapat dibaca program pemanggil \\
+    Kecepatan & ada biaya CALL/RET & tanpa biaya pemanggilan \\
     \addlinespace
-    Pembersihan oleh DOS & Terbatas &
-    Menutup berkas terbuka dan memulihkan vektor \file{Ctrl}+\file{C} \\
+    Parameter & register, stack, variabel &
+    daftar parameter pada definisi \\
     \addlinespace
-    Pemakaian pada praktikum & Jarang, hanya pada contoh \file{.COM} &
-    Bentuk baku program \file{.EXE} \\
+    Segmen & terikat segmen untuk call dekat &
+    mengikuti tempat pemakaian \\
     \bottomrule
 \end{tabular}
 \end{center}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Fungsi \hex{4C} lebih umum dan lebih aman
-sehingga menjadi pilihan baku; \code{INT 20h} tetap perlu dikenal
-karena muncul pada contoh program lama.\par}
-\Sumber{Bab XIV, INT 20h dan INT 21h Fungsi 4C}
+\Sumber{Bab XIV, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Memasang Penangan Interupsi Sendiri}
-\scriptsize Mengganti isi sebuah entri vektor berarti mengganti
-seluruh perilaku interupsi tersebut. Contoh memakai vektor \hex{60}
-yang tidak dipakai perangkat keras mana pun.
-
-\vspace{0.15em}
-\begin{columns}[t]
-\begin{column}{0.5\textwidth}
-\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7}{7.8}\selectfont]
-MOV AH, 35h                ; baca vektor lama
-MOV AL, 60h
-INT 21h                    ; ES:BX = penangan lama
-PUSH ES
-PUSH BX                    ; simpan di stack
-PUSH DS                    ; simpan DS program
-MOV DX, OFFSET handler60   ; DX = offset baru
-MOV AX, SEG handler60      ; AX = segmen baru
-MOV DS, AX                 ; DS:DX = penangan baru
-MOV AH, 25h                ; pasang vektor
-MOV AL, 60h
-INT 21h
-POP DS
-INT 60h                    ; uji penangan baru
-\end{kodeasm}
-\end{column}
-\begin{column}{0.48\textwidth}
-\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7}{7.8}\selectfont]
-handler60 PROC FAR
-    PUSH AX                ; simpan register
-    PUSH DX
-    MOV AH, 09h            ; cetak pesan
-    LEA DX, pesan
-    INT 21h
-    POP DX                 ; pulihkan register
-    POP AX
-    IRET                   ; pop IP, CS, FLAGS
-handler60 ENDP
-\end{kodeasm}
-\end{column}
-\end{columns}
-
-\vspace{0.15em}
-{\footnotesize\color{obeGray}Lima langkah: simpan penangan lama
-(fungsi \hex{35}), siapkan alamat baru pada \reg{DS}:\reg{DX}, pasang
-(fungsi \hex{25}), uji dengan \asm{INT} \code{n}, lalu pulihkan
-penangan lama. Penangan adalah prosedur jauh yang diakhiri \asm{IRET};
-karena dipanggil lewat interupsi, register yang dipakainya harus
-disimpan dan dipulihkan sendiri.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Memulihkan Vektor dan Risikonya}
-\begin{columns}[t]
-\begin{column}{0.42\textwidth}
-{\footnotesize\color{obeBlue}\bfseries Memulihkan vektor lama}\\[0.15em]
-\begin{kodeasm}[numbers=none]
-POP DX          ; offset penangan lama
-POP DS          ; segmen penangan lama
-MOV AH, 25h     ; pasang kembali
-MOV AL, 60h
-INT 21h
-\end{kodeasm}
-
-\vspace{0.2em}
-{\footnotesize\color{obeBlue}\bfseries Interupsi berantai}\\[0.1em]
-{\footnotesize Penangan yang menggantikan interupsi perangkat keras
-melanjutkan kendali ke penangan lama dengan \emph{melompat} ke
-alamatnya, bukan dengan \asm{IRET}.\par}
-\end{column}
-\begin{column}{0.56\textwidth}
-\begin{alertblock}{Tiga kesalahan yang paling sering terjadi}
-\footnotesize
+\begin{frame}{Kapan Memilih?}
+\small
 \begin{itemize}
-    \item penangan tidak diakhiri \asm{IRET}, sehingga prosesor
-          melompat ke alamat acak;
-    \item vektor lama tidak dipulihkan, sehingga program berikutnya
-          menerima penangan yang sudah tidak ada;
-    \item penangan tidak menyimpan register yang dipakainya.
-\end{itemize}
-\end{alertblock}
+    \item Pilih prosedur bila program menekankan ukuran dan
+          modularitas.
 
-\vspace{0.15em}
-{\footnotesize\color{obeGray}Vektor \hex{08} dan \hex{09} sebaiknya
-tidak dijadikan percobaan pertama.\par}
-\end{column}
-\end{columns}
-\Sumber{Bab XIV, Memasang Penangan Interupsi Sendiri}
+    \vspace{0.18em}
+    \item Pilih macro bila bagian tersebut pendek, sering dipakai,
+          dan parameternya membuat penulisan lebih ringkas.
+
+    \vspace{0.18em}
+    \item Macro memperbesar ukuran program karena isinya disalin
+          setiap kali dipakai.
+
+    \vspace{0.18em}
+    \item Prosedur lebih tepat untuk program besar dengan banyak
+          pemanggilan.
+\end{itemize}
+
+\vspace{0.2em}
+\begin{block}{Ringkas}
+\small Prosedur untuk ukuran; macro untuk keringkasan penulisan.
+\end{block}
+\Sumber{Bab XIV, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 3}
 \small
 \begin{itemize}
-    \item BIOS menggerakkan perangkat, DOS mengatur pemakaian sistem;
-          keduanya memakai \reg{AH} sebagai nomor fungsi.
+    \item Macro didefinisikan dengan MACRO dan diakhiri ENDM.
 
-    \vspace{0.25em}
-    \item Fungsi \code{INT 21h} yang penting: masukan (\hex{01},
-          \hex{0A}), keluaran (\hex{02}, \hex{09}), pengelolaan vektor
-          (\hex{25}, \hex{35}), dan terminasi (\hex{4C}).
+    \vspace{0.15em}
+    \item Parameter macro diganti secara tekstual saat perakitan.
 
-    \vspace{0.25em}
-    \item Penyangga fungsi \hex{0A}: byte 0 kapasitas, byte 1 jumlah
-          karakter (diisi DOS), byte 2 dan seterusnya isi yang
-          diketik. Tanda \code{'\$'} harus disisipkan program bila isi
-          penyangga akan dicetak dengan fungsi \hex{09}.
+    \vspace{0.15em}
+    \item Macro disalin ke setiap tempat pemakaian.
 
-    \vspace{0.25em}
-    \item Fungsi \hex{4C} lebih umum dan lebih aman daripada
-          \code{INT 20h}, sehingga menjadi pilihan baku program
-          \file{.EXE}.
+    \vspace{0.15em}
+    \item Prosedur memakai CALL/RET dan menekankan ukuran program.
 
-    \vspace{0.25em}
-    \item Penangan baru wajib menyimpan register yang dipakainya dan
-          diakhiri \asm{IRET}; vektor lama wajib dipulihkan sesudah
-          pengujian.
+    \vspace{0.15em}
+    \item Macro cocok untuk bagian pendek yang sering dipakai.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % CONTOH PROGRAM
 % =========================================================
-\begin{frame}[fragile]{Contoh 1: Menyapa Pengguna dengan \code{INT 21h}}
-\scriptsize Meminta nama pengguna dengan fungsi \hex{0A}, menyisipkan
-tanda \code{'\$'}, lalu menyapa pengguna dengan nama tersebut.
-
-\vspace{0.1em}
+\begin{frame}[fragile]{Contoh 1: Prosedur Berparameter Stack}
 \begin{columns}[t]
-\begin{column}{0.46\textwidth}
-\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7.2}{8}\selectfont]
-.MODEL SMALL
-.STACK 100h
-.DATA
-    tanya  DB 'Siapa nama Anda? $'
-    sapaan DB 0Dh,0Ah,'Halo, $'
-    nama   DB 20        ; kapasitas
-           DB 0         ; jumlah terisi
-           DB 20 DUP(0) ; isi nama
-    penutup DB '! Selamat belajar assembly.',0Dh,0Ah,'$'
-.CODE
-START:
-    MOV AX, @DATA
-    MOV DS, AX          ; DS -> .DATA
-    MOV AH, 09h
-    LEA DX, tanya
-    INT 21h             ; cetak pertanyaan
+\begin{column}{0.44\textwidth}
+{\color{obeTeal}\bfseries Pemanggil}\\[0.15em]
+\begin{kodeasm}[numbers=none]
+PUSH tinggi
+PUSH lebar
+CALL HitungLuas
+MOV luas, AX
+MOV BX, AX
 \end{kodeasm}
 \end{column}
 \begin{column}{0.52\textwidth}
-\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7.2}{8}\selectfont]
-    MOV AH, 0Ah         ; baca nama
-    LEA DX, nama
-    INT 21h             ; DOS isi byte 1 dan 2..
-    LEA SI, nama
-    MOV BL, [SI+1]      ; jumlah karakter
-    MOV BH, 0           ; BX = jumlah karakter
-    ADD SI, 2           ; SI -> nama pertama
-    ADD SI, BX          ; SI -> sesudah terakhir
-    MOV BYTE PTR [SI], '$'
-    MOV AH, 09h
-    LEA DX, sapaan
-    INT 21h             ; cetak "Halo, "
-    LEA DX, nama+2      ; cetak nama pengguna
-    INT 21h
-    LEA DX, penutup
-    INT 21h
-    MOV AH, 4Ch
-    INT 21h             ; terminasi program
+{\color{obeTeal}\bfseries Prosedur}\\[0.15em]
+\begin{kodeasm}[numbers=none]
+HitungLuas PROC
+    PUSH BP
+    MOV BP, SP
+    MOV AX, [BP+4]
+    MUL WORD PTR [BP+6]
+    POP BP
+    RET 4
+HitungLuas ENDP
 \end{kodeasm}
 \end{column}
 \end{columns}
 
-{\scriptsize\color{obeGray}Keluaran: \code{Siapa nama Anda? Andi},
-lalu \code{Halo, Andi! Selamat belajar assembly.} Fungsi \hex{0A}
-sudah menampilkan (\eng{echo}) karakter yang diketik. Sumber:
-\file{input-nama.asm}.\par}
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Hasil $5 \times 10 = 50$ atau
+\hex{0032}, disimpan di \code{luas} dan AX.\par}
+\Sumber{Bab XIV, Contoh 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 2: Teks Berwarna dengan \code{INT 10h}}
-\scriptsize Judul berwarna kuning dan garis merah dengan layanan video
-BIOS; tidak satu pun layanan DOS dipakai untuk mencetak.
-
-\vspace{0.1em}
+\begin{frame}[fragile]{Contoh 2: Macro dengan Parameter}
 \begin{columns}[t]
-\begin{column}{0.46\textwidth}
-\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7}{7.8}\selectfont]
-.MODEL SMALL
-.STACK 100h
-.DATA
-    judul   DB 'Bahasa Assembly - '
-            DB 'Interupsi BIOS/DOS'
-    panjang EQU $ - judul    ; 36
+\begin{column}{0.55\textwidth}
+\begin{kodeasm}
+Cetak_Kar MACRO Kar
+    MOV CX, 3
+    MOV AH, 02h
+    MOV DL, Kar
+Ulang:
+    INT 21h
+    LOOP Ulang
+ENDM
 .CODE
 START:
-    MOV AX, @DATA
-    MOV DS, AX
-    MOV ES, AX        ; ES = DS
-    MOV AH, 00h       ; set mode
-    MOV AL, 03h       ; teks 80x25
-    INT 10h
-    MOV AH, 13h       ; tulis string
-    MOV AL, 01h       ; kursor maju
-    MOV BL, 0Eh       ; kuning
-    MOV CX, panjang
+    Cetak_Kar 'S'
+    MOV AH, 4Ch
+    INT 21h
+END START
 \end{kodeasm}
 \end{column}
-\begin{column}{0.52\textwidth}
-\begin{kodeasm}[numbers=none, basicstyle=\ttfamily\fontsize{7}{7.8}\selectfont]
-    MOV DH, 05h       ; baris 5
-    MOV DL, 0Ah       ; kolom 10
-    LEA BP, judul
-    INT 10h           ; ES:BP
-    MOV AH, 02h       ; pindah kursor
-    MOV DH, 07h       ; baris 7
-    MOV DL, 0Ah       ; kolom 10
-    INT 10h
-    MOV AH, 09h       ; garis merah
-    MOV AL, '='
-    MOV BL, 0Ch       ; merah terang
-    MOV CX, panjang
-    INT 10h           ; kursor tetap
-    MOV AH, 4Ch       ; terminasi
-    MOV AL, 00h
-    INT 21h
-\end{kodeasm}
+\begin{column}{0.42\textwidth}
+\footnotesize
+{\color{obeTeal}\bfseries Keluaran}\\[0.15em]
+\begin{keluaran}
+SSS
+\end{keluaran}
+
+\vspace{0.3em}
+Assembler menyalin isi macro dengan setiap \code{Kar} diganti
+\code{'S'}. Label \code{Ulang} aman karena macro dipakai sekali.
 \end{column}
 \end{columns}
-
-\vspace{0.1em}
-{\scriptsize\color{obeGray}Karena yang memindahkan kursor adalah BIOS,
-DOS tidak mengetahui posisi kursor yang sesungguhnya; kedua cara
-pencetakan sebaiknya tidak dicampur tanpa mengatur ulang kursor.
-Sumber: \file{warna-layar.asm}.\par}
+\Sumber{Bab XIV, Contoh 2}
 \end{frame}
 
 % =========================================================
 % PRAKTIKUM
 % =========================================================
-\begin{frame}{Praktikum: Masukan/Keluaran dan Penelusuran Stack}
+\begin{frame}{Praktikum: Stack, Prosedur, dan Macro}
 \begin{block}{Judul praktikum}
-\small Masukan/keluaran dengan \code{INT 21h} dan penelusuran stack
-pada pemanggilan \asm{INT} \quad\textbullet\quad \textbf{Sub-CPMK:}
-2.4 \quad\textbullet\quad 100 menit \quad\textbullet\quad individu
-\quad\textbullet\quad \textbf{Tugas 7 dikumpulkan}
+\small Menelusuri stack, prosedur berparameter, dan macro\\[0.15em]
+\textbf{Sub-CPMK:} 3.5 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
 \end{block}
 
-\vspace{0.1em}
+\vspace{0.2em}
 \begin{columns}[t]
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 {\color{obeBlue}\bfseries Alat dan bahan}
-\begin{itemize}\scriptsize
-    \item Emu8086, GUI Turbo Assembler, atau DOSBox
-    \item Berkas \file{input-nama.asm} dan \file{warna-layar.asm}
-    \item Jurnal untuk mencatat register dan isi stack
+\begin{itemize}\footnotesize
+    \item Komputer dengan emu8086
+    \item DOSBox dengan TASM, TLINK, dan DEBUG
+    \item \file{prosedur-luas.asm} dan \file{param-bp.asm}
+    \item Lembar pengamatan stack
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.50\textwidth}
 {\color{obeBlue}\bfseries Langkah kerja}
-\begin{enumerate}\scriptsize
-    \item Rakit dan jalankan \file{input-nama.asm}; catat hasilnya.
-    \item Ubah kapasitas penyangga \dec{20} menjadi \dec{5}; jelaskan
-          hasilnya.
-    \item Hapus baris \asm{MOV BYTE PTR [SI], '\$'}; jelaskan
-          penyebab keluarannya.
-    \item Catat \reg{SP} dan puncak stack sebelum serta sesudah
-          \asm{INT 21h} dengan \file{debug}.
+\begin{enumerate}\footnotesize
+    \item Jalankan \file{prosedur-luas.asm}; catat luas.
+    \item Single step; catat SP, BP, dan [BP+4]/[BP+6].
+    \item Ubah parameter; pastikan luas berubah.
+    \item Jalankan \file{param-bp.asm}; telusuri stack.
+    \item Buat dan uji macro berparameter.
 \end{enumerate}
 \end{column}
 \end{columns}
 
-\vspace{0.1em}
-{\footnotesize\textbf{Dikumpulkan:} \file{tugas7.asm} (nama dan NIM,
-mode \hex{03}, fungsi \hex{13}, ditutup fungsi \hex{4C}), tangkapan
-layar keluaran, tabel pengamatan \reg{SP} dan puncak stack, serta
-jawaban langkah B.6 dan B.7.\par}
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} berkas \file{.asm} modifikasi,
+tabel SP/BP/stack, tangkapan layar, program macro, dan perbandingan
+prosedur--macro.\par}
+\Sumber{Bab XIV, Praktikum}
 \end{frame}
 
 % =========================================================
@@ -1102,33 +631,25 @@ jawaban langkah B.6 dan B.7.\par}
 \begin{frame}{Latihan}
 \small
 \begin{enumerate}
-    \item Jelaskan mengapa mekanisme interupsi lebih efisien daripada
-          \eng{polling}. Sertakan satu contoh perangkat pada komputer
-          yang lebih baik diperiksa dengan interupsi.
+    \item Jelaskan sifat LIFO pada stack. Mengapa stack 8086 tumbuh
+          ke alamat lebih rendah?
 
-    \vspace{0.28em}
-    \item Sebutkan tiga jenis interupsi pada prosesor 8086. Untuk
-          setiap jenis, berikan satu contoh beserta nomor vektornya
-          dan siapa yang memicunya.
+    \vspace{0.15em}
+    \item Diketahui SP = \hex{FFFE}. Tentukan SP setelah PUSH AX dan
+          setelah POP BX; jelaskan urutan langkahnya.
 
-    \vspace{0.28em}
-    \item Dengan memakai rumus alamat vektor$_n = n \times 4$,
-          tentukan alamat entri vektor \hex{0A}, \hex{13}, dan
-          \hex{21}. Sebutkan pula alamat byte pertama (offset) dan
-          byte ketiga (segmen) setiap entri.
+    \vspace{0.15em}
+    \item Jelaskan fungsi PROC, ENDP, CALL, dan RET. Mengapa CALL
+          berbeda dari JMP?
 
-    \vspace{0.28em}
-    \item Sebuah program berjalan dengan \reg{SP} = \hex{FF00} ketika
-          \asm{INT 21h} dijalankan. Berapa \reg{SP} sesudah ketiga
-          penyimpanan selesai, nilai apa yang berada pada
-          \reg{SS}:\reg{SP}, \reg{SS}:\reg{SP}+2, dan
-          \reg{SS}:\reg{SP}+4, dan mengapa \asm{RET} tidak dapat
-          menggantikan \asm{IRET}?
+    \vspace{0.15em}
+    \item Jelaskan isi [BP+0], [BP+2], [BP+4], dan [BP+6] setelah
+          PUSH BP dan MOV BP, SP.
 
-    \vspace{0.28em}
-    \item Tentukan warna huruf dan warna latar untuk atribut \hex{1E},
-          \hex{4F}, dan \hex{07}, dengan menyebut nilai bit 3--0, bit
-          6--4, dan bit 7.
+    \vspace{0.15em}
+    \item Jelaskan cara mendefinisikan macro berparameter dan apa
+          yang terjadi saat macro dipakai. Sebutkan empat perbedaan
+          prosedur dan macro.
 \end{enumerate}
 \end{frame}
 
@@ -1136,43 +657,27 @@ jawaban langkah B.6 dan B.7.\par}
 % RANGKUMAN
 % =========================================================
 \begin{frame}{Rangkuman}
-\footnotesize
+\small
 \begin{itemize}
-    \item Interupsi memaksa prosesor menghentikan sementara alur
-          program untuk melayani suatu kejadian, lalu melanjutkannya
-          kembali; mekanisme ini lebih hemat daripada \eng{polling}.
+    \item Stack bersifat LIFO, ditunjuk SS:SP, dan tumbuh ke alamat
+          rendah.
 
-    \vspace{0.18em}
-    \item Berdasarkan sumbernya: interupsi perangkat keras
-          (\file{INTR} dan \file{NMI}), interupsi perangkat lunak
-          (\asm{INT} \code{n}), dan pengecualian yang dibangkitkan
-          prosesor, misalnya pembagian dengan nol.
+    \vspace{0.15em}
+    \item PUSH mengurangi SP dua; POP menambah SP dua.
 
-    \vspace{0.18em}
-    \item Tabel vektor menempati \hex{0000}--\hex{03FF} pada segmen
-          nol; setiap vektor 4 byte (2 byte offset dan 2 byte segmen),
-          sehingga alamat entri vektor ke-$n$ adalah $n \times 4$.
+    \vspace{0.15em}
+    \item Prosedur memakai PROC/ENDP; CALL menyimpan alamat kembali;
+          RET memulihkannya.
 
-    \vspace{0.18em}
-    \item \asm{INT} \code{n} menyimpan \reg{FLAGS}, \reg{CS}, lalu
-          \reg{IP} ke stack, mengosongkan \flag{IF} dan \flag{TF},
-          kemudian memuat \reg{CS}:\reg{IP} dari entri vektor.
-          \asm{IRET} mengembalikan ketiganya secara terbalik, setara
-          \asm{RET} ditambah \asm{POPF}.
+    \vspace{0.15em}
+    \item Stack frame dibentuk PUSH BP dan MOV BP, SP.
 
-    \vspace{0.18em}
-    \item BIOS melayani perangkat keras (\code{INT 10h} video,
-          \code{INT 16h} keyboard, \code{INT 17h} printer), sedangkan
-          \code{INT 21h} melayani keperluan tingkat program: masukan
-          (\hex{01}, \hex{0A}), keluaran (\hex{02}, \hex{09}),
-          pengelolaan vektor (\hex{25}, \hex{35}), dan terminasi
-          (\hex{4C}).
+    \vspace{0.15em}
+    \item Parameter: [BP+4] pertama, [BP+6] kedua.
 
-    \vspace{0.18em}
-    \item Fungsi \hex{0A} memakai penyangga dengan tata letak dari
-          DOS, dan isi vektor dapat diganti melalui fungsi \hex{25};
-          penangan baru wajib menyimpan register dan diakhiri
-          \asm{IRET}, sedangkan vektor lama wajib dipulihkan.
+    \vspace{0.15em}
+    \item Macro memakai MACRO/ENDM dan parameter tekstual; isinya
+          disalin saat perakitan.
 \end{itemize}
 \end{frame}
 
@@ -1180,30 +685,26 @@ jawaban langkah B.6 dan B.7.\par}
 \begin{frame}{Cek Pemahaman}
 \footnotesize
 \begin{enumerate}
-    \item Setiap entri pada tabel vektor interupsi 8086 berukuran
-          \dots
-          \begin{enumerate}\scriptsize
-              \item 2 byte berisi offset penangan \quad
-              \item 4 byte: 2 byte offset dan 2 byte segmen \\
-              \item 4 byte berisi nomor vektor \quad
-              \item 8 byte: \reg{IP}, \reg{CS}, dan \reg{FLAGS}
+    \item Setelah PUSH AX, nilai SP \dots
+          \begin{enumerate}
+              \item bertambah 2 \quad \item berkurang 2 \quad
+              \item tidak berubah \quad \item bertambah 4
           \end{enumerate}
 
     \vspace{0.2em}
-    \item Alamat entri untuk vektor \hex{10} adalah \dots
-          \begin{enumerate}\scriptsize
-              \item \hex{0010} \quad \item \hex{0040} \quad
-              \item \hex{0100} \quad \item \hex{0160}
+    \item Alamat kembali pada pemanggilan prosedur disimpan oleh
+          instruksi \dots
+          \begin{enumerate}
+              \item JMP \quad \item CALL \quad
+              \item RET \quad \item PUSH
           \end{enumerate}
 
     \vspace{0.2em}
-    \item Urutan penyimpanan ke stack ketika \asm{INT} \code{n}
-          dijalankan adalah \dots
-          \begin{enumerate}\scriptsize
-              \item \reg{IP}, \reg{CS}, \reg{FLAGS} \quad
-              \item \reg{CS}, \reg{IP}, \reg{FLAGS} \\
-              \item \reg{FLAGS}, \reg{CS}, \reg{IP} \quad
-              \item \reg{FLAGS}, \reg{IP}, \reg{CS}
+    \item Setelah PUSH BP dan MOV BP, SP, parameter pertama diakses
+          melalui \dots
+          \begin{enumerate}
+              \item [BP+0] \quad \item [BP+2] \quad
+              \item [BP+4] \quad \item [BP+6]
           \end{enumerate}
 \end{enumerate}
 \end{frame}
@@ -1212,31 +713,24 @@ jawaban langkah B.6 dan B.7.\par}
 % PENUTUP
 % =========================================================
 \begin{frame}{Penutup}
-\small
 \begin{block}{Sebelum pertemuan berikutnya}
+\small
 \begin{itemize}
-    \item Selesaikan Tugas 7: \file{tugas7.asm} (sapaan berwarna),
-          tabel pengamatan \reg{SP} dan puncak stack, serta tangkapan
-          layar keluaran.
-    \item Ulangi bagian yang belum dikuasai dengan menelusuri
-          \file{input-nama.asm} satu instruksi demi satu pada
-          \eng{debugger}.
-    \item Baca \textbf{Bab XV} --- Debugging pada Level Instruksi.
+    \item Selesaikan praktikum: berkas \file{.asm} modifikasi,
+          tabel SP/BP/stack, program macro, dan perbandingan.
+    \item Baca \textbf{Bab XV} — Array, String, dan Pencetakan
+          Bilangan.
+    \item Siapkan pertanyaan tentang offset array, string, dan
+          konversi bilangan ke ASCII.
 \end{itemize}
 \end{block}
 
-\vspace{0.3em}
-{\footnotesize\textbf{Bacaan lanjutan:} Bab XIV bagian Tabel Vektor
-Interupsi dan Memasang Penangan Interupsi Sendiri; daftar lengkap
-vektor interupsi beserta setiap fungsinya; pembahasan bentuk baku
-alamat jauh \reg{DS}:\reg{DX} pada Bab VI.\par}
-
-\vspace{0.35em}
+\vspace{0.4em}
 \begin{center}
 {\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
-\vspace{0.12em}
-{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
-\SemesterTeks\par}
+\vspace{0.15em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK)
+\textbullet\ \SemesterTeks\par}
 \end{center}
 \end{frame}
 
