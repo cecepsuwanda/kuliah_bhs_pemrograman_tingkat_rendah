@@ -1,7 +1,7 @@
 % =========================================================
 % ppt/src/minggu-05.tex
 % Slide pertemuan 5
-% Bab VII — Format Instruksi Mesin
+% Bab VII — Memulai Assembly: TASM, TLINK, COM, EXE, dan Direktif
 %
 % Sub-CPMK 2.1 | CPMK02 | CPL02
 % =========================================================
@@ -16,37 +16,35 @@
 % =========================================================
 % 1. JUDUL
 % =========================================================
-\JudulDeck{Format Instruksi Mesin}{Pertemuan 5}
+\JudulDeck{Memulai Assembly:\\ TASM, TLINK, COM, EXE, dan Direktif}{Pertemuan 5}
 
 % =========================================================
 % 2. CAPAIAN DAN TUJUAN
 % =========================================================
 \begin{frame}{Capaian dan Tujuan Pembelajaran}
 \begin{block}{Sub-CPMK 2.1}
-\small Menjelaskan format instruksi mesin (\eng{opcode}, byte ModR/M,
-\eng{displacement}/\eng{immediate}) dan mengaitkannya dengan operasi
-yang dieksekusi perangkat keras.
+\small Menjelaskan struktur program assembly (\dir{.MODEL},
+\dir{ORG 100h}, \dir{.CODE}, \dir{.DATA}, label, komentar) dan alur
+translasi \file{.ASM} $\rightarrow$ \file{.OBJ} $\rightarrow$
+\file{.EXE}/\file{.COM}.
 \end{block}
 
-\vspace{0.15em}
+\vspace{0.1em}
 {\small\textbf{CPMK yang didukung:} \CPMK{02}\quad\textbullet\quad
 \textbf{CPL yang didukung:} \CPL{02}\par}
 
-\vspace{0.3em}
+\vspace{0.15em}
 \begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
 \footnotesize
 \begin{enumerate}
-    \item menjelaskan hubungan \eng{mnemonic} assembly dan kode mesin
-          yang dihasilkan assembler;
-    \item menjelaskan sebab satu \eng{mnemonic} memiliki beberapa
-          bentuk \eng{encoding};
-    \item menguraikan susunan field instruksi 8086 beserta urutannya;
-    \item memecah byte ModR/M menjadi field \code{mod},
-          \code{reg/opcode}, dan \code{r/m};
-    \item melakukan \eng{encoding} manual dan membacanya kembali
-          dengan \eng{disassembler};
-    \item menilai pengaruh format instruksi terhadap ukuran kode dan
-          kecepatan eksekusi.
+    \item menjelaskan rantai proses dari \file{.ASM} sampai program
+          berjalan;
+    \item menjelaskan peran editor, TASM, TLINK, dan \eng{loader};
+    \item membedakan program \file{.COM} dan \file{.EXE};
+    \item menjelaskan \dir{.MODEL}, \dir{.STACK}, \dir{.DATA},
+          \dir{.CODE}, \dir{ORG 100h}, dan \dir{END};
+    \item menggunakan \dir{DB}, \dir{DW}, \dir{DD}, \dir{EQU}, dan
+          \dir{DUP} lalu menjalankan program.
 \end{enumerate}
 \end{exampleblock}
 \end{frame}
@@ -57,921 +55,717 @@ yang dieksekusi perangkat keras.
 \begin{frame}{Peta Materi}
 \small
 \begin{enumerate}
-    \item \textbf{Dari Mnemonic ke Kode Mesin}\\
-          {\footnotesize assembly sebagai simbol kode mesin; sebab
-          satu mnemonic punya banyak \eng{encoding}; format umum
-          lima field; variasi panjang 1--6 byte;
-          \eng{little-endian}}
+    \item \textbf{Rantai Proses Pembuatan Program Assembly}\\
+          {\footnotesize editor, TASM, TLINK, \eng{loader}; program
+          COM dan EXE; lingkungan praktik}
 
     \vspace{0.25em}
-    \item \textbf{Byte ModR/M, Displacement, dan Immediate}\\
-          {\footnotesize field \code{mod}, \code{reg/opcode}, dan
-          \code{r/m}; arti nilai \code{mod} dan \code{r/m}; dua
-          pengecualian; peran \eng{displacement} dan
-          \eng{immediate}; pengaruh terhadap ukuran dan kecepatan}
+    \item \textbf{Struktur Program Assembly}\\
+          {\footnotesize kerangka program; model memori; label dan
+          komentar; \dir{ORG 100h}; inisialisasi DS}
 
     \vspace{0.25em}
-    \item \textbf{Encoding Manual dan Disassembler}\\
-          {\footnotesize lima langkah \eng{encoding}; tabel
-          \eng{opcode} umum; perintah \code{U} pada \file{DEBUG};
-          keterbatasan \eng{disassembly}}
+    \item \textbf{Direktif Data dan Alur Translasi}\\
+          {\footnotesize DB, DW, DD, EQU, DUP; direktif bukan
+          instruksi; alur translasi; pesan kesalahan}
 \end{enumerate}
 
 \vspace{0.35em}
 \begin{block}{Praktik pada pertemuan ini}
-\small Menguraikan byte kode mesin lima instruksi secara manual, lalu
-membandingkannya dengan hasil perintah \code{U} dan menghitung selisih
-ukuran dua bentuk penulisan.
+\small Menulis, meng-\eng{assemble}, men-\eng{link}, dan menjalankan
+program \file{.EXE} serta \file{.COM}.
 \end{block}
 \end{frame}
 
 % =========================================================
 % BAGIAN 1
 % =========================================================
-\PemisahBagian{Dari Mnemonic ke Kode Mesin}
+\PemisahBagian{Rantai Proses Pembuatan Program Assembly}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Assembly adalah Simbol dari Kode Mesin}
-\small
-\begin{itemize}
-    \item Perangkat keras hanya mengenal deretan bit. Instruksi
-          memindahkan isi \reg{BX} ke \reg{AX} tidak pernah tersimpan
-          sebagai huruf \code{MOV}; yang ada di memori adalah dua byte
-          \hex{89 D8}.
-
-    \vspace{0.25em}
-    \item Kata pendek yang mewakili operasi tersebut disebut
-          \term{mnemonic}. Assembler menerjemahkan setiap
-          \eng{mnemonic} beserta operandnya menjadi deretan byte kode
-          mesin yang ekuivalen.
-
-    \vspace{0.25em}
-    \item \asm{MOV} tidak selalu menghasilkan \eng{opcode} yang sama:
-          setiap bentuk operand memerlukan pengodean yang berbeda.
-\end{itemize}
-
-\vspace{0.35em}
-\begin{keluaran}
-MOV AX, BX      <- yang ditulis programmer (mnemonic)
-89 D8           <- yang tersimpan di memori (kode mesin)
-\end{keluaran}
-
-\Sumber{Bab VII, Assembly adalah Simbol dari Kode Mesin}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Mengapa Satu Mnemonic Memiliki Beberapa Encoding}
-\small Empat sebab utama:
-\vspace{0.25em}
-\begin{enumerate}
-    \item \textbf{Jenis operand.} Register, sel memori, dan nilai
-          segera adalah tiga jenis berbeda. \code{MOV AX, BX} memakai
-          \eng{opcode} \hex{89}, sedangkan \code{MOV AX, 1234h}
-          memakai \hex{B8}.
-
-    \vspace{0.2em}
-    \item \textbf{Ukuran operand.} \code{MOV AL, 5} dan
-          \code{MOV AX, 5} beroperasi pada ukuran berbeda, sehingga
-          \eng{opcode}-nya \hex{B0} dan \hex{B8}.
-
-    \vspace{0.2em}
-    \item \textbf{Arah perpindahan.} \hex{8B} berarti
-          ``register $\leftarrow$ memori'', \hex{89} berarti
-          ``memori $\leftarrow$ register''.
-
-    \vspace{0.2em}
-    \item \textbf{Mode pengalamatan.} Perbedaan alamat operand diatur
-          lewat byte ModR/M dan \eng{displacement}, bukan dengan
-          mengganti \eng{opcode}.
-\end{enumerate}
-
-\vspace{0.25em}
-{\footnotesize\color{obeGray}Akibatnya \asm{MOV} memiliki puluhan
-bentuk mesin. Programmer tidak perlu menghafalnya, tetapi pembaca hasil
-\eng{disassembly} harus mengenali bentuk yang dihadapi.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Format Umum Instruksi 8086}
+\begin{frame}{Rantai Proses}
 \begin{center}
 \begin{tikzpicture}[
-    font=\small,
-    bidang/.style={
-        draw=obeBlue, line width=0.8pt, minimum height=1.45cm,
-        align=center, inner sep=3pt
-    }
+    tahap/.style={
+        draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
+        rounded corners=3pt, minimum width=2.6cm,
+        minimum height=1.1cm, align=center, font=\small\bfseries,
+        inner sep=3pt
+    },
+    alat/.style={font=\scriptsize\itshape, text=obeGray, align=center},
+    panah/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, obeTeal}
 ]
-    \node[bidang, fill=obeAmberLight, minimum width=1.7cm] (p)
-        at (0,0) {\textbf{Prefix}\\{\scriptsize 0--1 B}\\
-        {\tiny\itshape opsional}};
-    \node[bidang, fill=obeBlueLight, minimum width=2.3cm,
-        right=0.12cm of p] (o)
-        {\textbf{Opcode}\\{\scriptsize 1--2 B}\\
-        {\tiny\itshape wajib}};
-    \node[bidang, fill=obeTealLight, minimum width=2.3cm,
-        right=0.12cm of o] (m)
-        {\textbf{ModR/M}\\{\scriptsize 0--1 B}\\
-        {\tiny\itshape bila ada operand}};
-    \node[bidang, fill=obeGreenLight, minimum width=2.4cm,
-        right=0.12cm of m] (d)
-        {\textbf{Displacement}\\{\scriptsize 0--2 B}\\
-        {\tiny\itshape bila alamat bergeser}};
-    \node[bidang, fill=obeMaroonLight, minimum width=2.2cm,
-        right=0.12cm of d] (i)
-        {\textbf{Immediate}\\{\scriptsize 0--2 B}\\
-        {\tiny\itshape bila operand angka}};
+    \node[tahap] (a) {\file{.ASM}\\{\normalfont\scriptsize kode sumber}};
+    \node[tahap, right=0.3cm of a, fill=obeTealLight, draw=obeTeal] (b)
+        {\file{.OBJ}\\{\normalfont\scriptsize berkas objek}};
+    \node[tahap, right=0.3cm of b, fill=obeTealLight, draw=obeTeal] (c)
+        {\file{.EXE}/\file{.COM}\\{\normalfont\scriptsize siap jalan}};
+    \node[tahap, right=0.3cm of c, fill=obeAmberLight, draw=obeAmber] (d)
+        {Memori\\{\normalfont\scriptsize program berjalan}};
+
+    \draw[panah] (a) -- (b);
+    \draw[panah] (b) -- (c);
+    \draw[panah] (c) -- (d);
+
+    \node[alat, below=0.1cm of a] {editor};
+    \node[alat, below=0.1cm of b] {assembler\\TASM};
+    \node[alat, below=0.1cm of c] {linker\\TLINK};
+    \node[alat, below=0.1cm of d] {loader\\DOS};
 \end{tikzpicture}
 \end{center}
 
 \vspace{0.4em}
-{\small Urutan kelima field bersifat \textbf{tetap}; field yang tidak
-diperlukan tidak ditulis sama sekali, sehingga panjang instruksi
-bervariasi antara 1 sampai 6 byte.\par}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Contoh pemakaian penuh:
-\code{MOV WORD PTR [BX+SI+1234h], 5678h} menghasilkan
-\hex{C7 80 34 12 78 56} --- enam byte, semua field terpakai.\par}
-\Sumber{Bab VII, Format Umum Instruksi 8086}
+{\footnotesize\color{obeGray}Setiap tahap menyerahkan hasil ke tahap
+berikutnya; berkas \file{.OBJ} belum dapat dijalankan.\par}
+\Sumber{Bab VII, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Ukuran Instruksi Tidak Seragam}
-\footnotesize
-\begin{center}
-\begin{tabular}{@{}p{3.4cm}p{2.6cm}cp{4.4cm}@{}}
-    \toprule
-    \textbf{Instruksi} & \textbf{Kode mesin} & \textbf{Byte} &
-    \textbf{Field yang dipakai} \\
-    \midrule
-    \asm{NOP} & \hex{90} & 1 & Opcode \\
-    \addlinespace
-    \asm{PUSH AX} & \hex{50} & 1 & Opcode \\
-    \addlinespace
-    \asm{MOV AL, 5} & \hex{B0 05} & 2 & Opcode, immediate \\
-    \addlinespace
-    \asm{MOV AX, BX} & \hex{89 D8} & 2 & Opcode, ModR/M \\
-    \addlinespace
-    \asm{MOV AX, 1234h} & \hex{B8 34 12} & 3 &
-    Opcode, immediate 16 bit \\
-    \addlinespace
-    \asm{ADD AX, [SI+4]} & \hex{03 44 04} & 3 &
-    Opcode, ModR/M, displacement \\
-    \addlinespace
-    \asm{MOV WORD PTR} & \hex{C7 80 34} & & Opcode, ModR/M, \\
-    \asm{[BX+SI+1234h], 5678h} & \hex{12 78 56} & 6 &
-    displacement, immediate \\
-    \bottomrule
-\end{tabular}
-\end{center}
+\begin{frame}{Tahapan dan Peran}
+\small
+\begin{enumerate}
+    \item \textbf{Penyuntingan.} Program ditulis sebagai berkas
+          \file{.ASM} dengan editor teks.
 
-\vspace{0.25em}
-{\footnotesize\color{obeGray}Intel membatasi panjang maksimum
-instruksi pada 6 byte; angka inilah yang menjadi alasan antrean
-pengambilan awal (\eng{prefetch queue}) 8086 berukuran 6 byte.\par}
+    \vspace{0.15em}
+    \item \textbf{Perakitan.} TASM menerjemahkan instruksi menjadi
+          \file{.OBJ}; simbol dan label dicatat, alamat akhir belum
+          ditetapkan.
+
+    \vspace{0.15em}
+    \item \textbf{Pengaitan.} TLINK menggabungkan berkas objek,
+          menyelesaikan rujukan simbol, dan menghasilkan
+          \file{.EXE} atau \file{.COM}.
+
+    \vspace{0.15em}
+    \item \textbf{Pemuatan.} DOS memuat program, menetapkan register
+          segmen, lalu menyerahkan kendali ke instruksi pertama.
+\end{enumerate}
+\Sumber{Bab VII, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Membaca Kode Mesin dari Kiri ke Kanan}
-\small Byte instruksi dieksekusi menurut urutan alamat, dari byte
-pertama sampai terakhir. Namun nilai 16 bit di dalamnya disimpan
-\term{little-endian}: byte bernilai rendah lebih dahulu.
-
-\vspace{0.35em}
+\begin{frame}[fragile]{Perintah TASM dan TLINK}
 \begin{columns}[t]
 \begin{column}{0.48\textwidth}
-\begin{kodeasm}[numbers=none]
-MOV AX, 1234h    ; nilai immediate
-\end{kodeasm}
-\end{column}
-\begin{column}{0.46\textwidth}
-{\color{obeTeal}\bfseries Byte di memori}\\[0.25em]
+{\color{obeTeal}\bfseries Program \file{.EXE}}\\[0.25em]
 \begin{keluaran}
-B8   34   12
+TASM hello.asm
+TLINK hello.obj
 \end{keluaran}
-{\scriptsize byte \hex{34} lebih dahulu daripada \hex{12}}
+
+\vspace{0.3em}
+{\footnotesize TASM menghasilkan \file{.OBJ}; TLINK menghasilkan
+\file{.EXE}.\par}
+\end{column}
+\begin{column}{0.48\textwidth}
+{\color{obeTeal}\bfseries Program \file{.COM}}\\[0.25em]
+\begin{keluaran}
+TASM hello.asm
+TLINK /t hello.obj
+\end{keluaran}
+
+\vspace{0.3em}
+{\footnotesize Pilihan \code{/t} membuat TLINK menghasilkan
+\file{.COM}.\par}
 \end{column}
 \end{columns}
 
-\vspace{0.45em}
-\begin{alertblock}{Kekeliruan yang paling sering terjadi}
-\small Membaca deretan \hex{34 12} sebagai \hex{3412} mengubah
-nilainya, bukan lagi \hex{1234}. Kesalahan urutan ini termasuk yang
-paling sering muncul pada analisis kode mesin.
-\end{alertblock}
+\vspace{0.4em}
+\begin{block}{Peran masing-masing}
+\small TASM memeriksa penulisan instruksi dan operand; TLINK
+menetapkan alamat akhir segmen.
+\end{block}
+\Sumber{Bab VII, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Program COM vs EXE}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.8cm}
+    >{\raggedright\arraybackslash}p{5.0cm}
+    >{\raggedright\arraybackslash}p{5.0cm}@{}}
+    \toprule
+    \textbf{Aspek} & \textbf{Program \file{.COM}} &
+    \textbf{Program \file{.EXE}} \\
+    \midrule
+    Segmen & Kode, data, dan \eng{stack} dalam satu segmen &
+    Dapat berada pada segmen terpisah \\
+    \addlinespace
+    Ukuran & Maksimum sekitar 64 KB & Dapat lebih dari satu segmen \\
+    \addlinespace
+    Titik awal & Memakai \dir{ORG 100h} &
+    Ditentukan label pada direktif \dir{END} \\
+    \addlinespace
+    Inisialisasi DS & Tidak perlu; DOS sudah menetapkan &
+    Perlu dilakukan sendiri \\
+    \addlinespace
+    Cara keluar & \code{INT 20h} atau \code{INT 21h} fungsi \hex{4C} &
+    \code{INT 21h} fungsi \hex{4C} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab VII, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Lingkungan Praktik}
+\small
+\begin{itemize}
+    \item Praktik memakai TASM dan TLINK di dalam DOSBox.
+
+    \vspace{0.18em}
+    \item Berkas hasil dapat dijalankan langsung di DOSBox atau
+          diperiksa dengan DEBUG.
+
+    \vspace{0.18em}
+    \item emu8086 menjadi alternatif untuk menulis, menjalankan, dan
+          mengamati program tanpa menyiapkan DOSBox.
+
+    \vspace{0.18em}
+    \item Alur kerja tetap: tulis, rakit, link, jalankan, lalu
+          periksa bila perlu.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{block}{Alat minimum}
+\small Editor teks, TASM, TLINK, dan lingkungan DOS.
+\end{block}
+\Sumber{Bab VII, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 1}
 \small
 \begin{itemize}
-    \item \eng{Mnemonic} assembly hanyalah simbol bagi kode mesin.
-          Yang benar-benar dibaca prosesor adalah deretan byte.
+    \item Rantai proses: \file{.ASM} $\rightarrow$ TASM
+          $\rightarrow$ \file{.OBJ} $\rightarrow$ TLINK
+          $\rightarrow$ \file{.EXE}/\file{.COM} $\rightarrow$ memori.
 
-    \vspace{0.25em}
-    \item Satu \eng{mnemonic} memiliki banyak bentuk \eng{encoding}
-          karena jenis operand, ukuran operand, arah perpindahan data,
-          dan mode pengalamatan.
+    \vspace{0.15em}
+    \item TASM menerjemahkan instruksi dan mencatat simbol; TLINK
+          menyelesaikan rujukan dan menetapkan alamat.
 
-    \vspace{0.25em}
-    \item Format instruksi 8086 tersusun dari lima field berurutan
-          tetap: awalan, \eng{opcode}, ModR/M, \eng{displacement},
-          dan \eng{immediate}.
+    \vspace{0.15em}
+    \item \file{.COM} memakai satu segmen, maksimum sekitar 64 KB,
+          dan \dir{ORG 100h}.
 
-    \vspace{0.25em}
-    \item Field yang tidak diperlukan tidak ditulis, sehingga panjang
-          instruksi berkisar 1 sampai 6 byte.
+    \vspace{0.15em}
+    \item \file{.EXE} dapat memakai beberapa segmen dan memerlukan
+          inisialisasi DS.
 
-    \vspace{0.25em}
-    \item Setiap nilai 16 bit disimpan \eng{little-endian}: byte
-          bernilai rendah lebih dahulu.
+    \vspace{0.15em}
+    \item DOS memuat berkas hasil dan menyerahkan kendali ke titik
+          masuk program.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 2
 % =========================================================
-\PemisahBagian{Byte ModR/M, Displacement, dan Immediate}
+\PemisahBagian{Struktur Program Assembly}
 
 % ---------------------------------------------------------
-\begin{frame}{Struktur Byte ModR/M}
-\small Kehadiran byte ModR/M membuat satu \eng{opcode} dapat melayani
-banyak kombinasi operand tanpa \eng{opcode} baru untuk setiap
-kombinasi.
+\begin{frame}[fragile]{Kerangka Program EXE}
+\begin{kodeasm}
+.MODEL SMALL
+.STACK 100h
+.DATA
+    ; deklarasi variabel dan konstanta
+.CODE
+START:
+    MOV AX, @DATA
+    MOV DS, AX
+    ; instruksi program
+    MOV AH, 4Ch
+    MOV AL, 00h
+    INT 21h
+END START
+\end{kodeasm}
 
-\vspace{0.4em}
-\begin{center}
-\begin{tikzpicture}[
-    font=\small,
-    bit/.style={
-        draw=obeBlue, line width=0.8pt, minimum height=0.85cm,
-        align=center, inner sep=2pt
-    },
-    ket/.style={font=\scriptsize, text=obeGray, align=center}
-]
-    \node[bit, fill=obeAmberLight, minimum width=1.6cm] (b76)
-        at (0,0) {\textbf{7}\quad\textbf{6}};
-    \node[bit, fill=obeBlueLight, minimum width=2.4cm,
-        right=0.12cm of b76] (b53)
-        {\textbf{5}\quad\textbf{4}\quad\textbf{3}};
-    \node[bit, fill=obeTealLight, minimum width=2.4cm,
-        right=0.12cm of b53] (b20)
-        {\textbf{2}\quad\textbf{1}\quad\textbf{0}};
-
-    \node[below=0.06cm of b76, font=\bfseries] {\code{mod}};
-    \node[below=0.06cm of b53, font=\bfseries] {\code{reg/opcode}};
-    \node[below=0.06cm of b20, font=\bfseries] {\code{r/m}};
-
-    \node[ket, below=0.55cm of b76] {2 bit\\cara pengambilan};
-    \node[ket, below=0.55cm of b53] {3 bit\\register kedua};
-    \node[ket, below=0.55cm of b20] {3 bit\\register / alamat};
-\end{tikzpicture}
-\end{center}
-
-\vspace{0.5em}
-{\small Contoh byte ModR/M \hex{D8} pada \code{MOV AX, BX} ditulis
-\bin{11 011 000}: \code{mod} $= \bin{11}$, \code{reg}
-$= \bin{011}$ (\reg{BX}), \code{r/m} $= \bin{000}$ (\reg{AX}).
-\code{mod} $= \bin{11}$ berarti kedua operand berada di register.\par}
-\Sumber{Bab VII, Struktur Byte ModR/M}
+\vspace{0.1em}
+{\footnotesize\color{obeGray}Kerangka ini memisahkan kode, data, dan
+\eng{stack} agar assembler dan linker menetapkan segmen dengan
+benar.\par}
+\Sumber{Bab VII, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Arti Nilai Field \code{mod}}
-\footnotesize Dua bit \code{mod} menentukan letak operand dan panjang
-\eng{displacement} yang menyertainya.
-
-\vspace{0.35em}
+\begin{frame}{Peran Direktif Kerangka}
+\footnotesize
 \begin{center}
-\begin{tabular}{@{}ccp{2.2cm}p{7.4cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.4cm}
+    >{\raggedright\arraybackslash}p{9.8cm}@{}}
     \toprule
-    \textbf{\code{mod}} & \textbf{Biner} & \textbf{Displacement} &
-    \textbf{Arti} \\
+    \textbf{Direktif/label} & \textbf{Peran} \\
     \midrule
-    \dec{0} & \bin{00} & tidak ada &
-    Operand memori; alamat langsung dari \code{r/m} \\
+    \dir{.MODEL} & Menetapkan model memori; \code{SMALL} memakai
+    satu segmen kode dan satu segmen data \\
     \addlinespace
-    \dec{1} & \bin{01} & 1 byte (disp8) &
-    Operand memori; alamat ditambah \eng{displacement} 8 bit \\
+    \dir{.STACK} & Menyediakan ruang \eng{stack}; \hex{100} berarti
+    256 byte \\
     \addlinespace
-    \dec{2} & \bin{10} & 2 byte (disp16) &
-    Operand memori; alamat ditambah \eng{displacement} 16 bit \\
+    \dir{.DATA} & Awal segmen data untuk variabel dan konstanta \\
     \addlinespace
-    \dec{3} & \bin{11} & tidak ada &
-    Operand register; \code{r/m} menyatakan nomor register \\
+    \dir{.CODE} & Awal segmen kode untuk instruksi yang dieksekusi \\
+    \addlinespace
+    Label & Menandai lokasi; label titik masuk harus sama dengan
+    nama pada \dir{END} \\
+    \addlinespace
+    \dir{END} & Menutup berkas dan menentukan titik awal eksekusi \\
     \bottomrule
 \end{tabular}
 \end{center}
-
-\vspace{0.45em}
-{\color{obeGray}Memakai \code{mod} $= \bin{01}$ lebih hemat satu byte
-daripada $\bin{10}$ untuk alamat yang sama, asalkan pergeserannya muat
-dalam 8 bit.\par}
+\Sumber{Bab VII, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Arti Nilai Field \code{r/m}}
-\footnotesize Field \code{r/m} berperan ganda: penentu alamat efektif
-bila \code{mod} $\neq \bin{11}$, dan nomor register bila
-\code{mod} $= \bin{11}$.
+\begin{frame}{Model Memori}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.0cm}
+    >{\raggedright\arraybackslash}p{6.4cm}
+    >{\raggedright\arraybackslash}p{4.4cm}@{}}
+    \toprule
+    \textbf{Model} & \textbf{Keterangan} & \textbf{Penggunaan} \\
+    \midrule
+    \code{TINY} & Kode, data, dan \eng{stack} satu segmen &
+    Program \file{.COM} \\
+    \addlinespace
+    \code{SMALL} & Satu segmen kode dan satu segmen data &
+    Program \file{.EXE} kecil \\
+    \addlinespace
+    \code{MEDIUM} & Kode lebih dari 64 KB & Program kode besar \\
+    \addlinespace
+    \code{COMPACT} & Data lebih dari 64 KB & Program data besar \\
+    \addlinespace
+    \code{LARGE} & Kode dan data lebih dari 64 KB & Program besar \\
+    \addlinespace
+    \code{HUGE} & Kode, data, dan \eng{array} lebih dari 64 KB &
+    Program sangat besar \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab VII, Bagian 2}
+\end{frame}
 
-\vspace{0.25em}
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Label dan Komentar}
+\small
+\begin{itemize}
+    \item Label boleh dimulai huruf, \code{@}, \code{\_}, atau
+          \code{?}; tidak boleh berspasi atau diawali angka.
+    \item Panjang label maksimal 31 karakter; label instruksi
+          diakhiri titik dua.
+    \item Komentar ditulis setelah \code{;} dan diabaikan assembler.
+\end{itemize}
+
+\vspace{0.2em}
+\begin{kodeasm}[numbers=none]
+MOV AH, 09h     ; siapkan fungsi cetak string
+LEA DX, pesan   ; DX = alamat string
+INT 21h         ; panggil layanan DOS
+\end{kodeasm}
+
+\vspace{0.1em}
+{\footnotesize\color{obeGray}Komentar menjelaskan maksud, bukan
+mengulang bunyi instruksi.\par}
+\Sumber{Bab VII, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Program COM dan ORG 100h}
 \begin{columns}[t]
-\begin{column}{0.575\textwidth}
-{\color{obeBlue}\bfseries Mode memori (\code{mod} $\neq \bin{11}$)}\\
-\vspace{0.15em}
-\begin{tabular}{@{}ccp{2.3cm}p{2.4cm}@{}}
-    \toprule
-    \textbf{r/m} & \textbf{Biner} & \code{mod}$=$\bin{00} &
-    \code{mod}$=$\bin{01}/\bin{10} \\
-    \midrule
-    \dec{0} & \bin{000} & \asm{[BX+SI]} & \asm{[BX+SI]}+disp \\
-    \dec{1} & \bin{001} & \asm{[BX+DI]} & \asm{[BX+DI]}+disp \\
-    \dec{2} & \bin{010} & \asm{[BP+SI]} & \asm{[BP+SI]}+disp \\
-    \dec{3} & \bin{011} & \asm{[BP+DI]} & \asm{[BP+DI]}+disp \\
-    \dec{4} & \bin{100} & \asm{[SI]} & \asm{[SI]}+disp \\
-    \dec{5} & \bin{101} & \textbf{langsung} & \asm{[DI]}+disp \\
-    \dec{6} & \bin{110} & \asm{[BP]} & \asm{[BP]}+disp \\
-    \dec{7} & \bin{111} & \asm{[BX]} & \asm{[BX]}+disp \\
-    \bottomrule
-\end{tabular}
+\begin{column}{0.50\textwidth}
+\begin{kodeasm}
+.MODEL TINY
+.CODE
+ORG 100h
+START:
+    MOV AH, 09h
+    MOV DX, OFFSET pesan
+    INT 21h
+    INT 20h
+pesan DB 'Halo, COM!', 0Dh, 0Ah, '$'
+END START
+\end{kodeasm}
 \end{column}
-\begin{column}{0.40\textwidth}
-{\color{obeTeal}\bfseries Mode register (\code{mod} $= \bin{11}$)}\\
-\vspace{0.15em}
-\begin{tabular}{@{}ccc@{}}
-    \toprule
-    \textbf{r/m} & \textbf{Reg 16} & \textbf{Reg 8} \\
-    \midrule
-    \dec{0} & \reg{AX} & \reg{AL} \\
-    \dec{1} & \reg{CX} & \reg{CL} \\
-    \dec{2} & \reg{DX} & \reg{DL} \\
-    \dec{3} & \reg{BX} & \reg{BL} \\
-    \dec{4} & \reg{SP} & \reg{AH} \\
-    \dec{5} & \reg{BP} & \reg{CH} \\
-    \dec{6} & \reg{SI} & \reg{DH} \\
-    \dec{7} & \reg{DI} & \reg{BH} \\
-    \bottomrule
-\end{tabular}
+\begin{column}{0.46\textwidth}
+\footnotesize
+\dir{ORG 100h} menetapkan program dimuat mulai offset
+\hex{100}.
+
+\vspace{0.3em}
+Ruang 256 byte sebelum program dipakai DOS untuk
+\eng{Program Segment Prefix} (PSP).
+
+\vspace{0.3em}
+Pada \file{.COM}, DOS sudah menetapkan register segmen; inisialisasi
+DS tidak diperlukan.
 \end{column}
 \end{columns}
-\Sumber{Bab VII, Arti Nilai r/m}
+\Sumber{Bab VII, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Dua Pengecualian dan Urutan Nomor Register}
-\begin{alertblock}{Dua pengecualian yang sering menjebak}
+\begin{frame}[fragile]{Inisialisasi Register DS}
 \small
-\begin{enumerate}
-    \item Bila \code{mod} $= \bin{00}$ dan \code{r/m} $= \bin{101}$,
-          alamat efektifnya bukan \asm{[DI]} melainkan \textbf{alamat
-          langsung 16 bit}.
-    \item Bila \code{mod} $\neq \bin{11}$ dan \code{r/m} $= \bin{110}$,
-          alamat efektifnya adalah \asm{[BP]}.
-\end{enumerate}
-Kedua aturan ini di luar pola umum dan harus dihafal.
+Program \file{.EXE} tidak otomatis memiliki DS yang menunjuk segmen
+data. Dua instruksi berikut perlu ditulis di awal program.
+
+\vspace{0.3em}
+\begin{kodeasm}[numbers=none]
+MOV AX, @DATA       ; alamat segmen data
+MOV DS, AX          ; pasang ke DS
+\end{kodeasm}
+
+\vspace{0.2em}
+\code{@DATA} dihasilkan oleh \dir{.MODEL} dan berisi nomor segmen
+tempat \dir{.DATA} berada.
+
+\begin{alertblock}{Bila dihilangkan}
+\small Instruksi yang mengakses variabel akan membaca alamat yang
+salah.
 \end{alertblock}
-
-\vspace{0.45em}
-\begin{block}{Urutan nomor register 8086}
-\small \reg{AX}, \reg{CX}, \reg{DX}, \reg{BX}, \reg{SP}, \reg{BP},
-\reg{SI}, \reg{DI} --- mengikuti \eng{encoding} asli Intel dan
-berlaku juga pada \asm{PUSH} serta \asm{POP}.
-\end{block}
-
-\vspace{0.45em}
-{\footnotesize\color{obeGray}\code{mod} $= \bin{01}$ dan $\bin{10}$
-memakai tabel alamat yang sama; hanya panjang
-\eng{displacement}-nya berbeda. Contoh: \asm{ADD AX, [SI+4]} memakai
-\code{mod} $= \bin{01}$, \code{r/m} $= \bin{100}$, ModR/M
-\hex{44}.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Peran Displacement dan Immediate}
-\small Kedua field terakhir sama-sama berupa bilangan, tetapi perannya
-berbeda.
-\vspace{0.3em}
-\begin{description}
-    \item[Displacement] Penambah pada alamat. Muncul hanya bila operand
-          berupa memori dan \code{mod} bernilai \bin{01} atau
-          \bin{10}. Pada \asm{ADD AX, [SI+4]}, nilai \hex{4} adalah
-          \eng{displacement} sepanjang 8 atau 16 bit sesuai
-          \code{mod}.
-
-    \vspace{0.35em}
-    \item[Immediate] Data yang dioperasikan. Muncul bila operand berupa
-          konstanta, misalnya \asm{MOV AX, 1234h} atau
-          \asm{ADD BX, 10}. Panjangnya 8 atau 16 bit sesuai ukuran
-          operand, dan nilainya selalu \eng{little-endian}.
-\end{description}
-
-\vspace{0.4em}
-\begin{exampleblock}{Keduanya dapat hadir bersamaan}
-\small \asm{MOV WORD PTR [BX+SI+1234h], 5678h} memuat
-\eng{displacement} dan \eng{immediate} sekaligus, sehingga panjang
-totalnya enam byte. Urutan field tetap: \eng{displacement} selalu
-mendahului \eng{immediate}.
-\end{exampleblock}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Pengaruh Format terhadap Ukuran dan Kecepatan}
-\small
-\begin{center}
-\begin{tabular}{@{}p{4.2cm}cp{6.8cm}@{}}
-    \toprule
-    \textbf{Bentuk operand} & \textbf{Panjang} & \textbf{Keterangan} \\
-    \midrule
-    Register ke register & 2 byte &
-    Paling ringkas; tanpa \eng{displacement} dan tanpa
-    \eng{immediate} \\
-    \addlinespace
-    Immediate 8 bit & 2--3 byte & Nilai kecil; satu byte
-    \eng{immediate} \\
-    \addlinespace
-    Immediate 16 bit & 3--4 byte & Nilai besar; dua byte
-    \eng{immediate} \\
-    \addlinespace
-    Memori \asm{[SI]} & 2--3 byte & \code{mod} $= \bin{00}$; tanpa
-    \eng{displacement} \\
-    \addlinespace
-    Memori \asm{[SI+4]} & 3 byte & \code{mod} $= \bin{01}$;
-    \eng{displacement} 8 bit \\
-    \addlinespace
-    Memori \asm{[BX+SI+1234h]} & 4 byte & \code{mod} $= \bin{10}$;
-    \eng{displacement} 16 bit \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Semakin banyak field yang hadir, semakin
-panjang instruksi dan semakin banyak byte yang harus diambil melalui
-\eng{prefetch queue}. Instruksi tiga byte umumnya selesai lebih cepat
-daripada instruksi enam byte.\par}
-\Sumber{Bab VII, Pengaruh Format terhadap Ukuran dan Kecepatan}
+\Sumber{Bab VII, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 2}
 \small
 \begin{itemize}
-    \item Byte ModR/M terbagi menjadi \code{mod} (2 bit),
-          \code{reg/opcode} (3 bit), dan \code{r/m} (3 bit).
+    \item Kerangka program memuat \dir{.MODEL}, \dir{.STACK},
+          \dir{.DATA}, \dir{.CODE}, label titik masuk, dan
+          \dir{END}.
 
-    \vspace{0.25em}
-    \item Nilai \code{mod} menentukan letak operand dan panjang
-          \eng{displacement}: \bin{00} tanpa, \bin{01} disp8,
-          \bin{10} disp16, dan \bin{11} operand register.
+    \vspace{0.15em}
+    \item \dir{.MODEL} menentukan susunan segmen; \code{SMALL} untuk
+          \file{.EXE} sederhana dan \code{TINY} untuk \file{.COM}.
 
-    \vspace{0.25em}
-    \item \code{r/m} berperan ganda: penentu alamat efektif pada mode
-          memori dan nomor register pada \code{mod} $= \bin{11}$.
+    \vspace{0.15em}
+    \item Label menandai lokasi instruksi atau data; komentar
+          ditulis setelah \code{;}.
 
-    \vspace{0.25em}
-    \item Dua pengecualian: \code{mod} $= \bin{00}$ dengan
-          \code{r/m} $= \bin{101}$ berarti alamat langsung, sedangkan
-          \code{r/m} $= \bin{110}$ berarti \asm{[BP]}.
+    \vspace{0.15em}
+    \item \dir{ORG 100h} memberi ruang PSP 256 byte pada program
+          \file{.COM}.
 
-    \vspace{0.25em}
-    \item \eng{Displacement} menggeser alamat, \eng{immediate} menjadi
-          operand. Bentuk operand menentukan ukuran kode dan jumlah
-          byte yang diambil prosesor.
+    \vspace{0.15em}
+    \item Program \file{.EXE} perlu menginisialisasi DS melalui
+          \code{MOV AX, @DATA} dan \code{MOV DS, AX}.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 3
 % =========================================================
-\PemisahBagian{Encoding Manual dan Disassembler}
+\PemisahBagian{Direktif Data dan Alur Translasi}
 
 % ---------------------------------------------------------
-\begin{frame}{Lima Langkah Encoding Manual}
-\small Mengubah satu instruksi assembly menjadi byte kode mesin:
-\vspace{0.3em}
+\begin{frame}{Direktif Data}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.2cm}
+    >{\raggedright\arraybackslash}p{2.8cm}
+    >{\raggedright\arraybackslash}p{7.6cm}@{}}
+    \toprule
+    \textbf{Direktif} & \textbf{Ukuran} & \textbf{Kegunaan} \\
+    \midrule
+    \dir{DB} & 1 byte & Byte, karakter, atau string \\
+    \addlinespace
+    \dir{DW} & 2 byte & Satu kata (\eng{word}) \\
+    \addlinespace
+    \dir{DD} & 4 byte & Bilangan 32 bit \\
+    \addlinespace
+    \dir{EQU} & --- & Memberi nama pada konstanta \\
+    \addlinespace
+    \dir{DUP} & sesuai data & Mengulang pola data \\
+    \addlinespace
+    \code{?} & sesuai direktif & Ruang tanpa nilai awal \\
+    \addlinespace
+    \dir{ORG} & --- & Menetapkan offset awal \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab VII, Bagian 3}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}[fragile]{Contoh Direktif Data}
+\begin{kodeasm}
+pesan   DB  'Halo', 0Dh, 0Ah, '$'
+nilai   DW  1234h
+besar   DD  12345678h
+PANJANG EQU 20
+bintang DB  4 DUP('*')
+buffer  DB  8 DUP(?)
+\end{kodeasm}
+
+\vspace{0.2em}
+{\footnotesize
+\dir{DB} menyimpan byte berurutan; \dir{DW} dua byte; \dir{DD}
+empat byte. \dir{EQU} tidak menempati memori; \dir{DUP} mengulang
+pola.\par}
+\Sumber{Bab VII, Bagian 3}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Direktif Bukan Instruksi}
+\small
+\begin{itemize}
+    \item \term{Instruksi} dijalankan prosesor, misalnya
+          \code{MOV} dan \code{ADD}.
+
+    \vspace{0.18em}
+    \item \term{Direktif} adalah perintah kepada assembler,
+          misalnya \dir{.MODEL}, \dir{DB}, dan \dir{EQU}.
+
+    \vspace{0.18em}
+    \item Direktif tidak diterjemahkan menjadi instruksi mesin.
+
+    \vspace{0.18em}
+    \item \dir{.MODEL} menggantikan penulisan \dir{SEGMENT} dan
+          \dir{ASSUME} pada program sederhana.
+
+    \vspace{0.18em}
+    \item \dir{ORG 100h} hanya untuk \file{.COM}; \file{.EXE}
+          memakai alamat dari linker.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{block}{Inti}
+\small Direktif mengatur bagaimana assembler menyusun program dan
+data.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Alur Translasi dan Berkas Hasil}
+\small
 \begin{enumerate}
-    \item Tentukan operasi dan bentuk operandnya: register, memori,
-          atau nilai segera --- serta ukurannya (8 atau 16 bit).
+    \item \file{program.asm} ditulis di editor.
 
-    \vspace{0.2em}
-    \item Cari \eng{opcode} dasar yang sesuai. Perhatikan arah
-          perpindahan data, karena \hex{8B} dan \hex{89} memiliki arti
-          berlawanan.
+    \vspace{0.15em}
+    \item TASM menghasilkan \file{program.obj}.
 
-    \vspace{0.2em}
-    \item Hitung byte ModR/M bila instruksi melibatkan register atau
-          memori: susun field \code{mod}, \code{reg}, dan \code{r/m},
-          lalu gabungkan menjadi satu byte.
+    \vspace{0.15em}
+    \item TLINK menghasilkan \file{program.exe} atau, dengan
+          \code{/t}, \file{program.com}.
 
-    \vspace{0.2em}
-    \item Tambahkan \eng{displacement} bila operand memori bergeser,
-          dan \eng{immediate} bila operandnya berupa angka.
-
-    \vspace{0.2em}
-    \item Tuliskan seluruh byte berurutan menurut alamat, dengan setiap
-          nilai 16 bit dalam urutan \eng{little-endian}.
+    \vspace{0.15em}
+    \item DOS memuat berkas hasil dan menjalankannya.
 \end{enumerate}
 
 \vspace{0.25em}
-{\footnotesize\color{obeGray}Pekerjaan manual inilah yang dijalankan
-assembler untuk setiap baris kode sumber.\par}
-\Sumber{Bab VII, Langkah-langkah Encoding Manual}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Contoh Encoding Byte demi Byte}
-\footnotesize
-\begin{center}
-\begin{tabular}{@{}p{3.1cm}p{1.7cm}p{7.6cm}@{}}
-    \toprule
-    \textbf{Instruksi} & \textbf{Byte} & \textbf{Rincian} \\
-    \midrule
-    \asm{MOV AX, BX} & \hex{89 D8} &
-    Opcode \hex{89} = ``r/m16 $\leftarrow$ r16''. ModR/M \hex{D8}
-    $= \bin{11 011 000}$: \code{mod} $= \bin{11}$, \code{reg}
-    $= \bin{011}$ (\reg{BX}), \code{r/m} $= \bin{000}$ (\reg{AX}) \\
-    \addlinespace
-    \asm{MOV AL, 5} & \hex{B0 05} &
-    Opcode \hex{B0} = ``r8 $\leftarrow$ imm8''. Nomor \reg{AL} =
-    \dec{0}, jadi \hex{B0} $+ \dec{0} = \hex{B0}$. Byte kedua
-    \hex{05} adalah \eng{immediate} 8 bit \\
-    \addlinespace
-    \asm{MOV AX, 1234h} & \hex{B8 34 12} &
-    Opcode \hex{B8} = ``r16 $\leftarrow$ imm16''. Nomor \reg{AX} =
-    \dec{0}. \eng{Immediate} \hex{1234} disimpan
-    \eng{little-endian}: \hex{34} lalu \hex{12} \\
-    \addlinespace
-    \asm{ADD AX, [SI+4]} & \hex{03 44 04} &
-    Opcode \hex{03}. ModR/M \hex{44} $= \bin{01 000 100}$:
-    \code{mod} $= \bin{01}$ (disp8), \code{reg} $= \bin{000}$
-    (\reg{AX}), \code{r/m} $= \bin{100}$ (\asm{[SI]}). Byte ketiga
-    \hex{04} adalah \eng{displacement} \\
-    \addlinespace
-    \asm{INT 21h} & \hex{CD 21} &
-    Opcode \hex{CD} = ``panggil interupsi''. Tidak memakai ModR/M;
-    byte \hex{21} adalah \eng{immediate} 8 bit \\
-    \bottomrule
-\end{tabular}
-\end{center}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Tabel Ringkas Opcode: MOV dan Aritmatika}
-\footnotesize
-\begin{center}
-\begin{tabular}{@{}p{1.8cm}p{2.2cm}p{6.4cm}c@{}}
-    \toprule
-    \textbf{Instruksi} & \textbf{Opcode} & \textbf{Bentuk operand} &
-    \textbf{Byte} \\
-    \midrule
-    \asm{MOV} & \hex{88}--\hex{8B} & Antar \code{r/m} dan register &
-    2--4 \\
-    \addlinespace
-    \asm{MOV} & \hex{B0}--\hex{B7} & Register 8 bit,
-    \eng{immediate} 8 bit & 2 \\
-    \addlinespace
-    \asm{MOV} & \hex{B8}--\hex{BF} & Register 16 bit,
-    \eng{immediate} 16 bit & 3 \\
-    \addlinespace
-    \asm{MOV} & \hex{C6}/\hex{C7} & \code{r/m}, \eng{immediate} &
-    3--6 \\
-    \addlinespace
-    \asm{ADD} & \hex{00}--\hex{03} & Antar \code{r/m} dan register &
-    2--4 \\
-    \addlinespace
-    \asm{ADD} & \hex{04}/\hex{05} & \reg{AL}/\reg{AX} dengan
-    \eng{immediate} & 2--3 \\
-    \addlinespace
-    \asm{SUB} & \hex{28}--\hex{2D} & Pola sama dengan \asm{ADD} &
-    2--4 \\
-    \addlinespace
-    \asm{CMP} & \hex{38}--\hex{3D} & Pembandingan; hanya mengubah
-    \eng{flag} & 2--4 \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.25em}
-{\footnotesize\color{obeGray}\hex{00}--\hex{03} berarti empat
-\eng{opcode} berurutan: \hex{00} untuk 8 bit arah \code{r/m}
-$\leftarrow$ \code{reg}, \hex{01} untuk 16 bit, lalu \hex{02} dan
-\hex{03} untuk arah sebaliknya.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Tabel Ringkas Opcode: Lompatan, Interupsi, dan Stack}
-\footnotesize
-\begin{center}
-\begin{tabular}{@{}p{1.8cm}p{2.2cm}p{6.4cm}c@{}}
-    \toprule
-    \textbf{Instruksi} & \textbf{Opcode} & \textbf{Bentuk operand} &
-    \textbf{Byte} \\
-    \midrule
-    \asm{JMP} & \hex{EB} & Lompat pendek, \eng{rel8} & 2 \\
-    \addlinespace
-    \asm{JMP} & \hex{E9} & Lompat dekat, \eng{rel16} & 3 \\
-    \addlinespace
-    \asm{CALL} & \hex{E8} & Panggil dekat, \eng{rel16} & 3 \\
-    \addlinespace
-    \asm{INT} & \hex{CC} & \code{INT 3}; titik henti
-    \eng{debugger} & 1 \\
-    \addlinespace
-    \asm{INT} & \hex{CD} & Interupsi dengan nomor 8 bit & 2 \\
-    \addlinespace
-    \asm{PUSH} & \hex{50}--\hex{57} & Dorong register 16 bit ke
-    \eng{stack} & 1 \\
-    \addlinespace
-    \asm{POP} & \hex{58}--\hex{5F} & Ambil register 16 bit dari
-    \eng{stack} & 1 \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.4em}
-\begin{block}{Pola kelompok}
-\small Menghafal seluruh \eng{opcode} 8086 tidak diperlukan; mengenali
-pola kelompoknya jauh lebih berguna.
+\begin{block}{Mengapa \file{.OBJ} belum dapat dijalankan?}
+\small \file{.OBJ} masih memuat rujukan simbol dan alamat yang belum
+final; TLINK menyelesaikannya.
 \end{block}
-\Sumber{Bab VII, Tabel Ringkas Opcode Instruksi Umum}
+\Sumber{Bab VII, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Membalik Kode Mesin dengan Disassembler}
-\small \term{Disassembler} melakukan pekerjaan kebalikan assembler:
-membaca byte kode mesin dan menampilkannya kembali sebagai
-\eng{mnemonic}. \file{DEBUG} menyediakan perintah \code{U}
-(\eng{unassemble}) untuk keperluan ini.
-
-\vspace{0.25em}
-\begin{keluaran}
--u 100 10C
-13F2:0100 B80500   MOV   AX,0005
-13F2:0103 BB0100   MOV   BX,0001
-13F2:0106 8908     MOV   [BX+SI],CX
-13F2:0108 03C3     ADD   AX,BX
-13F2:010A CD21     INT   21
-13F2:010C 90       NOP
-\end{keluaran}
-
-\vspace{0.2em}
-{\footnotesize\color{obeGray}Setiap baris memuat tiga kolom: alamat,
-byte kode mesin, lalu \eng{mnemonic}. Baris pertama menempati tiga
-byte, sedangkan \asm{ADD AX, BX} hanya dua byte.\par}
-
-\vspace{0.35em}
-\begin{alertblock}{Keterbatasan yang harus diingat}
-\small Disassembler tidak dapat membedakan kode dari data. Hasilnya
-harus selalu diperiksa terhadap titik masuk dan alur kendali program.
-\end{alertblock}
+\begin{frame}{Pesan Kesalahan Assembler}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.8cm}
+    >{\raggedright\arraybackslash}p{4.2cm}
+    >{\raggedright\arraybackslash}p{4.8cm}@{}}
+    \toprule
+    \textbf{Pesan} & \textbf{Penyebab umum} & \textbf{Perbaikan} \\
+    \midrule
+    \file{Undefined symbol} & Label/variabel belum didefinisikan &
+    Periksa ejaan dan deklarasi \\
+    \addlinespace
+    \file{Syntax error} & Salah tulis instruksi/direktif &
+    Periksa mnemonic, koma, dan tanda kutip \\
+    \addlinespace
+    \file{Operand types do not match} & Ukuran operand tidak sama &
+    Samakan ukuran; pakai \code{BYTE PTR}/\code{WORD PTR} \\
+    \addlinespace
+    \file{Improper operand type} & Operasi memori ke memori &
+    Pindahkan salah satu operand ke register \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab VII, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Hubungan dengan Translasi Program}
+\begin{frame}{Kesalahan Logika}
 \small
-\begin{block}{Encoding manual adalah inti proses translasi}
 \begin{itemize}
-    \item Assembler menjalankan lima langkah \eng{encoding} yang sama
-          untuk setiap baris kode sumber, tetapi jauh lebih cepat dan
-          teliti.
-    \item Direktif, tabel simbol, dan penanganan label dibahas pada
-          Bab IX.
-    \item Dengan memahami format instruksi lebih dahulu, setiap
-          keputusan assembler dapat ditelusuri sampai byte demi byte.
-\end{itemize}
-\end{block}
+    \item TASM melaporkan kesalahan penulisan beserta nomor baris.
 
-\vspace{0.5em}
-\begin{center}
-\begin{tikzpicture}[
-    kotak/.style={
-        draw=obeBlue, line width=0.8pt, fill=obeBlueLight,
-        rounded corners=3pt, minimum width=3.0cm, minimum height=0.95cm,
-        align=center, font=\small, inner sep=3pt
-    },
-    panah/.style={-{Stealth[length=2mm]}, line width=0.9pt, obeTeal}
-]
-    \node[kotak] (s) {\file{.asm}\\{\scriptsize kode sumber}};
-    \node[kotak, right=0.9cm of s, fill=obeTealLight, draw=obeTeal] (a)
-        {Assembler\\{\scriptsize lima langkah}};
-    \node[kotak, right=0.9cm of a, fill=obeAmberLight, draw=obeAmber] (b)
-        {\hex{89 D8}\\{\scriptsize byte kode mesin}};
-    \draw[panah] (s) -- (a);
-    \draw[panah] (a) -- (b);
-\end{tikzpicture}
-\end{center}
+    \vspace{0.18em}
+    \item Kesalahan logika tidak selalu dilaporkan: salah memilih
+          register, lupa inisialisasi DS, atau salah menghitung
+          offset.
+
+    \vspace{0.18em}
+    \item Kesalahan seperti itu harus dicari dengan
+          \eng{debugger}.
+\end{itemize}
+
+\vspace{0.3em}
+\begin{alertblock}{Pesan assembler bukan jaminan}
+\small Program yang berhasil dirakit belum tentu berjalan benar.
+\end{alertblock}
+\Sumber{Bab VII, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 3}
 \small
 \begin{itemize}
-    \item \eng{Encoding} manual ditempuh lewat lima langkah: tentukan
-          operasi dan operand, cari \eng{opcode}, susun ModR/M,
-          tambahkan \eng{displacement}/\eng{immediate}, lalu tulis
-          \eng{little-endian}.
+    \item \dir{DB}, \dir{DW}, dan \dir{DD} menentukan ukuran data;
+          \dir{EQU} memberi nama konstanta; \dir{DUP} mengulang
+          pola.
 
-    \vspace{0.25em}
-    \item Sebagian \eng{opcode} memakai tiga bit \code{reg} sebagai
-          penambah, seperti \hex{B0} dan \hex{B8} yang nomor
-          register-nya disisipkan pada bit terendah.
+    \vspace{0.15em}
+    \item Direktif adalah perintah kepada assembler, bukan
+          instruksi yang dijalankan prosesor.
 
-    \vspace{0.25em}
-    \item Instruksi yang tidak melibatkan register atau memori sama
-          sekali tidak memerlukan byte ModR/M, misalnya
-          \asm{INT 21h}.
+    \vspace{0.15em}
+    \item Alur translasi: \file{.ASM} $\rightarrow$ \file{.OBJ}
+          $\rightarrow$ \file{.EXE}/\file{.COM} $\rightarrow$
+          memori.
 
-    \vspace{0.25em}
-    \item Perintah \code{U} pada \file{DEBUG} mencetak alamat, byte
-          kode mesin, dan \eng{mnemonic} hasil terjemahan.
+    \vspace{0.15em}
+    \item \file{.OBJ} belum dapat dijalankan karena alamat dan
+          rujukan simbol belum final.
 
-    \vspace{0.25em}
-    \item Disassembler tidak membedakan kode dari data; hasilnya harus
-          diperiksa terhadap titik masuk dan alur kendali program.
+    \vspace{0.15em}
+    \item TASM hanya melaporkan kesalahan penulisan; kesalahan
+          logika dicari dengan \eng{debugger}.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % CONTOH PROGRAM
 % =========================================================
-\begin{frame}[fragile]{Contoh 1: Kode Sumber \file{opcode-demo.asm}}
-\small Lima instruksi dengan bentuk operand berbeda, siap dibongkar
-dengan perintah \code{U}.
-
-\vspace{0.2em}
+\begin{frame}[fragile]{Contoh 1: Program Pertama}
+\begin{columns}[t]
+\begin{column}{0.57\textwidth}
 \begin{kodeasm}
 .MODEL SMALL
+.STACK 100h
 .DATA
-    pesan DB 'Format instruksi mesin', 0Dh, 0Ah, '$'
+    pesan DB 'Halo, dunia!', 0Dh, 0Ah, '$'
 .CODE
 START:
     MOV AX, @DATA
     MOV DS, AX
-    MOV AX, 0005h      ; B8 05 00
-    MOV BX, 0001h      ; BB 01 00
-    ADD AX, BX         ; 03 C3
-    MOV CX, AX         ; 89 C1
-    SUB AX, 0002h      ; 2D 02 00
-    ...                ; cetak pesan dan keluar dari program
+    MOV AH, 09h
+    LEA DX, pesan
+    INT 21h
+    MOV AH, 4Ch
+    MOV AL, 00h
+    INT 21h
 END START
 \end{kodeasm}
-
-\vspace{0.15em}
-{\scriptsize\color{obeGray}Bagian pencetakan pesan dan keluar program
-(\asm{MOV AH, 09h}, \asm{LEA DX, pesan}, \asm{INT 21h},
-\asm{MOV AH, 4Ch}) dihilangkan agar ringkas; berkas lengkapnya ada pada
-\file{code/asm/opcode-demo.asm}.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 1: Hasil Bongkar dan Perbandingannya}
+\end{column}
+\begin{column}{0.40\textwidth}
 \footnotesize
+{\color{obeTeal}\bfseries Keluaran}\\[0.15em]
 \begin{keluaran}
--u
-0B2A:0005 B80500   MOV   AX,0005
-0B2A:0008 BB0100   MOV   BX,0001
-0B2A:000B 03C3     ADD   AX,BX
-0B2A:000D 89C1     MOV   CX,AX
-0B2A:000F 2D0200   SUB   AX,0002
+Halo, dunia!
 \end{keluaran}
 
-\vspace{0.25em}
-\begin{center}
-\begin{tabular}{@{}p{2.9cm}p{2.1cm}cp{6.2cm}@{}}
-    \toprule
-    \textbf{Kode sumber} & \textbf{Kode mesin} & \textbf{Byte} &
-    \textbf{Field yang tampak} \\
-    \midrule
-    \asm{MOV AX, 0005h} & \hex{B8 05 00} & 3 &
-    Opcode penambah register, imm.\ 16 bit \\
-    \addlinespace
-    \asm{MOV BX, 0001h} & \hex{BB 01 00} & 3 &
-    Nomor \reg{BX} $= \dec{3}$, jadi \hex{B8} $+ \dec{3}$ \\
-    \addlinespace
-    \asm{ADD AX, BX} & \hex{03 C3} & 2 &
-    ModR/M \bin{11 000 011}: \code{reg} $= \reg{AX}$,
-    \code{r/m} $= \reg{BX}$ \\
-    \addlinespace
-    \asm{MOV CX, AX} & \hex{89 C1} & 2 &
-    Opcode \hex{89} arah \code{r/m} $\leftarrow$ \code{reg} \\
-    \addlinespace
-    \asm{SUB AX, 0002h} & \hex{2D 02 00} & 3 &
-    Opcode AX dengan immediate 16 bit \\
-    \bottomrule
-\end{tabular}
-\end{center}
+\vspace{0.3em}
+\begin{itemize}
+    \item \dir{.MODEL SMALL}: satu segmen kode dan data.
+    \item \dir{.STACK 100h}: 256 byte ruang stack.
+    \item DS diinisialisasi sebelum variabel diakses.
+    \item \code{INT 21h} fungsi \hex{09} mencetak string.
+    \item \dir{END START} menetapkan titik masuk.
+\end{itemize}
+\end{column}
+\end{columns}
+\Sumber{Bab VII, Contoh 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 2: Kode Sumber \file{ukuran-instruksi.asm}}
-\small Dua penulisan yang menghasilkan keadaan register sama, tetapi
-menempati jumlah byte berbeda.
-
-\vspace{0.2em}
+\begin{frame}[fragile]{Contoh 2: Direktif Data}
+\begin{columns}[t]
+\begin{column}{0.58\textwidth}
 \begin{kodeasm}
-.MODEL TINY
+.MODEL SMALL
+.DATA
+    sapaan  DB 'Halo, assembly!', 0Dh, 0Ah, '$'
+    panjang EQU $ - sapaan
+    kata    DW 4241h, 4443h
+    nilai   DD 12345678h
+    bintang DB 4 DUP('*')
+    buffer  DB 8 DUP(?)
 .CODE
-ORG 100h
 START:
-    MOV AX, 0001h      ; bentuk A, 3 byte
-    MOV BX, 0001h      ; bentuk A, 3 byte
-    MOV BX, 0001h      ; bentuk B, 3 byte
-    MOV AX, BX         ; bentuk B, 2 byte
-    ...
-pesan DB 'Dua bentuk, hasil sama, ukuran berbeda.', 0Dh, 0Ah, '$'
-END START
+    MOV AX, @DATA
+    MOV DS, AX
+    MOV AH, 09h
+    LEA DX, sapaan
+    INT 21h
+...
 \end{kodeasm}
-
-\vspace{0.2em}
-{\footnotesize\color{obeGray}Program berbentuk \file{.COM}, sehingga
-seluruh instruksi dimulai pada offset \hex{100} dan \reg{DS} tidak
-perlu diinisialisasi.\par}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 2: Hasil Bongkar dan Jumlah Byte}
+\end{column}
+\begin{column}{0.39\textwidth}
 \footnotesize
+{\color{obeTeal}\bfseries Keluaran}\\[0.15em]
 \begin{keluaran}
--u 100 10A
-13F2:0100 B80100   MOV   AX,0001   ; bentuk A, 3 byte
-13F2:0103 BB0100   MOV   BX,0001   ; bentuk A, 3 byte
-13F2:0106 BB0100   MOV   BX,0001   ; bentuk B, 3 byte
-13F2:0109 89D8     MOV   AX,BX     ; bentuk B, 2 byte
+Halo, assembly!
+ABCD****
 \end{keluaran}
 
-\vspace{0.25em}
-\begin{center}
-\begin{tabular}{@{}cp{4.6cm}p{3.0cm}c@{}}
-    \toprule
-    \textbf{Bentuk} & \textbf{Instruksi} & \textbf{Kode mesin} &
-    \textbf{Byte} \\
-    \midrule
-    A & \asm{MOV AX, 0001h} & \hex{B8 01 00} & 3 \\
-    \addlinespace
-    A & \asm{MOV BX, 0001h} & \hex{BB 01 00} & 3 \\
-    \addlinespace
-    \multicolumn{3}{@{}l}{\textbf{Jumlah bentuk A}} & \textbf{6} \\
-    \midrule
-    B & \asm{MOV BX, 0001h} & \hex{BB 01 00} & 3 \\
-    \addlinespace
-    B & \asm{MOV AX, BX} & \hex{89 D8} & 2 \\
-    \addlinespace
-    \multicolumn{3}{@{}l}{\textbf{Jumlah bentuk B}} & \textbf{5} \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.2em}
-{\scriptsize\color{obeGray}Selisih satu byte berasal dari
-\eng{immediate} 16 bit kedua yang tidak lagi diperlukan. Bentuk B belum
-tentu lebih baik: ia bergantung pada nilai register lain dan lebih
-sulit dibaca.\par}
+\vspace{0.3em}
+\dir{DB} menyimpan byte; \dir{DW} dua byte secara
+\eng{little-endian}; \dir{DD} empat byte; \dir{DUP} mengulang
+pola.
+\end{column}
+\end{columns}
+\Sumber{Bab VII, Contoh 2}
 \end{frame}
 
 % =========================================================
 % PRAKTIKUM
 % =========================================================
-\begin{frame}{Praktikum: Analisis Opcode Manual dan Disassembler}
+\begin{frame}{Praktikum: Program EXE dan COM}
 \begin{block}{Judul praktikum}
-\scriptsize Analisis \eng{opcode} manual dan \eng{disassembler}
-\quad\textbullet\quad \textbf{Sub-CPMK:} 2.1 \quad\textbullet\quad
-\textbf{Waktu:} 100 menit \quad\textbullet\quad \textbf{Bentuk:}
-individu \quad\textbullet\quad \textbf{Tugas 2}
+\small Menulis, meng-\eng{assemble}, men-\eng{link}, dan menjalankan
+program \file{.EXE} serta \file{.COM}\\[0.15em]
+\textbf{Sub-CPMK:} 2.1 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
 \end{block}
 
-\vspace{0.25em}
+\vspace{0.2em}
 \begin{columns}[t]
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 {\color{obeBlue}\bfseries Alat dan bahan}
 \begin{itemize}\footnotesize
-    \item Komputer bersistem operasi Windows
-    \item Emu8086, GUI Turbo Assembler (TASM/TLINK), atau DOSBox
-          dengan \file{DEBUG}
-    \item Berkas \file{opcode-demo.asm},
-          \file{ukuran-instruksi.asm}, dan lembar kerja
-          \eng{encoding}
+    \item Komputer dengan emu8086
+    \item DOSBox dengan TASM, TLINK, dan DEBUG
+    \item \file{hello.asm} dan \file{direktif-data.asm}
+    \item Lembar jurnal praktikum
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.50\textwidth}
 {\color{obeBlue}\bfseries Langkah kerja}
 \begin{enumerate}\footnotesize
-    \item Isi lembar kerja \eng{encoding} lima instruksi secara
-          manual
-    \item Rakit \file{opcode-demo.asm}; jalankan \code{U} pada
-          \file{DEBUG}
-    \item Cocokkan tiap baris hasil bongkar dengan kode sumber
-    \item Rakit \file{ukuran-instruksi.asm}; hitung byte bentuk A
-          dan B
-    \item Ubah \asm{MOV AX, 1234h} menjadi \asm{MOV AX, 3412h};
-          jelaskan \eng{little-endian}-nya
+    \item TASM dan TLINK \file{hello.asm}; jalankan.
+    \item Catat ukuran \file{.OBJ} dan \file{.EXE}.
+    \item Buat \file{hello-com.asm}; link dengan \code{/t}.
+    \item Periksa segmen data dengan DEBUG.
+    \item Uji direktif data dan modifikasi program.
 \end{enumerate}
 \end{column}
 \end{columns}
 
-\vspace{0.15em}
-{\scriptsize\textbf{Dikumpulkan:} lembar kerja \eng{encoding}
-terisi, keluaran perintah \code{U}, perhitungan byte bentuk A dan B,
-jawaban penelusuran \eng{immediate}, dan jurnal praktikum.\par}
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} tiga berkas \file{.asm}
+modifikasi, tangkapan layar keluaran, tabel ukuran berkas,
+tangkapan DEBUG, dan analisis COM vs EXE.\par}
+\Sumber{Bab VII, Praktikum}
 \end{frame}
 
 % =========================================================
@@ -980,32 +774,27 @@ jawaban penelusuran \eng{immediate}, dan jurnal praktikum.\par}
 \begin{frame}{Latihan}
 \small
 \begin{enumerate}
-    \item Jelaskan hubungan antara \eng{mnemonic} dan \eng{opcode}.
-          Mengapa programmer cukup menulis \asm{MOV AX, BX} tanpa
-          menentukan sendiri byte \hex{89 D8}?
+    \item Jelaskan tahapan \file{.ASM} sampai program berjalan.
+          Sebutkan peran editor, TASM, TLINK, dan \eng{loader}.
 
-    \vspace{0.25em}
-    \item Instruksi berbyte \hex{C7 80 34 12 78 56}. Tentukan
-          \eng{opcode} dan operasinya, nilai biner \code{mod},
-          \code{reg}, dan \code{r/m}, serta panjang dan isi
-          \eng{displacement} dan \eng{immediate}.
+    \vspace{0.15em}
+    \item Sebutkan empat perbedaan \file{.COM} dan \file{.EXE}.
+          Mengapa \file{.COM} tidak perlu inisialisasi DS?
 
-    \vspace{0.25em}
-    \item Tuliskan byte kode mesin untuk \asm{MOV DX, 00FFh},
-          \asm{ADD AL, 3}, dan \asm{MOV [BX], AL} beserta langkah
-          perhitungannya.
+    \vspace{0.15em}
+    \item Jelaskan fungsi \dir{.MODEL}, \dir{.STACK}, \dir{.DATA},
+          \dir{.CODE}, \dir{ORG 100h}, dan \dir{END}; jelaskan pula
+          aturan label dan komentar.
 
-    \vspace{0.25em}
-    \item Jelaskan perbedaan peran \eng{displacement} dan
-          \eng{immediate}. Kapan keduanya muncul, dan dapatkah
-          keduanya muncul sekaligus?
+    \vspace{0.15em}
+    \item Berapa byte yang disediakan \code{nilai DB 25},
+          \code{kata DW 1234h}, \code{besar DD 12345678h}, dan
+          \code{ruang DB 10 DUP(?)}?
 
-    \vspace{0.25em}
-    \item Dua program berakhir sama. Program pertama memakai
-          \asm{MOV AX, 0001h} dan \asm{MOV BX, 0001h}; program kedua
-          memakai \asm{MOV BX, 0001h} dan \asm{MOV AX, BX}. Hitung
-          jumlah byte keduanya dan sebutkan field penyebab
-          selisihnya.
+    \vspace{0.15em}
+    \item Sebutkan penyebab dan perbaikan: \file{Undefined symbol},
+          \file{Operand types do not match}, \dir{ORG 100h} pada
+          \file{.EXE}, dan berkas tanpa \dir{END}.
 \end{enumerate}
 \end{frame}
 
@@ -1015,74 +804,58 @@ jawaban penelusuran \eng{immediate}, dan jurnal praktikum.\par}
 \begin{frame}{Rangkuman}
 \small
 \begin{itemize}
-    \item \eng{Mnemonic} assembly hanyalah simbol bagi kode mesin.
-          Satu mnemonic memiliki banyak bentuk \eng{encoding} karena
-          jenis operand, ukuran operand, arah perpindahan data, dan
-          mode pengalamatan.
+    \item Rantai proses: \file{.ASM} $\rightarrow$ TASM
+          $\rightarrow$ \file{.OBJ} $\rightarrow$ TLINK
+          $\rightarrow$ \file{.EXE}/\file{.COM} $\rightarrow$
+          memori.
 
-    \vspace{0.2em}
-    \item Format instruksi 8086 tersusun dari lima field berurutan
-          tetap: awalan, \eng{opcode}, ModR/M, \eng{displacement},
-          dan \eng{immediate}. Panjang totalnya 1 sampai 6 byte.
+    \vspace{0.15em}
+    \item TASM menerjemahkan instruksi; TLINK menyelesaikan rujukan
+          dan menetapkan alamat segmen.
 
-    \vspace{0.2em}
-    \item Byte ModR/M terbagi menjadi \code{mod} (2 bit),
-          \code{reg/opcode} (3 bit), dan \code{r/m} (3 bit). Nilai
-          \code{mod} menentukan letak operand dan panjang
-          \eng{displacement}.
+    \vspace{0.15em}
+    \item \file{.COM}: satu segmen, maksimum sekitar 64 KB,
+          \dir{ORG 100h}, tanpa inisialisasi DS.
 
-    \vspace{0.2em}
-    \item \eng{Displacement} menggeser alamat efektif dan hanya muncul
-          pada operand memori; \eng{immediate} adalah konstanta yang
-          menjadi operand. Keduanya dapat muncul bersamaan.
+    \vspace{0.15em}
+    \item \file{.EXE}: beberapa segmen, titik masuk dari \dir{END},
+          perlu inisialisasi DS.
 
-    \vspace{0.2em}
-    \item Setiap nilai 16 bit disimpan \eng{little-endian}, dan bentuk
-          operand mempengaruhi ukuran kode serta jumlah byte yang
-          diambil prosesor.
+    \vspace{0.15em}
+    \item Kerangka program: \dir{.MODEL}, \dir{.STACK}, \dir{.DATA},
+          \dir{.CODE}, label, dan \dir{END}.
 
-    \vspace{0.2em}
-    \item Disassembler, misalnya perintah \code{U} pada \file{DEBUG},
-          membalik kode mesin menjadi \eng{mnemonic}; hasilnya harus
-          diperiksa karena disassembler tidak membedakan kode dari
-          data.
+    \vspace{0.15em}
+    \item \dir{DB}/\dir{DW}/\dir{DD} menentukan ukuran;
+          \dir{EQU} konstanta; \dir{DUP} mengulang pola.
 \end{itemize}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Cek Pemahaman}
-\small
+\footnotesize
 \begin{enumerate}
-    \item Urutan field instruksi 8086 dari kiri ke kanan adalah \dots
-          \begin{enumerate}\footnotesize
-              \item \eng{opcode}, awalan, ModR/M, \eng{immediate},
-                    \eng{displacement}
-              \item awalan, \eng{opcode}, ModR/M, \eng{displacement},
-                    \eng{immediate}
-              \item ModR/M, \eng{opcode}, awalan, \eng{displacement},
-                    \eng{immediate}
-              \item awalan, ModR/M, \eng{opcode}, \eng{immediate},
-                    \eng{displacement}
+    \item Berkas keluaran yang dihasilkan langsung oleh TASM adalah
+          \dots
+          \begin{enumerate}
+              \item \file{.ASM} \quad \item \file{.OBJ} \quad
+              \item \file{.EXE} \quad \item \file{.COM}
           \end{enumerate}
 
     \vspace{0.2em}
-    \item Byte ModR/M \hex{D8} memiliki nilai \code{mod} sebesar \dots
-          \begin{enumerate}\footnotesize
-              \item \bin{00}, operand memori tanpa \eng{displacement}
-              \item \bin{01}, operand memori dengan disp8
-              \item \bin{10}, operand memori dengan disp16
-              \item \bin{11}, operand berupa register
+    \item Perangkat yang menggabungkan berkas objek menjadi berkas
+          yang dapat dijalankan adalah \dots
+          \begin{enumerate}
+              \item editor \quad \item TASM \quad
+              \item TLINK \quad \item DEBUG
           \end{enumerate}
 
     \vspace{0.2em}
-    \item \asm{MOV AX, 1234h} dikodekan \hex{B8 34 12} dan bukan
-          \hex{B8 12 34} karena \dots
-          \begin{enumerate}\footnotesize
-              \item 8086 menyimpan nilai 16 bit secara
-                    \eng{little-endian}
-              \item \eng{opcode} \hex{B8} hanya melayani nilai kecil
-              \item urutan byte ditentukan oleh mode pengalamatan
-              \item byte rendah disimpan pada \reg{AH}
+    \item Direktif yang wajib dipakai pada program \file{.COM}
+          adalah \dots
+          \begin{enumerate}
+              \item \dir{.MODEL SMALL} \quad \item \dir{ORG 100h} \quad
+              \item \dir{.STACK 100h} \quad \item \dir{ASSUME CS:CODE}
           \end{enumerate}
 \end{enumerate}
 \end{frame}
@@ -1091,24 +864,23 @@ jawaban penelusuran \eng{immediate}, dan jurnal praktikum.\par}
 % PENUTUP
 % =========================================================
 \begin{frame}{Penutup}
-\small
 \begin{block}{Sebelum pertemuan berikutnya}
+\small
 \begin{itemize}
-    \item Selesaikan Tugas 2: lembar kerja \eng{encoding} terisi,
-          keluaran perintah \code{U}, dan perhitungan byte dua bentuk
-          penulisan.
-    \item Latih kembali pemecahan byte ModR/M dan urutan
-          \eng{little-endian} sebelum mempelajari mode pengalamatan.
-    \item Baca \textbf{Bab VIII} --- Mode Pengalamatan.
+    \item Selesaikan praktikum: tiga berkas \file{.asm}, tangkapan
+          layar, tabel ukuran, dan analisis COM vs EXE.
+    \item Baca \textbf{Bab VIII} — Instruksi Transfer Data.
+    \item Siapkan pertanyaan tentang \code{MOV}, \code{LEA}, dan
+          aturan operand.
 \end{itemize}
 \end{block}
 
 \vspace{0.4em}
 \begin{center}
 {\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
-\vspace{0.2em}
-{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
-\SemesterTeks\par}
+\vspace{0.15em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK)
+\textbullet\ \SemesterTeks\par}
 \end{center}
 \end{frame}
 

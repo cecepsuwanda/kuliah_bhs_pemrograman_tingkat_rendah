@@ -27,8 +27,8 @@ dan minggu 16 (UAS) tidak dibuatkan deck materi.
 |---|---|
 | Jumlah deck | 14 (minggu 1–7 dan 9–15) |
 | Sumber utama per deck | 1 bab buku (pemetaan 1:1) |
-| Perkiraan frame per deck | 20–28 |
-| Perkiraan total frame | ±340 |
+| Perkiraan frame per deck | 28–33 |
+| Perkiraan total frame | ±424 |
 | Rasio slide | 16:9 (`aspectratio=169`) |
 | Mesin kompilasi | `pdflatex` (MiKTeX 24.1) |
 | Bahasa | Indonesia (istilah teknis tetap Inggris) |
@@ -65,24 +65,24 @@ pada Bab I buku (`chapters/01/section-02.tex`) dan Bagian 5 silabus.
 
 | Minggu | Materi pokok (silabus) | Bab buku | Judul bab | Sub-CPMK | CPMK |
 |---|---|---|---|---|---|
-| 1 | Pengenalan pemrograman tingkat rendah | Bab III | Pengenalan Pemrograman Tingkat Rendah dan Lingkungan Kerja | 1.1 | CPMK01 |
-| 2 | Arsitektur mikroprosesor 8086 | Bab IV | Arsitektur Mikroprosesor 8086 | 1.1 | CPMK01 |
-| 3 | Register 8086 | Bab V | Register 8086 dan Register Flag | 1.2 | CPMK01 |
-| 4 | Segmentasi memori | Bab VI | Segmentasi Memori dan Alamat Fisik | 1.3 | CPMK01 |
-| 5 | Format instruksi mesin | Bab VII | Format Instruksi Mesin | 2.1 | CPMK02 |
-| 6 | Mode pengalamatan | Bab VIII | Mode Pengalamatan | 2.2 | CPMK02 |
-| 7 | Direktif assembler dan translasi | Bab IX | Direktif Assembler dan Alur Translasi Program | 2.3 | CPMK02 |
+| 1 | Pengantar pemrograman tingkat rendah: kedudukan bahasa assembly, sistem bilangan, bilangan bertanda dan tidak bertanda | Bab III | Pengantar Assembly dan Sistem Bilangan | 1.1 | CPMK01 |
+| 2 | Arsitektur mikroprosesor 8086: BIU, EU, bus, *queue*, ALU, urutan pengambilan–eksekusi | Bab IV | Arsitektur Mikroprosesor 8086: BIU dan EU | 1.2 | CPMK01 |
+| 3 | Register 8086: register umum, segmen, pointer/index, IP, dan *flag* | Bab V | Register 8086 dan Register Flag | 1.3 | CPMK01 |
+| 4 | Organisasi memori: segmentasi 64 KB, alamat fisik, dan *overlapping* | Bab VI | Segmentasi Memori dan Alamat Fisik | 1.4 | CPMK01 |
+| 5 | Memulai assembly: TASM, TLINK, program COM/EXE, direktif, label, komentar | Bab VII | Memulai Assembly: TASM, TLINK, COM, EXE, dan Direktif | 2.1 | CPMK02 |
+| 6 | Instruksi transfer data: MOV, LEA, LDS/LES, XCHG, CMP, XLAT, CBW, CWD | Bab VIII | Instruksi Transfer Data | 2.2 | CPMK02 |
+| 7 | Interupsi dan layanan BIOS/DOS: tabel vektor, INT 21h, INT 10h, INT 16h | Bab IX | Interupsi BIOS/DOS | 2.3 | CPMK02 |
 | ~~8~~ | ~~Ujian Tengah Semester~~ | — | — | 1.1–2.3 | — |
-| 9 | Transfer data dan aritmatika | Bab X | Instruksi Transfer Data dan Aritmatika | 3.1 | CPMK03 |
-| 10 | Logika, pergeseran, dan rotasi | Bab XI | Operasi Logika, Pergeseran, dan Rotasi | 3.2 | CPMK03 |
-| 11 | Struktur kontrol dan percabangan | Bab XII | Struktur Kontrol dan Percabangan | 3.3 | CPMK03 |
-| 12 | Prosedur dan manajemen stack | Bab XIII | Prosedur dan Manajemen Stack | 3.4 | CPMK03 |
-| 13 | Interupsi BIOS/DOS dan I/O | Bab XIV | Interupsi BIOS/DOS dan Operasi I/O | 2.4 | CPMK02 |
-| 14 | Debugging level instruksi | Bab XV | Debugging pada Level Instruksi | 4.1, 4.2 | CPMK04 |
-| 15 | Disassembly dan optimasi | Bab XVI | Analisis Kode Mesin, Disassembly, dan Optimasi | 4.3 | CPMK04 |
+| 9 | Operasi aritmatika: ADD, ADC, INC, SUB, SBB, DEC, MUL, DIV, dan *flag* | Bab X | Operasi Aritmatika | 3.1 | CPMK03 |
+| 10 | Operasi logika dan manipulasi bit: NOT, AND, OR, XOR, TEST, SHL, SHR | Bab XI | Operasi Logika dan Shift | 3.2 | CPMK03 |
+| 11 | Tujuh mode pengalamatan 8086 dan segmen *default* | Bab XII | Tujuh Mode Pengalamatan | 3.3 | CPMK03 |
+| 12 | Percabangan dan perulangan: label, JMP, CMP, lompatan bersyarat, LOOP | Bab XIII | Percabangan dan Perulangan | 3.4 | CPMK03 |
+| 13 | Stack, prosedur, dan macro: PUSH/POP, PROC/ENDP, CALL/RET, parameter | Bab XIV | Stack, Prosedur, dan Macro | 3.5 | CPMK03 |
+| 14 | Array, string, dan pencetakan bilangan desimal/heksadesimal | Bab XV | Array, String, dan Pencetakan Bilangan | 3.6 | CPMK03 |
+| 15 | Debugging level instruksi: *trace*, *dump*, analisis *hang* | Bab XVI | Debugging Level Instruksi | 4.1–4.3 | CPMK04 |
 | ~~16~~ | ~~Ujian Akhir Semester~~ | — | — | 3.1–4.3 | — |
 
-CPL yang didukung: **CPL02** (minggu 1–7, 13) dan **CPL03** (minggu 9–12, 14–15).
+CPL yang didukung: **CPL02** (minggu 1–7) dan **CPL03** (minggu 9–15).
 
 ---
 
@@ -158,9 +158,9 @@ standar; bagian inti menyesuaikan jumlah subseksi bab.
 | 2 | Capaian & Tujuan | Kotak Sub-CPMK, CPMK & CPL pendukung, lalu 4–5 tujuan pembelajaran | `subcpmkbox` + `tujuanbox` di `chapter.tex` |
 | 3 | Peta Materi | Outline 3 seksi + kaitan ke Sub-CPMK | `materibox` di `chapter.tex` |
 | 4 | Section divider ×3 | Satu frame pemisah per `\section` | `\section{...}` |
-| 5 | **Inti** | 1 frame per subseksi (9–16 frame), menyaring definisi, tabel, dan diagram penting | `section-01..03.tex` |
+| 5 | **Inti** | 1 frame per subseksi (8–13 frame), menyaring definisi, tabel, dan diagram penting | `section-01..03.tex` |
 | 6 | Ringkasan seksi ×3 | 1 frame penutup tiap seksi, 3–4 butir kunci | akhir tiap `section-*.tex` |
-| 7 | Contoh Program | 1 frame per contoh (2–3 frame), kode assembly dari buku + penjelasan singkat | `contoh.tex` |
+| 7 | Contoh Program | 1 frame per contoh program (1–2 frame), kode assembly dari buku + penjelasan singkat | `contoh.tex` |
 | 8 | Praktikum | Tujuan, alat & bahan, langkah kerja ringkas, hasil yang dikumpulkan | `praktikum.tex` |
 | 9 | Latihan | Soal latihan terpilih dari buku | `latihan.tex` |
 | 10 | Rangkuman | Poin kunci bab + checklist pemahaman | `rangkuman.tex` |
@@ -176,32 +176,37 @@ disalin ke slide.
 
 ## 6. Anggaran Frame per Minggu
 
-Anggaran ini **direvisi dua kali** setelah Tahap 0. Anggaran awal (12 frame
-tetap + subseksi) kurang menghitung frame per seksi, frame per contoh program,
-dan frame ringkasan seksi. Formula yang cocok dengan kenyataan di lapangan:
+Anggaran ini **dihitung ulang** pada 22 Oktober 2026 setelah buku ajar dan
+RPS diselaraskan. Angka lama (29–37) tidak dipakai lagi karena angka itu
+milik topik lama. Formula yang dipakai tetap:
 
 > **Total frame ≈ 18 + jumlah subseksi + jumlah contoh program**
 >
 > (18 = 3 frame pembuka + 3 pemisah seksi + 3 ringkasan seksi + praktikum +
 > latihan + rangkuman + cek pemahaman + penutup)
 
-| Minggu | Bab | Subseksi | Contoh | Target frame |
+| Minggu | Bab | Subseksi | Contoh program | Target frame |
 |---|---|---|---|---|
-| 1 | III | 11 | 3 | 32 |
-| 2 | IV | 13 | 2 | 33 |
-| 3 | V | 12 | 3 | 33 |
+| 1 | III | 12 | 1 | 31 |
+| 2 | IV | 12 | 2 | 32 |
+| 3 | V | 10 | 2 | 30 |
 | 4 | VI | 11 | 2 | 31 |
-| 5 | VII | 15 | 2 | 35 |
-| 6 | VIII | 15 | 2 | 35 |
+| 5 | VII | 13 | 2 | 33 |
+| 6 | VIII | 10 | 2 | 30 |
 | 7 | IX | 9 | 2 | 29 |
-| 9 | X | 16 | 3 | 37 |
-| 10 | XI | 13 | 3 | 34 |
-| 11 | XII | 15 | 2 | 35 |
-| 12 | XIII | 14 | 2 | 34 |
-| 13 | XIV | 16 | 2 | 36 |
-| 14 | XV | 16 | 2 | 36 |
-| 15 | XVI | 15 | 3 | 36 |
-| | | | **Total** | **±476** |
+| 9 | X | 10 | 2 | 30 |
+| 10 | XI | 8 | 2 | 28 |
+| 11 | XII | 11 | 2 | 31 |
+| 12 | XIII | 12 | 2 | 32 |
+| 13 | XIV | 10 | 2 | 30 |
+| 14 | XV | 8 | 2 | 28 |
+| 15 | XVI | 9 | 2 | 29 |
+| | | | **Total** | **±424** |
+
+Jumlah subseksi dihitung dari `section-01.tex` sampai `section-03.tex`.
+Jumlah contoh program dihitung dari `contoh.tex`: Bab III mempunyai satu
+contoh berupa konversi bilangan tanpa program dan satu contoh program,
+sedangkan bab lain mempunyai dua contoh program.
 
 **Keputusan yang mengikat (ditetapkan pemilik proyek):**
 
@@ -209,11 +214,11 @@ dan frame ringkasan seksi. Formula yang cocok dengan kenyataan di lapangan:
    jumlah frame kecil, karena contoh program adalah bagian paling berguna di
    kelas.
 2. **Frame "Rangkuman Bagian" wajib ada tiga buah per deck** (satu di akhir
-   tiap seksi), konsisten dengan butir 6 pada §5. Deck minggu 3 sudah
-   memilikinya; minggu 1 dan 4 disesuaikan; deck berikutnya wajib memuatnya.
+   tiap seksi), konsisten dengan butir 6 pada §5. Ketentuan ini berlaku untuk
+   seluruh deck yang ditulis ulang tanpa pengecualian.
 
 Angka pada tabel adalah target, bukan kewajiban: boleh bergeser **±3 frame**.
-Untuk pertemuan 2 SKS (±100 menit), 29–37 frame berarti ±3 menit per frame —
+Untuk pertemuan 2 SKS (±100 menit), 28–33 frame berarti ±3 menit per frame —
 wajar untuk kuliah yang disertai praktik.
 
 Yang **tidak boleh** dikorbankan demi angka: contoh program, frame praktikum,
@@ -227,113 +232,134 @@ subseksi ringan ke dalam satu frame.
 Setiap minggu memuat: seksi bab, `contoh.tex`, `praktikum.tex`, `latihan.tex`,
 `rangkuman.tex`, dan `evaluasi.tex` dari bab yang bersangkutan.
 
-### Minggu 1 — Bab III: Pengenalan Pemrograman Tingkat Rendah dan Lingkungan Kerja
+### Minggu 1 — Bab III: Pengantar Assembly dan Sistem Bilangan
 - **Sub-CPMK 1.1** · CPMK01 · CPL02
-- Seksi: (1) Tingkat Abstraksi Bahasa Pemrograman; (2) Rantai Proses Pembuatan
-  Program Assembly; (3) Lingkungan Kerja dan Struktur Program Assembly Minimal
-- Contoh: Mencetak Teks dengan Layanan DOS · Program `.COM` dengan `ORG 100h` ·
-  Menampilkan Karakter Satu per Satu
-- Praktikum: memasang Emu8086 / GUI Turbo Assembler / DOSBox, merakit program pertama
-- Titik berat: mahasiswa dapat merakit dan menjalankan satu program hari itu juga
+- Seksi: (1) Kedudukan dan Peran Bahasa Assembly; (2) Sistem Bilangan dan Konversi;
+  (3) Bilangan Bertanda, Tak Bertanda, dan Data Karakter
+- Contoh: Konversi Nilai 200 · Menyimpan Bilangan dalam Basis Berbeda
+- Praktikum: konversi bilangan dan pemeriksaan data di memori
+- Titik berat: konversi biner/desimal/oktal/heksadesimal, *two's complement*,
+  dan hubungan kode ASCII dengan isi memori
 
-### Minggu 2 — Bab IV: Arsitektur Mikroprosesor 8086
-- **Sub-CPMK 1.1** · CPMK01 · CPL02
-- Seksi: (1) Evolusi Mikroprosesor dan Kedudukan 8086; (2) Bus Interface Unit dan
-  Execution Unit; (3) Bus Eksternal dan Siklus Instruksi
-- Contoh: Menelusuri Siklus Instruksi sebuah Program · Dua Cara Menjumlahkan Dua Bilangan
+### Minggu 2 — Bab IV: Arsitektur Mikroprosesor 8086: BIU dan EU
+- **Sub-CPMK 1.2** · CPMK01 · CPL02
+- Seksi: (1) Kedudukan 8086 dan Pembagian Unit Internal; (2) Bus Interface Unit:
+  Bus, Queue, dan Alamat; (3) Execution Unit dan Urutan Pengambilan–Eksekusi
+- Contoh: Menelusuri Program Pendek · Operand Register dan Operand Memori
+- Praktikum: diagram blok 8086 dan penelusuran siklus instruksi
 - Diagram: arsitektur BIU–EU dan alur *fetch–decode–execute* (digambar ulang
-  dengan `tikz`, disederhanakan dari gambar pada buku)
+  dengan `tikz`, disederhanakan dari gambar pada bab)
 
 ### Minggu 3 — Bab V: Register 8086 dan Register Flag
-- **Sub-CPMK 1.2** · CPMK01 · CPL02
+- **Sub-CPMK 1.3** · CPMK01 · CPL02
 - Seksi: (1) Register Umum dan Register Segmen; (2) Register Pointer, Index, dan
-  Instruction Pointer; (3) Register Flag
-- Contoh: Memprediksi Flag Sebelum Menjalankan Program · Memilih Pesan Berdasarkan
-  Flag · Akses Byte Rendah dan Byte Tinggi
-- Titik berat: peta register dalam satu frame tabel + perilaku flag ZF/CF/SF/OF/PF/AF
+  Instruction Pointer; (3) Register Flag dan Pengaruhnya pada Keputusan
+- Contoh: Memprediksi Flag Sebelum Menjalankan Program · Memilih Pesan Berdasarkan Flag
+- Praktikum: pengamatan register dan *flag* dengan *single step*
+- Titik berat: peta register dalam satu frame tabel + perilaku
+  ZF/CF/SF/OF/PF/AF
 
 ### Minggu 4 — Bab VI: Segmentasi Memori dan Alamat Fisik
-- **Sub-CPMK 1.3** · CPMK01 · CPL02
-- Seksi: (1) Masalah Pengalamatan Memori dan Lahirnya Segmentasi; (2) Paragraf
-  16-Byte, Struktur Segmen, dan Overlapping; (3) Peta Memori 1 MB dan Kasus Batas Alamat
-- Contoh: Menampilkan Offset Variabel · Membaca Nilai Segmen dan Menghitung Alamat
-- Titik berat: perhitungan alamat fisik 20-bit (`segment × 16 + offset`) dengan
-  contoh hitung bertahap di slide
+- **Sub-CPMK 1.4** · CPMK01 · CPL02
+- Seksi: (1) Mengapa Segmentasi Diperlukan; (2) Paragraf 16 Byte, Segmen 64 KB,
+  dan Overlapping; (3) Pembagian Memori 1 MB dan Verifikasi Alamat
+- Contoh: Menampilkan Offset Variabel · Menghitung Alamat Fisik di Dalam Program
+- Praktikum: menghitung dan memverifikasi alamat fisik dengan *debugger*
+- Titik berat: perhitungan alamat fisik 20-bit
+  (`segment × 16 + offset`) dengan contoh hitung bertahap di slide
 
-### Minggu 5 — Bab VII: Format Instruksi Mesin
+### Minggu 5 — Bab VII: Memulai Assembly: TASM, TLINK, COM, EXE, dan Direktif
 - **Sub-CPMK 2.1** · CPMK02 · CPL02
-- Seksi: (1) Dari Mnemonic ke Kode Mesin; (2) Byte ModR/M, Displacement, dan
-  Immediate; (3) Encoding Manual dan Disassembler
-- Contoh: Membongkar Program dengan Perintah `U` · Dua Bentuk Penulisan, Ukuran Berbeda
-- Titik berat: membedah satu instruksi menjadi opcode + ModR/M + displacement
+- Seksi: (1) Rantai Proses Pembuatan Program Assembly; (2) Struktur Program
+  Assembly; (3) Direktif Data dan Alur Translasi
+- Contoh: Program Pertama · Direktif Data
+- Praktikum: menulis, meng-*assemble*, men-*link*, dan menjalankan program
+  `.EXE` serta `.COM`
+- Titik berat: diagram `.ASM → .OBJ → .EXE/.COM`, fungsi `.MODEL`, `ORG 100h`,
+  `.CODE`, `.DATA`, serta direktif `DB`/`DW`/`DD`/`EQU`/`DUP`
 
-### Minggu 6 — Bab VIII: Mode Pengalamatan
+### Minggu 6 — Bab VIII: Instruksi Transfer Data
 - **Sub-CPMK 2.2** · CPMK02 · CPL02
-- Seksi: (1) Operand dan Tiga Mode Pengalamatan Dasar; (2) Mode Memori Berpenunjuk
-  dan Segmen Default; (3) Perbandingan Efisiensi dan Studi Kasus
-- Contoh: Membandingkan Tiga Mode pada Array · Membaca Parameter dengan `[BP+disp]`
-- Titik berat: tabel mode pengalamatan + segmen default (DS/SS) sebagai satu frame rujukan
+- Seksi: (1) Instruksi MOV dan Aturan Operand; (2) LEA, LDS/LES, XCHG, dan CMP;
+  (3) XLAT, CBW, dan CWD
+- Contoh: Menelusuri Transfer Data · Memuat Far Pointer
+- Praktikum: menelusuri instruksi transfer data dengan *single step*
+- Titik berat: aturan operand `MOV`, perbedaan `LEA` dan `MOV`, *far pointer*,
+  serta konversi ukuran dengan `CBW`/`CWD`
 
-### Minggu 7 — Bab IX: Direktif Assembler dan Alur Translasi Program
+### Minggu 7 — Bab IX: Interupsi BIOS/DOS
 - **Sub-CPMK 2.3** · CPMK02 · CPL02
-- Seksi: (1) Instruksi Mesin, Direktif Assembler, dan Direktif Data;
-  (2) Direktif Simbol, Lokasi, dan Struktur Program; (3) Peran Assembler dan Linker
-  dalam Alur Translasi
-- Contoh: Mendemonstrasikan Semua Direktif Data · Konstanta `EQU`
-- Praktikum: menyusun dan meng-*assemble* program pertama secara utuh
-- Titik berat: diagram `.asm → .obj → .exe` dan peran assembler vs linker
+- Seksi: (1) Konsep Interupsi dan Tabel Vektor; (2) Interupsi BIOS;
+  (3) Interupsi DOS
+- Contoh: Membaca Nama dengan `INT 21h` · Menulis Teks Berwarna dengan `INT 10h`
+- Praktikum: menggunakan layanan BIOS/DOS dan memeriksa tabel vektor interupsi
+- Titik berat: tabel layanan yang sering dipakai (`INT 21h` 09h/0Ah/4Ch,
+  `INT 10h`, `INT 16h`) dan alur penyimpanan/pemulihan keadaan prosesor
 
-### Minggu 9 — Bab X: Instruksi Transfer Data dan Aritmatika
+### Minggu 9 — Bab X: Operasi Aritmatika
 - **Sub-CPMK 3.1** · CPMK03 · CPL03
-- Seksi: (1) Instruksi Transfer Data; (2) Instruksi Aritmatika Dasar dan Pengaruhnya
-  pada Flag; (3) Perkalian, Pembagian, dan Aritmatika Bertingkat
-- Contoh: Kalkulator Penjumlahan dan Pengurangan · Perkalian, Pembagian, dan
-  *Divide Overflow* · Penjumlahan 32 Bit dengan `ADC`
-- Titik berat: tabel instruksi + efek flag; jebakan `DIV`/`IDIV` (DX:AX)
+- Seksi: (1) Penjumlahan dan Pengurangan; (2) Perkalian dan Pembagian;
+  (3) Flag, Tanda Bilangan, dan Verifikasi Hasil
+- Contoh: Operasi Aritmatika Lengkap · MUL dan DIV 16 Bit
+- Praktikum: menelusuri operasi aritmatika dan memeriksa hasilnya
+- Titik berat: `ADD`/`ADC`/`INC`/`SUB`/`SBB`/`DEC`, pengaruh *flag*, aturan
+  `MUL`/`DIV` (DX:AX), dan *divide overflow*
 
-### Minggu 10 — Bab XI: Operasi Logika, Pergeseran, dan Rotasi
+### Minggu 10 — Bab XI: Operasi Logika dan Shift
 - **Sub-CPMK 3.2** · CPMK03 · CPL03
-- Seksi: (1) Operasi Logika pada Level Bit; (2) Pergeseran dan Rotasi;
-  (3) Studi Kasus Manipulasi Bit
-- Contoh: Memeriksa Paritas Byte · Enkripsi dan Dekripsi dengan *XOR Cipher* ·
-  Memanipulasi Bidang Bit Status
-- Titik berat: tabel SHL/SHR/SAL/SAR/ROL/ROR dan beda *arithmetic* vs *logical shift*
+- Seksi: (1) Operasi Logika Dasar; (2) Mask dan Instruksi TEST;
+  (3) Pergeseran SHL dan SHR
+- Contoh: Memeriksa Paritas · XOR Cipher
+- Praktikum: manipulasi bit dengan `SHR`, `TEST`, dan `XOR`
+- Titik berat: tabel kebenaran `NOT`/`AND`/`OR`/`XOR`, penggunaan *mask*,
+  perbedaan `TEST` dan `CMP`, serta pergeseran untuk perkalian/pembagian
+  dengan pangkat dua
 
-### Minggu 11 — Bab XII: Struktur Kontrol dan Percabangan
+### Minggu 11 — Bab XII: Tujuh Mode Pengalamatan
 - **Sub-CPMK 3.3** · CPMK03 · CPL03
-- Seksi: (1) Flag sebagai Dasar Pengambilan Keputusan; (2) Lompatan Bersyarat dan
-  Perulangan; (3) Penerjemahan Pola Bahasa Tingkat Tinggi ke Assembly
-- Contoh: Mencari Nilai Maksimum Larik · Pengurutan Gelembung
-- Titik berat: tabel `Jcc` (JE/JNE/JG/JL/JA/JB) + penerjemahan `if`/`while`/`for`
+- Seksi: (1) Operand dan Tiga Mode Dasar; (2) Mode Memori Berpenunjuk;
+  (3) Segmen Default dan Penerapan
+- Contoh: Tiga Mode untuk Array yang Sama · Tujuh Mode untuk Satu Elemen
+- Praktikum: membandingkan mode pengalamatan pada akses array
+- Titik berat: tabel tujuh mode, perhitungan alamat efektif, dan segmen
+  *default* (`DS`/`SS`) sebagai satu frame rujukan
 
-### Minggu 12 — Bab XIII: Prosedur dan Manajemen Stack
+### Minggu 12 — Bab XIII: Percabangan dan Perulangan
 - **Sub-CPMK 3.4** · CPMK03 · CPL03
-- Seksi: (1) Prosedur, Pemanggilan, dan Pengembalian; (2) Stack dan Operasi Stack;
-  (3) Stack Frame, Konvensi Pemanggilan, dan Rekursi
-- Contoh: Prosedur `HitungLuas` · Faktorial Rekursif
-- Titik berat: gambar *stack frame* dan penelusuran `CALL`/`RET` langkah demi langkah
+- Seksi: (1) Label, JMP, dan CMP; (2) Lompatan Bersyarat dan Percabangan;
+  (3) Perulangan
+- Contoh: Mencari Nilai Maksimum · Pengurutan Gelembung
+- Praktikum: menelusuri percabangan dan perulangan pada program array
+- Titik berat: tabel `Jcc` untuk bilangan bertanda dan tidak bertanda,
+  penerjemahan `if`/`while`/`for`, `LOOP`, dan perulangan bersarang
 
-### Minggu 13 — Bab XIV: Interupsi BIOS/DOS dan Operasi I/O
-- **Sub-CPMK 2.4** · CPMK02 · CPL02
-- Seksi: (1) Konsep Interupsi dan Tabel Vektor; (2) Interupsi BIOS: Video, Keyboard,
-  dan Printer; (3) Interupsi DOS dan Penangan Buatan Sendiri
-- Contoh: Menyapa Pengguna dengan `INT 21h` · Teks Berwarna dengan `INT 10h`
-- Titik berat: tabel layanan sering dipakai (`INT 21h` 09h/02h/0Ah, `INT 10h` 09h/13h)
+### Minggu 13 — Bab XIV: Stack, Prosedur, dan Macro
+- **Sub-CPMK 3.5** · CPMK03 · CPL03
+- Seksi: (1) Stack dan Instruksi PUSH/POP; (2) Prosedur dan Penyampaian Data;
+  (3) Macro
+- Contoh: Prosedur Berparameter melalui Stack · Macro dengan Parameter
+- Praktikum: menelusuri stack, prosedur berparameter, dan macro
+- Titik berat: sifat LIFO, `SS:SP`/`SS:BP`, `CALL`/`RET`, *stack frame*,
+  dan perbedaan prosedur dengan macro
 
-### Minggu 14 — Bab XV: Debugging pada Level Instruksi
-- **Sub-CPMK 4.1, 4.2** · CPMK04 · CPL03
-- Seksi: (1) Taksonomi Kesalahan Program dan Alat Debugging; (2) Menelusuri Program
-  dengan Perintah DEBUG; (3) Analisis Memori dan Stack serta Metodologi Debugging
-- Contoh: Perulangan Tak Berujung · Stack yang Tidak Seimbang
-- Titik berat: demonstrasi `T`/`P`/`G`/`D`/`R` — deck ini paling banyak memuat
-  tangkapan layar/luaran teks
+### Minggu 14 — Bab XV: Array, String, dan Pencetakan Bilangan
+- **Sub-CPMK 3.6** · CPMK03 · CPL03
+- Seksi: (1) Array Satu dan Multi Dimensi; (2) String; (3) Mencetak Bilangan
+  Desimal dan Heksadesimal
+- Contoh: Menjumlahkan Array dan Menyalin String · Mencetak Bilangan Desimal
+  dan Heksadesimal
+- Praktikum: mengolah array/string dan mencetak bilangan
+- Titik berat: perhitungan offset elemen array, string sebagai array byte,
+  konversi bilangan ke digit ASCII, dan pencetakan dengan layanan DOS
 
-### Minggu 15 — Bab XVI: Analisis Kode Mesin, Disassembly, dan Optimasi
-- **Sub-CPMK 4.3** · CPMK04 · CPL03
-- Seksi: (1) Disassembly: Mengembalikan Kode Mesin ke Mnemonic; (2) Mengenali Pola
-  Hasil Disassembly dan Metrik Optimasi; (3) Strategi Optimasi pada Level Instruksi
-- Contoh: Versi Naif · Versi Teroptimasi · Versi Teroptimasi dengan *Loop Unrolling*
-- Titik berat: perbandingan "sebelum vs sesudah" optimasi (ukuran byte, jumlah instruksi)
+### Minggu 15 — Bab XVI: Debugging Level Instruksi
+- **Sub-CPMK 4.1–4.3** · CPMK04 · CPL03
+- Seksi: (1) Jenis Kesalahan dan Alat Debugging; (2) Menelusuri Program per
+  Instruksi; (3) Memeriksa Memori, Stack, dan Memperbaiki Hang
+- Contoh: Perulangan Tak Berujung · Stack Tidak Seimbang
+- Praktikum: menemukan dan memperbaiki kesalahan dengan *single step* dan *dump*
+- Titik berat: demonstrasi `T`/`P`/`G`/`D`/`R`, perbedaan kesalahan sintaks,
+  kesalahan logika, dan *hang*, serta bukti perbaikan
 
 ---
 
@@ -439,8 +465,8 @@ Tambahan:
 |---|---|---|
 | 0 | Tema bersama: `preamble-ppt.tex`, `listing-ppt.tex`, dan **deck contoh minggu 1** | 2 berkas tema + `src/minggu-01.tex` + `minggu-01.pdf` |
 | 1 | Deck minggu 2–7 (Bagian pertama: CPMK01–CPMK02) | 6 deck |
-| 2 | Deck minggu 9–12 (CPMK03: aritmatika, logika, kontrol, prosedur) | 4 deck |
-| 3 | Deck minggu 13–15 (CPMK02 2.4 dan CPMK04: interupsi, debugging, optimasi) | 3 deck |
+| 2 | Deck minggu 9–12 (CPMK03: aritmatika, logika, mode pengalamatan, percabangan) | 4 deck |
+| 3 | Deck minggu 13–15 (CPMK03 3.5–3.6 dan CPMK04 4.1–4.3: stack/prosedur/macro, array/string, debugging) | 3 deck |
 | 4 | `compile_ppt.bat`, kompilasi seluruh deck, pemeriksaan akhir | 14 PDF + skrip |
 
 Tahap 0 dikerjakan lebih dahulu dan **ditinjau sebelum lanjut**, karena tema di
@@ -458,7 +484,7 @@ Sebuah deck dinyatakan selesai bila seluruh butir berikut terpenuhi:
 
 1. `ppt/src/minggu-NN.tex` ada dan **berhasil dikompilasi tanpa galat**
    (`pdflatex` keluar dengan kode 0, tanpa "Undefined control sequence").
-2. `ppt/minggu-NN.pdf` terbentuk, dapat dibuka, dan jumlah frame sesuai anggaran §6 (±2).
+2. `ppt/minggu-NN.pdf` terbentuk, dapat dibuka, dan jumlah frame sesuai anggaran §6 (±3).
 3. Deck memuat frame: judul, capaian & tujuan, peta materi, bagian inti,
    contoh program, praktikum, latihan, rangkuman, kuis, penutup.
 4. Sub-CPMK, CPMK, dan CPL yang tercantum **cocok** dengan tabel §3 dan silabus.
@@ -500,7 +526,7 @@ Empat hal berikut sudah diputuskan dan mengikat seluruh 14 deck:
 | 1 | Tema visual | **Kustom berwarna OBE**, selaras buku (§8.2) |
 | 2 | Rasio slide | **16:9** (`aspectratio=169`) |
 | 3 | Penempatan berkas | **Sumber di `ppt/src/`**, PDF hasil jadi di `ppt/` (§4.1) |
-| 4 | Kepadatan | **20–28 frame per deck** (§6) — belum ditetapkan lain, jadi usulan ini yang dipakai |
+| 4 | Kepadatan | **28–33 frame per deck** (§6), hasil hitung ulang dari bab yang sudah diselaraskan |
 
 Dua hal berikut masih berada di luar lingkup perintah dan belum diputuskan:
 apakah perlu dibuat **deck kisi-kisi UTS (minggu 8) dan UAS (minggu 16)**, dan

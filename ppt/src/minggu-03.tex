@@ -3,7 +3,7 @@
 % Slide pertemuan 3
 % Bab V — Register 8086 dan Register Flag
 %
-% Sub-CPMK 1.2 | CPMK01 | CPL02
+% Sub-CPMK 1.3 | CPMK01 | CPL02
 % =========================================================
 
 \documentclass[aspectratio=169,11pt]{beamer}
@@ -16,38 +16,36 @@
 % =========================================================
 % 1. JUDUL
 % =========================================================
-\JudulDeck{Register 8086 dan Register Flag}{Pertemuan 3}
+\JudulDeck{Register 8086 dan\\ Register Flag}{Pertemuan 3}
 
 % =========================================================
 % 2. CAPAIAN DAN TUJUAN
 % =========================================================
 \begin{frame}{Capaian dan Tujuan Pembelajaran}
-\begin{block}{Sub-CPMK 1.2}
-\small Mengidentifikasi fungsi register umum (\reg{AX}, \reg{BX},
-\reg{CX}, \reg{DX}), register segmen (\reg{CS}, \reg{DS}, \reg{SS},
-\reg{ES}), register \eng{pointer}/\eng{index} (\reg{SP}, \reg{BP},
-\reg{SI}, \reg{DI}), dan register \eng{flag} beserta pengaruhnya
-terhadap eksekusi program.
+\begin{block}{Sub-CPMK 1.3}
+\small Mengidentifikasi register umum (AX--DX), register segmen
+(CS, DS, SS, ES), register \eng{pointer}/\eng{index} (SP, BP, SI,
+DI), IP, dan \eng{flag} beserta pengaruh \eng{flag} terhadap
+keputusan program.
 \end{block}
 
-\vspace{0.15em}
+\vspace{0.1em}
 {\small\textbf{CPMK yang didukung:} \CPMK{01}\quad\textbullet\quad
 \textbf{CPL yang didukung:} \CPL{02}\par}
 
-\vspace{0.25em}
+\vspace{0.15em}
 \begin{exampleblock}{Setelah pertemuan ini, mahasiswa mampu:}
 \footnotesize
 \begin{enumerate}
-    \item menyebutkan register umum 8086 beserta akses byte rendah
-          dan byte tingginya;
-    \item menjelaskan peran khas setiap register umum dan alasan di
-          balik peran tersebut;
-    \item menjelaskan fungsi register segmen serta peran register
-          \eng{pointer}, \eng{index}, dan \reg{IP};
-    \item mengidentifikasi sembilan \eng{flag} pada register
-          \reg{FLAGS} beserta posisi bitnya;
-    \item memprediksi perubahan \eng{flag} akibat operasi aritmatika
-          dan menjelaskan akibatnya bagi alur program.
+    \item mengidentifikasi keempat belas register 8086 dan
+          kelompoknya;
+    \item menjelaskan register umum AX--DX serta akses byte tinggi
+          dan byte rendah;
+    \item menjelaskan register segmen dan pasangan alamat yang
+          dibentuknya;
+    \item menjelaskan SP, BP, SI, DI, dan IP;
+    \item menjelaskan sembilan \eng{flag} dan pengaruhnya terhadap
+          keputusan program.
 \end{enumerate}
 \end{exampleblock}
 \end{frame}
@@ -59,28 +57,24 @@ terhadap eksekusi program.
 \small
 \begin{enumerate}
     \item \textbf{Register Umum dan Register Segmen}\\
-          {\footnotesize \reg{AX}--\reg{DX} dan akses byte
-          rendah/tinggi; peran khas tiap register; \reg{CS},
-          \reg{DS}, \reg{SS}, \reg{ES}}
+          {\footnotesize AX--DX dan akses byte; peran khas; CS, DS,
+          SS, ES; pasangan alamat}
 
     \vspace{0.25em}
-    \item \textbf{Register \eng{Pointer}, \eng{Index}, dan
-          \eng{Instruction Pointer}}\\
-          {\footnotesize \reg{SP} dan \reg{BP} pada \eng{stack};
-          \reg{SI} dan \reg{DI} pada operasi string; \reg{IP};
-          register yang rawan diubah}
+    \item \textbf{Register Pointer, Index, dan Instruction Pointer}\\
+          {\footnotesize SP dan BP; SI dan DI; IP; peta keempat belas
+          register}
 
     \vspace{0.25em}
-    \item \textbf{Register Flag}\\
-          {\footnotesize peta bit \reg{FLAGS}; sembilan \eng{flag}
-          status dan kendali; contoh perubahan \eng{flag}; lompatan
-          bersyarat}
+    \item \textbf{Register Flag dan Pengaruhnya pada Keputusan}\\
+          {\footnotesize sembilan \eng{flag}; perubahan pada
+          penjumlahan; CF dan OF; lompatan bersyarat}
 \end{enumerate}
 
-\vspace{0.4em}
+\vspace{0.35em}
 \begin{block}{Praktik pada pertemuan ini}
-\small Menjalankan tiga contoh program, memprediksi \eng{flag}, lalu
-mengamati register melalui \eng{Single Step}.
+\small Mengamati register dan \eng{flag} dengan \eng{single step},
+lalu memprediksi keadaan \eng{flag} sebelum program dijalankan.
 \end{block}
 \end{frame}
 
@@ -90,258 +84,138 @@ mengamati register melalui \eng{Single Step}.
 \PemisahBagian{Register Umum dan Register Segmen}
 
 % ---------------------------------------------------------
-\begin{frame}{Empat Belas Register, Empat Kelompok}
-\begin{center}
-\begin{tikzpicture}[
-    reg/.style={
-        draw=obeBlue, line width=0.7pt, fill=obeBlueLight,
-        rounded corners=2pt, minimum width=1.05cm, minimum height=0.55cm,
-        align=center, font=\small\ttfamily, inner sep=2pt
-    },
-    regk/.style={reg, fill=obeTealLight, draw=obeTeal},
-    regs/.style={reg, fill=obeAmberLight, draw=obeAmber},
-    regf/.style={reg, fill=obeGrayLight, draw=obeGray},
-    judul/.style={
-        font=\scriptsize\bfseries\sffamily, text=obeBlue,
-        anchor=east, align=right
-    },
-    ket/.style={font=\tiny\itshape, text=obeGray}
-]
-    \node[judul] at (-0.30, 4.55) {Register umum};
-    \node[reg] (ax) at (0.35, 4.55) {AX\\{\normalfont\tiny akumulator}};
-    \node[reg, right=0.18cm of ax] (bx) {BX\\{\normalfont\tiny basis}};
-    \node[reg, right=0.18cm of bx] (cx) {CX\\{\normalfont\tiny pencacah}};
-    \node[reg, right=0.18cm of cx] (dx) {DX\\{\normalfont\tiny data}};
-
-    \node[judul] at (-0.30, 3.25) {Register segmen};
-    \node[regk] (cs) at (0.35, 3.25) {CS\\{\normalfont\tiny kode}};
-    \node[regk, right=0.18cm of cs] (ds) {DS\\{\normalfont\tiny data}};
-    \node[regk, right=0.18cm of ds] (ss) {SS\\{\normalfont\tiny stack}};
-    \node[regk, right=0.18cm of ss] (es) {ES\\{\normalfont\tiny tambahan}};
-
-    \node[judul] at (-0.30, 1.95) {Pointer, index,\\dan IP};
-    \node[regs] (sp) at (0.35, 1.95)
-        {SP\\{\normalfont\tiny puncak stack}};
-    \node[regs, right=0.18cm of sp] (bp)
-        {BP\\{\normalfont\tiny acuan stack}};
-    \node[regs, right=0.18cm of bp] (si)
-        {SI\\{\normalfont\tiny sumber}};
-    \node[regs, right=0.18cm of si] (di)
-        {DI\\{\normalfont\tiny tujuan}};
-    \node[regs, right=0.18cm of di] (ip)
-        {IP\\{\normalfont\tiny instruksi}};
-
-    \node[judul] at (-0.30, 0.60) {Register flag};
-    \node[regf, minimum width=5.9cm] (fl) at (3.30, 0.60)
-        {\textbf{FLAGS} (16 bit)\\{\normalfont\tiny
-         CF PF AF ZF SF TF IF DF OF}};
-\end{tikzpicture}
-\end{center}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Keempat belas register berukuran 16 bit
-dan dapat menampung nilai \hex{0000} sampai \hex{FFFF}. Register
-adalah memori tercepat di dalam prosesor: satu daur mesin, tanpa
-melewati bus.\par}
-\Sumber{Bab V, Ringkasan kelompok register 8086}
-\end{frame}
-
-% ---------------------------------------------------------
 \begin{frame}{Register Umum dan Akses Byte}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.4cm}
+    >{\raggedright\arraybackslash}p{1.2cm}
+    >{\raggedright\arraybackslash}p{1.6cm}
+    >{\raggedright\arraybackslash}p{1.6cm}
+    >{\raggedright\arraybackslash}p{5.6cm}@{}}
+    \toprule
+    \textbf{Register} & \textbf{Ukuran} & \textbf{Byte tinggi} &
+    \textbf{Byte rendah} & \textbf{Peran khas} \\
+    \midrule
+    AX & 16 bit & AH & AL & Akumulator aritmatika dan layanan DOS \\
+    \addlinespace
+    BX & 16 bit & BH & BL & Penunjuk alamat \eng{offset} \\
+    \addlinespace
+    CX & 16 bit & CH & CL & Pencacah pengulangan \\
+    \addlinespace
+    DX & 16 bit & DH & DL & Data pendukung dan sisa pembagian \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.25em}
+{\color{obeGray}Bila AX = \hex{1234}, maka AH = \hex{12} dan
+AL = \hex{34}.\par}
+\Sumber{Bab V, Bagian 1}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Peran Khas Register Umum}
 \small
-\begin{center}
-\begin{tabular}{@{}lllp{7.3cm}@{}}
-    \toprule
-    \textbf{Register} & \textbf{Byte tinggi} & \textbf{Byte rendah} &
-    \textbf{Peran khas} \\
-    \midrule
-    \reg{AX} & \reg{AH} & \reg{AL} &
-    Akumulator: hasil hitungan, operand wajib \asm{MUL}/\asm{DIV},
-    layanan DOS \\
-    \addlinespace
-    \reg{BX} & \reg{BH} & \reg{BL} &
-    Basis: penunjuk alamat memori pada mode terindeks \\
-    \addlinespace
-    \reg{CX} & \reg{CH} & \reg{CL} &
-    Pencacah: pengulangan \asm{LOOP}, operasi string, jumlah
-    pergeseran \asm{SHL}/\asm{SHR} \\
-    \addlinespace
-    \reg{DX} & \reg{DH} & \reg{DL} &
-    Data: pasangan \reg{AX} pada operasi 32 bit, alamat port I/O dan
-    layanan DOS \\
-    \bottomrule
-\end{tabular}
-\end{center}
+\begin{itemize}
+    \item \textbf{AX sebagai akumulator.} Banyak operasi aritmatika
+          dan layanan DOS memakai AX atau AL sebagai operand utama.
 
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Setiap register 16 bit terbagi menjadi
-\emph{byte tinggi} dan \emph{byte rendah} yang dapat diakses
-sendiri-sendiri.\par}
-\Sumber{Bab V, Register Umum dan Akses Byte}
-\end{frame}
+    \vspace{0.18em}
+    \item \textbf{BX sebagai penunjuk alamat.} BX sering menyimpan
+          alamat \eng{offset} dari suatu segmen.
 
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Akses Byte: \code{MOV AL, 5} dan
-\code{MOV AX, 5}}
-\small Dua instruksi ini terlihat serupa, tetapi akibatnya berbeda
-pada \reg{AH}.
-\vspace{0.3em}
-\begin{columns}[t]
-\begin{column}{0.54\textwidth}
-\begin{kodeasm}[numbers=none]
-MOV AL, 5   ; hanya byte rendah yang berubah
-MOV AX, 5   ; kedua bagian ditulis sekaligus
-\end{kodeasm}
-\end{column}
-\begin{column}{0.42\textwidth}
-{\color{obeTeal}\bfseries Isi \reg{AX}}\\[0.3em]
-\begin{keluaran}
-sebelum       : FF00h
-MOV AL, 5     : FF05h
-MOV AX, 5     : 0005h
-\end{keluaran}
-\end{column}
-\end{columns}
+    \vspace{0.18em}
+    \item \textbf{CX sebagai pencacah.} CX menentukan berapa kali
+          pengulangan dijalankan; \code{LOOP} memakainya.
 
-\vspace{0.4em}
-\begin{alertblock}{Yang sering terlewat}
-\small \code{MOV AL, 5} \textbf{tidak} mengosongkan \reg{AH}. Bila
-\reg{AH} semula \hex{FF}, maka \reg{AX} menjadi \hex{FF05}, bukan
-\hex{0005}.
-\end{alertblock}
-\end{frame}
+    \vspace{0.18em}
+    \item \textbf{DX sebagai data pendukung.} DX menampung sisa
+          pembagian 16 bit dan data pendukung operasi tertentu.
+\end{itemize}
 
-% ---------------------------------------------------------
-\begin{frame}{Mengapa Peran Setiap Register Berbeda}
-\small Keempat register umum sama-sama dapat menampung nilai apa pun,
-tetapi peran khasnya berbeda karena cara prosesor 8086 menyandikan
-instruksi.
-
-\vspace{0.4em}
-\begin{center}
-\begin{tabular}{@{}llp{7.6cm}@{}}
-    \toprule
-    \textbf{Register} & \textbf{Peran} & \textbf{Mengapa demikian} \\
-    \midrule
-    \reg{AX} & Akumulator &
-    \asm{MUL}, \asm{DIV}, \asm{IN}, \asm{OUT}, dan sebagian besar
-    layanan DOS mengandaikan operand di \reg{AX}/\reg{AL}; bentuk
-    mesinnya juga lebih pendek \\
-    \addlinespace
-    \reg{BX} & Basis &
-    Hanya \reg{BX} yang boleh menjadi register basis di dalam tanda
-    kurung: \code{MOV AL, [BX]} \\
-    \addlinespace
-    \reg{CX} & Pencacah &
-    \asm{LOOP}, \asm{REP}, dan operasi string memakainya sebagai
-    penghitung otomatis; \asm{SHL}/\asm{SHR} memakai \reg{CL} \\
-    \addlinespace
-    \reg{DX} & Data &
-    Pasangan \reg{AX} pada operasi 32 bit --- \reg{DX} menyimpan
-    bagian tinggi --- serta alamat string dan nomor port \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Register umum boleh dipakai di luar
-peran khasnya; yang tidak boleh adalah melanggar aturan khusus,
-misalnya \code{MOV AX, [CX]}.\par}
+\vspace{0.25em}
+\begin{block}{Bukan larangan mutlak}
+\small Peran khas menunjukkan pemakaian yang paling sering dan paling
+aman; register umum tetap dapat menampung nilai lain.
+\end{block}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Register Segmen}
-\small
+\footnotesize
 \begin{center}
-\begin{tabular}{@{}llp{7.6cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.0cm}
+    >{\raggedright\arraybackslash}p{4.0cm}
+    >{\raggedright\arraybackslash}p{6.8cm}@{}}
     \toprule
     \textbf{Register} & \textbf{Nama lengkap} & \textbf{Peran} \\
     \midrule
-    \reg{CS} & \eng{Code Segment} &
-    Menunjuk segmen tempat instruksi berada; selalu berpasangan
-    dengan \reg{IP} \\
+    CS & \eng{Code Segment} & Menunjuk segmen instruksi; berpasangan
+    dengan IP \\
     \addlinespace
-    \reg{DS} & \eng{Data Segment} &
-    Menunjuk segmen tempat variabel berada; dipakai pada hampir
-    semua akses data \\
+    DS & \eng{Data Segment} & Menunjuk segmen variabel; dipakai pada
+    akses data umum \\
     \addlinespace
-    \reg{SS} & \eng{Stack Segment} &
-    Menunjuk segmen tempat \eng{stack} berada; berpasangan dengan
-    \reg{SP} dan \reg{BP} \\
+    SS & \eng{Stack Segment} & Menunjuk segmen \eng{stack};
+    berpasangan dengan SP dan BP \\
     \addlinespace
-    \reg{ES} & \eng{Extra Segment} &
-    Segmen tambahan; menjadi segmen tujuan operasi string bersama
-    \reg{DI} \\
+    ES & \eng{Extra Segment} & Segmen tambahan; berpasangan dengan
+    DI pada operasi string \\
     \bottomrule
 \end{tabular}
 \end{center}
-
-\vspace{0.3em}
-\begin{block}{Yang disimpan register segmen}
-\small Bukan data yang dihitung, melainkan \emph{nomor segmen}
-tempat data atau instruksi berada.
-\end{block}
-\Sumber{Bab V, Register Segmen}
+\Sumber{Bab V, Bagian 1}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Pasangan Segmen--Offset dan Inisialisasi \reg{DS}}
-\small Setiap akses memori bermain dengan pasangan register
-segmen--offset:
-\vspace{0.3em}
-\begin{columns}[t]
-\begin{column}{0.48\textwidth}
+\begin{frame}{Pasangan Alamat Segmen}
+\small
 \begin{itemize}
-    \item \reg{CS}:\reg{IP} --- alamat instruksi berikutnya.
-    \item \reg{DS}:\reg{SI} atau \reg{DS}:\reg{BX} --- alamat data
-          umum.
-    \item \reg{SS}:\reg{SP} atau \reg{SS}:\reg{BP} --- alamat di
-          dalam \eng{stack}.
-    \item \reg{ES}:\reg{DI} --- alamat tujuan operasi string.
-\end{itemize}
-\end{column}
-\begin{column}{0.48\textwidth}
-\begin{alertblock}{Dua kesalahan umum}
-\footnotesize
-\begin{enumerate}
-    \item \code{MOV DS, 1000h} \textbf{tidak sah}. Nilai hanya boleh
-          dari register umum: \code{MOV AX, 1000h} lalu
-          \code{MOV DS, AX}.
-    \item Mengubah \reg{DS} tanpa menyimpan nilai lamanya, sehingga
-          variabel pada segmen data lama tidak terjangkau.
-\end{enumerate}
-\end{alertblock}
-\end{column}
-\end{columns}
+    \item \reg{CS}:\reg{IP} --- instruksi berikutnya.
 
-\vspace{0.3em}
-{\footnotesize\color{obeGray}Karena itu program \file{.EXE} wajib
-menginisialisasi \reg{DS} di awal program.\par}
+    \vspace{0.18em}
+    \item \reg{DS}:\reg{SI}, \reg{DS}:\reg{BX}, atau \reg{DS} dengan
+          \eng{offset} --- data umum.
+
+    \vspace{0.18em}
+    \item \reg{SS}:\reg{SP} atau \reg{SS}:\reg{BP} ---
+          \eng{stack}.
+
+    \vspace{0.18em}
+    \item \reg{ES}:\reg{DI} --- tujuan operasi string.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{alertblock}{Hati-hati}
+\small Mengubah CS, IP, SS, atau SP tanpa alasan yang benar dapat
+membuat prosesor mengambil instruksi dari alamat salah atau membuat
+\code{RET} melompat ke alamat acak.
+\end{alertblock}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 1}
 \small
 \begin{itemize}
-    \item Prosesor 8086 memiliki empat belas register 16 bit:
-          empat register umum, empat register segmen, empat register
-          \eng{pointer}/\eng{index}, ditambah \reg{IP} dan
-          \reg{FLAGS}.
+    \item 8086 memiliki empat belas register 16 bit yang
+          dikelompokkan menjadi umum, segmen, pointer/index, dan
+          \eng{flag}.
 
-    \vspace{0.25em}
-    \item \reg{AX}, \reg{BX}, \reg{CX}, dan \reg{DX} dapat diakses
-          sebagai dua byte terpisah. Menulis ke byte rendah
-          \textbf{tidak} mengubah byte tinggi.
+    \vspace{0.15em}
+    \item AX, BX, CX, dan DX dapat diakses sebagai dua byte 8 bit:
+          AH/AL, BH/BL, CH/CL, dan DH/DL.
 
-    \vspace{0.25em}
-    \item Peran khas muncul dari cara instruksi disandikan: \reg{AX}
-          akumulator, \reg{BX} basis pengalamatan, \reg{CX} pencacah,
-          \reg{DX} pasangan data dan penunjuk port.
+    \vspace{0.15em}
+    \item Peran khas: AX akumulator, BX penunjuk offset, CX
+          pencacah, DX data pendukung.
 
-    \vspace{0.25em}
-    \item Register segmen menyimpan nomor segmen. Pasangan bakunya:
-          \reg{CS}:\reg{IP}, \reg{DS}:\reg{SI}, \reg{SS}:\reg{SP},
-          \reg{ES}:\reg{DI}.
+    \vspace{0.15em}
+    \item CS, DS, SS, dan ES menyimpan nomor segmen; pasangan
+          alamatnya adalah CS:IP, DS:SI/BX, SS:SP/BP, dan ES:DI.
+
+    \vspace{0.15em}
+    \item Register segmen tidak menyimpan hasil perhitungan,
+          melainkan letak segmen.
 \end{itemize}
 \end{frame}
 
@@ -353,391 +227,383 @@ menginisialisasi \reg{DS} di awal program.\par}
 % ---------------------------------------------------------
 \begin{frame}{Stack Pointer dan Base Pointer}
 \small
-\begin{description}
-    \item[\reg{SP} (\eng{Stack Pointer})] Selalu menunjuk puncak
-          \eng{stack} saat ini. Setiap \asm{PUSH} mengurangi
-          \reg{SP} sebesar 2 dan setiap \asm{POP} menambahnya
-          sebesar 2, karena satu kata berukuran 2 byte. Nilainya
-          berpasangan dengan \reg{SS}.
+\begin{itemize}
+    \item \eng{Stack} bekerja secara \eng{last in, first out}.
+          \code{PUSH} menaruh data, \code{POP} mengambilnya.
 
-    \vspace{0.4em}
-    \item[\reg{BP} (\eng{Base Pointer})] Menjadi titik acuan tetap
-          di dalam \eng{stack}. Berbeda dengan \reg{SP} yang terus
-          bergerak, \reg{BP} disetel sekali di awal prosedur lalu
-          dipakai untuk menjangkau parameter dan variabel lokal.
-\end{description}
+    \vspace{0.18em}
+    \item \reg{SP} menunjuk puncak \eng{stack} aktif; alamatnya
+          ditulis \reg{SS}:\reg{SP}. Nilainya berubah saat
+          \code{PUSH} dan \code{POP}.
 
-\vspace{0.5em}
-\begin{alertblock}{Akibat mengubah \reg{SP} sembarangan}
-\small Puncak \eng{stack} ikut berpindah, sehingga instruksi
-\asm{RET} dapat melompat ke alamat yang salah.
+    \vspace{0.18em}
+    \item \reg{BP} menjadi titik acuan di dalam \eng{stack};
+          alamatnya \reg{SS}:\reg{BP}. BP tidak terpengaruh
+          perubahan SP.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{alertblock}{Akibat perubahan SP}
+\small Mengubah SP secara sembarangan berarti memindahkan seluruh
+tumpukan; \code{RET} dapat melompat ke alamat yang salah.
 \end{alertblock}
-\Sumber{Bab V, Stack Pointer dan Base Pointer}
+\Sumber{Bab V, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Source Index dan Destination Index}
-\small Dua register ini dipakai untuk mengakses deretan data, misalnya
-\eng{string} atau \eng{array}.
+\small
+\begin{itemize}
+    \item \reg{SI} (\eng{Source Index}) menunjuk alamat sumber pada
+          operasi string; pasangannya \reg{DS}:\reg{SI}.
 
-\vspace{0.4em}
-\begin{columns}[t]
-\begin{column}{0.48\textwidth}
-\begin{exampleblock}{\reg{SI} --- \eng{Source Index}}
-\small Menunjuk alamat \emph{sumber} pada operasi string.
-Pasangannya \reg{DS}, sehingga alamatnya ditulis
-\reg{DS}:\reg{SI}.
-\end{exampleblock}
-\end{column}
-\begin{column}{0.48\textwidth}
-\begin{exampleblock}{\reg{DI} --- \eng{Destination Index}}
-\small Menunjuk alamat \emph{tujuan} pada operasi string.
-Pasangannya \reg{ES}, sehingga alamatnya ditulis
-\reg{ES}:\reg{DI}.
-\end{exampleblock}
-\end{column}
-\end{columns}
+    \vspace{0.18em}
+    \item \reg{DI} (\eng{Destination Index}) menunjuk alamat tujuan;
+          pasangannya \reg{ES}:\reg{DI}.
 
-\vspace{0.5em}
-\begin{block}{Memindahkan data antar segmen}
-\small \asm{MOVSB}, \asm{MOVSW}, dan \asm{REP MOVSB} memindahkan data
-dari \reg{DS}:\reg{SI} ke \reg{ES}:\reg{DI} sambil menyesuaikan
-kedua register secara otomatis --- karena itu keduanya harus diisi
-lebih dahulu.
+    \vspace{0.18em}
+    \item Keduanya dipakai untuk mengakses deretan data seperti
+          string atau \eng{array}.
+
+    \vspace{0.18em}
+    \item Pada operasi string, SI dan DI dapat berubah otomatis
+          mengikuti arah pemrosesan.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{block}{Sebelum operasi string}
+\small Isi SI dan DI dengan alamat yang benar lebih dahulu.
 \end{block}
+\Sumber{Bab V, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Instruction Pointer dan Register yang Rawan}
-\small
-\begin{exampleblock}{\reg{IP} --- \eng{Instruction Pointer}}
+\begin{frame}{Instruction Pointer}
 \small
 \begin{itemize}
-    \item Menyimpan \eng{offset} instruksi berikutnya yang akan
-          diambil; alamat lengkapnya ditentukan pasangan
-          \reg{CS}:\reg{IP}.
-    \item Nilainya bertambah sendiri setiap kali satu instruksi
-          selesai dijalankan.
-    \item Programmer hampir tidak pernah menulis \reg{IP} langsung;
-          perubahannya terjadi melalui \asm{JMP}, \asm{CALL},
-          \asm{RET}, dan \asm{INT}.
-\end{itemize}
-\end{exampleblock}
+    \item \reg{IP} menyimpan \eng{offset} instruksi berikutnya yang
+          akan diambil dan dieksekusi.
 
-\vspace{0.35em}
-\begin{alertblock}{Register yang tidak boleh diubah sembarangan}
-\small \reg{CS} dan \reg{IP} menentukan instruksi berikutnya;
-\reg{SS} dan \reg{SP} menentukan letak \eng{stack}. Bila salah
-satunya diubah tanpa alasan benar, prosesor dapat mengambil
-instruksi dari alamat salah, menjalankan data sebagai instruksi,
-atau membuat program berhenti. \reg{DS} boleh diubah, tetapi harus
-dikembalikan sebelum variabel lama diakses.
-\end{alertblock}
+    \vspace{0.18em}
+    \item Pasangan \reg{CS}:\reg{IP} menentukan alamat instruksi
+          tersebut.
+
+    \vspace{0.18em}
+    \item IP bertambah sendiri setiap kali instruksi diambil.
+
+    \vspace{0.18em}
+    \item Programmer hampir tidak pernah menulis IP secara langsung;
+          perubahannya terjadi melalui \code{JMP}, \code{CALL},
+          \code{RET}, dan \code{INT}.
+\end{itemize}
+
+\vspace{0.25em}
+\begin{block}{Hubungan dengan BIU}
+\small BIU memakai \reg{CS}:\reg{IP} untuk mengambil instruksi
+berikutnya.
+\end{block}
+\Sumber{Bab V, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Peta Keempat Belas Register}
+\begin{center}
+\begin{tikzpicture}[
+    reg/.style={
+        draw=obeBlue, line width=0.7pt, fill=obeBlueLight,
+        rounded corners=2pt, minimum width=1.45cm,
+        minimum height=0.55cm, align=center, font=\small\ttfamily
+    },
+    seg/.style={reg, draw=obeTeal, fill=obeTealLight},
+    ptr/.style={reg, draw=obeAmber, fill=obeAmberLight},
+    flg/.style={reg, draw=obeGray, fill=obeGrayLight,
+        minimum width=7.3cm},
+    judul/.style={font=\footnotesize\bfseries, text=obeBlue,
+        anchor=west}
+]
+    \node[judul] at (0.2,3.0) {Umum};
+    \node[reg] (ax) at (2.4,3.0) {AX};
+    \node[reg] (bx) at (4.05,3.0) {BX};
+    \node[reg] (cx) at (5.7,3.0) {CX};
+    \node[reg] (dx) at (7.35,3.0) {DX};
+
+    \node[judul] at (0.2,2.1) {Segmen};
+    \node[seg] (cs) at (2.4,2.1) {CS};
+    \node[seg] (ds) at (4.05,2.1) {DS};
+    \node[seg] (ss) at (5.7,2.1) {SS};
+    \node[seg] (es) at (7.35,2.1) {ES};
+
+    \node[judul, align=left] at (0.2,1.2) {Pointer\\index};
+    \node[ptr] (sp) at (2.4,1.2) {SP};
+    \node[ptr] (bp) at (4.05,1.2) {BP};
+    \node[ptr] (si) at (5.7,1.2) {SI};
+    \node[ptr] (di) at (7.35,1.2) {DI};
+    \node[ptr] (ip) at (9.0,1.2) {IP};
+
+    \node[judul] at (0.2,0.3) {Flag};
+    \node[flg] at (6.05,0.3) {FLAGS: CF PF AF ZF SF OF TF IF DF};
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.2em}
+{\footnotesize\color{obeGray}Empat belas register 16 bit; FLAGS
+menyimpan sembilan bit penanda.\par}
+\Sumber{Bab V, Bagian 2}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Daftar Ringkas per Kelompok}
+\footnotesize
+\begin{center}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.2cm}
+    >{\raggedright\arraybackslash}p{3.4cm}
+    >{\raggedright\arraybackslash}p{7.2cm}@{}}
+    \toprule
+    \textbf{Kelompok} & \textbf{Register} & \textbf{Fungsi utama} \\
+    \midrule
+    Umum & AX BX CX DX & Akumulator, offset, pencacah, dan data
+    pendukung \\
+    \addlinespace
+    Segmen & CS DS SS ES & Kode, data, \eng{stack}, dan segmen
+    tambahan \\
+    \addlinespace
+    Pointer & SP BP & Puncak \eng{stack} dan acuan data di
+    \eng{stack} \\
+    \addlinespace
+    Index & SI DI & Sumber dan tujuan operasi string \\
+    \addlinespace
+    Kendali/status & IP, FLAGS & Instruksi berikutnya; sembilan
+    \eng{flag} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+\Sumber{Bab V, Bagian 2}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 2}
 \small
 \begin{itemize}
-    \item Register \eng{pointer} dan \eng{index} menyimpan
-          \eng{offset}, yaitu jarak sebuah lokasi dari awal segmen.
+    \item SP menunjuk puncak \eng{stack} melalui SS:SP; BP menjadi
+          acuan data di \eng{stack} melalui SS:BP.
 
-    \vspace{0.25em}
-    \item \reg{SP} menunjuk puncak \eng{stack} dan berubah otomatis
-          sebesar 2 pada \asm{PUSH} dan \asm{POP}; \reg{BP} menjadi
-          acuan tetap untuk parameter dan variabel lokal.
+    \vspace{0.15em}
+    \item SI menunjuk sumber melalui DS:SI; DI menunjuk tujuan
+          melalui ES:DI.
 
-    \vspace{0.25em}
-    \item \reg{SI} menunjuk sumber (\reg{DS}:\reg{SI}) dan \reg{DI}
-          menunjuk tujuan (\reg{ES}:\reg{DI}) pada operasi string.
+    \vspace{0.15em}
+    \item IP menyimpan offset instruksi berikutnya; pasangan CS:IP
+          menentukan alamatnya.
 
-    \vspace{0.25em}
-    \item \reg{IP} menyimpan \eng{offset} instruksi berikutnya dan
-          selalu berpasangan dengan \reg{CS}.
+    \vspace{0.15em}
+    \item IP berubah melalui JMP, CALL, RET, dan INT, bukan ditulis
+          langsung oleh programmer.
 
-    \vspace{0.25em}
-    \item \reg{CS}, \reg{IP}, \reg{SS}, dan \reg{SP} hanya diubah
-          melalui instruksi yang memang dirancang untuk itu.
+    \vspace{0.15em}
+    \item Keempat belas register terbagi menjadi umum, segmen,
+          pointer/index, dan \eng{flag}.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % BAGIAN 3
 % =========================================================
-\PemisahBagian{Register Flag}
+\PemisahBagian{Register Flag dan Pengaruhnya pada Keputusan}
 
 % ---------------------------------------------------------
-\begin{frame}{Peta Bit Register \reg{FLAGS}}
-\small Register \reg{FLAGS} 16 bit --- disebut juga \eng{Program
-Status Word} (PSW) --- tidak menyimpan angka hasil hitungan,
-melainkan keterangan keadaan hasil operasi terakhir.
-
-\vspace{0.5em}
-\begin{center}
-\begin{tikzpicture}[
-    bit/.style={
-        draw=obeBlue, line width=0.7pt, minimum width=0.62cm,
-        minimum height=0.60cm, align=center, font=\scriptsize\ttfamily,
-        inner sep=0pt
-    },
-    aktif/.style={bit, fill=obeBlueLight},
-    cadangan/.style={bit, fill=obeGrayLight, draw=obeGray},
-    nomor/.style={font=\tiny\ttfamily, text=obeGray},
-    tanda/.style={font=\tiny\itshape, text=obeGray}
-]
-    \foreach \i/\nama/\tipe in {
-        15/--/cadangan, 14/--/cadangan, 13/--/cadangan,
-        12/--/cadangan, 11/OF/aktif, 10/DF/aktif, 9/IF/aktif,
-        8/TF/aktif, 7/SF/aktif, 6/ZF/aktif, 5/--/cadangan,
-        4/AF/aktif, 3/--/cadangan, 2/PF/aktif, 1/--/cadangan,
-        0/CF/aktif}
-    {
-        \node[\tipe] (b\i) at ({(15-\i)*0.70}, 0) {\nama};
-        \node[nomor] at ({(15-\i)*0.70}, -0.48) {\i};
-    }
-    \node[tanda] at (0, 0.62) {bit tinggi};
-    \draw[obeGray, line width=0.6pt, -{Stealth[length=1.6mm]}]
-        (0, 0.48) -- (0, 0.34);
-    \node[tanda] at (10.5, 0.62) {bit rendah (LSB)};
-    \draw[obeGray, line width=0.6pt, -{Stealth[length=1.6mm]}]
-        (10.5, 0.48) -- (10.5, 0.34);
-    \node[tanda] at (5.25, -1.05)
-        {biru = bit dipakai \quad abu-abu = dicadangkan};
-\end{tikzpicture}
-\end{center}
-
-\vspace{0.2em}
-{\footnotesize\color{obeGray}Dari 16 bit yang tersedia, hanya
-sembilan bit yang dipakai; sisanya dicadangkan dan nilainya tidak
-ditentukan.\par}
-\Sumber{Bab V, Peta Bit Register Flag}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Sembilan Flag: Status dan Kendali}
+\begin{frame}{Sembilan Flag pada 8086}
 \footnotesize
 \begin{center}
-\begin{tabular}{@{}lllp{7.6cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{4.2cm}
+    >{\raggedright\arraybackslash}p{8.8cm}@{}}
     \toprule
-    \textbf{Bit} & \textbf{Flag} & \textbf{Kelompok} &
-    \textbf{Arti singkat} \\
+    \textbf{Flag} & \textbf{Bernilai 1 bila \dots} \\
     \midrule
-    0 & \flag{CF} & Status &
-    \eng{Carry}: simpanan keluar dari bit paling tinggi \\
+    CF --- \eng{Carry} (status) & Ada simpanan keluar dari bit
+    tertinggi pada operasi tak bertanda \\
     \addlinespace
-    2 & \flag{PF} & Status & \eng{Parity}: paritas byte rendah
-    hasil operasi \\
+    PF --- \eng{Parity} (status) & Jumlah bit 1 pada byte rendah hasil
+    genap \\
     \addlinespace
-    4 & \flag{AF} & Status & \eng{Auxiliary Carry}: simpanan dari
-    nibble rendah (bit ke-3) \\
+    AF --- \eng{Auxiliary} (status) & Ada simpanan keluar dari empat
+    bit rendah \\
     \addlinespace
-    6 & \flag{ZF} & Status & \eng{Zero}: hasil operasi bernilai nol \\
+    ZF --- \eng{Zero} (status) & Hasil operasi bernilai nol \\
     \addlinespace
-    7 & \flag{SF} & Status & \eng{Sign}: bit tanda hasil menyala \\
+    SF --- \eng{Sign} (status) & Bit tanda hasil bernilai 1 \\
     \addlinespace
-    8 & \flag{TF} & Kendali & \eng{Trap}: satu instruksi per langkah
-    untuk \eng{debugging} \\
-    \addlinespace
-    9 & \flag{IF} & Kendali & \eng{Interrupt}: izin menerima
-    \eng{interrupt} tertutup \\
-    \addlinespace
-    10 & \flag{DF} & Kendali & \eng{Direction}: arah gerak
-    \reg{SI}/\reg{DI} pada operasi string \\
-    \addlinespace
-    11 & \flag{OF} & Status & \eng{Overflow}: hasil bertanda di luar
+    OF --- \eng{Overflow} (status) & Hasil bertanda di luar
     jangkauan \\
     \addlinespace
-    1, 3, 5, 12--15 & --- & Cadangan & Tidak dipakai \\
+    TF --- \eng{Trap} (kendali) & Prosesor berhenti setelah setiap
+    instruksi untuk \eng{debugging} \\
+    \addlinespace
+    IF --- \eng{Interrupt} (kendali) & Interupsi yang dapat ditutup
+    diizinkan \\
+    \addlinespace
+    DF --- \eng{Direction} (kendali) & Operasi string bergerak
+    menurun \\
     \bottomrule
 \end{tabular}
 \end{center}
+\Sumber{Bab V, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
-\begin{frame}{Enam Flag Status: Kapan Bernilai 1}
+\begin{frame}{Tiga Kasus Penjumlahan 16 Bit}
 \footnotesize
 \begin{center}
-\begin{tabular}{@{}lp{6.6cm}p{4.6cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.0cm}
+    >{\raggedright\arraybackslash}p{2.0cm}
+    >{\raggedright\arraybackslash}p{2.0cm}
+    >{\raggedright\arraybackslash}p{0.7cm}
+    >{\raggedright\arraybackslash}p{0.7cm}
+    >{\raggedright\arraybackslash}p{0.7cm}
+    >{\raggedright\arraybackslash}p{0.7cm}@{}}
     \toprule
-    \textbf{Flag} & \textbf{Bernilai 1 bila \dots} &
-    \textbf{Contoh instruksi} \\
+    \textbf{Operand 1} & \textbf{Operand 2} & \textbf{Hasil} &
+    \textbf{CF} & \textbf{OF} & \textbf{SF} & \textbf{ZF} \\
     \midrule
-    \flag{CF} & Operasi \emph{tak bertanda} menghasilkan simpanan
-    keluar dari bit tertinggi &
-    \asm{ADD}, \asm{SUB}, \asm{CMP}, \asm{ADC}, \asm{SBB},
-    \asm{NEG} \\
+    \hex{7FFF} & \hex{0001} & \hex{8000} & 0 & 1 & 1 & 0 \\
     \addlinespace
-    \flag{PF} & Byte rendah hasil memuat jumlah bit 1 yang
-    \emph{genap} & Semua operasi aritmatika dan logika \\
+    \hex{8000} & \hex{8000} & \hex{0000} & 1 & 1 & 0 & 1 \\
     \addlinespace
-    \flag{AF} & Simpanan keluar dari bit ke-3 (nibble rendah) &
-    \asm{ADD}, \asm{ADC}, \asm{SUB}, \asm{SBB}, \asm{CMP},
-    \asm{INC}, \asm{DEC} \\
-    \addlinespace
-    \flag{ZF} & Hasil operasi tepat sama dengan nol &
-    \asm{ADD}, \asm{SUB}, \asm{CMP}, \asm{AND}, \asm{OR},
-    \asm{XOR}, \asm{TEST} \\
-    \addlinespace
-    \flag{SF} & Bit paling tinggi hasil operasi bernilai 1 &
-    \asm{ADD}, \asm{SUB}, \asm{CMP}, \asm{AND}, \asm{OR},
-    \asm{XOR}, \asm{NEG} \\
-    \addlinespace
-    \flag{OF} & Hasil \emph{bertanda} di luar jangkauan:
-    $-128\ldots127$ untuk byte & \asm{ADD}, \asm{SUB}, \asm{CMP},
-    \asm{IMUL}, \asm{IDIV}, \asm{NEG} \\
+    \hex{FFFF} & \hex{0001} & \hex{0000} & 1 & 0 & 0 & 1 \\
     \bottomrule
 \end{tabular}
 \end{center}
-
-\vspace{0.25em}
-{\color{obeGray}\flag{TF}, \flag{IF}, dan \flag{DF} adalah
-\eng{flag} kendali: nilainya ditentukan programmer melalui
-instruksi seperti \asm{STI}, \asm{CLI}, \asm{STD}, dan
-\asm{CLD}.\par}
-\Sumber{Bab V, Arti dan Pengaruh Setiap Flag}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Tiga Kasus \asm{ADD AL, BL}}
-\small
-\begin{center}
-\begin{tabular}{@{}lllcccp{5.5cm}@{}}
-    \toprule
-    \reg{AL} & \reg{BL} & \reg{AL} baru & \flag{CF} & \flag{OF} &
-    \flag{SF} & \textbf{Alasan singkat} \\
-    \midrule
-    \hex{7F} & \hex{01} & \hex{80} & -- & 1 & 1 &
-    Tanpa simpanan keluar, tetapi penjumlahan bertanda melampaui
-    batas 127 \\
-    \addlinespace
-    \hex{80} & \hex{80} & \hex{00} & 1 & 1 & -- &
-    Simpanan keluar terjadi; dua bilangan negatif menghasilkan nol \\
-    \addlinespace
-    \hex{FF} & \hex{01} & \hex{00} & 1 & -- & -- &
-    Simpanan keluar terjadi, tetapi hasil bertanda tepat nol \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{0.35em}
-{\footnotesize
-\begin{itemize}
-    \item \hex{7F} $+$ \hex{01}: dua operand positif menghasilkan
-          hasil yang ditafsirkan negatif $\rightarrow$ \flag{OF} $=1$.
-    \item \hex{80} $+$ \hex{80}: \dec{128} $+$ \dec{128} $=$
-          \dec{256} $\rightarrow$ \flag{CF} $=1$ dan \flag{ZF} $=1$.
-    \item \hex{FF} $+$ \hex{01}: \hex{FF} adalah $-1$ dan \hex{01}
-          adalah $+1$, sehingga hasil bertandanya nol $\rightarrow$
-          \flag{OF} $=0$.
-\end{itemize}\par}
-\Sumber{Bab V, Contoh Perubahan Flag pada ADD AL, BL}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{\flag{CF} dan \flag{OF} Menjawab Pertanyaan Berbeda}
-\begin{alertblock}{Jangan sampai tertukar}
-\small \flag{CF} berlaku untuk bilangan \textbf{tak bertanda},
-sedangkan \flag{OF} berlaku untuk bilangan \textbf{bertanda}.
-Memakai \asm{JC} untuk memeriksa hasil bilangan bertanda adalah
-salah; yang tepat \asm{JO} atau \asm{JS}.
-\end{alertblock}
-
-\vspace{0.4em}
-\begin{block}{\asm{MOV} dan kawan-kawan tidak menyentuh \eng{flag}}
-\small \asm{MOV}, \asm{LEA}, \asm{PUSH}, dan \asm{POP} \textbf{tidak}
-mengubah \eng{flag}. Pengecualiannya \asm{POPF} dan \asm{SAHF} yang
-memang dirancang untuk menulis \eng{flag}.
-\end{block}
-
-\vspace{0.4em}
-\begin{exampleblock}{\asm{INC} dan \asm{DEC} juga bukan pengubah penuh}
-\small Keduanya mengubah \flag{ZF}, \flag{SF}, \flag{OF}, dan
-\flag{AF}, tetapi membiarkan \flag{CF} apa adanya. Untuk menambah 1
-sekaligus memperbarui \flag{CF}, pakai \code{ADD AL, 1}.
-\end{exampleblock}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}{Flag Dibaca oleh Lompatan Bersyarat}
-\footnotesize \eng{Flag} baru bermakna ketika dibaca lompatan
-bersyarat. \asm{CMP} membandingkan dua nilai tanpa menyimpan hasil,
-lalu meninggalkan jejaknya pada \eng{flag}.
 
 \vspace{0.3em}
+{\color{obeGray}CF berlaku untuk bilangan tidak bertanda; OF
+berlaku untuk bilangan bertanda.\par}
+\Sumber{Bab V, Bagian 3}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Mengapa 7FFF + 0001 Menghasilkan OF = 1}
+\small
+\begin{itemize}
+    \item \hex{7FFF} = $+32767$ dan \hex{0001} = $+1$.
+
+    \vspace{0.18em}
+    \item Hasil 16 bit adalah \hex{8000}, yang sebagai bilangan
+          bertanda berarti $-32768$.
+
+    \vspace{0.18em}
+    \item Dua bilangan positif menghasilkan bilangan negatif,
+          sehingga OF = 1.
+
+    \vspace{0.18em}
+    \item CF = 0 karena tidak ada simpanan keluar dari 16 bit untuk
+          operasi tak bertanda.
+
+    \vspace{0.18em}
+    \item SF = 1 karena bit tanda hasil \hex{8000} menyala.
+\end{itemize}
+
+\vspace{0.2em}
+\begin{block}{Inti}
+\small CF dan OF menjawab pertanyaan yang berbeda; keduanya tidak
+boleh dipertukarkan.
+\end{block}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{CF vs OF}
+\small
+\begin{columns}[t]
+\begin{column}{0.47\textwidth}
+    {\color{obeTeal}\bfseries CF --- tak bertanda}\\[0.25em]
+    \begin{itemize}
+        \item Menandai simpanan keluar dari bit tertinggi.
+        \item Dipakai dengan \code{JC}, \code{JB}, \code{JNC},
+              \code{JAE}.
+        \item Contoh: \hex{FFFF} + \hex{0001}.
+    \end{itemize}
+\end{column}
+\begin{column}{0.49\textwidth}
+    {\color{obeMaroon}\bfseries OF --- bertanda}\\[0.25em]
+    \begin{itemize}
+        \item Menandai hasil di luar jangkauan bertanda.
+        \item Dipakai dengan \code{JO}, \code{JNO}.
+        \item Contoh: \hex{7FFF} + \hex{0001}.
+    \end{itemize}
+\end{column}
+\end{columns}
+
+\vspace{0.5em}
+\begin{alertblock}{Kesalahan umum}
+\small Memakai \code{JC} untuk memeriksa hasil bilangan bertanda
+dapat memberi kesimpulan yang salah.
+\end{alertblock}
+\end{frame}
+
+% ---------------------------------------------------------
+\begin{frame}{Flag sebagai Dasar Keputusan}
+\footnotesize
 \begin{center}
-\begin{tabular}{@{}lp{4.4cm}p{6.6cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.6cm}
+    >{\raggedright\arraybackslash}p{2.8cm}
+    >{\raggedright\arraybackslash}p{8.4cm}@{}}
     \toprule
     \textbf{Flag} & \textbf{Lompatan} & \textbf{Makna} \\
     \midrule
-    \flag{ZF} & \asm{JE}, \asm{JZ} &
-    Lompat bila hasil nol (kedua nilai sama) \\
+    ZF & JE, JZ & Lompat bila hasil nol atau kedua nilai sama \\
     \addlinespace
-    \flag{ZF} & \asm{JNE}, \asm{JNZ} &
-    Lompat bila hasil tidak nol (kedua nilai berbeda) \\
+    ZF & JNE, JNZ & Lompat bila hasil tidak nol atau nilai berbeda \\
     \addlinespace
-    \flag{CF} & \asm{JC}, \asm{JB} &
-    Lompat bila ada simpanan keluar (nilai pertama lebih kecil secara
-    tak bertanda) \\
+    CF & JC, JB & Lompat bila ada carry atau nilai pertama lebih
+    kecil secara tak bertanda \\
     \addlinespace
-    \flag{CF} & \asm{JNC}, \asm{JAE} &
-    Lompat bila tidak ada simpanan keluar \\
+    CF & JNC, JAE & Lompat bila tidak ada carry \\
     \addlinespace
-    \flag{SF} & \asm{JS}, \asm{JNS} &
-    Lompat bila bit tanda menyala atau tidak \\
+    SF & JS, JNS & Lompat bila bit tanda menyala atau tidak \\
     \addlinespace
-    \flag{OF} & \asm{JO}, \asm{JNO} &
-    Lompat bila terjadi \eng{overflow} bertanda atau tidak \\
-    \addlinespace
-    \flag{PF} & \asm{JP}, \asm{JNP} &
-    Lompat berdasarkan paritas byte rendah hasil \\
+    OF & JO, JNO & Lompat bila terjadi \eng{overflow} bertanda atau
+    tidak \\
     \bottomrule
 \end{tabular}
 \end{center}
-\Sumber{Bab V, Pengaruh Flag terhadap Keputusan Program}
+
+\vspace{0.2em}
+{\color{obeGray}Rincian lompatan bersyarat dibahas pada bab
+percabangan dan perulangan.\par}
+\Sumber{Bab V, Bagian 3}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Rangkuman Bagian 3}
 \small
 \begin{itemize}
-    \item \reg{FLAGS} 16 bit memuat sembilan \eng{flag} aktif: enam
-          \eng{flag} status (\flag{CF}, \flag{PF}, \flag{AF},
-          \flag{ZF}, \flag{SF}, \flag{OF}) dan tiga \eng{flag}
-          kendali (\flag{TF}, \flag{IF}, \flag{DF}).
+    \item FLAGS memiliki sembilan penanda: CF, PF, AF, ZF, SF, OF
+          sebagai status serta TF, IF, DF sebagai kendali.
 
-    \vspace{0.25em}
-    \item \flag{CF} melaporkan simpanan keluar bilangan tak
-          bertanda; \flag{OF} melaporkan \eng{overflow} bilangan
-          bertanda. Keduanya tidak boleh dipertukarkan.
+    \vspace{0.15em}
+    \item CF menandai simpanan keluar untuk operasi tak bertanda;
+          OF menandai \eng{overflow} untuk operasi bertanda.
 
-    \vspace{0.25em}
-    \item \flag{ZF} menandai hasil nol, \flag{SF} bit tanda yang
-          menyala, \flag{PF} paritas byte rendah, dan \flag{AF}
-          simpanan keluar dari nibble rendah.
+    \vspace{0.15em}
+    \item \hex{7FFF} + \hex{0001} menghasilkan \hex{8000} dengan
+          OF = 1 dan SF = 1, tetapi CF = 0.
 
-    \vspace{0.25em}
-    \item \asm{MOV}, \asm{LEA}, \asm{PUSH}, dan \asm{POP} tidak
-          mengubah \eng{flag}; \asm{INC} dan \asm{DEC} mengubah
-          semuanya kecuali \flag{CF}.
+    \vspace{0.15em}
+    \item \hex{8000} + \hex{8000} menghasilkan \hex{0000} dengan
+          CF = 1, OF = 1, dan ZF = 1.
 
-    \vspace{0.25em}
-    \item \eng{Flag} dipakai lompatan bersyarat: \asm{JE}/\asm{JNE},
-          \asm{JC}/\asm{JNC}, \asm{JS}/\asm{JNS}, \asm{JO}/\asm{JNO},
-          dan \asm{JP}/\asm{JNP}.
+    \vspace{0.15em}
+    \item \eng{Flag} dibaca oleh lompatan bersyarat untuk memilih
+          jalur program.
 \end{itemize}
 \end{frame}
 
 % =========================================================
 % CONTOH PROGRAM
 % =========================================================
-\begin{frame}[fragile]{Contoh 1: Memprediksi Flag Sebelum
-Menjalankan Program}
-\small Dua penjumlahan yang sengaja dipilih untuk memicu kondisi
-\eng{flag} berbeda.
-\vspace{0.2em}
+\begin{frame}[fragile]{Contoh 1: Memprediksi Flag}
 \begin{columns}[t]
-\begin{column}{0.60\textwidth}
-\begin{kodeasm}[numbers=none]
+\begin{column}{0.48\textwidth}
+\begin{kodeasm}
+.MODEL SMALL
 .DATA
     hasil1 DW 0
     hasil2 DW 0
@@ -745,118 +611,78 @@ Menjalankan Program}
 START:
     MOV AX, @DATA
     MOV DS, AX
-    MOV AX, 007Fh      ; kasus 1: +127
+    MOV AX, 7FFFh
     MOV BX, 0001h
-    ADD AX, BX         ; AX=0080h: SF=1, OF=1
-    MOV hasil1, AX     ; MOV tak mengubah flag
-    MOV AX, 8000h      ; kasus 2: -32768
+    ADD AX, BX
+    MOV hasil1, AX
+    MOV AX, 8000h
     MOV BX, 8000h
-    ADD AX, BX         ; AX=0000h: CF=1, ZF=1
-    MOV hasil2, AX
+    ADD AX, BX
 \end{kodeasm}
 \end{column}
-\begin{column}{0.36\textwidth}
-{\color{obeTeal}\bfseries Keluaran}\\[0.3em]
-\begin{keluaran}
-Pengamatan flag
-selesai.
-\end{keluaran}
+\begin{column}{0.50\textwidth}
+\footnotesize
+{\color{obeTeal}\bfseries Kasus 1: \hex{7FFF} + \hex{0001}}\\[0.15em]
+Hasil \hex{8000}; CF = 0, OF = 1, SF = 1, ZF = 0.
 
-\vspace{0.4em}
-{\footnotesize\flag{CF}, \flag{OF}, \flag{SF}, dan \flag{ZF}
-diprediksi dahulu, lalu diperiksa dengan \eng{Single Step}.\par}
+\vspace{0.35em}
+{\color{obeMaroon}\bfseries Kasus 2: \hex{8000} + \hex{8000}}\\[0.15em]
+Hasil \hex{0000}; CF = 1, OF = 1, SF = 0, ZF = 1.
 
-\vspace{0.3em}
-{\footnotesize\color{obeGray}\file{prediksi-flag.asm}\par}
+\vspace{0.35em}
+\begin{block}{Perhatikan}
+\small \code{MOV hasil1, AX} tidak mengubah \eng{flag}; keadaan
+hasil penjumlahan masih dapat diamati.
+\end{block}
+
+\vspace{0.2em}
+{\color{obeGray}Prediksikan sebelum menjalankan \eng{single step}.
+\par}
 \end{column}
 \end{columns}
+\Sumber{Bab V, Contoh 1}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}[fragile]{Contoh 2: Memilih Pesan Berdasarkan Flag}
-\small \hex{F0} ditambah \hex{10} menghasilkan \hex{100}: \reg{AL}
-menyimpan \hex{00} dengan \flag{CF} $=1$ dan \flag{ZF} $=1$.
-\vspace{0.2em}
 \begin{columns}[t]
-\begin{column}{0.58\textwidth}
-\begin{kodeasm}[numbers=none]
-    MOV AL, 0F0h       ; AL = 1111 0000b
-    MOV BL, 10h        ; BL = 0001 0000b
-    ADD AL, BL         ; AL=00h, CF=1, ZF=1
-
-    JNC tanpa_carry    ; lompat bila CF = 0
-    MOV AH, 09h        ; cetak pesan carry
-    LEA DX, pesan_carry
-    INT 21h
-tanpa_carry:
-    JNZ bukan_nol      ; lompat bila ZF = 0
-    MOV AH, 09h        ; cetak pesan hasil nol
-    LEA DX, pesan_nol
-    INT 21h
-bukan_nol:
-    JNS tanpa_negatif  ; lompat bila SF = 0
-\end{kodeasm}
-\end{column}
-\begin{column}{0.38\textwidth}
-{\color{obeTeal}\bfseries Keluaran}\\[0.3em]
-\begin{keluaran}
-Terjadi carry,
-CF = 1.
-Hasil penjumlahan
-nol, ZF = 1.
-\end{keluaran}
-
-\vspace{0.4em}
-{\footnotesize Layanan \code{INT 21h} tidak merusak \eng{flag}:
-\asm{INT} menyimpan \reg{FLAGS} ke \eng{stack} dan \asm{IRET}
-mengembalikannya.\par}
-
-\vspace{0.3em}
-{\footnotesize\color{obeGray}\file{pesan-flag.asm}\par}
-\end{column}
-\end{columns}
-\end{frame}
-
-% ---------------------------------------------------------
-\begin{frame}[fragile]{Contoh 3: Akses Byte Rendah dan Byte Tinggi}
-\small Satu register 16 bit dapat diperlakukan sebagai dua register
-8 bit yang mandiri.
-\vspace{0.2em}
-\begin{columns}[t]
-\begin{column}{0.58\textwidth}
-\begin{kodeasm}[numbers=none]
+\begin{column}{0.56\textwidth}
+\begin{kodeasm}
 .MODEL SMALL
-.STACK 100h
-
-.DATA
-    dummy DB 0          ; agar segmen data ada
-
 .CODE
 START:
     MOV AX, @DATA
     MOV DS, AX
-
-    MOV AX, 1234h       ; AH = 12h, AL = 34h
-    MOV BL, AH          ; BL = 12h
-    MOV BH, AL          ; BH = 34h
-    ADD AL, BL          ; AL = 46h, AH tetap
-    MOV CL, AL          ; CL = 46h
+    MOV AL, 0F0h
+    MOV BL, 10h
+    ADD AL, BL
+    JNC tanpa_carry
+    LEA DX, pesan_carry
+    MOV AH, 09h
+    INT 21h
+tanpa_carry:
+    JNZ bukan_nol
+...
 \end{kodeasm}
 \end{column}
-\begin{column}{0.38\textwidth}
-{\color{obeTeal}\bfseries Keadaan akhir}\\[0.3em]
-\begin{keluaran}
-AX = 1246h
-BX = 3412h
-CL = 46h
-\end{keluaran}
+\begin{column}{0.40\textwidth}
+\footnotesize
+\code{ADD AL, BL} menghasilkan AL = \hex{00}, CF = 1, ZF = 1,
+SF = 0.
 
-\vspace{0.5em}
-{\footnotesize \code{ADD AL, BL} hanya mengubah \reg{AL}. Nilai
-\reg{AH} tetap \hex{12} karena operasi 8 bit pada \reg{AL} tidak
-menyentuh byte tinggi.\par}
+\vspace{0.25em}
+Karena CF = 1 dan ZF = 1, \code{JNC} dan \code{JNZ} tidak diambil;
+pesan carry lalu pesan hasil nol dicetak.
+
+\vspace{0.25em}
+{\color{obeTeal}\bfseries Keluaran}\\[0.15em]
+\begin{keluaran}
+Terjadi carry, CF = 1.
+Hasil nol, ZF = 1.
+\end{keluaran}
 \end{column}
 \end{columns}
+\Sumber{Bab V, Contoh 2}
 \end{frame}
 
 % =========================================================
@@ -864,43 +690,40 @@ menyentuh byte tinggi.\par}
 % =========================================================
 \begin{frame}{Praktikum: Pengamatan Register dan Flag}
 \begin{block}{Judul praktikum}
-\small Pengamatan register dan \eng{flag} dengan \eng{Single Step}
-pada Emu8086 \quad\textbullet\quad \textbf{Sub-CPMK:} 1.2
-\quad\textbullet\quad \textbf{Waktu:} 100 menit
-\quad\textbullet\quad \textbf{Bentuk:} individu
+\small Pengamatan register dan \eng{flag} dengan \eng{single step}\\[0.15em]
+\textbf{Sub-CPMK:} 1.3 \quad\textbullet\quad
+\textbf{Waktu:} 100 menit \quad\textbullet\quad
+\textbf{Bentuk:} individu
 \end{block}
 
-\vspace{0.3em}
+\vspace{0.2em}
 \begin{columns}[t]
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 {\color{obeBlue}\bfseries Alat dan bahan}
-\begin{itemize}\small
-    \item Komputer dengan Emu8086 terpasang
-    \item Berkas \file{prediksi-flag.asm} dan
-          \file{pesan-flag.asm}
-    \item Lembar kerja pengamatan register dan \eng{flag}
+\begin{itemize}\footnotesize
+    \item Komputer dengan emu8086
+    \item DOSBox dengan TASM, TLINK, dan DEBUG
+    \item \file{prediksi-flag.asm} dan \file{pesan-flag.asm}
+    \item Lembar kerja pengamatan
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.50\textwidth}
 {\color{obeBlue}\bfseries Langkah kerja}
-\begin{enumerate}\small
-    \item Buka jendela \file{Registers} dan \file{Flags}, lalu
-          jalankan dengan \eng{Single Step}
-    \item Catat \reg{AX}, \reg{BX}, \reg{SP}, dan \reg{IP}; amati
-          \eng{flag} sebelum dan sesudah \code{ADD AX, BX}
-    \item Ubah \reg{AX} menjadi \hex{FFFF} dan \reg{AL} menjadi
-          \hex{00} secara manual
-    \item Ubah \flag{CF} dan \flag{ZF} pada
-          \file{pesan-flag.asm}, amati pesan yang tercetak
+\begin{enumerate}\footnotesize
+    \item Catat AX, BX, CX, DX, DS, SP, dan IP.
+    \item Single step; catat perubahan register.
+    \item Isi tabel prediksi sebelum menjalankan.
+    \item Jalankan \file{pesan-flag.asm}; catat CF, ZF, SF.
+    \item Ubah operand dan bandingkan dengan DEBUG.
 \end{enumerate}
 \end{column}
 \end{columns}
 
-\vspace{0.3em}
-{\footnotesize\textbf{Dikumpulkan:} lembar pengamatan register,
-lembar prediksi \eng{flag}, tangkapan layar \file{Registers} dan
-\file{Flags}, serta catatan percobaan mengubah \flag{CF} dan
-\flag{ZF}.\par}
+\vspace{0.2em}
+{\footnotesize\textbf{Dikumpulkan:} tabel pengamatan, tabel
+prediksi, tangkapan layar Registers/Flags, catatan pesan, dan
+analisis CF vs OF.\par}
+\Sumber{Bab V, Praktikum}
 \end{frame}
 
 % =========================================================
@@ -909,32 +732,25 @@ lembar prediksi \eng{flag}, tangkapan layar \file{Registers} dan
 \begin{frame}{Latihan}
 \small
 \begin{enumerate}
-    \item Jelaskan apa yang dimaksud dengan register, lalu sebutkan
-          empat kelompok register 8086 beserta satu contoh register
-          pada setiap kelompok.
+    \item Sebutkan keempat belas register 8086 dan kelompokkan
+          menjadi umum, segmen, pointer/index, kendali, dan status.
 
-    \vspace{0.3em}
-    \item \reg{AX} berisi \hex{ABCD}. Tentukan nilai \reg{AH} dan
-          \reg{AL} setelah \code{MOV AL, 55h} dijalankan. Mengapa
-          \reg{AH} tidak berubah?
+    \vspace{0.15em}
+    \item AX semula berisi \hex{1234}. Tentukan AH dan AL. Setelah
+          \code{MOV AL, 20h}, tentukan AX dan jelaskan mengapa AH
+          tidak berubah.
 
-    \vspace{0.3em}
-    \item Seorang programmer ingin menjumlahkan dua nilai,
-          menyimpan hasilnya, lalu mengulangi proses sepuluh kali.
-          Register mana yang tepat untuk menampung hasil dan mana
-          yang tepat menjadi pencacah? Jelaskan alasannya.
+    \vspace{0.15em}
+    \item Jelaskan peran CS, DS, SS, dan ES beserta pasangan alamat
+          yang dibentuk masing-masing.
 
-    \vspace{0.3em}
-    \item Untuk \code{ADD AL, BL}, tentukan \flag{CF}, \flag{OF},
-          \flag{SF}, dan \flag{ZF} bila \reg{AL} dan \reg{BL}
-          bernilai (\emph{a}) \hex{7F} dan \hex{01},
-          (\emph{b}) \hex{05} dan \hex{05}. Sertakan penjelasan
-          singkat.
+    \vspace{0.15em}
+    \item Jelaskan arti CF, PF, AF, ZF, SF, OF, TF, IF, dan DF.
+          Kelompokkan menjadi \eng{flag} status dan kendali.
 
-    \vspace{0.3em}
-    \item Sebuah program berisi \code{MOV SP, 0000h} sebelum
-          memanggil prosedur. Jelaskan mengapa berbahaya dan apa
-          yang terjadi saat \asm{RET} dijalankan.
+    \vspace{0.15em}
+    \item Untuk \hex{7FFF} + \hex{0001} dan \hex{8000} + \hex{8000},
+          tentukan hasil 16 bit serta CF, OF, SF, dan ZF.
 \end{enumerate}
 \end{frame}
 
@@ -944,65 +760,59 @@ lembar prediksi \eng{flag}, tangkapan layar \file{Registers} dan
 \begin{frame}{Rangkuman}
 \small
 \begin{itemize}
-    \item Register adalah tempat penyimpanan tercepat di dalam
-          prosesor. Prosesor 8086 memiliki empat belas register
-          16 bit yang dapat dipakai programmer.
+    \item Empat belas register 8086 berukuran 16 bit dan terbagi
+          menjadi umum, segmen, pointer/index, serta \eng{flag}.
 
-    \vspace{0.25em}
-    \item \reg{AX}, \reg{BX}, \reg{CX}, dan \reg{DX} dapat diakses
-          sebagai dua byte terpisah. Menulis ke byte rendah tidak
-          mengubah byte tinggi.
+    \vspace{0.15em}
+    \item AX--DX dapat diakses per byte; peran khasnya adalah
+          akumulator, offset, pencacah, dan data pendukung.
 
-    \vspace{0.25em}
-    \item Peran khas muncul dari cara instruksi disandikan:
-          \reg{AX} akumulator, \reg{BX} basis pengalamatan,
-          \reg{CX} pencacah, \reg{DX} pasangan data dan penunjuk
-          port.
+    \vspace{0.15em}
+    \item Register segmen membentuk pasangan CS:IP, DS:SI/BX,
+          SS:SP/BP, dan ES:DI.
 
-    \vspace{0.25em}
-    \item Register segmen menyimpan nomor segmen, bukan data;
-          pasangannya \reg{IP} untuk kode, \reg{SP}/\reg{BP} untuk
-          \eng{stack}, serta \reg{SI} dan \reg{DI} untuk data.
+    \vspace{0.15em}
+    \item SP menunjuk puncak \eng{stack}, BP menjadi acuan, SI/DI
+          menunjuk sumber/tujuan, dan IP menunjuk instruksi
+          berikutnya.
 
-    \vspace{0.25em}
-    \item \reg{FLAGS} memuat sembilan \eng{flag} aktif: enam status
-          dan tiga kendali. \flag{CF} untuk bilangan tak bertanda,
-          \flag{OF} untuk bilangan bertanda.
+    \vspace{0.15em}
+    \item Sembilan \eng{flag}: CF, PF, AF, ZF, SF, OF, TF, IF, dan
+          DF; CF untuk tak bertanda dan OF untuk bertanda.
 
-    \vspace{0.25em}
-    \item \reg{CS}, \reg{IP}, \reg{SS}, dan \reg{SP} mengendalikan
-          alur program dan letak \eng{stack}, sehingga tidak boleh
-          diubah sembarangan.
+    \vspace{0.15em}
+    \item \eng{Flag} dibaca oleh lompatan bersyarat untuk memilih
+          jalur program.
 \end{itemize}
 \end{frame}
 
 % ---------------------------------------------------------
 \begin{frame}{Cek Pemahaman}
-\small
+\footnotesize
 \begin{enumerate}
-    \item Setelah \code{MOV AL, 20h} dijalankan pada \reg{AX} yang
-          semula berisi \hex{1234}, isi \reg{AX} menjadi \dots
-          \begin{enumerate}\footnotesize
+    \item Setelah \code{MOV AL, 20h} pada AX yang semula
+          \hex{1234}, isi AX menjadi \dots
+          \begin{enumerate}
               \item \hex{1220} \quad \item \hex{2034} \quad
               \item \hex{0020} \quad \item \hex{2020}
           \end{enumerate}
 
-    \vspace{0.3em}
-    \item Register yang selalu berpasangan dengan \reg{CS} untuk
-          menentukan alamat instruksi berikutnya adalah \dots
-          \begin{enumerate}\footnotesize
-              \item \reg{SP} \quad \item \reg{IP} \quad
-              \item \reg{DS} \quad \item \reg{DI}
+    \vspace{0.2em}
+    \item Register yang berpasangan dengan CS untuk menentukan
+          alamat instruksi berikutnya adalah \dots
+          \begin{enumerate}
+              \item SP \quad \item IP \quad
+              \item DS \quad \item DI
           \end{enumerate}
 
-    \vspace{0.3em}
-    \item \code{ADD AL, BL} dengan \reg{AL} $=$ \hex{7F} dan
-          \reg{BL} $=$ \hex{01} menghasilkan \dots
-          \begin{enumerate}\footnotesize
-              \item \flag{CF} $=1$ dan \flag{OF} $=0$
-              \item \flag{CF} $=0$ dan \flag{OF} $=1$
-              \item \flag{CF} $=1$ dan \flag{OF} $=1$
-              \item \flag{CF} $=0$ dan \flag{OF} $=0$
+    \vspace{0.2em}
+    \item \code{ADD AL, BL} dengan AL = \hex{7F} dan BL = \hex{01}
+          menghasilkan \dots
+          \begin{enumerate}
+              \item CF = 1 dan OF = 0
+              \item CF = 0 dan OF = 1
+              \item CF = 1 dan OF = 1
+              \item CF = 0 dan OF = 0
           \end{enumerate}
 \end{enumerate}
 \end{frame}
@@ -1011,25 +821,23 @@ lembar prediksi \eng{flag}, tangkapan layar \file{Registers} dan
 % PENUTUP
 % =========================================================
 \begin{frame}{Penutup}
-\small
 \begin{block}{Sebelum pertemuan berikutnya}
+\small
 \begin{itemize}
-    \item Selesaikan praktikum: lembar pengamatan register dan
-          lembar prediksi \eng{flag}.
-    \item Tuliskan potongan program yang memuat \hex{F0} ke
-          \reg{AL} dan \hex{10} ke \reg{BL}, lalu cetak ``NOL'' bila
-          \flag{ZF} bernilai 1.
-    \item Baca \textbf{Bab VI} --- Segmentasi Memori dan Alamat
-          Fisik.
+    \item Selesaikan praktikum: tabel pengamatan, tabel prediksi,
+          tangkapan layar, dan analisis CF vs OF.
+    \item Baca \textbf{Bab VI} — Segmentasi Memori dan Alamat Fisik.
+    \item Siapkan pertanyaan tentang \eng{segment:offset} dan
+          \eng{overlapping} segmen.
 \end{itemize}
 \end{block}
 
-\vspace{0.5em}
+\vspace{0.4em}
 \begin{center}
 {\color{obeBlue}\sffamily\large\bfseries Terima kasih\par}
-\vspace{0.2em}
-{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK) \textbullet\
-\SemesterTeks\par}
+\vspace{0.15em}
+{\color{obeGray}\sffamily\small \NamaMK\ (\KodeMK)
+\textbullet\ \SemesterTeks\par}
 \end{center}
 \end{frame}
 
