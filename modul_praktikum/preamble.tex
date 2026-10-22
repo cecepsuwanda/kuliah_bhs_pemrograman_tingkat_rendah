@@ -1,0 +1,85 @@
+% =========================================================
+% preamble.tex
+% Modul Praktikum Bahasa Pemrograman Tingkat Rendah
+% Prosesor Intel 8086, mode real, 16 bit
+% =========================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[indonesian]{babel}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+
+% ---------------------------------------------------------
+% Definisi bahasa MASM/TASM 8086 (case-insensitive)
+% Disalin dari buku_ajar/config/listings.tex
+% ---------------------------------------------------------
+\lstdefinelanguage{MASM}{
+    morekeywords={
+        % --- transfer data ---
+        MOV, XCHG, LEA, LDS, LES, PUSH, POP, PUSHA, POPA, PUSHF, POPF,
+        LAHF, SAHF, XLAT, IN, OUT, CBW, CWD,
+        % --- aritmatika ---
+        ADD, ADC, SUB, SBB, INC, DEC, NEG, CMP, MUL, IMUL, DIV, IDIV,
+        AAA, AAS, AAM, AAD, DAA, DAS,
+        % --- logika dan geser ---
+        AND, OR, XOR, NOT, TEST, SHL, SHR, SAL, SAR, ROL, ROR, RCL, RCR,
+        % --- kontrol alur ---
+        JMP, JE, JZ, JNE, JNZ, JG, JGE, JL, JLE, JA, JAE, JB, JBE,
+        JC, JNC, JS, JNS, JO, JNO, JP, JPE, JNP, JPO, JCXZ,
+        LOOP, LOOPE, LOOPZ, LOOPNE, LOOPNZ, CALL, RET, INT, IRET, INTO,
+        % --- prosesor ---
+        HLT, NOP, CLI, STI, CLD, STD, CLC, STC, CMC, WAIT, ESC, LOCK,
+        % --- direktif data ---
+        DB, DW, DD, DQ, DT, EQU, ORG, SEGMENT, ENDS, ASSUME, END,
+        PROC, ENDP, MACRO, ENDM, LOCAL, PUBLIC, EXTRN, EXTERN,
+        INCLUDE, INCLUDELIB, MODEL, STACK, CODE, DATA, CONST, ALIGN, EVEN,
+        % --- operator ---
+        OFFSET, PTR, BYTE, WORD, DWORD, QWORD, TBYTE,
+        NEAR, FAR, SHORT, LABEL, TYPE, SIZE, LENGTH, DUP, THIS,
+        % --- register ---
+        AX, BX, CX, DX, AL, AH, BL, BH, CL, CH, DL, DH,
+        SP, BP, SI, DI, IP, CS, DS, SS, ES, FLAGS,
+        % --- flag ---
+        CF, PF, AF, ZF, SF, TF, IF, DF, OF,
+        % --- pseudo-op umum ---
+        BYTE, NOTHING, TRUE, FALSE
+    },
+    sensitive=false,
+    morecomment=[l]{;},
+    morestring=[b]',
+    morestring=[b]"
+}
+
+% ---------------------------------------------------------
+% Gaya dasar listing
+% ---------------------------------------------------------
+\lstset{
+    language=MASM,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\bfseries,
+    commentstyle=\itshape,
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=8pt,
+    stepnumber=1,
+    frame=single,
+    framesep=6pt,
+    breaklines=true,
+    breakatwhitespace=false,
+    showstringspaces=false,
+    tabsize=4,
+    columns=fullflexible,
+    keepspaces=true,
+    upquote=true,
+    xleftmargin=14pt,
+    aboveskip=0.8em,
+    belowskip=0.6em,
+    captionpos=b
+}

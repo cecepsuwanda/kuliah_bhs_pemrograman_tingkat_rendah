@@ -1,0 +1,189 @@
+\section{Modul 08. Stack}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item menjelaskan sifat \emph{last in, first out} (LIFO) pada
+          stack;
+    \item menggunakan \texttt{PUSH} dan \texttt{POP} serta menjelaskan
+          perubahan \texttt{SP};
+    \item menjelaskan peran \texttt{BP} sebagai titik acuan parameter
+          di dalam stack;
+    \item menulis prosedur yang menerima parameter lewat stack;
+    \item menjelaskan \texttt{RET} dekat tanpa angka dan pembuangan
+          parameter oleh pemanggil;
+    \item merakit, menjalankan, dan memeriksa stack dengan DEBUG.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Stack dan sifat LIFO}
+
+Stack adalah daerah memori untuk menyimpan data sementara. Puncak
+stack ditunjuk pasangan \texttt{SS:SP}. Stack 8086 tumbuh ke alamat
+yang lebih rendah. Satu sel stack berukuran satu word atau dua byte.
+
+\texttt{PUSH} menyimpan satu word ke puncak stack: \texttt{SP}
+dikurangi dua, lalu operand disalin ke \texttt{SS:SP}. \texttt{POP}
+mengambil satu word dari puncak stack: isi \texttt{SS:SP} disalin ke
+tujuan, lalu \texttt{SP} ditambah dua. Karena data terakhir yang
+masuk berada di puncak, data itu pula yang pertama diambil. Sifat
+inilah yang disebut LIFO. Urutan \texttt{POP} harus kebalikan urutan
+\texttt{PUSH} bila nilai ingin kembali ke register asalnya.
+
+\begin{table}[H]
+    \centering
+    \caption{Jejak \texttt{PUSH} dan \texttt{POP} pada program
+    pertama. Nilai awal \texttt{AX=1111h}, \texttt{BX=2222h}.}
+    \label{tab:m08-lifo}
+    \small
+    \begin{tabular}{@{}llll@{}}
+        \toprule
+        \textbf{Instruksi} & \textbf{SP} & \textbf{Puncak stack} &
+        \textbf{Register sesudah} \\
+        \midrule
+        \texttt{PUSH AX} & berkurang 2 & 1111h & \texttt{AX=1111h} \\
+        \texttt{PUSH BX} & berkurang 2 & 2222h & \texttt{BX=2222h} \\
+        \texttt{POP CX} & bertambah 2 & 1111h & \texttt{CX=2222h} \\
+        \texttt{POP DX} & bertambah 2 & kosong & \texttt{DX=1111h} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection*{Register SP dan BP}
+
+\texttt{SP} (\emph{Stack Pointer}) menunjuk puncak stack yang aktif.
+Nilainya berubah otomatis setiap kali \texttt{PUSH} atau \texttt{POP}
+dijalankan. \texttt{BP} (\emph{Base Pointer}) dipakai sebagai titik
+acuan data di dalam stack. Setelah prosedur menyimpan \texttt{BP} lama
+dan menyalin \texttt{SP} ke \texttt{BP}, isi stack dapat dibaca
+memakai bentuk \texttt{[BP+disp]} tanpa terpengaruh perubahan
+\texttt{SP} berikutnya. Alamat \texttt{[BP+disp]} memakai segmen
+\texttt{SS}.
+
+\subsubsection*{Parameter prosedur lewat stack}
+
+Pemanggil mendorong parameter ke stack sebelum \texttt{CALL}.
+Parameter kedua didorong lebih dahulu, parameter pertama didorong
+paling akhir. Prosedur lalu menyimpan \texttt{BP} lama, menyalin
+\texttt{SP} ke \texttt{BP}, dan membaca parameter pada
+\texttt{[BP+4]} serta \texttt{[BP+6]}. Susunan bingkai stack
+ditunjukkan pada Tabel~\ref{tab:m08-frame}.
+
+\begin{table}[H]
+    \centering
+    \caption{Susunan bingkai stack prosedur dengan dua parameter word.}
+    \label{tab:m08-frame}
+    \small
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Alamat} & \textbf{Isi} \\
+        \midrule
+        \texttt{[BP+6]} & parameter kedua \\
+        \texttt{[BP+4]} & parameter pertama \\
+        \texttt{[BP+2]} & alamat kembali \\
+        \texttt{[BP+0]} & nilai \texttt{BP} lama \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\texttt{RET} dekat tanpa angka hanya mengambil alamat kembali dari
+stack. Parameter yang sudah didorong masih tertinggal di stack,
+sehingga pemanggil membuangnya dengan \texttt{ADD SP,4} untuk dua
+parameter word. Jumlah \texttt{PUSH} dan \texttt{POP} di dalam
+prosedur harus seimbang agar \texttt{SP} kembali ke posisi semula.
+
+Rujukan singkat: Gunawan, Bagian 12; S'to, Bab XIV; praktikum
+\texttt{bab5.tex}; buku ajar, \texttt{chapters/14} bagian stack dan
+\texttt{param-bp.asm}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m08-push-pop.asm} dan
+          \texttt{code/m08-param-stack.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama menyimpan \texttt{AX} lalu \texttt{BX} ke stack, dan
+mengambilnya kembali ke \texttt{CX} lalu \texttt{DX}. Karena sifat
+LIFO, \texttt{CX} memperoleh nilai \texttt{BX} dan \texttt{DX}
+memperoleh nilai \texttt{AX}.
+
+\lstinputlisting[
+    caption={Menyimpan dan mengambil dua register dengan
+    \texttt{PUSH} dan \texttt{POP}.},
+    label={lst:m08-push-pop}
+]{code/m08-push-pop.asm}
+
+Program kedua memakai prosedur \texttt{TAMBAH} dengan dua parameter
+word di stack. Hasil penjumlahan dikembalikan pada \texttt{AX},
+kemudian dicetak sebagai satu digit.
+
+\lstinputlisting[
+    caption={Prosedur dengan parameter lewat stack dan
+    \texttt{[BP+disp]}.},
+    label={lst:m08-param}
+]{code/m08-param-stack.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas \texttt{.asm}
+          ke dalamnya.
+    \item Rakit dan tautkan program pertama. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m08-push-pop.asm}\\
+          \texttt{tlink m08-push-pop.obj}
+          \end{quote}
+    \item Jalankan \texttt{debug m08-push-pop.exe}, lalu ketik
+          \texttt{r}. Catat nilai \texttt{SS} dan \texttt{SP}. Ketik
+          \texttt{t} beberapa kali sampai kedua \texttt{PUSH}
+          dijalankan, lalu periksa stack dengan
+          \texttt{d SS:offset L 8} memakai offset \texttt{SP} yang
+          tercatat. Lanjutkan \texttt{t} sampai kedua \texttt{POP},
+          catat \texttt{CX}, \texttt{DX}, dan \texttt{SP}, lalu keluar
+          dengan \texttt{q}.
+    \item Rakit dan tautkan program kedua dengan perintah yang sama,
+          lalu jalankan. Catat karakter yang tercetak.
+    \item Jalankan program kedua dengan \emph{single step} pada
+          emu8086. Catat \texttt{SP} dan \texttt{BP} di dalam
+          prosedur, lalu periksa isi \texttt{[BP+4]} dan
+          \texttt{[BP+6]}. Pastikan jumlahnya sama dengan keluaran.
+    \item Ubah kedua parameter dari 3 dan 5 menjadi 2 dan 4. Rakit
+          ulang, jalankan, dan pastikan keluarannya berubah.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan arti LIFO dan mengapa urutan \texttt{POP} harus
+          kebalikan urutan \texttt{PUSH}.
+    \item Jelaskan perubahan \texttt{SP} pada setiap \texttt{PUSH} dan
+          \texttt{POP}.
+    \item Jelaskan peran \texttt{BP} dan arti \texttt{[BP+4]} serta
+          \texttt{[BP+6]} pada prosedur \texttt{TAMBAH}.
+    \item Jelaskan mengapa pemanggil perlu menulis \texttt{ADD SP,4}
+          sesudah \texttt{CALL} dan \texttt{RET}.
+    \item Diketahui \texttt{AX=AAAAh} dan \texttt{BX=BBBBh}. Tentukan
+          isi \texttt{AX} dan \texttt{BX} sesudah runtunan
+          \texttt{PUSH AX}, \texttt{PUSH BX}, \texttt{POP AX},
+          \texttt{POP BX}.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tangkapan layar keluaran program kedua dan pemeriksaan stack
+          dengan DEBUG.
+    \item Tabel jejak berisi \texttt{SP}, isi puncak stack, dan isi
+          register untuk kedua program.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}

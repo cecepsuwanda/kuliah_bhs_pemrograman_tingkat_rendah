@@ -1,0 +1,186 @@
+\section{Modul 05. Perulangan}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item menjelaskan kerja \texttt{LOOP} dan peran \texttt{CX}
+          sebagai pencacah;
+    \item menulis perulangan dengan cacah tertentu memakai
+          \texttt{LOOP};
+    \item menulis perulangan yang setara memakai \texttt{DEC} dan
+          \texttt{JNZ} tanpa \texttt{LOOP};
+    \item menelusuri perubahan \texttt{CX}, \texttt{ZF}, dan karakter
+          yang dicetak pada setiap iterasi;
+    \item merakit, menjalankan, dan memeriksa perulangan dengan
+          emu8086 atau DEBUG.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{LOOP dan pencacah CX}
+
+\texttt{LOOP} memakai \texttt{CX} sebagai pencacah. Instruksi ini
+mengurangi \texttt{CX} dengan satu, lalu melompat ke label tujuan
+bila \texttt{CX} belum nol. Bila \texttt{CX} sudah nol, eksekusi
+berlanjut ke instruksi sesudah \texttt{LOOP}. Karena pengurangan
+dilakukan lebih dahulu, badan perulangan selalu dijalankan paling
+sedikit satu kali.
+
+Sebelum label perulangan, \texttt{CX} harus diisi dengan cacah yang
+diinginkan. Bila \texttt{CX} bernilai nol pada awal perulangan,
+pengurangan akan menghasilkan \texttt{FFFFh} dan perulangan berjalan
+65.536 kali. Karena itu, tetapkan \texttt{CX} lebih besar dari nol.
+Badan perulangan juga tidak boleh mengubah \texttt{CX}, kecuali
+memang ingin mengubah cacahnya.
+
+\subsubsection*{DEC dan JNZ sebagai pembanding}
+
+Perulangan yang sama dapat dibentuk dengan dua instruksi:
+\texttt{DEC CX} lalu \texttt{JNZ ULANG}. \texttt{DEC} mengurangi
+\texttt{CX} dengan satu dan menyalakan \texttt{ZF} ketika hasilnya
+nol. \texttt{JNZ} melompat selama \texttt{ZF} bernilai nol. Hasil
+akhirnya sama dengan \texttt{LOOP}, tetapi pemeriksaan flag terlihat
+jelas karena ditulis sebagai dua instruksi. Perbandingan kedua bentuk
+ditunjukkan pada Tabel~\ref{tab:m05-bentuk}.
+
+\begin{table}[H]
+    \centering
+    \caption{Dua bentuk perulangan dengan pencacah \texttt{CX}.}
+    \label{tab:m05-bentuk}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Bentuk} & \textbf{Langkah} & \textbf{Ciri} \\
+        \midrule
+        \texttt{LOOP ULANG} & \texttt{CX}$\leftarrow$\texttt{CX}$-1$;
+        lompat bila \texttt{CX}$\neq0$ & ringkas, satu instruksi \\
+        \texttt{DEC CX}; \texttt{JNZ ULANG} &
+        kurangi, lalu periksa \texttt{ZF} & flag terlihat, dua instruksi \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection*{Deretan karakter}
+
+Perulangan dapat mencetak deretan karakter tanpa menelusuri array.
+Karakter pertama diletakkan pada \texttt{DL}, dicetak dengan
+\texttt{AH=02h}, lalu \texttt{INC DL} memajukannya ke karakter
+berikutnya. Setiap iterasi mencetak satu karakter dan memakai
+\texttt{LOOP} atau \texttt{DEC}/\texttt{JNZ} untuk kembali ke awal
+badan perulangan. Jejak lima iterasi pertama ditunjukkan pada
+Tabel~\ref{tab:m05-jejak}.
+
+\begin{table}[H]
+    \centering
+    \caption{Jejak perulangan lima kali dengan \texttt{CX=5} dan
+    \texttt{DL='A'}.}
+    \label{tab:m05-jejak}
+    \small
+    \begin{tabular}{@{}cccc@{}}
+        \toprule
+        \textbf{Iterasi} & \textbf{CX sebelum} & \textbf{DL} &
+        \textbf{CX sesudah} \\
+        \midrule
+        1 & 5 & A & 4 \\
+        2 & 4 & B & 3 \\
+        3 & 3 & C & 2 \\
+        4 & 2 & D & 1 \\
+        5 & 1 & E & 0, perulangan berhenti \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Pola \texttt{LOOP} sesuai dengan perulangan \texttt{for} yang
+cacahnya diketahui. Perulangan \texttt{while} memeriksa syarat
+sebelum badan dijalankan, sehingga badan dapat dilewati sama sekali;
+pola itu tidak dipakai pada modul ini. Modul ini tidak memakai
+\texttt{SI}, \texttt{[SI]}, \texttt{PROC}, \texttt{PUSH}, atau
+penelusuran array.
+
+Rujukan singkat: Gunawan, Bagian 11.3; praktikum \texttt{bab3.tex}
+bagian LOOP; buku ajar, \texttt{chapters/13} bagian LOOP, while, dan
+for.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m05-loop-karakter.asm} dan
+          \texttt{code/m05-dec-jnz.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama mencetak lima karakter dengan \texttt{LOOP}.
+\texttt{CX} diisi 5, \texttt{DL} diisi karakter pertama, lalu
+\texttt{INC DL} memajukan karakter pada setiap iterasi.
+
+\lstinputlisting[
+    caption={Deretan karakter dengan \texttt{LOOP}.},
+    label={lst:m05-loop}
+]{code/m05-loop-karakter.asm}
+
+Program kedua mencetak deretan yang sama tanpa \texttt{LOOP}.
+Perulangan diakhiri dengan \texttt{DEC CX} dan \texttt{JNZ ULANG}.
+
+\lstinputlisting[
+    caption={Deretan karakter yang sama dengan \texttt{DEC} dan
+    \texttt{JNZ}.},
+    label={lst:m05-dec-jnz}
+]{code/m05-dec-jnz.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas \texttt{.asm}
+          ke dalamnya.
+    \item Rakit dan tautkan program pertama. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m05-loop-karakter.asm}\\
+          \texttt{tlink m05-loop-karakter.obj}
+          \end{quote}
+          Jalankan hasilnya dan catat deretan karakter yang tercetak.
+    \item Ubah \texttt{MOV CX,5} menjadi \texttt{MOV CX,8}, rakit
+          ulang, lalu jalankan. Catat perubahan panjang deretan.
+    \item Jalankan program pertama dengan \emph{single step} pada
+          emu8086. Catat nilai \texttt{CX} dan \texttt{DL} pada
+          setiap iterasi, lalu bandingkan dengan
+          Tabel~\ref{tab:m05-jejak}.
+    \item Rakit dan tautkan program kedua dengan perintah yang sama,
+          lalu jalankan. Pastikan deretannya sama dengan program
+          pertama.
+    \item Jalankan program kedua dengan \emph{single step}. Amati
+          nilai \texttt{ZF} sesudah \texttt{DEC CX} dan keputusan
+          \texttt{JNZ}. Jelaskan mengapa hasilnya setara dengan
+          \texttt{LOOP}.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan urutan kerja \texttt{LOOP}: kapan \texttt{CX}
+          dikurangi dan kapan lompatan dilakukan.
+    \item Jelaskan mengapa \texttt{DEC CX} diikuti \texttt{JNZ} memberi
+          hasil yang sama dengan \texttt{LOOP}.
+    \item Jelaskan apa yang terjadi bila \texttt{CX} bernilai nol
+          sebelum perulangan dimulai, dan mengapa cacah harus lebih
+          besar dari nol.
+    \item Tentukan keluaran program bila \texttt{CX=3} dan
+          \texttt{DL} diisi \texttt{'X'}.
+    \item Bandingkan bentuk \texttt{LOOP} dan \texttt{DEC}/\texttt{JNZ}
+          dari segi panjang instruksi dan kejelasan pemeriksaan flag.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tangkapan layar keluaran kedua program.
+    \item Tabel jejak iterasi berisi \texttt{CX}, \texttt{DL}, dan
+          karakter yang tercetak untuk kedua program.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}

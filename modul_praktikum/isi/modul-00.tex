@@ -1,0 +1,257 @@
+\section{Modul 00. Register, interupsi, dan kerangka program}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item membaca bilangan heksadesimal dan kode ASCII yang dipakai
+          pada layanan DOS;
+    \item menjelaskan pembagian register \texttt{AX} dan \texttt{DX}
+          beserta tugas setiap bagiannya;
+    \item menjelaskan cara kerja interupsi perangkat lunak dan peran
+          \texttt{INT 21h};
+    \item membedakan kerangka program \texttt{.COM} dan \texttt{.EXE};
+    \item membaca program contoh dan menelusuri isi register tanpa
+          menulis atau merakit program.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Bilangan heksadesimal dan kode ASCII}
+
+Bilangan heksadesimal memakai basis 16 dengan digit 0 sampai 9 dan
+A sampai F. Pada assembler TASM, bilangan heksadesimal ditulis
+dengan akhiran \texttt{h}. Bila digit pertama berupa huruf, angka nol
+harus ditambahkan di depan agar assembler tidak membacanya sebagai
+label; karena itu ditulis \texttt{0Dh}, bukan \texttt{Dh}. Nilai yang
+dipakai pada modul ini dirangkum pada Tabel~\ref{tab:m00-hex}.
+
+\begin{table}[h]
+    \centering
+    \caption{Nilai heksadesimal yang dipakai pada Modul 00.}
+    \label{tab:m00-hex}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Heksadesimal} & \textbf{Desimal} & \textbf{Arti} \\
+        \midrule
+        \texttt{02h} & 2 & nomor layanan cetak satu karakter \\
+        \texttt{09h} & 9 & nomor layanan cetak string \\
+        \texttt{0Ah} & 10 & \emph{line feed}, turun satu baris \\
+        \texttt{0Dh} & 13 & \emph{carriage return}, kembali ke awal baris \\
+        \texttt{24h} & 36 & tanda \texttt{\$} penutup string \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Karakter disimpan sebagai kode ASCII satu byte. Huruf \texttt{A}
+bernilai \texttt{41h}, angka \texttt{0} bernilai \texttt{30h}, dan
+spasi bernilai \texttt{20h}. Kode \texttt{0Dh} mengembalikan kursor
+ke awal baris, sedangkan \texttt{0Ah} menurunkannya satu baris.
+Karena itu pasangan \texttt{0Dh}, \texttt{0Ah} dipakai untuk
+berpindah ke awal baris berikutnya. Tanda \texttt{\$} bukan bagian
+kalimat yang dicetak; layanan \texttt{AH=09h} memakainya sebagai
+penanda akhir string.
+
+\subsubsection*{Register AX, DX, dan register lain}
+
+Mikroprosesor 8086 bekerja dengan register 16 bit. Register
+\texttt{AX} dapat dipisah menjadi dua bagian 8 bit, yaitu
+\texttt{AH} (byte tinggi) dan \texttt{AL} (byte rendah). Register
+\texttt{DX} juga terbagi menjadi \texttt{DH} dan \texttt{DL}.
+Sebagai contoh, bila \texttt{AX} bernilai \texttt{1234h}, maka
+\texttt{AH} bernilai \texttt{12h} dan \texttt{AL} bernilai
+\texttt{34h}. Peran bagian register yang dipakai layanan DOS
+ditunjukkan pada Tabel~\ref{tab:m00-register}.
+
+\begin{table}[h]
+    \centering
+    \caption{Bagian register yang dipakai layanan DOS.}
+    \label{tab:m00-register}
+    \small
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Register} & \textbf{Isi atau tugas pada modul ini} \\
+        \midrule
+        \texttt{AH} & nomor layanan yang dipilih sebelum \texttt{INT 21h} \\
+        \texttt{AL} & karakter masukan (dibahas pada Modul 02) \\
+        \texttt{DL} & satu karakter yang dicetak layanan \texttt{02h} \\
+        \texttt{DX} & offset string yang dicetak layanan \texttt{09h} \\
+        \texttt{DS} & nomor segmen tempat data program berada \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Register lain cukup dikenal namanya. \texttt{BX} menyimpan alamat
+offset; \texttt{CX} menjadi pencacah pengulangan; \texttt{SI}
+menunjuk alamat sumber; \texttt{IP} menyimpan offset instruksi
+berikutnya; \texttt{CS} menunjuk segmen kode; \texttt{SS} menunjuk
+segmen stack; \texttt{ES} menunjuk segmen tambahan; dan
+\texttt{FLAGS} mencatat keadaan hasil operasi terakhir.
+
+\subsubsection*{Interupsi perangkat lunak}
+
+Interupsi perangkat lunak adalah permintaan dari program kepada
+prosesor untuk mengerjakan suatu layanan. Ketika interupsi terjadi,
+program berhenti sejenak, prosesor menjalankan rutin layanan, lalu
+program dilanjutkan pada instruksi berikutnya. Prosesor 8086
+menyediakan 256 nomor interupsi, yaitu 0 sampai 255. Nomor dipilih
+dengan instruksi \texttt{INT}.
+
+\texttt{INT 21h} adalah interupsi layanan DOS. Nomor fungsi
+diletakkan pada \texttt{AH}, sedangkan argumen lain diletakkan pada
+register sesuai fungsi. Fungsi yang diperkenalkan pada modul ini
+adalah \texttt{02h}, \texttt{09h}, dan \texttt{4Ch}. Khusus program
+\texttt{.COM}, program dapat ditutup dengan \texttt{INT 20h}.
+Rangkuman fungsi tersebut ditunjukkan pada Tabel~\ref{tab:m00-int21}.
+
+\begin{table}[h]
+    \centering
+    \caption{Fungsi \texttt{INT 21h} dan \texttt{INT 20h} pada Modul 00.}
+    \label{tab:m00-int21}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Perintah} & \textbf{Fungsi} & \textbf{Register} \\
+        \midrule
+        \texttt{INT 21h}, \texttt{AH=02h} & cetak satu karakter
+        & \texttt{DL} \\
+        \texttt{INT 21h}, \texttt{AH=09h} & cetak string berakhir
+        \texttt{\$} & \texttt{DS:DX} \\
+        \texttt{INT 21h}, \texttt{AH=4Ch} & akhiri program
+        & \texttt{AL} = kode keluar \\
+        \texttt{INT 20h} & akhiri program \texttt{.COM} & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection*{Kerangka program .COM dan .EXE}
+
+Program \texttt{.COM} memakai model \texttt{TINY} dan direktif
+\texttt{ORG 100h}. Seluruh kode dan data berada dalam satu segmen,
+sehingga \texttt{DS} tidak perlu diisi sendiri. Data diletakkan di
+dalam segmen kode dan dilewati dengan pola \texttt{JMP MULAI} agar
+tidak ikut dieksekusi. Program ditutup dengan \texttt{INT 20h}.
+
+\begin{lstlisting}[numbers=none]
+.MODEL TINY
+.CODE
+ORG 100h
+START:
+    JMP MULAI           ; lompati data
+    ; data diletakkan di sini
+MULAI:
+    ; instruksi program
+    INT 20h             ; akhiri program .COM
+END START
+\end{lstlisting}
+
+Program \texttt{.EXE} memakai model \texttt{SMALL}, menyediakan
+stack, dan memisahkan segmen data dari segmen kode. Sebelum data
+disentuh, \texttt{DS} harus diisi dengan alamat segmen data melalui
+\texttt{AX}. Program ditutup dengan \texttt{AH=4Ch} dan
+\texttt{INT 21h}.
+
+\begin{lstlisting}[numbers=none]
+.MODEL SMALL
+.STACK 100h
+.DATA
+    ; variabel diletakkan di sini
+.CODE
+START:
+    MOV AX, @DATA       ; alamat segmen data
+    MOV DS, AX          ; pasang ke DS
+    ; instruksi program
+    MOV AH, 4Ch         ; akhiri program .EXE
+    INT 21h
+END START
+\end{lstlisting}
+
+Direktif \texttt{ORG 100h} hanya dipakai pada program \texttt{.COM}
+dan tidak boleh dicampur dengan kerangka \texttt{.EXE}.
+
+Rujukan singkat: Gunawan, Bagian 3 dan 4; S'to, Bab I, III, IV, V,
+dan VI; buku ajar, \texttt{chapters/03}, \texttt{05}, \texttt{07},
+dan \texttt{09/section-03.tex}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 untuk menampilkan isi register.
+    \item DOSBox dengan DEBUG sebagai alat pemeriksa.
+    \item TASM dan TLINK sebagai perakit dan pengait; diperkenalkan
+          pada modul ini, tetapi belum dijalankan.
+    \item Berkas \texttt{code/m00-contoh-int21.asm} dalam bentuk
+          cetak atau digital.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program berikut adalah program \texttt{.COM} lengkap. Program ini
+mencetak satu kalimat dengan layanan \texttt{AH=09h}, mencetak satu
+karakter dengan layanan \texttt{AH=02h}, lalu berhenti dengan
+\texttt{INT 20h}. Perhatikan pola \texttt{JMP MULAI}: data
+\texttt{PESAN} diletakkan di antara instruksi lompatan dan label
+\texttt{MULAI} agar tidak dieksekusi sebagai instruksi.
+
+\lstinputlisting[
+    caption={Contoh program \texttt{.COM} dengan \texttt{INT 21h}.},
+    label={lst:m00-contoh}
+]{code/m00-contoh-int21.asm}
+
+Pada program ini \texttt{DS} tidak diisi karena \texttt{.COM}
+memakai satu segmen. Sebelum \texttt{INT 21h} pertama,
+\texttt{AH} berisi \texttt{09h} dan \texttt{DX} berisi offset
+\texttt{PESAN}. Sebelum \texttt{INT 21h} kedua, \texttt{AH} berisi
+\texttt{02h} dan \texttt{DL} berisi karakter \texttt{'!'}.
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Baca program contoh. Tandai tiga bagian: direktif,
+          data, dan instruksi. Tuliskan nomor baris setiap bagian.
+    \item Sebelum \texttt{INT 21h} pertama, catat isi \texttt{AH} dan
+          \texttt{DX}. Jelaskan ke mana \texttt{DX} menunjuk.
+    \item Jelaskan peran \texttt{0Dh} dan \texttt{0Ah} di dalam
+          \texttt{PESAN}, lalu jelaskan apa yang terjadi bila tanda
+          \texttt{\$} dihapus.
+    \item Sebelum \texttt{INT 21h} kedua, catat isi \texttt{AH} dan
+          \texttt{DL}. Tentukan karakter yang muncul di layar.
+    \item Bandingkan kerangka \texttt{.COM} dan \texttt{.EXE} pada
+          dasar singkat. Isi tabel: model memori, penggunaan
+          \texttt{ORG 100h}, inisialisasi \texttt{DS}, dan perintah
+          penutup.
+    \item Jelaskan mengapa \texttt{JMP MULAI} diperlukan dan apa
+          akibatnya bila data diletakkan tanpa lompatan.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Diberikan potongan berikut, tentukan fungsi yang dipanggil,
+          register yang dipakai, dan hasilnya:
+          \texttt{MOV AH,09h}; \texttt{MOV DX,OFFSET PESAN};
+          \texttt{INT 21h}.
+    \item Jelaskan mengapa program \texttt{.COM} tidak memerlukan
+          \texttt{MOV AX,@DATA} dan \texttt{MOV DS,AX}.
+    \item Sebutkan tiga perbedaan kerangka program \texttt{.COM} dan
+          \texttt{.EXE}.
+    \item Terjemahkan nilai \texttt{02h}, \texttt{09h},
+          \texttt{0Dh}, \texttt{0Ah}, dan \texttt{24h} ke desimal,
+          lalu tuliskan artinya.
+    \item Jelaskan apa yang terjadi bila \texttt{INT 20h} dihilangkan
+          dari program \texttt{.COM}.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+    \item Tabel isi register \texttt{AH}, \texttt{AL}, \texttt{DX},
+          \texttt{DL}, dan \texttt{DS} sebelum serta sesudah setiap
+          \texttt{INT}.
+    \item Tabel perbandingan kerangka \texttt{.COM} dan \texttt{.EXE}.
+    \item Catatan singkat tentang peran \texttt{0Dh}, \texttt{0Ah},
+          dan tanda \texttt{\$}.
+\end{enumerate}

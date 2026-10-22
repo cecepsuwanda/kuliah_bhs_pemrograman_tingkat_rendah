@@ -1,0 +1,191 @@
+\section{Modul 03. Runtunan}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item menjelaskan tugas instruksi \texttt{MOV}, \texttt{XCHG},
+          \texttt{ADD}, \texttt{SUB}, \texttt{INC}, dan \texttt{DEC};
+    \item menulis runtunan instruksi yang dijalankan dari atas ke
+          bawah tanpa percabangan dan tanpa pengulangan;
+    \item menelusuri perubahan isi register setelah setiap instruksi;
+    \item mengubah satu digit 0--9 menjadi kode ASCII dengan
+          \texttt{ADD AL,30h} untuk dicetak;
+    \item merakit, menjalankan, dan memeriksa register program dengan
+          emu8086 atau DEBUG.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Pemindahan data: MOV dan XCHG}
+
+\texttt{MOV} menyalin nilai dari sumber ke tujuan. Nilai sumber tidak
+berubah, sehingga instruksi ini disebut menyalin, bukan memindahkan.
+Ukuran tujuan dan sumber harus sama: 8 bit dengan 8 bit, atau 16 bit
+dengan 16 bit. Contohnya, \texttt{MOV DX,AX} menyalin isi \texttt{AX}
+ke \texttt{DX}; \texttt{AX} tetap bernilai sama.
+
+\texttt{XCHG} menukar isi dua operand. Setelah
+\texttt{XCHG AX,BX}, isi \texttt{AX} berpindah ke \texttt{BX} dan isi
+\texttt{BX} berpindah ke \texttt{AX}. Kedua instruksi tidak mengubah
+flag hasil aritmatika. Perubahan register pada contoh program
+ditunjukkan pada Tabel~\ref{tab:m03-pindah}.
+
+\begin{table}[H]
+    \centering
+    \caption{Contoh perubahan register oleh \texttt{MOV} dan
+    \texttt{XCHG}. Nilai awal: \texttt{AX=1234h}, \texttt{BX=5678h},
+    \texttt{CX=9ABCh}.}
+    \label{tab:m03-pindah}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Instruksi} & \textbf{Sesudah} & \textbf{Keterangan} \\
+        \midrule
+        \texttt{MOV DX,AX} & \texttt{DX=1234h} & menyalin, \texttt{AX}
+        tetap \\
+        \texttt{XCHG AX,BX} & \texttt{AX=5678h}, \texttt{BX=1234h}
+        & menukar \\
+        \texttt{XCHG AX,CX} & \texttt{AX=9ABCh}, \texttt{CX=5678h}
+        & menukar \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection*{Aritmatika: ADD, SUB, INC, dan DEC}
+
+\texttt{ADD} menambahkan sumber ke tujuan dan menyimpan hasilnya pada
+tujuan. \texttt{SUB} mengurangkan sumber dari tujuan. Keduanya
+memerlukan ukuran operand yang sama. \texttt{INC} menambah 1 pada
+satu operand, sedangkan \texttt{DEC} mengurangi 1. Karena hanya
+memakai satu operand, \texttt{INC} dan \texttt{DEC} lebih ringkas
+daripada \texttt{ADD} atau \texttt{SUB} dengan nilai 1.
+
+Runtunan dijalankan berurutan dari atas ke bawah. Setiap instruksi
+bekerja pada nilai yang ditinggalkan instruksi sebelumnya. Contoh
+perubahan \texttt{AL} pada program kedua ditunjukkan pada
+Tabel~\ref{tab:m03-hitung}.
+
+\begin{table}[H]
+    \centering
+    \caption{Perubahan \texttt{AL} pada runtunan aritmatika.}
+    \label{tab:m03-hitung}
+    \small
+    \begin{tabular}{@{}cll@{}}
+        \toprule
+        \textbf{Langkah} & \textbf{Instruksi} & \textbf{Nilai \texttt{AL}} \\
+        \midrule
+        1 & \texttt{MOV AL,5} & 5 \\
+        2 & \texttt{ADD AL,3} & 8 \\
+        3 & \texttt{SUB AL,1} & 7 \\
+        4 & \texttt{INC AL} & 8 \\
+        5 & \texttt{DEC AL} & 7 \\
+        6 & \texttt{ADD AL,30h} & 37h, karakter \texttt{'7'} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection*{Mencetak satu digit}
+
+Kode ASCII untuk angka 0 sampai 9 adalah \texttt{30h} sampai
+\texttt{39h}. Karena itu, satu digit 0--9 dapat diubah menjadi
+karakter dengan menambahkan \texttt{30h}. Hasilnya diletakkan pada
+\texttt{DL}, lalu dicetak dengan \texttt{AH=02h}. Cara ini hanya
+berlaku untuk satu digit. Hasil 10 atau lebih tidak dapat dicetak
+dengan penambahan \texttt{30h}; nilainya harus diperiksa pada
+register dengan emu8086 atau DEBUG. Modul ini tidak membuat rutin
+pencetak bilangan banyak digit.
+
+Runtunan pada modul ini tidak memakai \texttt{CMP}, lompatan, atau
+\texttt{LOOP}. Semua instruksi dijalankan berurutan sampai program
+berakhir.
+
+Rujukan singkat: Gunawan, Bagian 5 (MOV dan XCHG); S'to, Bab VIII
+(ADD, SUB, INC, dan DEC); praktikum \texttt{bab1.tex} dan
+\texttt{bab2.tex}; buku ajar, \texttt{transfer-data.asm}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m03-pindah-data.asm} dan
+          \texttt{code/m03-hitung.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama memindahkan data antar register dengan \texttt{MOV}
+dan \texttt{XCHG}. Program tidak mencetak keluaran; hasilnya
+diperiksa pada jendela register emu8086 atau dengan DEBUG.
+
+\lstinputlisting[
+    caption={Pemindahan data dengan \texttt{MOV} dan \texttt{XCHG}.},
+    label={lst:m03-pindah}
+]{code/m03-pindah-data.asm}
+
+Program kedua menjalankan \texttt{ADD}, \texttt{SUB}, \texttt{INC},
+dan \texttt{DEC}. Satu hasil yang bernilai 7 dicetak sebagai karakter,
+sedangkan hasil penjumlahan \texttt{1234h+5678h} diperiksa pada
+register karena lebih dari satu digit.
+
+\lstinputlisting[
+    caption={Runtunan aritmatika dan pencetakan satu digit.},
+    label={lst:m03-hitung}
+]{code/m03-hitung.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas \texttt{.asm}
+          ke dalamnya.
+    \item Rakit dan tautkan program pertama. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m03-pindah-data.asm}\\
+          \texttt{tlink m03-pindah-data.obj}
+          \end{quote}
+          Jalankan program itu di emu8086 dengan \emph{single step}.
+    \item Catat isi \texttt{AX}, \texttt{BX}, \texttt{CX}, dan
+          \texttt{DX} sesudah setiap instruksi. Bandingkan hasilnya
+          dengan Tabel~\ref{tab:m03-pindah}. Jelaskan perbedaan kerja
+          \texttt{MOV} dan \texttt{XCHG}.
+    \item Rakit dan tautkan program kedua dengan perintah yang sama,
+          lalu jalankan. Catat karakter yang tercetak.
+    \item Periksa \texttt{AX} sesudah \texttt{ADD AX,5678h} dengan
+          emu8086 atau DEBUG. Catat nilainya dan jelaskan mengapa
+          hasil itu tidak dicetak.
+    \item Ubah nilai awal pada program kedua sehingga runtunan
+          menghasilkan digit lain antara 0 dan 9. Rakit ulang,
+          jalankan, dan pastikan karakter yang tercetak berubah.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan perbedaan \texttt{MOV AX,BX} dan
+          \texttt{XCHG AX,BX}.
+    \item Diketahui \texttt{AX=1111h} dan \texttt{BX=2222h}. Tentukan
+          isi kedua register sesudah \texttt{XCHG AX,BX}.
+    \item Jelaskan tugas \texttt{ADD}, \texttt{SUB}, \texttt{INC},
+          dan \texttt{DEC}, serta mengapa \texttt{INC} lebih ringkas
+          daripada \texttt{ADD AL,1}.
+    \item Jelaskan mengapa \texttt{ADD AL,30h} hanya dapat dipakai
+          untuk mencetak satu digit 0--9. Tentukan hasilnya bila
+          \texttt{AL} bernilai 10.
+    \item Ubah program kedua agar runtunannya menghasilkan
+          $9-3+1=7$, lalu tentukan nilai \texttt{AL} sebelum dan
+          sesudah \texttt{ADD AL,30h}.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tabel isi register sesudah setiap instruksi pada program
+          pertama.
+    \item Tangkapan layar keluaran program kedua dan tampilan
+          register sesudah \texttt{ADD AX,5678h}.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}

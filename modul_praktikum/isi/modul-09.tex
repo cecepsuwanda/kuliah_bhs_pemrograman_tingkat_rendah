@@ -1,0 +1,190 @@
+\section{Modul 09. Pencetakan bilangan}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item menjelaskan mengapa bilangan harus diubah menjadi deret
+          digit sebelum dicetak;
+    \item menggunakan \texttt{DIV} untuk pembagian byte dan word
+          serta menjelaskan hasil bagi dan sisanya;
+    \item mengosongkan \texttt{DX} sebelum pembagian word;
+    \item mencetak satu bilangan tidak bertanda lebih dari satu digit
+          dalam bentuk desimal;
+    \item mencetak satu word sebagai empat digit heksadesimal;
+    \item memakai prosedur untuk memecah rutin pencetakan.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Mengapa bilangan perlu diubah}
+
+Layanan \texttt{AH=02h} hanya mencetak satu karakter. Isi register
+berupa bilangan biner, bukan kode ASCII. Karena itu, bilangan harus
+diubah lebih dahulu menjadi deret digit, lalu setiap digit diubah
+menjadi kode ASCII. Pencetakan bilangan dikerjakan sendiri oleh
+program; DOS tidak menyediakan layanan yang langsung mencetak
+bilangan.
+
+\subsubsection*{Instruksi DIV}
+
+\texttt{DIV} membagi bilangan pada \texttt{AX} atau \texttt{DX:AX}
+dengan operand pembagi. Hasil bagi dan sisa diletakkan pada register
+yang berbeda menurut ukuran pembagi, seperti ditunjukkan pada
+Tabel~\ref{tab:m09-div}.
+
+\begin{table}[H]
+    \centering
+    \caption{Hasil \texttt{DIV} menurut ukuran pembagi.}
+    \label{tab:m09-div}
+    \small
+    \begin{tabular}{@{}llll@{}}
+        \toprule
+        \textbf{Pembagi} & \textbf{Yang dibagi} &
+        \textbf{Hasil bagi} & \textbf{Sisa} \\
+        \midrule
+        8 bit & \texttt{AX} & \texttt{AL} & \texttt{AH} \\
+        16 bit & \texttt{DX:AX} & \texttt{AX} & \texttt{DX} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Pada pembagian word, \texttt{DX:AX} dipakai sebagai bilangan yang
+dibagi. Sebelum \texttt{DIV}, \texttt{DX} harus dikosongkan agar
+bilangan yang dibagi hanya berisi nilai pada \texttt{AX}. Bila
+\texttt{DX} tidak dikosongkan, sisa lama pada \texttt{DX} ikut
+menjadi bagian bilangan dan hasil pembagian menjadi salah. Contoh:
+dengan \texttt{AX=12345}, \texttt{BX=10}, dan \texttt{DX=0},
+\texttt{DIV BX} menghasilkan hasil bagi \texttt{1234} pada
+\texttt{AX} dan sisa \texttt{5} pada \texttt{DX}.
+
+\subsubsection*{Konversi desimal}
+
+Algoritma desimal membagi bilangan dengan 10 secara berulang. Setiap
+sisa pembagian disimpan di stack sebagai satu digit, dan cacah digit
+dicatat pada \texttt{CX}. Pembagian diulang sampai hasil bagi nol.
+Setelah itu, digit diambil dari stack satu per satu, ditambah
+\texttt{'0'} agar menjadi kode ASCII, lalu dicetak.
+
+Sisa pembagian muncul dari digit paling kanan ke paling kiri,
+sedangkan pencetakan harus dari kiri ke kanan. Sifat LIFO pada stack
+membalik urutan itu sehingga digit tercetak dengan benar. Untuk
+bilangan nol, pembagian tetap dijalankan sekali sehingga satu digit
+\texttt{'0'} tersimpan dan dicetak.
+
+\subsubsection*{Konversi heksadesimal}
+
+Heksadesimal memakai basis 16 dan empat bit per digit. Prinsip
+pembagian yang sama dipakai dengan pembagi 16. Setiap sisa bernilai
+0 sampai 15. Sisa 0--9 diubah dengan menambahkan \texttt{'0'},
+sedangkan sisa 10--15 diubah dengan menambahkan 7 lebih dahulu, baru
+kemudian \texttt{'0'}. Penambahan 7 itu memindahkan 10--15 ke posisi
+\texttt{'A'}--\texttt{'F'}. Tabel~\ref{tab:m09-digit} merangkumnya.
+
+\begin{table}[H]
+    \centering
+    \caption{Konversi sisa pembagian menjadi kode ASCII.}
+    \label{tab:m09-digit}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Nilai sisa} & \textbf{Perlakuan} & \textbf{Contoh} \\
+        \midrule
+        0--9 & tambah \texttt{30h} & 5 menjadi \texttt{35h} = \texttt{'5'} \\
+        10--15 & tambah \texttt{37h} & 10 menjadi \texttt{41h} = \texttt{'A'} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Rutin heksadesimal dijalankan empat kali sehingga satu word selalu
+dicetak sebagai empat digit, termasuk angka nol di depan. Prosedur
+pencetakan menyimpan dan memulihkan register yang dipakainya dengan
+\texttt{PUSH} dan \texttt{POP} agar nilai pemanggil tidak berubah.
+
+Rujukan singkat: Gunawan, Bagian 14.1.1 dan 14.1.2; S'to, Bab XX;
+buku ajar, berkas \texttt{cetak-bilangan.asm} dan \texttt{chapters/15}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m09-cetak-desimal.asm} dan
+          \texttt{code/m09-cetak-hex.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama mencetak \texttt{12345} dalam bentuk desimal.
+Prosedur \texttt{CETAK\_DESIMAL} membagi dengan 10, menyimpan sisa di
+stack, lalu mencetak digit dari kiri ke kanan.
+
+\lstinputlisting[
+    caption={Mencetak bilangan desimal lebih dari satu digit.},
+    label={lst:m09-desimal}
+]{code/m09-cetak-desimal.asm}
+
+Program kedua mencetak word yang sama sebagai heksadesimal. Karena
+\texttt{12345 = 3039h}, keluarannya adalah \texttt{3039}. Prosedur
+\texttt{CETAK\_HEX} membagi dengan 16 sebanyak empat kali.
+
+\lstinputlisting[
+    caption={Mencetak satu word sebagai empat digit heksadesimal.},
+    label={lst:m09-hex}
+]{code/m09-cetak-hex.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas \texttt{.asm}
+          ke dalamnya.
+    \item Rakit dan tautkan program pertama. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m09-cetak-desimal.asm}\\
+          \texttt{tlink m09-cetak-desimal.obj}
+          \end{quote}
+          Jalankan hasilnya dan catat bilangan yang tercetak.
+    \item Ubah \texttt{NILAI} menjadi 0, rakit ulang, lalu jalankan.
+          Ulangi dengan \texttt{NILAI} bernilai 65535. Catat kedua
+          keluarannya.
+    \item Jalankan program pertama dengan \emph{single step} pada
+          emu8086. Pada setiap \texttt{DIV}, catat nilai \texttt{AX}
+          dan \texttt{DX} sebelum serta sesudah pembagian. Pastikan
+          \texttt{DX} dikosongkan lebih dahulu.
+    \item Rakit dan tautkan program kedua dengan perintah yang sama,
+          lalu jalankan. Catat keluaran empat digitnya.
+    \item Ubah \texttt{NILAI} menjadi \texttt{000Fh}, lalu menjadi
+          \texttt{0FFFFh}. Rakit ulang dan jalankan kedua versi.
+          Jelaskan bagaimana sisa 10--15 diubah menjadi
+          \texttt{'A'}--\texttt{'F'}.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan hasil \texttt{DIV} untuk pembagi 8 bit dan pembagi
+          16 bit. Sebutkan register hasil bagi dan sisa pada
+          masing-masing kasus.
+    \item Jelaskan mengapa \texttt{DX} harus dikosongkan sebelum
+          \texttt{DIV} word dan apa akibatnya bila tidak dikosongkan.
+    \item Jelaskan algoritma konversi desimal dan peran stack di
+          dalamnya. Telusuri sisa pembagian untuk bilangan 243.
+    \item Jelaskan cara mengubah sisa 10--15 menjadi karakter
+          \texttt{'A'}--\texttt{'F'}.
+    \item Tentukan deret digit desimal dan heksadesimal untuk bilangan
+          12345, lalu bandingkan hasilnya dengan keluaran kedua
+          program.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tangkapan layar keluaran kedua program untuk beberapa nilai
+          \texttt{NILAI}.
+    \item Tabel jejak \texttt{DIV} berisi \texttt{AX} dan \texttt{DX}
+          sebelum serta sesudah pembagian.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}

@@ -1,0 +1,215 @@
+\section{Modul 07. Array}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item mendefinisikan data dengan \texttt{DB}, \texttt{DW}, dan
+          \texttt{DUP};
+    \item menjelaskan array sebagai data berurutan di memori dan
+          string sebagai deretan karakter yang diakhiri \texttt{\$};
+    \item menjelaskan tujuh mode pengalamatan yang dipakai pada modul
+          ini;
+    \item mengakses elemen array dengan \texttt{SI}, \texttt{BX},
+          \texttt{[SI]}, dan \texttt{[BX]};
+    \item menjumlahkan array word dan mencari elemen terbesar array
+          byte;
+    \item merakit dan menjalankan kedua program.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{DB, DW, dan DUP}
+
+\texttt{DB} mendefinisikan data satu byte, sedangkan \texttt{DW}
+mendefinisikan data dua byte (satu word). \texttt{DUP} mengulang
+sebuah nilai sebanyak yang ditentukan. Ketiga bentuk itu dirangkum
+pada Tabel~\ref{tab:m07-data}.
+
+\begin{table}[H]
+    \centering
+    \caption{Directif data yang dipakai pada Modul 07.}
+    \label{tab:m07-data}
+    \small
+    \begin{tabular}{@{}llll@{}}
+        \toprule
+        \textbf{Directif} & \textbf{Ukuran} & \textbf{Contoh} &
+        \textbf{Isi} \\
+        \midrule
+        \texttt{DB} & 1 byte & \texttt{DERET DB 5,9,3} &
+        tiga byte berurutan \\
+        \texttt{DW} & 2 byte & \texttt{DERET DW 2,3,4} &
+        tiga word, total enam byte \\
+        \texttt{DUP} & berulang & \texttt{RUANG DB 10 DUP(0)} &
+        sepuluh byte bernilai nol \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Array adalah kumpulan data bertipe sama yang disimpan berurutan.
+Elemen pertama berada pada offset awal array, elemen kedua pada
+offset awal ditambah ukuran elemen, dan seterusnya. String adalah
+deretan karakter yang setiap karakter menempati satu byte. String
+yang akan dicetak dengan \texttt{AH=09h} diakhiri tanda \texttt{\$};
+tanda itu menandai akhir string dan tidak ikut tercetak.
+
+\subsubsection*{Tujuh mode pengalamatan}
+
+Mode pengalamatan menyatakan bagaimana prosesor memperoleh operand.
+Tujuh mode yang dipakai pada modul ini dirangkum pada
+Tabel~\ref{tab:m07-mode}.
+
+\begin{table}[H]
+    \centering
+    \caption{Tujuh mode pengalamatan pada Modul 07.}
+    \label{tab:m07-mode}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Mode} & \textbf{Bentuk} & \textbf{Contoh} \\
+        \midrule
+        Register & register & \texttt{MOV AX,BX} \\
+        Immediate & nilai segera & \texttt{MOV AX,5} \\
+        Direct memory & nama variabel & \texttt{MOV AX,DERET} \\
+        Indirect & \texttt{[register]} & \texttt{MOV AX,[SI]} \\
+        Base relative & \texttt{[BX+disp]} & \texttt{MOV AX,[BX+2]} \\
+        Direct index & \texttt{[SI+disp]} & \texttt{MOV AX,[SI+2]} \\
+        Based indexed & \texttt{[BX+SI+disp]} &
+        \texttt{MOV AX,[BX+SI+2]} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Pada mode indirect dan seterusnya, \texttt{SI} atau \texttt{BX}
+menyimpan alamat offset, bukan data. Tanda kurung siku memerintahkan
+prosesor mengambil isi memori pada alamat yang ditunjuk register itu.
+Penunjuk yang dipakai pada modul ini adalah \texttt{SI} dan
+\texttt{BX}. Perpindahan ditulis sebagai bilangan biasa, dan besarnya
+mengikuti ukuran elemen: dua byte untuk word, satu byte untuk byte.
+
+\subsubsection*{Menelusuri array}
+
+Pola penjumlahan array word memakai \texttt{SI} sebagai penunjuk dan
+\texttt{CX} sebagai pencacah. Setiap iterasi menambahkan isi
+\texttt{[SI]} ke akumulator, lalu \texttt{SI} ditambah 2 karena satu
+elemen word berukuran dua byte. Jejak tiga iterasi ditunjukkan pada
+Tabel~\ref{tab:m07-jejak}.
+
+\begin{table}[H]
+    \centering
+    \caption{Jejak penjumlahan \texttt{DERET DW 2,3,4}.}
+    \label{tab:m07-jejak}
+    \small
+    \begin{tabular}{@{}cccc@{}}
+        \toprule
+        \textbf{Iterasi} & \textbf{Elemen \texttt{[SI]}} &
+        \textbf{AX sesudah} & \textbf{SI sesudah} \\
+        \midrule
+        1 & 2 & 2 & offset awal + 2 \\
+        2 & 3 & 5 & offset awal + 4 \\
+        3 & 4 & 9 & offset awal + 6 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Pencarian nilai terbesar array byte memakai \texttt{BX} sebagai
+penunjuk. Elemen pertama dijadikan kandidat pada \texttt{AL}. Setiap
+elemen berikutnya dibandingkan dengan kandidat memakai
+\texttt{CMP}; bila elemen lebih besar, kandidat diganti. Karena isi
+array diperlakukan sebagai bilangan tidak bertanda, lompatan yang
+dipakai adalah \texttt{JAE}. Setelah semua elemen diperiksa,
+\texttt{AL} berisi nilai terbesar.
+
+Jumlah yang melebihi 9 tidak dapat dicetak dengan menambahkan
+\texttt{30h}. Nilai semacam itu diperiksa pada register dengan
+emu8086 atau DEBUG. Modul ini hanya memakai array satu dimensi dan
+tidak memakai \texttt{PUSH}, parameter lewat stack, atau pengurutan.
+
+Rujukan singkat: Gunawan, Bagian 9 kecuali 9.7, dan Bagian 10.1;
+S'to, Bab XI (mode yang dipakai pada modul ini); buku ajar,
+\texttt{chapters/12} dan \texttt{chapters/15/section-01.tex};
+buku ajar, \texttt{mode-array.asm} dan \texttt{array-string.asm}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m07-jumlah-array.asm} dan
+          \texttt{code/m07-maksimum.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama menjumlahkan tiga word dengan \texttt{SI} dan
+\texttt{LOOP}. Jumlahnya 9 sehingga dapat dicetak sebagai satu digit.
+
+\lstinputlisting[
+    caption={Menjumlahkan array word dengan \texttt{SI} dan
+    \texttt{LOOP}.},
+    label={lst:m07-jumlah}
+]{code/m07-jumlah-array.asm}
+
+Program kedua mencari elemen terbesar array byte dengan \texttt{BX}.
+Kandidat terbesar disimpan pada \texttt{AL} dan diperbarui memakai
+\texttt{CMP} dan \texttt{JAE}.
+
+\lstinputlisting[
+    caption={Mencari elemen terbesar array byte dengan \texttt{BX}.},
+    label={lst:m07-maksimum}
+]{code/m07-maksimum.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas \texttt{.asm}
+          ke dalamnya.
+    \item Rakit dan tautkan program pertama. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m07-jumlah-array.asm}\\
+          \texttt{tlink m07-jumlah-array.obj}
+          \end{quote}
+          Jalankan hasilnya dan catat karakter yang tercetak.
+    \item Jalankan program pertama dengan \emph{single step} pada
+          emu8086. Catat \texttt{[SI]}, \texttt{AX}, dan \texttt{SI}
+          pada setiap iterasi, lalu bandingkan dengan
+          Tabel~\ref{tab:m07-jejak}.
+    \item Ubah isi \texttt{DERET} menjadi \texttt{5,6,7} sehingga
+          jumlahnya 18. Rakit ulang dan jalankan. Jelaskan mengapa
+          keluarannya bukan bilangan 18, lalu periksa \texttt{AX}
+          dengan emu8086 atau DEBUG.
+    \item Rakit dan tautkan program kedua dengan perintah yang sama,
+          lalu jalankan. Catat karakter yang tercetak.
+    \item Jalankan program kedua dengan \emph{single step}. Catat
+          \texttt{AL} dan \texttt{BX} pada setiap iterasi. Ubah isi
+          \texttt{DERET} menjadi \texttt{4,8,2,6,1}, rakit ulang, dan
+          pastikan keluarannya berubah.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan perbedaan \texttt{DB} dan \texttt{DW}, lalu
+          tentukan jumlah byte untuk lima elemen masing-masing.
+    \item Jelaskan tugas \texttt{DUP} dan berikan satu contoh beserta
+          jumlah byte yang dihasilkan.
+    \item Sebutkan tujuh mode pengalamatan pada modul ini dan berikan
+          satu contoh untuk setiap mode.
+    \item Jelaskan mengapa \texttt{SI} ditambah 2 pada array word,
+          sedangkan \texttt{BX} ditambah 1 pada array byte.
+    \item Jelaskan cara kerja pencarian nilai terbesar dan alasan
+          pemakaian \texttt{JAE}.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tangkapan layar keluaran kedua program.
+    \item Tabel jejak iterasi berisi \texttt{[SI]}, \texttt{AX}, dan
+          \texttt{SI} untuk program pertama serta \texttt{BX} dan
+          \texttt{AL} untuk program kedua.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}

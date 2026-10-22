@@ -1,0 +1,197 @@
+\section{Modul 04. Pemilihan}
+
+\subsection{Tujuan}
+
+Setelah menyelesaikan modul ini, mahasiswa mampu:
+\begin{enumerate}[nosep]
+    \item menulis label dan memakainya sebagai tujuan lompatan;
+    \item menjelaskan kerja \texttt{CMP} dan \emph{flag} \texttt{ZF},
+          \texttt{CF}, serta \texttt{SF};
+    \item membedakan lompatan untuk bilangan tidak bertanda
+          (\texttt{JA}, \texttt{JB}) dan bilangan bertanda
+          (\texttt{JG}, \texttt{JL});
+    \item menyusun percabangan \texttt{if} dan \texttt{if--else}
+          dengan \texttt{JMP};
+    \item merakit, menjalankan, dan menelusuri percabangan dengan
+          emu8086 atau DEBUG.
+\end{enumerate}
+
+\subsection{Dasar singkat}
+
+\subsubsection*{Label}
+
+Label adalah nama untuk suatu lokasi di dalam segmen kode. Label
+didefinisikan dengan titik dua, misalnya \texttt{LEWATI:}, tetapi
+ditulis tanpa titik dua saat menjadi tujuan lompatan. Nama label
+harus unik, tidak diawali angka, tidak mengandung spasi, dan panjangnya
+paling banyak 31 karakter. Label diperlukan karena lompatan selalu
+menuju lokasi tertentu, bukan menuju nomor baris.
+
+\subsubsection*{CMP dan flag}
+
+\texttt{CMP} mengurangkan operand kedua dari operand pertama, tetapi
+hasil pengurangan itu dibuang. Kedua operand tidak berubah; yang
+berubah hanya \emph{flag}. Karena itu, \texttt{CMP} dipakai untuk
+menyiapkan keputusan, bukan untuk menyimpan hasil.
+
+Tiga flag yang dipakai pada modul ini dijelaskan pada
+Tabel~\ref{tab:m04-flag}. \texttt{ZF} menandai hasil nol,
+\texttt{CF} menandai pinjaman pada pengurangan bilangan tidak
+bertanda, dan \texttt{SF} menyalin bit tanda hasil pengurangan.
+
+\begin{table}[H]
+    \centering
+    \caption{Flag yang dipakai pada Modul 04.}
+    \label{tab:m04-flag}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Flag} & \textbf{Bernilai 1 bila} & \textbf{Petunjuk} \\
+        \midrule
+        \texttt{ZF} & hasil operasi nol & kedua nilai sama \\
+        \texttt{CF} & terjadi pinjaman pada pengurangan &
+        tujuan lebih kecil, tidak bertanda \\
+        \texttt{SF} & bit tanda hasil operasi bernilai 1 &
+        hasil bertanda negatif \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection*{JMP dan lompatan bersyarat}
+
+\texttt{JMP} memindahkan kendali ke label tujuan tanpa memeriksa
+keadaan apa pun. Lompatan bersyarat memeriksa flag: bila syarat
+terpenuhi, eksekusi pindah ke label; bila tidak, eksekusi berlanjut
+ke instruksi berikutnya. Lompatan yang dipakai pada modul ini
+dirangkum pada Tabel~\ref{tab:m04-jcc}.
+
+\begin{table}[H]
+    \centering
+    \caption{Lompatan bersyarat dan jenis bilangan yang dibandingkan.}
+    \label{tab:m04-jcc}
+    \small
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Instruksi} & \textbf{Jenis} & \textbf{Lompat bila} \\
+        \midrule
+        \texttt{JE}, \texttt{JZ} & kesamaan & tujuan sama dengan sumber \\
+        \texttt{JNE}, \texttt{JNZ} & kesamaan & tujuan tidak sama dengan sumber \\
+        \texttt{JA} & tidak bertanda & tujuan lebih besar \\
+        \texttt{JAE} & tidak bertanda & tujuan lebih besar atau sama \\
+        \texttt{JB} & tidak bertanda & tujuan lebih kecil \\
+        \texttt{JBE} & tidak bertanda & tujuan lebih kecil atau sama \\
+        \texttt{JG} & bertanda & tujuan lebih besar \\
+        \texttt{JGE} & bertanda & tujuan lebih besar atau sama \\
+        \texttt{JL} & bertanda & tujuan lebih kecil \\
+        \texttt{JLE} & bertanda & tujuan lebih kecil atau sama \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Huruf A dan B dipakai untuk bilangan tidak bertanda, sedangkan huruf
+G dan L dipakai untuk bilangan bertanda. Lompatan tidak bertanda
+membaca \texttt{CF} dan \texttt{ZF}; lompatan bertanda membaca
+\texttt{SF} dan \texttt{ZF}. Pola bit yang sama dapat memberi
+keputusan berbeda bila ditafsirkan dengan jenis bilangan yang salah.
+
+Pola \texttt{if} memakai satu lompatan bersyarat untuk melewati blok
+bila syarat tidak terpenuhi. Pola \texttt{if--else} memakai satu
+lompatan bersyarat menuju cabang kedua dan satu \texttt{JMP} untuk
+melewati cabang tersebut setelah selesai. \texttt{JMP} pada akhir
+cabang pertama mencegah cabang kedua ikut dijalankan.
+
+Rujukan singkat: Gunawan, Bagian 11.1 dan 11.2; S'to, Bab XIII sampai
+sebelum \texttt{LOOP}; praktikum \texttt{bab3.tex} (JMP, CMP, dan
+lompatan bersyarat); buku ajar, \texttt{chapters/13} bagian label,
+JMP, CMP, dan \texttt{if--else}.
+
+\subsection{Alat dan bahan}
+
+\begin{itemize}[nosep]
+    \item Komputer dengan emu8086 terpasang.
+    \item DOSBox dengan TASM, TLINK, dan DEBUG.
+    \item Berkas \texttt{code/m04-if.asm} dan
+          \texttt{code/m04-if-else.asm}.
+    \item Lembar jurnal praktikum.
+\end{itemize}
+
+\subsection{Contoh program}
+
+Program pertama memakai satu cabang \texttt{if}. Nilai \texttt{AL}
+dibandingkan dengan 5; kalimat dicetak hanya bila \texttt{AL} lebih
+besar dari 5 secara tidak bertanda. Bila syarat tidak terpenuhi,
+\texttt{JBE} melewati blok pencetakan.
+
+\lstinputlisting[
+    caption={Percabangan \texttt{if} dengan \texttt{CMP} dan
+    \texttt{JBE}.},
+    label={lst:m04-if}
+]{code/m04-if.asm}
+
+Program kedua memakai dua cabang. \texttt{JGE} menuju cabang
+\texttt{if} bila \texttt{AL} lebih besar atau sama dengan 5 secara
+bertanda. Bila tidak, cabang \texttt{else} dijalankan, lalu
+\texttt{JMP} melewati cabang \texttt{if}.
+
+\lstinputlisting[
+    caption={Percabangan \texttt{if--else} dengan \texttt{JGE} dan
+    \texttt{JMP}.},
+    label={lst:m04-if-else}
+]{code/m04-if-else.asm}
+
+\subsection{Langkah kerja}
+
+\begin{enumerate}
+    \item Siapkan folder kerja, lalu salin kedua berkas \texttt{.asm}
+          ke dalamnya.
+    \item Rakit dan tautkan program pertama. Jalankan kedua perintah
+          berikut pada baris terpisah:
+          \begin{quote}
+          \texttt{tasm m04-if.asm}\\
+          \texttt{tlink m04-if.obj}
+          \end{quote}
+          Jalankan hasilnya dan catat kalimat yang tercetak.
+    \item Ubah nilai \texttt{AL} pada program pertama dari 7 menjadi
+          3, rakit ulang, lalu jalankan. Jelaskan mengapa tidak ada
+          kalimat yang tercetak.
+    \item Rakit dan tautkan program kedua dengan perintah yang sama,
+          lalu jalankan. Catat kalimat yang muncul. Ubah nilai
+          \texttt{AL} dari 3 menjadi 7, rakit ulang, dan catat
+          perubahannya.
+    \item Jalankan \texttt{CMP AL,5} dengan \emph{single step} pada
+          emu8086 untuk \texttt{AL=3} dan \texttt{AL=7}. Catat nilai
+          \texttt{ZF}, \texttt{CF}, dan \texttt{SF} sesudah
+          \texttt{CMP}.
+    \item Ubah \texttt{JGE} pada program kedua menjadi \texttt{JA},
+          lalu isi \texttt{AL} dengan \texttt{0FFh}. Jalankan dan
+          bandingkan hasilnya dengan \texttt{JGE}. Jelaskan mengapa
+          kedua lompatan memberi cabang berbeda.
+\end{enumerate}
+
+\subsection{Tugas}
+
+\begin{enumerate}
+    \item Jelaskan cara kerja \texttt{CMP} dan mengapa kedua
+          operandnya tidak berubah.
+    \item Jelaskan arti \texttt{ZF}, \texttt{CF}, dan \texttt{SF}
+          sesudah sebuah perbandingan.
+    \item Diketahui \texttt{AL=0FEh} dan dilakukan
+          \texttt{CMP AL,5}. Tentukan apakah \texttt{JA} dan
+          \texttt{JG} melompat, lalu jelaskan alasannya.
+    \item Jelaskan peran \texttt{JMP} pada pola \texttt{if--else}.
+    \item Tuliskan runtunan instruksi untuk pola: bila
+          \texttt{AL=5}, cetak kalimat ``sama''; bila tidak, cetak
+          kalimat ``tidak sama''. Tentukan lompatan yang dipakai.
+\end{enumerate}
+
+\subsection{Hasil yang dikumpulkan}
+
+\begin{enumerate}
+    \item Kedua berkas \texttt{.asm} beserta versi modifikasinya.
+    \item Tangkapan layar keluaran kedua program pada kedua nilai
+          \texttt{AL}.
+    \item Tabel nilai \texttt{ZF}, \texttt{CF}, dan \texttt{SF}
+          sesudah \texttt{CMP AL,5} untuk \texttt{AL=3},
+          \texttt{AL=7}, dan \texttt{AL=0FFh}.
+    \item Lembar jurnal berisi jawaban langkah kerja dan tugas.
+\end{enumerate}
