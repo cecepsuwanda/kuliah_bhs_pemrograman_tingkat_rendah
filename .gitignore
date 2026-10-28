@@ -48,6 +48,23 @@ ppt/*.pdf
 referensi/
 
 # ============================================================
+# Hasil kompilasi assembler (TASM/TLINK): OBJ, EXE, COM, LST, MAP.
+# Sumber .asm tetap disimpan; berkas biner dan listing dapat
+# dibangun ulang, jadi tidak masuk repositori.
+# Pola ditulis dua kali karena TASM memakai ekstensi huruf besar.
+# ============================================================
+*.obj
+*.OBJ
+*.exe
+*.EXE
+*.com
+*.COM
+*.lst
+*.LST
+*.map
+*.MAP
+
+# ============================================================
 # Operating system files
 # ============================================================
 desktop.ini
