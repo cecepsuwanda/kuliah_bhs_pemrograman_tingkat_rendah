@@ -1,9 +1,10 @@
-\section{Modul 08. Stack}
+\MulaiModul{08}{Stack}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item menjelaskan sifat \emph{last in, first out} (LIFO) pada
           stack;
     \item menggunakan \texttt{PUSH} dan \texttt{POP} serta menjelaskan
@@ -15,6 +16,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
           parameter oleh pemanggil;
     \item merakit, menjalankan, dan memeriksa stack dengan DEBUG.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -94,13 +96,15 @@ sehingga pemanggil membuangnya dengan \texttt{ADD SP,4} untuk dua
 parameter word. Jumlah \texttt{PUSH} dan \texttt{POP} di dalam
 prosedur harus seimbang agar \texttt{SP} kembali ke posisi semula.
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 12; S'to, Bab XIV; praktikum
 \texttt{bab5.tex}; buku ajar, \texttt{chapters/14} bagian stack dan
 \texttt{param-bp.asm}.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m08-push-pop.asm} dan
@@ -138,10 +142,10 @@ kemudian dicetak sebagai satu digit.
           ke dalamnya.
     \item Rakit dan tautkan program pertama. Jalankan kedua perintah
           berikut pada baris terpisah:
-          \begin{quote}
-          \texttt{tasm m08-push-pop.asm}\\
-          \texttt{tlink m08-push-pop.obj}
-          \end{quote}
+          \begin{perintah}
+tasm m08-push-pop.asm\\
+tlink m08-push-pop.obj
+\end{perintah}
     \item Jalankan \texttt{debug m08-push-pop.exe}, lalu ketik
           \texttt{r}. Catat nilai \texttt{SS} dan \texttt{SP}. Ketik
           \texttt{t} beberapa kali sampai kedua \texttt{PUSH}

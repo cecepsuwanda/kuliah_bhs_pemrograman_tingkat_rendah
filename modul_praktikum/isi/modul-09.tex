@@ -1,9 +1,10 @@
-\section{Modul 09. Pencetakan bilangan}
+\MulaiModul{09}{Pencetakan bilangan}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item menjelaskan mengapa bilangan harus diubah menjadi deret
           digit sebelum dicetak;
     \item menggunakan \texttt{DIV} untuk pembagian byte dan word
@@ -14,6 +15,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
     \item mencetak satu word sebagai empat digit heksadesimal;
     \item memakai prosedur untuk memecah rutin pencetakan.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -101,12 +103,14 @@ dicetak sebagai empat digit, termasuk angka nol di depan. Prosedur
 pencetakan menyimpan dan memulihkan register yang dipakainya dengan
 \texttt{PUSH} dan \texttt{POP} agar nilai pemanggil tidak berubah.
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 14.1.1 dan 14.1.2; S'to, Bab XX;
 buku ajar, berkas \texttt{cetak-bilangan.asm} dan \texttt{chapters/15}.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m09-cetak-desimal.asm} dan
@@ -141,10 +145,10 @@ Program kedua mencetak word yang sama sebagai heksadesimal. Karena
           ke dalamnya.
     \item Rakit dan tautkan program pertama. Jalankan kedua perintah
           berikut pada baris terpisah:
-          \begin{quote}
-          \texttt{tasm m09-cetak-desimal.asm}\\
-          \texttt{tlink m09-cetak-desimal.obj}
-          \end{quote}
+          \begin{perintah}
+tasm m09-cetak-desimal.asm\\
+tlink m09-cetak-desimal.obj
+\end{perintah}
           Jalankan hasilnya dan catat bilangan yang tercetak.
     \item Ubah \texttt{NILAI} menjadi 0, rakit ulang, lalu jalankan.
           Ulangi dengan \texttt{NILAI} bernilai 65535. Catat kedua

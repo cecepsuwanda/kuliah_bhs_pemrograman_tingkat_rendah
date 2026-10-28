@@ -1,9 +1,10 @@
-\section{Modul 00. Register, interupsi, dan kerangka program}
+\MulaiModul{00}{Register, interupsi, dan kerangka program}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item membaca bilangan heksadesimal dan kode ASCII yang dipakai
           pada layanan DOS;
     \item menjelaskan pembagian register \texttt{AX} dan \texttt{DX}
@@ -14,6 +15,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
     \item membaca program contoh dan menelusuri isi register tanpa
           menulis atau merakit program.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -26,7 +28,7 @@ harus ditambahkan di depan agar assembler tidak membacanya sebagai
 label; karena itu ditulis \texttt{0Dh}, bukan \texttt{Dh}. Nilai yang
 dipakai pada modul ini dirangkum pada Tabel~\ref{tab:m00-hex}.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Nilai heksadesimal yang dipakai pada Modul 00.}
     \label{tab:m00-hex}
@@ -64,7 +66,7 @@ Sebagai contoh, bila \texttt{AX} bernilai \texttt{1234h}, maka
 \texttt{34h}. Peran bagian register yang dipakai layanan DOS
 ditunjukkan pada Tabel~\ref{tab:m00-register}.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Bagian register yang dipakai layanan DOS.}
     \label{tab:m00-register}
@@ -105,7 +107,7 @@ adalah \texttt{02h}, \texttt{09h}, dan \texttt{4Ch}. Khusus program
 \texttt{.COM}, program dapat ditutup dengan \texttt{INT 20h}.
 Rangkuman fungsi tersebut ditunjukkan pada Tabel~\ref{tab:m00-int21}.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Fungsi \texttt{INT 21h} dan \texttt{INT 20h} pada Modul 00.}
     \label{tab:m00-int21}
@@ -170,13 +172,15 @@ END START
 Direktif \texttt{ORG 100h} hanya dipakai pada program \texttt{.COM}
 dan tidak boleh dicampur dengan kerangka \texttt{.EXE}.
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 3 dan 4; S'to, Bab I, III, IV, V,
 dan VI; buku ajar, \texttt{chapters/03}, \texttt{05}, \texttt{07},
 dan \texttt{09/section-03.tex}.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 untuk menampilkan isi register.
     \item DOSBox dengan DEBUG sebagai alat pemeriksa.
     \item TASM dan TLINK sebagai perakit dan pengait; diperkenalkan

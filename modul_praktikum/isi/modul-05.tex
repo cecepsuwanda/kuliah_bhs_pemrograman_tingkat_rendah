@@ -1,9 +1,10 @@
-\section{Modul 05. Perulangan}
+\MulaiModul{05}{Perulangan}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item menjelaskan kerja \texttt{LOOP} dan peran \texttt{CX}
           sebagai pencacah;
     \item menulis perulangan dengan cacah tertentu memakai
@@ -15,6 +16,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
     \item merakit, menjalankan, dan memeriksa perulangan dengan
           emu8086 atau DEBUG.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -98,13 +100,15 @@ pola itu tidak dipakai pada modul ini. Modul ini tidak memakai
 \texttt{SI}, \texttt{[SI]}, \texttt{PROC}, \texttt{PUSH}, atau
 penelusuran array.
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 11.3; praktikum \texttt{bab3.tex}
 bagian LOOP; buku ajar, \texttt{chapters/13} bagian LOOP, while, dan
 for.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m05-loop-karakter.asm} dan
@@ -139,10 +143,10 @@ Perulangan diakhiri dengan \texttt{DEC CX} dan \texttt{JNZ ULANG}.
           ke dalamnya.
     \item Rakit dan tautkan program pertama. Jalankan kedua perintah
           berikut pada baris terpisah:
-          \begin{quote}
-          \texttt{tasm m05-loop-karakter.asm}\\
-          \texttt{tlink m05-loop-karakter.obj}
-          \end{quote}
+          \begin{perintah}
+tasm m05-loop-karakter.asm\\
+tlink m05-loop-karakter.obj
+\end{perintah}
           Jalankan hasilnya dan catat deretan karakter yang tercetak.
     \item Ubah \texttt{MOV CX,5} menjadi \texttt{MOV CX,8}, rakit
           ulang, lalu jalankan. Catat perubahan panjang deretan.

@@ -1,9 +1,10 @@
-\section{Modul 10. Logika dan geser bit}
+\MulaiModul{10}{Logika dan geser bit}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item menjelaskan operasi \texttt{AND}, \texttt{OR},
           \texttt{XOR}, dan \texttt{NOT} pada tingkat bit;
     \item memakai mask untuk menyalakan, memadamkan, atau membalik
@@ -14,6 +15,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
           \texttt{CF};
     \item menulis program yang memakai mask dan pergeseran bit.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -102,13 +104,15 @@ keluar. Hasil \texttt{04h} masih satu digit sehingga dapat dicetak
 setelah ditambah \texttt{30h}. Hasil yang lebih dari 9 tidak dapat
 dicetak dengan cara itu dan harus diperiksa pada register.
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 7; S'to, Bab X bagian logika dan
 pergeseran; praktikum \texttt{bab4.tex} bagian logika dan
 pergeseran; buku ajar, \texttt{chapters/11}.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m10-mask.asm} dan
@@ -145,10 +149,10 @@ lalu dicetak sebagai karakter \texttt{'4'}.
           ke dalamnya.
     \item Rakit dan tautkan program pertama. Jalankan kedua perintah
           berikut pada baris terpisah:
-          \begin{quote}
-          \texttt{tasm m10-mask.asm}\\
-          \texttt{tlink m10-mask.obj}
-          \end{quote}
+          \begin{perintah}
+tasm m10-mask.asm\\
+tlink m10-mask.obj
+\end{perintah}
           Jalankan hasilnya dan catat kalimat yang tercetak.
     \item Ubah mask pada \texttt{OR} dari \texttt{10000000b} menjadi
           \texttt{00000000b}. Rakit ulang, jalankan, dan jelaskan

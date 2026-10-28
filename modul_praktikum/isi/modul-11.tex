@@ -1,9 +1,10 @@
-\section{Modul 11. Debugging}
+\MulaiModul{11}{Debugging}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item membedakan kesalahan sintaks, kesalahan logika, dan program
           yang berhenti;
     \item memakai perintah DEBUG \texttt{R}, \texttt{T}, dan
@@ -13,6 +14,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
           lain;
     \item memverifikasi perbaikan dengan penelusuran ulang.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -118,14 +120,16 @@ Perbaikan dilakukan dengan menambahkan \texttt{POP AX} sebelum
 seimbang. Verifikasi dilakukan dengan menelusuri ulang sampai program
 kembali ke DOS dan pesan penutup tercetak.
 
+\begin{rujukan}
 Rujukan singkat: S'to, Bab XXVII; Gunawan, Bagian 4.3; buku ajar,
 \texttt{chapters/16} serta berkas \texttt{bug-loop.asm},
 \texttt{bug-loop-fix.asm}, \texttt{bug-stack.asm}, dan
 \texttt{bug-stack-fix.asm}.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m11-bug-loop.asm} dan
@@ -200,7 +204,7 @@ Program kedua melompat ke alamat salah karena stack tidak seimbang.
 
 \begin{enumerate}
     \item Kedua berkas ber-bug serta kedua berkas perbaikan:
-          \begin{itemize}[nosep]
+          \begin{itemize}
               \item \texttt{m11-bug-loop-fix.asm}
               \item \texttt{m11-bug-stack-fix.asm}
           \end{itemize}

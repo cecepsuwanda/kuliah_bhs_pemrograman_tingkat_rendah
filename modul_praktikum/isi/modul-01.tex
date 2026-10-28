@@ -1,9 +1,10 @@
-\section{Modul 01. Keluaran}
+\MulaiModul{01}{Keluaran}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item mencetak satu karakter dengan \texttt{INT 21h} fungsi
           \texttt{AH=02h};
     \item mencetak satu kalimat dengan \texttt{INT 21h} fungsi
@@ -15,6 +16,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
     \item merakit, menautkan, dan menjalankan kedua program dengan
           TASM dan TLINK.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -44,7 +46,7 @@ sebelum \texttt{\$}, kalimat berikutnya dimulai pada baris baru.
 Ringkasan karakter yang dipakai pada modul ini ditunjukkan pada
 Tabel~\ref{tab:m01-kontrol}.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Karakter kendali dan penanda akhir string.}
     \label{tab:m01-kontrol}
@@ -74,7 +76,7 @@ Layanan \texttt{02h} dan \texttt{09h} sama-sama dipanggil dengan
 itu dirangkum pada Tabel~\ref{tab:m01-layanan}. Nomor layanan pada
 \texttt{AH} harus ditulis sebelum setiap panggilan.
 
-\begin{table}[h]
+\begin{table}[H]
     \centering
     \caption{Persiapan register untuk layanan keluaran.}
     \label{tab:m01-layanan}
@@ -104,12 +106,14 @@ Bila tanda \texttt{\$} lupa ditulis, DOS terus mencetak isi memori di
 belakang string. Pastikan \texttt{\$} berada sesudah \texttt{0Dh},
 \texttt{0Ah} yang ingin dicetak.
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 6.1 dan 6.4; S'to, Bab VII dan XII;
 buku ajar, berkas \texttt{hello.asm} dan \texttt{chapters/07}.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m01-cetak-karakter.asm} dan
@@ -149,10 +153,10 @@ tanda \texttt{\$}.
           hasilnya dan catat keluarannya.
     \item Rakit dan tautkan program kedua. Jalankan kedua perintah
           berikut pada baris terpisah:
-          \begin{quote}
-          \texttt{tasm m01-cetak-kalimat.asm}\\
-          \texttt{tlink m01-cetak-kalimat.obj}
-          \end{quote}
+          \begin{perintah}
+tasm m01-cetak-kalimat.asm\\
+tlink m01-cetak-kalimat.obj
+\end{perintah}
           Jalankan hasilnya dan catat keluarannya.
     \item Ubah karakter pada program pertama dari \texttt{'A'} menjadi
           huruf lain, rakit ulang, lalu jalankan. Jelaskan bagian mana

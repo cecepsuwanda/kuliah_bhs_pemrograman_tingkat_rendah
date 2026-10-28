@@ -1,9 +1,10 @@
-\section{Modul 07. Array}
+\MulaiModul{07}{Array}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item mendefinisikan data dengan \texttt{DB}, \texttt{DW}, dan
           \texttt{DUP};
     \item menjelaskan array sebagai data berurutan di memori dan
@@ -16,6 +17,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
           byte;
     \item merakit dan menjalankan kedua program.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -125,14 +127,16 @@ Jumlah yang melebihi 9 tidak dapat dicetak dengan menambahkan
 emu8086 atau DEBUG. Modul ini hanya memakai array satu dimensi dan
 tidak memakai \texttt{PUSH}, parameter lewat stack, atau pengurutan.
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 9 kecuali 9.7, dan Bagian 10.1;
 S'to, Bab XI (mode yang dipakai pada modul ini); buku ajar,
 \texttt{chapters/12} dan \texttt{chapters/15/section-01.tex};
 buku ajar, \texttt{mode-array.asm} dan \texttt{array-string.asm}.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m07-jumlah-array.asm} dan
@@ -167,10 +171,10 @@ Kandidat terbesar disimpan pada \texttt{AL} dan diperbarui memakai
           ke dalamnya.
     \item Rakit dan tautkan program pertama. Jalankan kedua perintah
           berikut pada baris terpisah:
-          \begin{quote}
-          \texttt{tasm m07-jumlah-array.asm}\\
-          \texttt{tlink m07-jumlah-array.obj}
-          \end{quote}
+          \begin{perintah}
+tasm m07-jumlah-array.asm\\
+tlink m07-jumlah-array.obj
+\end{perintah}
           Jalankan hasilnya dan catat karakter yang tercetak.
     \item Jalankan program pertama dengan \emph{single step} pada
           emu8086. Catat \texttt{[SI]}, \texttt{AX}, dan \texttt{SI}

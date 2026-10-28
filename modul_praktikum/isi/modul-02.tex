@@ -1,9 +1,10 @@
-\section{Modul 02. Masukan}
+\MulaiModul{02}{Masukan}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item membaca satu karakter dengan \texttt{INT 21h} fungsi
           \texttt{AH=01h} dan menjelaskan hasilnya di \texttt{AL};
     \item membaca satu baris dengan \texttt{INT 21h} fungsi
@@ -13,6 +14,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
     \item merakit, menautkan, dan menjalankan kedua program dengan
           TASM dan TLINK.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -91,13 +93,15 @@ yang dipakai pada modul ini.
     \end{tabular}
 \end{table}
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 6.8; S'to, Bab XV bagian masukan
 \emph{keyboard}; buku ajar, \texttt{input-nama.asm} dan
 \texttt{chapters/09}.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m02-baca-karakter.asm} dan
@@ -133,10 +137,10 @@ sebanyak jumlah tersebut dengan layanan \texttt{02h}.
           ke dalamnya.
     \item Rakit dan tautkan program pertama. Jalankan kedua perintah
           berikut pada baris terpisah:
-          \begin{quote}
-          \texttt{tasm m02-baca-karakter.asm}\\
-          \texttt{tlink m02-baca-karakter.obj}
-          \end{quote}
+          \begin{perintah}
+tasm m02-baca-karakter.asm\\
+tlink m02-baca-karakter.obj
+\end{perintah}
           Jalankan hasilnya, ketik satu karakter, dan catat keluarannya.
     \item Rakit dan tautkan program kedua dengan perintah yang sama,
           lalu jalankan. Ketik nama Anda (minimal satu karakter) dan

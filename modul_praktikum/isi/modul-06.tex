@@ -1,9 +1,10 @@
-\section{Modul 06. Prosedur, fungsi, dan macro}
+\MulaiModul{06}{Prosedur, fungsi, dan macro}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item mendefinisikan prosedur dengan \texttt{PROC} dan
           \texttt{ENDP};
     \item memanggil prosedur dengan \texttt{CALL} dan mengakhirinya
@@ -16,6 +17,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
     \item merakit dan menjalankan program yang memakai prosedur,
           fungsi, dan macro.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -87,12 +89,14 @@ Prosedur dipilih bila bagian tersebut panjang atau sering dipanggil,
 sedangkan macro dipilih bila bagiannya pendek dan pemakaiannya
 sedikit.
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 13; S'to, Bab XVI dan XVII; buku
 ajar, \texttt{chapters/14} bagian prosedur dan macro.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m06-prosedur.asm} dan
@@ -131,10 +135,10 @@ mengembalikan hasilnya pada \texttt{AL}. Macro
           ke dalamnya.
     \item Rakit dan tautkan program pertama. Jalankan kedua perintah
           berikut pada baris terpisah:
-          \begin{quote}
-          \texttt{tasm m06-prosedur.asm}\\
-          \texttt{tlink m06-prosedur.obj}
-          \end{quote}
+          \begin{perintah}
+tasm m06-prosedur.asm\\
+tlink m06-prosedur.obj
+\end{perintah}
           Jalankan hasilnya dan catat kedua kalimat yang tercetak.
     \item Jalankan program pertama dengan \emph{single step} pada
           emu8086. Catat isi \texttt{DX} sebelum setiap \texttt{CALL}

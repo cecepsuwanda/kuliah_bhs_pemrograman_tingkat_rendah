@@ -1,9 +1,10 @@
-\section{Modul 03. Runtunan}
+\MulaiModul{03}{Runtunan}
 
 \subsection{Tujuan}
 
+\begin{tujuan}
 Setelah menyelesaikan modul ini, mahasiswa mampu:
-\begin{enumerate}[nosep]
+\begin{enumerate}
     \item menjelaskan tugas instruksi \texttt{MOV}, \texttt{XCHG},
           \texttt{ADD}, \texttt{SUB}, \texttt{INC}, dan \texttt{DEC};
     \item menulis runtunan instruksi yang dijalankan dari atas ke
@@ -14,6 +15,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
     \item merakit, menjalankan, dan memeriksa register program dengan
           emu8086 atau DEBUG.
 \end{enumerate}
+\end{tujuan}
 
 \subsection{Dasar singkat}
 
@@ -100,13 +102,15 @@ Runtunan pada modul ini tidak memakai \texttt{CMP}, lompatan, atau
 \texttt{LOOP}. Semua instruksi dijalankan berurutan sampai program
 berakhir.
 
+\begin{rujukan}
 Rujukan singkat: Gunawan, Bagian 5 (MOV dan XCHG); S'to, Bab VIII
 (ADD, SUB, INC, dan DEC); praktikum \texttt{bab1.tex} dan
 \texttt{bab2.tex}; buku ajar, \texttt{transfer-data.asm}.
+\end{rujukan}
 
 \subsection{Alat dan bahan}
 
-\begin{itemize}[nosep]
+\begin{itemize}
     \item Komputer dengan emu8086 terpasang.
     \item DOSBox dengan TASM, TLINK, dan DEBUG.
     \item Berkas \texttt{code/m03-pindah-data.asm} dan
@@ -142,10 +146,10 @@ register karena lebih dari satu digit.
           ke dalamnya.
     \item Rakit dan tautkan program pertama. Jalankan kedua perintah
           berikut pada baris terpisah:
-          \begin{quote}
-          \texttt{tasm m03-pindah-data.asm}\\
-          \texttt{tlink m03-pindah-data.obj}
-          \end{quote}
+          \begin{perintah}
+tasm m03-pindah-data.asm\\
+tlink m03-pindah-data.obj
+\end{perintah}
           Jalankan program itu di emu8086 dengan \emph{single step}.
     \item Catat isi \texttt{AX}, \texttt{BX}, \texttt{CX}, dan
           \texttt{DX} sesudah setiap instruksi. Bandingkan hasilnya
