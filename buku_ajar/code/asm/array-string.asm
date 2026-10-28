@@ -27,10 +27,10 @@ START:
     LEA SI, deret
     MOV CX, BANYAK
     XOR AX, AX                       ; AX = 0 (akumulator)
-JUMLAH:
+ULANG:
     ADD AX, [SI]                     ; tambahkan elemen
     ADD SI, 2                        ; maju satu word
-    LOOP JUMLAH
+    LOOP ULANG
     MOV jumlah, AX                   ; simpan hasil
 
     ; --- 2. menyalin string sampai penanda '$' ---

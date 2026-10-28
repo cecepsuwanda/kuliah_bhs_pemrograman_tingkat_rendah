@@ -19,7 +19,7 @@ START:
 
         MOV AL, 3               ; nilai yang diperiksa
         CMP AL, 5               ; bandingkan AL dengan 5
-        JGE BESAR               ; lompat bila AL >= 5 (bertanda)
+        JGE CABANG_BESAR        ; lompat bila AL >= 5 (bertanda)
 
 ; Cabang else: dijalankan bila AL < 5.
         MOV AH, 09h             ; pilih layanan cetak string
@@ -28,7 +28,7 @@ START:
         JMP SELESAI             ; lewati cabang if
 
 ; Cabang if: tujuan lompatan JGE.
-BESAR:
+CABANG_BESAR:
         MOV AH, 09h             ; pilih layanan cetak string
         MOV DX, OFFSET BESAR    ; DX = offset kalimat cabang if
         INT 21h                 ; cetak kalimat

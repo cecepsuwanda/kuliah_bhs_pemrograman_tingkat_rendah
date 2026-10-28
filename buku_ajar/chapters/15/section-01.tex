@@ -52,10 +52,10 @@ Elemen array diakses dengan register penunjuk. Pola penjumlahan array:
 LEA SI, deret
 MOV CX, BANYAK
 XOR AX, AX
-JUMLAH:
+ULANG:
     ADD AX, [SI]
     ADD SI, 2
-    LOOP JUMLAH
+    LOOP ULANG
 \end{lstlisting}
 
 \reg{SI} menunjuk elemen saat ini. Setiap iterasi menambahkan dua
