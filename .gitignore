@@ -44,6 +44,15 @@ buku_ajar/chapters/*/chapter.pdf
 # ppt/compile_ppt.bat, jadi tidak disimpan di repositori.
 ppt/*.pdf
 
+# Hasil kompilasi modul praktikum (modul_praktikum/main.pdf).
+# Sumbernya main.tex dan dapat dibangun ulang dengan
+# compile_modul_praktikum.bat, jadi tidak disimpan di repositori.
+modul_praktikum/main.pdf
+
+# Catatan perintah kerja lokal (perintah2.txt, perintah3.txt, ...).
+# perintah.text yang sudah ada di repositori tidak ikut terabaikan.
+perintah*.txt
+
 # Materi rujukan pihak ketiga tidak disertakan ke repositori
 referensi/
 
