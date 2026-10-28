@@ -15,7 +15,7 @@
 .CODE
 START:
     ; --- 1. inisialisasi register segmen data ---
-    MOV AX, @DATA           ; alamat segmen .DATA
+    MOV AX, @data           ; alamat segmen .DATA
     MOV DS, AX              ; DS harus menunjuk ke .DATA
 
     ; --- 2. cetak string dengan layanan DOS INT 21h fungsi 09h ---
